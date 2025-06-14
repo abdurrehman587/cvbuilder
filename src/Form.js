@@ -312,7 +312,7 @@ const Form = ({ formData, setFormData, onChange }) => {
         >
           Search
         </button>
-      </div>
+      </div></div></div></div></div></div></div></div>
 
 
       <div className="form-container" style={{ width: '100%' }}>
