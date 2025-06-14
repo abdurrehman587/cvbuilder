@@ -30,7 +30,7 @@ body, html, #root {
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .input-field {
@@ -38,6 +38,7 @@ body, html, #root {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  margin-bottom: 0.75rem;
 }
 
 .input-field input[type="text"] {
@@ -70,6 +71,7 @@ body, html, #root {
   .contact-row {
     flex-direction: column;
     gap: 12px;
+    margin-bottom: 0.75rem;
   }
 }
 
