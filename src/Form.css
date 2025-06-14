@@ -26,42 +26,24 @@
   }
 }
 
-/* Education Section Responsive Table */
-.education-section {
+/* Reusable Dynamic Section */
+.dynamic-section,
+.languages-section,
+.hobbies-section,
+.certifications-section,
+.projects-section,
+.references-section,
+.other-info-section {
   margin-bottom: 2rem;
 }
 
-.education-section .table {
-  width: 100%;
-  border-collapse: collapse;
-  overflow-x: auto;
-  display: block;
-}
-
-.education-section thead,
-.education-section tbody,
-.education-section tr {
-  display: table;
-  width: 100%;
-  table-layout: fixed;
-}
-
-.education-section th,
-.education-section td {
-  padding: 0.5rem;
-  text-align: left;
-  vertical-align: middle;
-  font-size: 0.95rem;
-}
-
-.education-section th {
-  background-color: #f3f4f6;
-  color: #2563eb;
-  font-weight: 600;
-  border-bottom: 2px solid #2563eb;
-}
-
-.education-section input[type="text"] {
+.dynamic-section textarea,
+.other-info-section input[type="text"],
+.languages-section input[type="text"],
+.hobbies-section input[type="text"],
+.certifications-section input[type="text"],
+.projects-section input[type="text"],
+.references-section input[type="text"] {
   width: 100%;
   padding: 0.5rem;
   font-size: 0.95rem;
@@ -71,67 +53,30 @@
   box-sizing: border-box;
 }
 
-.education-section input[type="text"]:focus {
+.dynamic-section textarea:focus,
+.other-info-section input[type="text"]:focus,
+.languages-section input[type="text"]:focus,
+.hobbies-section input[type="text"]:focus,
+.certifications-section input[type="text"]:focus,
+.projects-section input[type="text"]:focus,
+.references-section input[type="text"]:focus {
   border-color: #2563eb;
 }
 
-.education-section .add-btn {
-  margin-top: 1rem;
+.dynamic-entry,
+.custom-language-entry,
+.other-info-checkbox-item {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 0.75rem;
+  align-items: center;
 }
 
-/* Experience Section Responsive Table */
-.experience-section {
-  margin-bottom: 2rem;
-}
-
-.experience-section .table {
-  width: 100%;
-  border-collapse: collapse;
-  overflow-x: auto;
-  display: block;
-}
-
-.experience-section thead,
-.experience-section tbody,
-.experience-section tr {
-  display: table;
-  width: 100%;
-  table-layout: fixed;
-}
-
-.experience-section th,
-.experience-section td {
-  padding: 0.5rem;
-  text-align: left;
-  vertical-align: top;
-  font-size: 0.95rem;
-}
-
-.experience-section th {
-  background-color: #f3f4f6;
-  color: #2563eb;
-  font-weight: 600;
-  border-bottom: 2px solid #2563eb;
-}
-
-.experience-section input[type="text"],
-.experience-section textarea {
-  width: 100%;
-  padding: 0.5rem;
-  font-size: 0.95rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.5rem;
-  outline: none;
-  box-sizing: border-box;
-}
-
-.experience-section input[type="text"]:focus,
-.experience-section textarea:focus {
-  border-color: #2563eb;
-}
-
-.experience-section .add-btn {
-  margin-top: 1rem;
+.dynamic-entry button,
+.custom-language-entry button,
+.other-info-checkbox-item button {
+  white-space: nowrap;
 }
 
 /* Prevent overall body overflow */
@@ -238,7 +183,13 @@ body, html, #root {
   .languages-list,
   .other-info-container,
   .education-section,
-  .experience-section {
+  .experience-section,
+  .languages-section,
+  .hobbies-section,
+  .certifications-section,
+  .projects-section,
+  .references-section,
+  .other-info-section {
     margin-bottom: 0.75rem;
   }
 }
