@@ -35,12 +35,10 @@ const LandingPage = () => {
 
   const handleTemplateClick = (template) => {
     setSelectedTemplate(template);
-    // formData is preserved globally, not per template
   };
 
   const handleBack = () => {
     setSelectedTemplate(null);
-    // formData is preserved globally, not per template
   };
 
   const handleFormDataChange = (data) => {
@@ -118,6 +116,7 @@ const LandingPage = () => {
               justifyContent: 'center',
               alignItems: 'flex-start',
               flexWrap: 'wrap',
+              padding: '0 1rem',
             }}
           >
             <div
@@ -127,11 +126,8 @@ const LandingPage = () => {
                 maxWidth: '600px',
                 backgroundColor: '#fff',
                 padding: '1rem',
-                boxSizing: 'border-box',
                 borderRadius: '12px',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-                // Remove transform scaling for responsiveness
-                width: '100%',
               }}
             >
               <Form
@@ -145,9 +141,6 @@ const LandingPage = () => {
                 flex: '1 1 350px',
                 minWidth: '320px',
                 maxWidth: '800px',
-                boxSizing: 'border-box',
-                width: '100%',
-                // Remove transform scaling for responsiveness
                 overflowX: 'auto',
               }}
             >
@@ -177,7 +170,7 @@ const LandingPage = () => {
     );
   }
 
-  // Responsive Template selection screen
+  // Template selection screen
   return (
     <div
       style={{
@@ -207,7 +200,7 @@ const LandingPage = () => {
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
           gap: '2rem',
-          justifyContent: 'flex-start',
+          padding: '0.5rem',
         }}
       >
         {templates.map((template) => (
@@ -224,7 +217,6 @@ const LandingPage = () => {
             title={`Click to use ${template.name}`}
             style={{
               width: '100%',
-              aspectRatio: '2/3',
               backgroundColor: '#fff',
               border: '2px solid #3498db',
               borderRadius: '12px',
@@ -237,12 +229,13 @@ const LandingPage = () => {
               cursor: 'pointer',
               transition: 'transform 0.2s ease',
               userSelect: 'none',
-              minHeight: '350px',
-              maxHeight: '600px',
-              overflow: 'hidden',
+              height: '100%',
+              minHeight: '300px',
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.04)')}
-            onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.transform = 'translateY(-4px)')
+            }
+            onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
           >
             <div
               style={{
@@ -263,7 +256,12 @@ const LandingPage = () => {
               <img
                 src={template.imageUrl}
                 alt={`${template.name} Preview`}
-                style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'cover', borderRadius: '12px' }}
+                style={{
+                  maxWidth: '100%',
+                  maxHeight: '100%',
+                  objectFit: 'cover',
+                  borderRadius: '12px',
+                }}
               />
             </div>
             <div
@@ -284,4 +282,3 @@ const LandingPage = () => {
 };
 
 export default LandingPage;
-
