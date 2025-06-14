@@ -548,33 +548,56 @@ const WorkExperienceSection = ({ workExperience, onChange, onAdd, onRemove }) =>
       </thead>
       <tbody>
         {workExperience.map((work, index) => (
-          <tr key={index}>
-            <td>
-              <input
-                type="text"
-                value={work.company}
-                onChange={(e) => onChange(index, 'company', e.target.value)}
-                placeholder="Company"
-              />
-            </td>
-            <td>
-              <input
-                type="text"
-                value={work.designation}
-                onChange={(e) => onChange(index, 'designation', e.target.value)}
-                placeholder="Designation"
-              />
-            </td>
-            <td>
-              <input
-                type="text"
-                value={work.duration}
-                onChange={(e) => onChange(index, 'duration', e.target.value)}
-                placeholder="Duration"
-              />
-            </td>
-            <td>
-              <textarea
+  <React.Fragment key={index}>
+    <tr>
+      <td>
+        <input
+          type="text"
+          value={work.company}
+          onChange={(e) => onChange(index, 'company', e.target.value)}
+          placeholder="Company"
+        />
+      </td>
+      <td>
+        <input
+          type="text"
+          value={work.designation}
+          onChange={(e) => onChange(index, 'designation', e.target.value)}
+          placeholder="Designation"
+        />
+      </td>
+      <td>
+        <input
+          type="text"
+          value={work.duration}
+          onChange={(e) => onChange(index, 'duration', e.target.value)}
+          placeholder="Duration"
+        />
+      </td>
+      <td colSpan={2}>
+        <button
+          onClick={() => onRemove(index)}
+          disabled={workExperience.length <= 1}
+          className="remove-btn"
+          type="button"
+          title={workExperience.length <= 1 ? 'At least one work experience entry required' : 'Remove'}
+        >
+          Remove
+        </button>
+      </td>
+    </tr>
+    <tr>
+      <td colSpan={5}>
+        <textarea
+          value={work.details}
+          onChange={(e) => onChange(index, 'details', e.target.value)}
+          placeholder="Details"
+          rows={3}
+          style={{ width: '100%' }}
+        />
+      </td>
+    </tr>
+  </React.Fragment>
                 value={work.details}
                 onChange={(e) => onChange(index, 'details', e.target.value)}
                 placeholder="Details"
