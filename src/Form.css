@@ -1,16 +1,58 @@
 /* General container */
 .form-container {
   width: 100%;
-  max-width: 1140px; /* Increase as needed (e.g., 960px or 1140px) */
-  margin: 0 auto;   /* Center it */
+  max-width: 1200px;
+  margin: 0 auto;
   padding: 2rem;
   background-color: #fff;
   font-family: 'Inter', sans-serif;
   color: #374151;
   box-sizing: border-box;
+  overflow-x: hidden;
 }
 
+/* Prevent overall body overflow */
+body, html, #root {
+  width: 100%;
+  overflow-x: hidden;
+}
 
+/* Table wrapper for scroll */
+.table-wrapper {
+  overflow-x: auto;
+  width: 100%;
+}
+
+/* Contact Info Row */
+.contact-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 1.5rem;
+}
+
+.input-field {
+  flex: 1 1 300px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.input-field input[type="text"] {
+  padding: 0.5rem 0.75rem;
+  font-size: 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid #d1d5db;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+  transition: border-color 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.input-field input[type="text"]:focus {
+  border-color: #2563eb;
+}
 
 /* Profile Image Section */
 .profile-image-section {
@@ -30,43 +72,6 @@
   border-radius: 8px;
   object-fit: cover;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-}
-
-/* Contact Info Row */
-.contact-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  margin-bottom: 1.5rem;
-}
-
-
-/* Input Field */
-.input-field {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.input-field label {
-  margin-bottom: 4px;
-  font-weight: 600;
-  font-size: 1rem;
-  color: #374151;
-}
-
-.input-field input[type="text"] {
-  padding: 0.5rem 0.75rem;
-  font-size: 1rem;
-  border-radius: 0.75rem;
-  border: 1px solid #d1d5db;
-  font-family: 'Inter', sans-serif;
-  outline: none;
-  transition: border-color 0.2s;
-}
-
-.input-field input[type="text"]:focus {
-  border-color: #2563eb;
 }
 
 /* Dynamic Section */
@@ -126,7 +131,8 @@
 }
 
 /* Add button styles */
-.add-btn {
+.add-btn,
+.add-btn-margin-top {
   align-self: flex-start;
   padding: 0.5rem 1rem;
   font-weight: 600;
@@ -140,36 +146,12 @@
   transition: background-color 0.3s;
 }
 
-.add-btn:hover {
-  background-color: #1d4ed8;
-}
-
-/* Add button with margin top (used in other info) */
-.add-btn-margin-top {
-  padding: 0.5rem 1rem;
-  margin-top: 8px;
-  font-weight: 600;
-  background-color: #2563eb;
-  color: white;
-  border: none;
-  border-radius: 0.75rem;
-  cursor: pointer;
-  user-select: none;
-  transition: background-color 0.3s;
-}
-
+.add-btn:hover,
 .add-btn-margin-top:hover {
   background-color: #1d4ed8;
 }
 
-
-.input-field input,
-.input-field textarea {
-  width: 100%;
-}
-
-
-/* Table styles for Education and Work Experience */
+/* Table styles */
 .table {
   width: 100%;
   border-collapse: collapse;
@@ -209,11 +191,7 @@
   border-color: #2563eb;
 }
 
-.table-wrapper {
-  overflow-x: auto;
-}
-
-/* Remove button style used in tables and skills */
+/* Remove button */
 .remove-btn {
   padding: 0.4rem 0.75rem;
   background-color: #dc2626;
@@ -287,9 +265,9 @@
   margin-right: 8px;
 }
 
-/* Other info text inputs */
-.other-info-input {
-  margin-left: 8px;
+.other-info-input,
+.other-info-input-flex,
+.custom-other-info-label {
   padding: 6px;
   border-radius: 6px;
   border: 1px solid #d1d5db;
@@ -299,42 +277,20 @@
   transition: border-color 0.2s;
 }
 
-.other-info-input:focus {
+.other-info-input:focus,
+.other-info-input-flex:focus,
+.custom-other-info-label:focus {
   border-color: #2563eb;
 }
 
 .other-info-input-flex {
   flex: 1;
-  padding: 6px;
-  border-radius: 6px;
-  border: 1px solid #d1d5db;
-  font-size: 1rem;
-  font-family: 'Inter', sans-serif;
-  outline: none;
-  transition: border-color 0.2s;
 }
 
-.other-info-input-flex:focus {
-  border-color: #2563eb;
-}
-
-/* Custom other info label input */
 .custom-other-info-label {
   width: 120px;
-  padding: 6px;
-  border-radius: 6px;
-  border: 1px solid #d1d5db;
-  font-size: 1rem;
-  font-family: 'Inter', sans-serif;
-  outline: none;
-  transition: border-color 0.2s;
 }
 
-.custom-other-info-label:focus {
-  border-color: #2563eb;
-}
-
-/* Other info checkbox item */
 .other-info-checkbox-item {
   display: flex;
   align-items: center;
@@ -357,7 +313,6 @@
   margin-right: 8px;
 }
 
-/* Custom languages */
 .custom-language-entry {
   display: flex;
   align-items: center;
@@ -419,56 +374,43 @@
   background-color: #374151;
 }
 
-/* --- Responsive Enhancements --- */
-
-/* Stack contact rows vertically on small screens */
-@media (max-width: 700px) {
-  .contact-row {
-    flex-direction: column;
-    gap: 10px;
+/* Responsive Enhancements */
+@media (max-width: 1200px) {
+  .form-container {
+    padding: 1.5rem;
   }
 }
 
-/* Make form container padding smaller on small screens */
-@media (max-width: 700px) {
+@media (max-width: 992px) {
+  .form-container {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .form-container {
+    padding: 0.75rem;
+  }
+  .contact-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 576px) {
   .form-container {
     padding: 0.5rem;
   }
-}
 
-/* Make dynamic section and table font smaller on mobile */
-@media (max-width: 600px) {
-  .dynamic-section,
-  .profile-image-section,
-  .table {
-    font-size: 0.95rem;
-  }
-}
-
-/* Make table horizontally scrollable on small screens */
-@media (max-width: 700px) {
-  .table {
-    display: block;
-    width: 100%;
-    overflow-x: auto;
-  }
-  .table thead, .table tbody, .table tr {
-    display: table;
-    width: 100%;
-    table-layout: fixed;
-  }
-}
-
-/* Make buttons and inputs fill width on mobile */
-@media (max-width: 600px) {
   .save-btn,
   .add-btn,
   .add-btn-margin-top {
     width: 100%;
-    box-sizing: border-box;
     font-size: 1rem;
     padding: 12px 0;
+    box-sizing: border-box;
   }
+
   .input-field input[type="text"],
   .dynamic-entry textarea,
   .table input[type="text"],
@@ -479,86 +421,31 @@
     width: 100%;
     min-width: 0;
     box-sizing: border-box;
-    font-size: 1rem;
   }
-}
 
-/* Make profile image preview smaller on mobile */
-@media (max-width: 600px) {
   .profile-image-preview {
     max-width: 90px;
     max-height: 90px;
   }
-}
 
-/* Ensure all sections have proper spacing on mobile */
-@media (max-width: 600px) {
   .dynamic-section,
   .profile-image-section,
   .languages-list,
   .other-info-container {
     margin-bottom: 1rem;
   }
-}
 
-/* Prevent horizontal overflow */
-body, html, #root {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
-
-/* Responsive layout for form and preview */
-@media (max-width: 1200px) {
-  .form-container {
-    padding: 1rem;
-  }
-}
-
-@media (max-width: 900px) {
-  .form-container {
-    padding: 0.5rem;
-  }
-}
-
-@media (max-width: 800px) {
-  .form-container {
-    padding: 0.5rem;
-  }
-  .contact-row {
-    flex-direction: column;
-    gap: 8px;
-  }
-}
-
-@media (max-width: 700px) {
-  .form-container {
-    padding: 0.25rem;
-  }
-  .dynamic-section,
-  .profile-image-section,
   .table {
-    font-size: 0.95rem;
-  }
-  .save-btn {
+    display: block;
     width: 100%;
-    font-size: 1rem;
-    padding: 10px 0;
+    overflow-x: auto;
+  }
+
+  .table thead,
+  .table tbody,
+  .table tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
   }
 }
-
-@media (max-width: 600px) {
-  .form-container {
-    padding: 0.25rem;
-  }
-  .dynamic-section,
-  .profile-image-section,
-  .table {
-    font-size: 0.9rem;
-  }
-  .save-btn {
-    width: 100%;
-    font-size: 1rem;
-    padding: 10px 0;
-  }
-}
-
