@@ -580,7 +580,11 @@ const WorkExperienceSection = ({ workExperience, onChange, onAdd, onRemove }) =>
           disabled={workExperience.length <= 1}
           className="remove-btn"
           type="button"
-          title={workExperience.length <= 1 ? 'At least one work experience entry required' : 'Remove'}
+          title={
+            workExperience.length <= 1
+              ? 'At least one work experience entry required'
+              : 'Remove'
+          }
         >
           Remove
         </button>
@@ -598,25 +602,7 @@ const WorkExperienceSection = ({ workExperience, onChange, onAdd, onRemove }) =>
       </td>
     </tr>
   </React.Fragment>
-                value={work.details}
-                onChange={(e) => onChange(index, 'details', e.target.value)}
-                placeholder="Details"
-                rows={2}
-              />
-            </td>
-            <td>
-              <button
-                onClick={() => onRemove(index)}
-                disabled={workExperience.length <= 1}
-                className="remove-btn"
-                type="button"
-                title={workExperience.length <= 1 ? 'At least one work experience entry required' : 'Remove'}
-              >
-                Remove
-              </button>
-            </td>
-          </tr>
-        ))}
+))}
       </tbody>
     </table>
     <button onClick={onAdd} type="button" className="add-btn">
