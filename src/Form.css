@@ -1,12 +1,15 @@
 /* General container */
 .form-container {
   width: 100%;
+  max-width: 960px; /* Increase as needed (e.g., 960px or 1140px) */
+  margin: 0 auto;   /* Center it */
   padding: 2rem;
   background-color: #fff;
   font-family: 'Inter', sans-serif;
   color: #374151;
   box-sizing: border-box;
 }
+
 
 
 /* Profile Image Section */
@@ -32,9 +35,11 @@
 /* Contact Info Row */
 .contact-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 16px;
   margin-bottom: 1.5rem;
 }
+
 
 /* Input Field */
 .input-field {
@@ -157,6 +162,13 @@
   background-color: #1d4ed8;
 }
 
+
+.input-field input,
+.input-field textarea {
+  width: 100%;
+}
+
+
 /* Table styles for Education and Work Experience */
 .table {
   width: 100%;
@@ -195,6 +207,10 @@
 
 .table input[type="text"]:focus {
   border-color: #2563eb;
+}
+
+.table-wrapper {
+  overflow-x: auto;
 }
 
 /* Remove button style used in tables and skills */
