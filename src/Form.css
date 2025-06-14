@@ -403,6 +403,94 @@
   background-color: #374151;
 }
 
+/* --- Responsive Enhancements --- */
+
+/* Stack contact rows vertically on small screens */
+@media (max-width: 700px) {
+  .contact-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+
+/* Make form container padding smaller on small screens */
+@media (max-width: 700px) {
+  .form-container {
+    padding: 0.5rem;
+  }
+}
+
+/* Make dynamic section and table font smaller on mobile */
+@media (max-width: 600px) {
+  .dynamic-section,
+  .profile-image-section,
+  .table {
+    font-size: 0.95rem;
+  }
+}
+
+/* Make table horizontally scrollable on small screens */
+@media (max-width: 700px) {
+  .table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+  }
+  .table thead, .table tbody, .table tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+  }
+}
+
+/* Make buttons and inputs fill width on mobile */
+@media (max-width: 600px) {
+  .save-btn,
+  .add-btn,
+  .add-btn-margin-top {
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 1rem;
+    padding: 12px 0;
+  }
+  .input-field input[type="text"],
+  .dynamic-entry textarea,
+  .table input[type="text"],
+  .other-info-input,
+  .other-info-input-flex,
+  .custom-other-info-label,
+  .custom-language-entry input[type="text"] {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    font-size: 1rem;
+  }
+}
+
+/* Make profile image preview smaller on mobile */
+@media (max-width: 600px) {
+  .profile-image-preview {
+    max-width: 90px;
+    max-height: 90px;
+  }
+}
+
+/* Ensure all sections have proper spacing on mobile */
+@media (max-width: 600px) {
+  .dynamic-section,
+  .profile-image-section,
+  .languages-list,
+  .other-info-container {
+    margin-bottom: 1rem;
+  }
+}
+
+/* Prevent horizontal overflow */
+body, html, #root {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
 /* Responsive layout for form and preview */
 @media (max-width: 1200px) {
   .form-container {
@@ -455,24 +543,6 @@
     width: 100%;
     font-size: 1rem;
     padding: 10px 0;
-  }
-}
-
-/* Make tables scrollable on small screens */
-@media (max-width: 600px) {
-  .table {
-    display: block;
-    overflow-x: auto;
-    width: 100%;
-  }
-}
-
-/* Ensure preview and form stack vertically on small screens */
-@media (max-width: 900px) {
-  body,
-  #root,
-  .App {
-    min-width: 0 !important;
   }
 }
 
