@@ -526,7 +526,7 @@ const EducationSection = ({ education, onChange, onAdd, onRemove }) => (
           </tr>
         ))}
       </tbody>
-    </table></div></div>
+    </table></div></div></div></div>
     <button onClick={onAdd} type="button" className="add-btn">
       Add Education
     </button>
@@ -534,9 +534,9 @@ const EducationSection = ({ education, onChange, onAdd, onRemove }) => (
 );
 
 const WorkExperienceSection = ({ workExperience, onChange, onAdd, onRemove }) => (
-  <div style={{ marginBottom: '1.5rem' }}>
+  <div className="experience-section"><div style={{ marginBottom: '1.5rem' }}>
     <h3 style={{ fontWeight: 700, fontSize: '1.25rem', marginBottom: 8, color: '#374151' }}>Work Experience</h3>
-    <table className="table">
+    <div className="table-wrapper"><table className="table">
       <thead>
         <tr>
           <th>Company</th>
