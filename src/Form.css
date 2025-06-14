@@ -26,6 +26,59 @@
   }
 }
 
+/* Education Section Responsive Table */
+.education-section {
+  margin-bottom: 2rem;
+}
+
+.education-section .table {
+  width: 100%;
+  border-collapse: collapse;
+  overflow-x: auto;
+  display: block;
+}
+
+.education-section thead,
+.education-section tbody,
+.education-section tr {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.education-section th,
+.education-section td {
+  padding: 0.5rem;
+  text-align: left;
+  vertical-align: middle;
+  font-size: 0.95rem;
+}
+
+.education-section th {
+  background-color: #f3f4f6;
+  color: #2563eb;
+  font-weight: 600;
+  border-bottom: 2px solid #2563eb;
+}
+
+.education-section input[type="text"] {
+  width: 100%;
+  padding: 0.5rem;
+  font-size: 0.95rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.education-section input[type="text"]:focus {
+  border-color: #2563eb;
+}
+
+.education-section .add-btn {
+  margin-top: 1rem;
+}
+
 /* Prevent overall body overflow */
 body, html, #root {
   width: 100%;
@@ -128,20 +181,9 @@ body, html, #root {
   .dynamic-section,
   .profile-image-section,
   .languages-list,
-  .other-info-container {
+  .other-info-container,
+  .education-section {
     margin-bottom: 0.75rem;
-  }
-  .table {
-    display: block;
-    width: 100%;
-    overflow-x: auto;
-  }
-  .table thead,
-  .table tbody,
-  .table tr {
-    display: table;
-    width: 100%;
-    table-layout: fixed;
   }
 }
 
