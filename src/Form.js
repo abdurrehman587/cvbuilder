@@ -474,9 +474,9 @@ const InputField = ({ label, value, onChange, placeholder }) => (
 );
 
 const EducationSection = ({ education, onChange, onAdd, onRemove }) => (
-  <div style={{ marginBottom: '1.5rem' }}>
+  <div className="education-section"><div style={{ marginBottom: '1.5rem' }}>
     <h3 style={{ fontWeight: 700, fontSize: '1.25rem', marginBottom: 8, color: '#374151' }}>Education</h3>
-    <table className="table">
+    <div className="table-wrapper"><table className="table">
       <thead>
         <tr>
           <th>Degree</th>
@@ -526,7 +526,7 @@ const EducationSection = ({ education, onChange, onAdd, onRemove }) => (
           </tr>
         ))}
       </tbody>
-    </table>
+    </table></div></div>
     <button onClick={onAdd} type="button" className="add-btn">
       Add Education
     </button>
