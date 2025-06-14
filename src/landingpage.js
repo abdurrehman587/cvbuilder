@@ -58,7 +58,6 @@ const LandingPage = () => {
         borderRadius: '6px',
         cursor: 'pointer',
         transition: 'background-color 0.2s ease',
-        userSelect: 'none',
         alignSelf: 'flex-start',
         maxWidth: '160px',
       }}
@@ -91,7 +90,6 @@ const LandingPage = () => {
             fontWeight: 700,
             marginBottom: '2rem',
             color: '#111827',
-            textAlign: 'left',
           }}
         >
           Editing {selectedTemplate}
@@ -126,7 +124,6 @@ const LandingPage = () => {
               flex: '1 1 350px',
               minWidth: '320px',
               maxWidth: '800px',
-              overflowX: 'auto',
             }}
           >
             {formData ? (
@@ -134,7 +131,6 @@ const LandingPage = () => {
             ) : (
               <div
                 style={{
-                  height: '100%',
                   minHeight: '300px',
                   display: 'flex',
                   justifyContent: 'center',
@@ -143,6 +139,9 @@ const LandingPage = () => {
                   fontSize: '1.2rem',
                   fontStyle: 'italic',
                   padding: '20px',
+                  backgroundColor: '#fff',
+                  borderRadius: '12px',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
                 }}
               >
                 Fill out the form to see a live preview.
@@ -154,112 +153,111 @@ const LandingPage = () => {
     );
   }
 
- // Template selection screen
-return (
-  <div
-    style={{
-      minHeight: '100vh',
-      padding: '2rem 1rem',
-      fontFamily: "'Inter', sans-serif",
-      backgroundColor: '#f4f6f8',
-      color: '#6b7280',
-      boxSizing: 'border-box',
-    }}
-  >
-    <h1
-      style={{
-        fontWeight: 700,
-        fontSize: '2.5rem',
-        marginBottom: '2rem',
-        color: '#111827',
-        userSelect: 'none',
-        textAlign: 'left',
-      }}
-    >
-      Select a CV Template
-    </h1>
-
+  // Template selection screen
+  return (
     <div
       style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-        gap: '24px',
-        width: '100%',
+        minHeight: '100vh',
+        padding: '2rem 1rem',
+        fontFamily: "'Inter', sans-serif",
+        backgroundColor: '#f4f6f8',
+        color: '#6b7280',
       }}
     >
-      {templates.map((template) => (
-        <div
-          key={template.name}
-          onClick={() => handleTemplateClick(template.name)}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              handleTemplateClick(template.name);
-            }
-          }}
-          title={`Click to use ${template.name}`}
-          style={{
-            backgroundColor: '#fff',
-            border: '2px solid #3498db',
-            borderRadius: '12px',
-            boxShadow: '0 8px 16px rgba(0,0,0,0.1)',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            padding: '1rem',
-            cursor: 'pointer',
-            transition: 'transform 0.2s ease',
-            userSelect: 'none',
-            minHeight: '350px',
-          }}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.transform = 'translateY(-4px)')
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.transform = 'translateY(0)')
-          }
-        >
+      <h1
+        style={{
+          fontWeight: 700,
+          fontSize: '2.5rem',
+          marginBottom: '2rem',
+          color: '#111827',
+          userSelect: 'none',
+          textAlign: 'center',
+        }}
+      >
+        Select a CV Template
+      </h1>
+
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+          gap: '24px',
+          justifyContent: 'center',
+          alignItems: 'start',
+          width: '100%',
+        }}
+      >
+        {templates.map((template) => (
           <div
-            style={{
-              width: '100%',
-              backgroundColor: '#ecf0f1',
-              borderRadius: '12px',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              overflow: 'hidden',
-              aspectRatio: '2/3',
+            key={template.name}
+            onClick={() => handleTemplateClick(template.name)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                handleTemplateClick(template.name);
+              }
             }}
+            title={`Click to use ${template.name}`}
+            style={{
+              backgroundColor: '#fff',
+              border: '2px solid #3498db',
+              borderRadius: '12px',
+              boxShadow: '0 8px 16px rgba(0,0,0,0.1)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '1rem',
+              cursor: 'pointer',
+              transition: 'transform 0.2s ease',
+              minHeight: '360px',
+            }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.transform = 'translateY(-4px)')
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.transform = 'translateY(0)')
+            }
           >
-            <img
-              src={template.imageUrl}
-              alt={`${template.name} Preview`}
+            <div
               style={{
                 width: '100%',
-                height: '100%',
-                objectFit: 'cover',
+                backgroundColor: '#ecf0f1',
                 borderRadius: '12px',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                overflow: 'hidden',
+                aspectRatio: '2 / 3',
               }}
-            />
+            >
+              <img
+                src={template.imageUrl}
+                alt={`${template.name} Preview`}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  borderRadius: '12px',
+                }}
+              />
+            </div>
+            <div
+              style={{
+                fontWeight: '700',
+                fontSize: '1.1rem',
+                color: '#2980b9',
+                marginTop: '10px',
+              }}
+            >
+              {template.name}
+            </div>
           </div>
-          <div
-            style={{
-              fontWeight: '700',
-              fontSize: '1.1rem',
-              color: '#2980b9',
-              marginTop: '10px',
-            }}
-          >
-            {template.name}
-          </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
-  </div>
-);
-
+  );
 };
 
 export default LandingPage;
