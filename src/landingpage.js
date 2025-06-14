@@ -79,10 +79,9 @@ const LandingPage = () => {
           display: 'flex',
           flexDirection: 'column',
           minHeight: '100vh',
-          boxSizing: 'border-box',
           fontFamily: "'Inter', sans-serif",
           backgroundColor: '#f4f6f8',
-          padding: '16px 0',
+          padding: '16px',
         }}
       >
         {renderBackButton()}
@@ -93,7 +92,6 @@ const LandingPage = () => {
             marginBottom: '2rem',
             color: '#111827',
             textAlign: 'left',
-            paddingLeft: '1rem',
           }}
         >
           Editing {selectedTemplate}
@@ -101,69 +99,55 @@ const LandingPage = () => {
         <div
           style={{
             display: 'flex',
-            flexDirection: 'column',
+            flexWrap: 'wrap',
             gap: '2rem',
-            width: '100%',
-            alignItems: 'stretch',
+            justifyContent: 'center',
           }}
         >
           <div
             style={{
-              display: 'flex',
-              flexDirection: 'row',
-              gap: '2rem',
-              width: '100%',
-              justifyContent: 'center',
-              alignItems: 'flex-start',
-              flexWrap: 'wrap',
-              padding: '0 1rem',
+              flex: '1 1 350px',
+              minWidth: '320px',
+              maxWidth: '600px',
+              backgroundColor: '#fff',
+              padding: '1rem',
+              borderRadius: '12px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
             }}
           >
-            <div
-              style={{
-                flex: '1 1 350px',
-                minWidth: '320px',
-                maxWidth: '600px',
-                backgroundColor: '#fff',
-                padding: '1rem',
-                borderRadius: '12px',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-              }}
-            >
-              <Form
-                formData={formData}
-                setFormData={setFormData}
-                onChange={handleFormDataChange}
-              />
-            </div>
-            <div
-              style={{
-                flex: '1 1 350px',
-                minWidth: '320px',
-                maxWidth: '800px',
-                overflowX: 'auto',
-              }}
-            >
-              {formData ? (
-                <PreviewComponent formData={formData} />
-              ) : (
-                <div
-                  style={{
-                    height: '100%',
-                    minHeight: '300px',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    color: '#999',
-                    fontSize: '1.2rem',
-                    fontStyle: 'italic',
-                    padding: '20px',
-                  }}
-                >
-                  Fill out the form to see a live preview.
-                </div>
-              )}
-            </div>
+            <Form
+              formData={formData}
+              setFormData={setFormData}
+              onChange={handleFormDataChange}
+            />
+          </div>
+          <div
+            style={{
+              flex: '1 1 350px',
+              minWidth: '320px',
+              maxWidth: '800px',
+              overflowX: 'auto',
+            }}
+          >
+            {formData ? (
+              <PreviewComponent formData={formData} />
+            ) : (
+              <div
+                style={{
+                  height: '100%',
+                  minHeight: '300px',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  color: '#999',
+                  fontSize: '1.2rem',
+                  fontStyle: 'italic',
+                  padding: '20px',
+                }}
+              >
+                Fill out the form to see a live preview.
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -200,7 +184,6 @@ const LandingPage = () => {
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
           gap: '2rem',
-          padding: '0.5rem',
         }}
       >
         {templates.map((template) => (
@@ -229,8 +212,8 @@ const LandingPage = () => {
               cursor: 'pointer',
               transition: 'transform 0.2s ease',
               userSelect: 'none',
-              height: '100%',
               minHeight: '300px',
+              overflow: 'hidden',
             }}
             onMouseEnter={(e) =>
               (e.currentTarget.style.transform = 'translateY(-4px)')
@@ -246,10 +229,6 @@ const LandingPage = () => {
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                fontSize: '1.4rem',
-                fontWeight: 'bold',
-                color: '#7f8c8d',
-                textAlign: 'center',
                 overflow: 'hidden',
               }}
             >
