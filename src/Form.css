@@ -1,7 +1,7 @@
 /* General container */
 .form-container {
   width: 100%;
-  max-width: 960px; /* Increase as needed (e.g., 960px or 1140px) */
+  max-width: 1140px; /* Increase as needed (e.g., 960px or 1140px) */
   margin: 0 auto;   /* Center it */
   padding: 2rem;
   background-color: #fff;
