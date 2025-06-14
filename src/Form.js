@@ -253,7 +253,7 @@ const Form = ({ formData, setFormData, onChange }) => {
   return (
     <>
       {/* Search Container Above Form */}
-      <div style={{
+      <div className="form-search-bar" style={{
         width: '100%',
         padding: '2rem',
         boxSizing: 'border-box',
@@ -315,7 +315,7 @@ const Form = ({ formData, setFormData, onChange }) => {
       </div>
 
 
-      <div className="form-container">
+      <div className="form-container" style={{ width: '100%' }}>
         {/* Profile Image */}
         <div className="profile-image-section">
           <h3>Profile Image</h3>
