@@ -15,6 +15,8 @@
 body, html, #root {
   width: 100%;
   overflow-x: hidden;
+  margin: 0;
+  padding: 0;
 }
 
 /* Table wrapper for scroll */
@@ -65,15 +67,15 @@ body, html, #root {
   .form-container {
     padding: 1rem;
   }
+  .contact-row {
+    flex-direction: column;
+    gap: 12px;
+  }
 }
 
 @media (max-width: 768px) {
   .form-container {
     padding: 0.75rem;
-  }
-  .contact-row {
-    flex-direction: column;
-    gap: 12px;
   }
 }
 
@@ -122,5 +124,32 @@ body, html, #root {
     display: table;
     width: 100%;
     table-layout: fixed;
+  }
+}
+
+/* Make buttons and inputs scale smoothly */
+@media (max-width: 480px) {
+  .input-field,
+  .dynamic-entry,
+  .skills-entry,
+  .other-info-checkbox-item,
+  .custom-language-entry {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .dynamic-entry button,
+  .skills-entry button,
+  .remove-btn,
+  .add-btn,
+  .add-btn-margin-top {
+    width: 100%;
+    margin-top: 8px;
+  }
+
+  .custom-other-info-label,
+  .other-info-input-flex,
+  .custom-language-entry input[type="text"] {
+    width: 100%;
   }
 }
