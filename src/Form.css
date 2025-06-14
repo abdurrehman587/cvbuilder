@@ -11,6 +11,21 @@
   overflow-x: hidden;
 }
 
+/* Header section styling */
+.form-header-section {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .form-header-section {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Prevent overall body overflow */
 body, html, #root {
   width: 100%;
