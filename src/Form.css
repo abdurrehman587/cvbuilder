@@ -29,8 +29,8 @@ body, html, #root {
 .contact-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
-  margin-bottom: 1rem;
+  gap: 8px;
+  margin-bottom: 0.5rem;
 }
 
 .input-field {
@@ -38,7 +38,7 @@ body, html, #root {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.25rem;
 }
 
 .input-field input[type="text"] {
@@ -70,8 +70,8 @@ body, html, #root {
   }
   .contact-row {
     flex-direction: column;
-    gap: 12px;
-    margin-bottom: 0.75rem;
+    gap: 8px;
+    margin-bottom: 0.5rem;
   }
 }
 
@@ -113,7 +113,7 @@ body, html, #root {
   .profile-image-section,
   .languages-list,
   .other-info-container {
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
   }
   .table {
     display: block;
