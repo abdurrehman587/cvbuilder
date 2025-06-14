@@ -79,6 +79,61 @@
   margin-top: 1rem;
 }
 
+/* Experience Section Responsive Table */
+.experience-section {
+  margin-bottom: 2rem;
+}
+
+.experience-section .table {
+  width: 100%;
+  border-collapse: collapse;
+  overflow-x: auto;
+  display: block;
+}
+
+.experience-section thead,
+.experience-section tbody,
+.experience-section tr {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.experience-section th,
+.experience-section td {
+  padding: 0.5rem;
+  text-align: left;
+  vertical-align: top;
+  font-size: 0.95rem;
+}
+
+.experience-section th {
+  background-color: #f3f4f6;
+  color: #2563eb;
+  font-weight: 600;
+  border-bottom: 2px solid #2563eb;
+}
+
+.experience-section input[type="text"],
+.experience-section textarea {
+  width: 100%;
+  padding: 0.5rem;
+  font-size: 0.95rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.experience-section input[type="text"]:focus,
+.experience-section textarea:focus {
+  border-color: #2563eb;
+}
+
+.experience-section .add-btn {
+  margin-top: 1rem;
+}
+
 /* Prevent overall body overflow */
 body, html, #root {
   width: 100%;
@@ -182,7 +237,8 @@ body, html, #root {
   .profile-image-section,
   .languages-list,
   .other-info-container,
-  .education-section {
+  .education-section,
+  .experience-section {
     margin-bottom: 0.75rem;
   }
 }
