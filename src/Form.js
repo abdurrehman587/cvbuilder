@@ -202,10 +202,10 @@ const Form = ({ formData, setFormData, onChange }) => {
       const fileName = `${Date.now()}.${fileExt}`;
       const filePath = `${fileName}`;
 
-      console.log('Uploading image to profile-images:', filePath);
+      console.log('Uploading image to cv-images:', filePath);
 
       const { error: uploadError } = await supabase.storage
-        .from('profile-images') // ✅ your actual bucket
+        .from('cv-images') // <-- updated bucket name
         .upload(filePath, file, {
           cacheControl: '3600',
           upsert: true,
@@ -217,7 +217,7 @@ const Form = ({ formData, setFormData, onChange }) => {
       }
 
       const { data: urlData, error: urlError } = supabase.storage
-        .from('profile-images') // ✅ your actual bucket
+        .from('cv-images') // <-- updated bucket name
         .getPublicUrl(filePath);
 
       if (urlError || !urlData?.publicUrl) {
@@ -296,7 +296,7 @@ const Form = ({ formData, setFormData, onChange }) => {
       };
 
       // Try full insert
-      const { error } = await supabase.from('cv_collection').insert([payload]);
+      const { error } = await supabase.from('cvs').insert([payload]); // <-- updated table name
 
       if (!error) {
         toast.success('CV Saved Successfully');
@@ -307,7 +307,7 @@ const Form = ({ formData, setFormData, onChange }) => {
 
       for (const key in payload) {
         const testPayload = { [key]: payload[key] };
-        const { error: testError } = await supabase.from('cv_collection').insert([testPayload]);
+        const { error: testError } = await supabase.from('cvs').insert([testPayload]); // <-- updated table name
 
         if (testError) {
           alert(
@@ -338,7 +338,7 @@ const Form = ({ formData, setFormData, onChange }) => {
         return;
       }
 
-      let query = supabase.from('cv_collection').select('*').limit(1);
+      let query = supabase.from('cvs').select('*').limit(1); // <-- updated table name
 
       if (searchName) {
         query = query.ilike('name', `%${searchName}%`);
