@@ -376,6 +376,12 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
             alt="Profile"
             style={photoStyle}
           />
+        ) : formData.imageUrl ? (
+          <img
+            src={formData.imageUrl}
+            alt="Profile"
+            style={photoStyle}
+          />
         ) : (
           <div style={noPhotoPlaceholderStyle}>No Photo</div>
         )}
