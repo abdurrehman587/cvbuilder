@@ -463,9 +463,13 @@ const Form = ({ formData, setFormData, onChange }) => {
         <div className="profile-image-section">
           <h3>Profile Image</h3>
           <input type="file" accept="image/*" onChange={handleImageChange} />
-          {formData.image && (
+          {(formData.image || formData.imageUrl) && (
             <img
-              src={URL.createObjectURL(formData.image)}
+              src={
+                formData.image
+                  ? URL.createObjectURL(formData.image)
+                  : formData.imageUrl
+              }
               alt="Preview"
               className="profile-image-preview"
             />
