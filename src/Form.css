@@ -1,0 +1,405 @@
+/* General container */
+.form-container {
+  width: 100%;
+  padding: 2rem;
+  background-color: #fff;
+  font-family: 'Inter', sans-serif;
+  color: #374151;
+  box-sizing: border-box;
+}
+
+
+/* Profile Image Section */
+.profile-image-section {
+  margin-bottom: 1.5rem;
+}
+
+.profile-image-section h3 {
+  font-weight: 700;
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.profile-image-preview {
+  margin-top: 12px;
+  max-width: 150px;
+  max-height: 150px;
+  border-radius: 8px;
+  object-fit: cover;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Contact Info Row */
+.contact-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 1.5rem;
+}
+
+/* Input Field */
+.input-field {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.input-field label {
+  margin-bottom: 4px;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #374151;
+}
+
+.input-field input[type="text"] {
+  padding: 0.5rem 0.75rem;
+  font-size: 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid #d1d5db;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.input-field input[type="text"]:focus {
+  border-color: #2563eb;
+}
+
+/* Dynamic Section */
+.dynamic-section {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 24px;
+}
+
+.dynamic-section h3 {
+  margin-bottom: 8px;
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: #374151;
+}
+
+.dynamic-entry {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 8px;
+  width: 100%;
+}
+
+.dynamic-entry textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid #d1d5db;
+  resize: vertical;
+  font-family: 'Inter', sans-serif;
+  line-height: 1.5;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.dynamic-entry textarea:focus {
+  border-color: #2563eb;
+}
+
+.dynamic-entry button {
+  margin-left: 8px;
+  padding: 0.4rem 0.75rem;
+  background-color: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  align-self: center;
+  user-select: none;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.dynamic-entry button:disabled {
+  cursor: not-allowed;
+  background-color: #9ca3af;
+}
+
+/* Add button styles */
+.add-btn {
+  align-self: flex-start;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  user-select: none;
+  margin-top: 4px;
+  transition: background-color 0.3s;
+}
+
+.add-btn:hover {
+  background-color: #1d4ed8;
+}
+
+/* Add button with margin top (used in other info) */
+.add-btn-margin-top {
+  padding: 0.5rem 1rem;
+  margin-top: 8px;
+  font-weight: 600;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.3s;
+}
+
+.add-btn-margin-top:hover {
+  background-color: #1d4ed8;
+}
+
+/* Table styles for Education and Work Experience */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 8px;
+}
+
+.table thead th {
+  border-bottom: 2px solid #2563eb;
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  font-weight: 600;
+  color: #2563eb;
+}
+
+.table tbody tr {
+  border-bottom: 1px solid #ccc;
+}
+
+.table td {
+  padding: 0.5rem 0.75rem;
+  vertical-align: middle;
+}
+
+.table input[type="text"] {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.75rem;
+  border: 1px solid #d1d5db;
+  font-size: 1rem;
+  font-family: 'Inter', sans-serif;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.table input[type="text"]:focus {
+  border-color: #2563eb;
+}
+
+/* Remove button style used in tables and skills */
+.remove-btn {
+  padding: 0.4rem 0.75rem;
+  background-color: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  user-select: none;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.remove-btn:disabled {
+  cursor: not-allowed;
+  background-color: #9ca3af;
+}
+
+.remove-btn:hover:not(:disabled) {
+  background-color: #b91c1c;
+}
+
+/* Skills Section inputs */
+.skills-entry {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.skills-entry input[type="text"] {
+  font-family: 'Inter', sans-serif;
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.skills-entry input[type="text"]:focus {
+  border-color: #2563eb;
+}
+
+.skills-entry input[name="percentage"] {
+  width: 80px;
+  text-align: right;
+}
+
+.skills-entry button {
+  align-self: center;
+}
+
+/* Other Information */
+.other-info-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.other-info-radios {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.other-info-radios label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.other-info-radios input[type="radio"] {
+  margin-right: 8px;
+}
+
+/* Other info text inputs */
+.other-info-input {
+  margin-left: 8px;
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  font-size: 1rem;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.other-info-input:focus {
+  border-color: #2563eb;
+}
+
+.other-info-input-flex {
+  flex: 1;
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  font-size: 1rem;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.other-info-input-flex:focus {
+  border-color: #2563eb;
+}
+
+/* Custom other info label input */
+.custom-other-info-label {
+  width: 120px;
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  font-size: 1rem;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.custom-other-info-label:focus {
+  border-color: #2563eb;
+}
+
+/* Other info checkbox item */
+.other-info-checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Languages Section */
+.languages-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.languages-list label {
+  cursor: pointer;
+}
+
+.languages-list input[type="checkbox"] {
+  margin-right: 8px;
+}
+
+/* Custom languages */
+.custom-language-entry {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.custom-language-entry input[type="checkbox"] {
+  margin-right: 8px;
+}
+
+.custom-language-entry input[type="text"] {
+  flex: 1;
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.custom-language-entry input[type="text"]:focus {
+  border-color: #2563eb;
+}
+
+.custom-language-entry button {
+  cursor: pointer;
+  padding: 0.4rem 0.75rem;
+  background-color: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  user-select: none;
+  transition: background-color 0.3s;
+}
+
+.custom-language-entry button:hover {
+  background-color: #b91c1c;
+}
+
+/* Save button */
+.save-btn {
+  padding: 12px 32px;
+  background-color: #111827;
+  color: white;
+  border-radius: 0.75rem;
+  font-weight: 700;
+  font-size: 1.125rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-top: 2rem;
+  align-self: flex-start;
+  user-select: none;
+}
+
+.save-btn:hover {
+  background-color: #374151;
+}
+
