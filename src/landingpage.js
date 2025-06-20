@@ -201,11 +201,13 @@ const LandingPage = ({ user }) => {
     <div
       style={{
         minHeight: '100vh',
-        padding: '40px 40px',
+        padding: '40px 20px',
         fontFamily: "'Inter', sans-serif",
         backgroundColor: '#f4f6f8',
         color: '#6b7280',
         boxSizing: 'border-box',
+        width: '100%',
+        maxWidth: '100%',
       }}
     >
       <h1
@@ -223,10 +225,11 @@ const LandingPage = ({ user }) => {
 
       <div
         style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '32px',
-          justifyContent: 'flex-start',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
+          gap: '24px',
+          width: '100%',
+          maxWidth: '100%',
         }}
       >
         {templates.map((template) => (
@@ -242,7 +245,7 @@ const LandingPage = ({ user }) => {
             }}
             title={`Click to use ${template.name}`}
             style={{
-              width: '480px',
+              width: '100%',
               height: '750px',
               backgroundColor: '#fff',
               border: '2px solid #3498db',
@@ -256,6 +259,7 @@ const LandingPage = ({ user }) => {
               cursor: 'pointer',
               transition: 'transform 0.2s ease',
               userSelect: 'none',
+              boxSizing: 'border-box',
             }}
             onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.04)')}
             onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
