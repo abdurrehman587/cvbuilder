@@ -21,7 +21,7 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
   const containerStyle = {
     width: '100%',
     margin: '2px 0 0',
-    padding: '18px',
+    padding: '8px', // reduced from 18px
     background: '#fdfdfd',
     borderRadius: '10px',
     fontFamily: "'Open Sans', Arial, sans-serif",
@@ -33,22 +33,22 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
 
   const headerStyle = {
     display: 'flex',
-    alignItems: 'center', // Vertical center alignment
-    height: '140px', // Same as image height for stable vertical centering
-    marginBottom: '16px',
-    gap: '16px',
+    alignItems: 'center',
+    height: '100px', // reduced from 140px
+    marginBottom: '8px', // reduced from 16px
+    gap: '10px', // reduced from 16px
     breakInside: 'avoid',
     pageBreakInside: 'avoid',
   };
 
   const photoStyle = {
     flexShrink: 0,
-    width: '140px',
-    height: '140px',
+    width: '100px', // reduced from 140px
+    height: '100px', // reduced from 140px
     borderRadius: '50%',
     objectFit: 'cover',
-    border: '3px solid #3f51b5',
-    boxShadow: '0 3px 12px rgba(63,81,181,0.3)',
+    border: '2px solid #3f51b5', // thinner border
+    boxShadow: '0 2px 6px rgba(63,81,181,0.2)', // lighter shadow
   };
 
   const noPhotoPlaceholderStyle = {
@@ -59,34 +59,34 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     justifyContent: 'center',
     color: '#888',
     fontStyle: 'italic',
-    fontSize: '0.95rem',
+    fontSize: '0.95rem', // restored original font size
   };
 
   const personalInfoStyle = {
     flexGrow: 1,
-    height: '100%', // Fill header height for vertical centering
+    height: '100%',
     display: 'flex',
     flexDirection: 'column',
-    justifyContent: 'center', // Vertically centers name and contacts within header height
+    justifyContent: 'center',
     color: '#3f51b5',
   };
 
   const nameStyle = {
-    fontSize: '2.3rem',        // Slightly increased size from 2rem
+    fontSize: '2.3rem', // restored original font size
     fontWeight: 700,
-    margin: 0,                // Remove margin for tight stacking
+    margin: 0,
     letterSpacing: '0.05em',
   };
 
   const contactRowStyle = {
-    fontSize: '1rem',          // Increased from 0.85rem
-    margin: '2px 0',           // Keep smaller vertical margins for tight spacing
+    fontSize: '1rem', // restored original font size
+    margin: '1px 0', // reduced from 2px 0
     color: '#555',
   };
 
   const sectionStyle = {
-    marginBottom: '10px',
-    paddingBottom: '2px',
+    marginBottom: '6px', // reduced from 10px
+    paddingBottom: '1px', // reduced from 2px
     borderBottom: '1px solid #ddd',
     breakInside: 'avoid',
     pageBreakInside: 'avoid',
@@ -96,49 +96,49 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
   const sectionTitleStyle = {
     fontFamily: "'Merriweather', serif",
     fontWeight: 700,
-    fontSize: '1.2rem',
+    fontSize: '1.2rem', // restored original font size
     color: '#3f51b5',
-    marginBottom: '6px',
+    marginBottom: '3px', // reduced from 6px
     textTransform: 'uppercase',
     letterSpacing: '0.05em',
-    borderLeft: '4px solid #3f51b5',
-    paddingLeft: '8px',
+    borderLeft: '3px solid #3f51b5', // thinner
+    paddingLeft: '5px', // reduced from 8px
   };
 
   const paragraphStyle = {
-    fontSize: '0.85rem',
-    lineHeight: 1.25,
+    fontSize: '0.85rem', // restored original font size
+    lineHeight: 1.15, // reduced from 1.25
     color: '#444',
-    marginBottom: '6px',
+    marginBottom: '3px', // reduced from 6px
   };
 
   const listStyle = {
     listStyleType: 'disc',
-    paddingLeft: '18px',
-    marginBottom: '4px',
+    paddingLeft: '12px', // reduced from 18px
+    marginBottom: '2px', // reduced from 4px
   };
 
   const listItemStyle = {
-    fontSize: '0.85rem',
-    marginBottom: '2px',
+    fontSize: '0.85rem', // restored original font size
+    marginBottom: '1px', // reduced from 2px
     color: '#444',
   };
 
   const tableStyle = {
     width: '100%',
     borderCollapse: 'collapse',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-    marginBottom: '8px',
+    boxShadow: 'none', // remove shadow for compactness
+    marginBottom: '4px', // reduced from 8px
   };
 
   const tableHeaderStyle = {
     backgroundColor: '#3f51b5',
     color: '#fff',
     textAlign: 'left',
-    padding: '6px 8px',
+    padding: '3px 5px', // reduced from 6px 8px
     fontWeight: 700,
     letterSpacing: '0.04em',
-    fontSize: '0.85rem', // Decreased font size for headers
+    fontSize: '0.85rem', // restored original font size
   };
 
   const tableRowStyle = {
@@ -146,21 +146,21 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const tableCellStyle = {
-    padding: '6px 8px',
+    padding: '3px 5px', // reduced from 6px 8px
     color: '#444',
-    fontSize: '0.85rem',
+    fontSize: '0.85rem', // restored original font size
   };
 
   const skillsContainerStyle = {
     display: 'grid',
     gridTemplateColumns: '1fr 1fr',
-    gap: '8px 16px',
+    gap: '4px 8px', // reduced
   };
 
   const skillBarContainer = {
     backgroundColor: '#eee',
-    borderRadius: 10,
-    height: 14,
+    borderRadius: 6, // reduced from 10
+    height: 8, // reduced from 14
     width: '100%',
     overflow: 'hidden',
   };
@@ -169,21 +169,21 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     height: '100%',
     width: percent,
     backgroundColor: '#3f51b5',
-    borderRadius: '10px 0 0 10px',
+    borderRadius: '6px 0 0 6px', // reduced
   });
 
   const tagsContainerStyle = {
     display: 'flex',
     flexWrap: 'wrap',
-    gap: 6,
+    gap: 4, // reduced from 6
   };
 
   const tagStyle = {
     backgroundColor: '#3f51b5',
     color: '#fff',
-    padding: '4px 10px',
-    borderRadius: 20,
-    fontSize: '0.85rem',
+    padding: '2px 7px', // reduced
+    borderRadius: 14, // reduced from 20
+    fontSize: '0.85rem', // restored original font size
     fontWeight: 600,
     userSelect: 'none',
   };
