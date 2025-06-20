@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Form from './Form';
 import Template1Preview from './Template1Preview';
 import Template2Preview from './Template2Preview';
@@ -59,51 +59,23 @@ const LandingPage = ({ user }) => {
 
   const handleTemplateClick = (template) => {
     console.log('Template clicked:', template);
-    if (selectedTemplate === template) return; // Prevent duplicate selection
+    console.log('Current selectedTemplate:', selectedTemplate);
+    console.log('TemplateComponentsMap keys:', Object.keys(TemplateComponentsMap));
+    
+    if (selectedTemplate === template) {
+      console.log('Template already selected, ignoring click');
+      return; // Prevent duplicate selection
+    }
     
     if (!TemplateComponentsMap[template]) {
       console.error('Template component not found:', template);
+      console.error('Available templates:', Object.keys(TemplateComponentsMap));
       return;
     }
     
+    console.log('Setting selectedTemplate to:', template);
     setSelectedTemplate(template);
-    console.log('Template selected:', template);
-    
-    // Initialize formData if it's null
-    if (!formData) {
-      console.log('Initializing formData');
-      setFormData({
-        image: null,
-        imageUrl: '',
-        name: '',
-        phone: '',
-        email: '',
-        address: '',
-        objective: ['Seeking a challenging position where I can develop my education skills further and become a valuable team member.'],
-        education: [{ degree: '', institute: '', year: '' }],
-        workExperience: [{ company: '', designation: '', duration: '', details: '' }],
-        skills: [
-          { name: 'Communication', percentage: '90%' },
-          { name: 'Hardworking', percentage: '95%' },
-          { name: 'Time Management', percentage: '95%' },
-          { name: 'Accurate Planning', percentage: '80%' },
-        ],
-        certifications: [''],
-        projects: [''],
-        languages: ['English', 'Urdu', 'Punjabi'],
-        customLanguages: [],
-        hobbies: [''],
-        references: [''],
-        otherInformation: [
-          { id: 1, labelType: 'radio', label: "Father's Name:", checked: true, value: '', name: 'parentSpouse', radioValue: 'father' },
-          { id: 2, labelType: 'radio', label: "Husband's Name:", checked: false, value: '', name: 'parentSpouse', radioValue: 'husband' },
-          { id: 3, labelType: 'checkbox', label: 'CNIC:', checked: true, value: '', isCustom: false },
-          { id: 4, labelType: 'checkbox', label: 'Date of Birth:', checked: true, value: '', isCustom: false },
-          { id: 5, labelType: 'checkbox', label: 'Marital Status:', checked: true, value: '', isCustom: false },
-          { id: 6, labelType: 'checkbox', label: 'Religion:', checked: true, value: '', isCustom: false },
-        ],
-      });
-    }
+    console.log('Template selected successfully:', template);
   };
 
   const handleBack = () => {
@@ -139,6 +111,12 @@ const LandingPage = ({ user }) => {
       &larr; Back to Templates
     </button>
   );
+
+  // Debug useEffect to track selectedTemplate changes
+  useEffect(() => {
+    console.log('selectedTemplate changed to:', selectedTemplate);
+    console.log('Will render template view:', selectedTemplate && TemplateComponentsMap[selectedTemplate]);
+  }, [selectedTemplate]);
 
   if (selectedTemplate && TemplateComponentsMap[selectedTemplate]) {
     const PreviewComponent = TemplateComponentsMap[selectedTemplate];
@@ -282,6 +260,25 @@ const LandingPage = ({ user }) => {
       >
         Select a CV Template
       </h1>
+
+      {/* Debug button */}
+      <button
+        onClick={() => {
+          console.log('Debug: Manually setting template to Template 1');
+          setSelectedTemplate('Template 1');
+        }}
+        style={{
+          marginBottom: '20px',
+          padding: '10px 20px',
+          backgroundColor: '#e74c3c',
+          color: 'white',
+          border: 'none',
+          borderRadius: '6px',
+          cursor: 'pointer',
+        }}
+      >
+        🐛 Debug: Test Template 1
+      </button>
 
       <div
         style={{
