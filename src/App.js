@@ -1,13 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
 import supabase from './supabase';
 import SignupSignIn from './SignupSignIn';
-import Form from './Form';
-import Template1Preview from './Template1Preview';
+import LandingPage from './landingpage'; // <-- import LandingPage
 
 const App = () => {
   const [user, setUser] = useState(null);
-  const [formData, setFormData] = useState(null);
 
   useEffect(() => {
     // Check for session on mount
@@ -35,8 +32,7 @@ const App = () => {
       >
         Sign Out
       </button>
-      <Form formData={formData} setFormData={setFormData} user={user} />
-      <Template1Preview formData={formData || {}} />
+      <LandingPage />
     </div>
   );
 };
