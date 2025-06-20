@@ -65,10 +65,11 @@ const Form = ({ formData, setFormData, onChange, user }) => {
   useEffect(() => {
     const fetchUserCV = async () => {
       if (!user) return;
+      // Remove .eq('user_id', user.id) if your table does NOT have a user_id column
       const { data, error } = await supabase
         .from('cvs')
         .select('*')
-        .eq('user_id', user.id)
+        // .eq('user_id', user.id) // <-- REMOVE or comment out this line
         .single();
       if (data) {
         setFormData({
@@ -272,9 +273,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
 
   const handleSave = async () => {
     try {
-      console.log('Save button clicked');
-      console.log('Current user:', user);
-
+      // Ensure user is present
       if (!user) {
         toast.error('You must be signed in to save your CV.');
         return;
@@ -282,21 +281,19 @@ const Form = ({ formData, setFormData, onChange, user }) => {
 
       let imageUrl = formData.imageUrl;
 
+      // Upload image if present
       if (formData.image) {
-        console.log('Uploading image...');
         const uploadedUrl = await uploadImage(formData.image);
         if (!uploadedUrl) {
           toast.error('Image upload failed. Please try again.');
           return;
         }
         imageUrl = uploadedUrl;
-        // Don't setFormData here, just use imageUrl for payload
-        console.log('Image uploaded successfully:', imageUrl);
       }
 
-      // Prepare sanitized payload
+      // Prepare payload for Supabase
       const payload = {
-        user_id: user.id,
+        // user_id: user.id, // <-- REMOVE this line if your table does not have a user_id column
         image_url: imageUrl && imageUrl.startsWith('http') ? imageUrl : null,
         name: formData.name || '',
         phone: formData.phone || '',
@@ -340,18 +337,13 @@ const Form = ({ formData, setFormData, onChange, user }) => {
         })))
       };
 
-      console.log('Payload prepared:', payload);
-
-      // Upsert by user_id
-      const { data, error } = await supabase
+      // Save (insert) to Supabase
+      const { error } = await supabase
         .from('cvs')
-        .upsert([payload], { onConflict: ['user_id'] });
-
-      console.log('Supabase response:', { data, error });
+        .insert([payload]); // Use insert if you do not have a user_id column
 
       if (error) {
         toast.error(`Save failed: ${error.message}`);
-        console.error('Supabase error:', error);
         return;
       }
 
@@ -360,9 +352,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
       if (formData.image && imageUrl) {
         setFormData(prev => ({ ...prev, image: null, imageUrl }));
       }
-
     } catch (error) {
-      console.error('Unexpected error during save:', error);
       toast.error('An unexpected error occurred while saving.');
     }
   };
@@ -933,25 +923,6 @@ const DynamicSection = ({ title, entries, onChange, onAdd, onRemove, placeholder
             <button
               onClick={() => onRemove(index)}
               disabled={entries.length <= 1}
-              className="remove-btn"
-              title={entries.length <= 1 ? 'At least one entry required' : 'Remove entry'}
-              type="button"
-            >
-              Remove
-            </button>
-          </>
-        )}
-      </div>
-    ))}
-    {onAdd && (
-      <button onClick={onAdd} className="add-btn" type="button">
-        Add
-      </button>
-    )}
-  </div>
-);
-
-export default Form;
               className="remove-btn"
               title={entries.length <= 1 ? 'At least one entry required' : 'Remove entry'}
               type="button"
