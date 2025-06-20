@@ -6,10 +6,12 @@ const SignupSignIn = ({ onAuth }) => {
   const [password, setPassword] = useState('');
   const [mode, setMode] = useState('signin');
   const [error, setError] = useState('');
+  const [showResend, setShowResend] = useState(false);
 
   const handleAuth = async (e) => {
     e.preventDefault();
     setError('');
+    setShowResend(false);
     let result;
     if (mode === 'signup') {
       result = await supabase.auth.signUp({ email, password });
@@ -18,6 +20,12 @@ const SignupSignIn = ({ onAuth }) => {
     }
     if (result.error) {
       setError(result.error.message);
+      if (
+        result.error.message &&
+        result.error.message.toLowerCase().includes('email not confirmed')
+      ) {
+        setShowResend(true);
+      }
     } else if (result.data?.user) {
       onAuth(result.data.user);
     }
@@ -26,6 +34,14 @@ const SignupSignIn = ({ onAuth }) => {
   const handleGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
     if (error) setError(error.message);
+  };
+
+  const handleResend = async () => {
+    setError('');
+    setShowResend(false);
+    // Supabase JS client does not support resend confirmation directly.
+    // Instruct user to check their email.
+    setError('Please check your email inbox and spam folder for the confirmation email. If you did not receive it, try signing up again or contact support.');
   };
 
   return (
@@ -55,6 +71,24 @@ const SignupSignIn = ({ onAuth }) => {
           style={{ padding: 10, borderRadius: 6, border: '1px solid #ccc' }}
         />
         {error && <div style={{ color: 'red', fontSize: 14 }}>{error}</div>}
+        {showResend && (
+          <button
+            type="button"
+            onClick={handleResend}
+            style={{
+              padding: 8,
+              borderRadius: 6,
+              border: 'none',
+              background: '#2563eb',
+              color: '#fff',
+              fontWeight: 600,
+              marginBottom: 8,
+              marginTop: -8,
+            }}
+          >
+            I did not receive the confirmation email
+          </button>
+        )}
         <button type="submit" style={{
           padding: 10, borderRadius: 6, border: 'none', background: '#3f51b5', color: '#fff', fontWeight: 600
         }}>
