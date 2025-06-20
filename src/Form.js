@@ -292,7 +292,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
 
       // Prepare payload for Supabase
       const payload = {
-        user_id: user.id,
+        // user_id: user.id, // <-- REMOVE this line if your table does not have a user_id column
         image_url: imageUrl && imageUrl.startsWith('http') ? imageUrl : null,
         name: formData.name || '',
         phone: formData.phone || '',
@@ -339,7 +339,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
       // Save (upsert) to Supabase
       const { error } = await supabase
         .from('cvs')
-        .upsert([payload], { onConflict: ['user_id'] });
+        .insert([payload]); // <-- Use insert if you do not have a user_id column
 
       if (error) {
         toast.error(`Save failed: ${error.message}`);
