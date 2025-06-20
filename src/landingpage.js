@@ -138,8 +138,8 @@ const LandingPage = ({ user }) => {
             }}
           >
             {formData ? (
-              // Fix: Ensure PreviewComponent is a valid React component, not undefined or not a function
-              typeof PreviewComponent === 'function' ? (
+              // Fix: Ensure PreviewComponent is a valid React component before rendering
+              React.isValidElement(<PreviewComponent formData={formData} />) && typeof PreviewComponent === 'function' ? (
                 <PreviewComponent formData={formData} />
               ) : (
                 <div
