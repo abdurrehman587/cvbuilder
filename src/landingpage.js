@@ -261,25 +261,6 @@ const LandingPage = ({ user }) => {
         Select a CV Template
       </h1>
 
-      {/* Debug button */}
-      <button
-        onClick={() => {
-          console.log('Debug: Manually setting template to Template 1');
-          setSelectedTemplate('Template 1');
-        }}
-        style={{
-          marginBottom: '20px',
-          padding: '10px 20px',
-          backgroundColor: '#e74c3c',
-          color: 'white',
-          border: 'none',
-          borderRadius: '6px',
-          cursor: 'pointer',
-        }}
-      >
-        🐛 Debug: Test Template 1
-      </button>
-
       <div
         style={{
           display: 'flex',
