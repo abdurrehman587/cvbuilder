@@ -65,34 +65,61 @@ const Form = ({ formData, setFormData, onChange, user }) => {
   useEffect(() => {
     const fetchUserCV = async () => {
       if (!user) return;
-      const { data, error } = await supabase
-        .from('cvs')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
+      
+      try {
+        console.log('Fetching CV for user:', user.id);
+        const { data, error } = await supabase
+          .from('cvs')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
 
-      if (data) {
-        setFormData({
-          image: null,
-          imageUrl: data.image_url || '',
-          name: data.name || '',
-          phone: data.phone || '',
-          email: data.email || '',
-          address: data.address || '',
-          objective: JSON.parse(data.objective || '[]'),
-          education: JSON.parse(data.education || '[]'),
-          workExperience: JSON.parse(data.work_experience || '[]'),
-          skills: JSON.parse(data.skills || '[]'),
-          certifications: JSON.parse(data.certifications || '[]'),
-          projects: JSON.parse(data.projects || '[]'),
-          languages: JSON.parse(data.languages || '[]'),
-          customLanguages: [],
-          hobbies: JSON.parse(data.hobbies || '[]'),
-          references: JSON.parse(data.references || '[]'),
-          otherInformation: JSON.parse(data.other_information || '[]'),
-        });
+        if (error) {
+          console.error('Error fetching CV:', error);
+          
+          // Check if table doesn't exist
+          if (error.message && error.message.includes('relation "cvs" does not exist')) {
+            console.warn('CV table does not exist. Please run the database setup script.');
+            return;
+          }
+          
+          // Check if no data found (this is normal for new users)
+          if (error.code === 'PGRST116') {
+            console.log('No existing CV found for user - this is normal for new users');
+            return;
+          }
+          
+          console.error('Unexpected error fetching CV:', error);
+          return;
+        }
+
+        if (data) {
+          console.log('CV data loaded successfully:', data);
+          setFormData({
+            image: null,
+            imageUrl: data.image_url || '',
+            name: data.name || '',
+            phone: data.phone || '',
+            email: data.email || '',
+            address: data.address || '',
+            objective: JSON.parse(data.objective || '[]'),
+            education: JSON.parse(data.education || '[]'),
+            workExperience: JSON.parse(data.work_experience || '[]'),
+            skills: JSON.parse(data.skills || '[]'),
+            certifications: JSON.parse(data.certifications || '[]'),
+            projects: JSON.parse(data.projects || '[]'),
+            languages: JSON.parse(data.languages || '[]'),
+            customLanguages: [],
+            hobbies: JSON.parse(data.hobbies || '[]'),
+            references: JSON.parse(data.references || '[]'),
+            otherInformation: JSON.parse(data.other_information || '[]'),
+          });
+        }
+      } catch (err) {
+        console.error('Exception while fetching CV:', err);
       }
     };
+    
     fetchUserCV();
     // eslint-disable-next-line
   }, [user]);
