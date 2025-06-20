@@ -58,24 +58,16 @@ const LandingPage = ({ user }) => {
   };
 
   const handleTemplateClick = (template) => {
-    console.log('Template clicked:', template);
-    console.log('Current selectedTemplate:', selectedTemplate);
-    console.log('TemplateComponentsMap keys:', Object.keys(TemplateComponentsMap));
-    
     if (selectedTemplate === template) {
-      console.log('Template already selected, ignoring click');
       return; // Prevent duplicate selection
     }
     
     if (!TemplateComponentsMap[template]) {
       console.error('Template component not found:', template);
-      console.error('Available templates:', Object.keys(TemplateComponentsMap));
       return;
     }
     
-    console.log('Setting selectedTemplate to:', template);
     setSelectedTemplate(template);
-    console.log('Template selected successfully:', template);
   };
 
   const handleBack = () => {
@@ -187,33 +179,7 @@ const LandingPage = ({ user }) => {
             }}
           >
             {formData ? (
-              (() => {
-                console.log('Rendering preview for template:', selectedTemplate);
-                console.log('PreviewComponent:', PreviewComponent);
-                console.log('formData:', formData);
-                
-                if (React.isValidElement(<PreviewComponent formData={formData} />) && typeof PreviewComponent === 'function') {
-                  return <PreviewComponent formData={formData} />;
-                } else {
-                  console.error('Invalid PreviewComponent:', PreviewComponent);
-                  return (
-                    <div
-                      style={{
-                        height: '100%',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        color: '#999',
-                        fontSize: '1.2rem',
-                        fontStyle: 'italic',
-                        padding: '20px',
-                      }}
-                    >
-                      Preview not available.
-                    </div>
-                  );
-                }
-              })()
+              <PreviewComponent formData={formData} />
             ) : (
               <div
                 style={{
