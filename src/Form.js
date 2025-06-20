@@ -43,7 +43,7 @@ const defaultFormData = {
 
 
 
-const Form = ({ formData, setFormData, onChange }) => {
+const Form = ({ formData, setFormData, onChange, user }) => {
 
   const [searchName, setSearchName] = useState('');
   const [searchPhone, setSearchPhone] = useState('');
@@ -61,6 +61,40 @@ const Form = ({ formData, setFormData, onChange }) => {
     }
   }, [formData, onChange]);
 
+  // Fetch user's CV on mount or when user changes
+  useEffect(() => {
+    const fetchUserCV = async () => {
+      if (!user) return;
+      const { data, error } = await supabase
+        .from('cvs')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+      if (data) {
+        setFormData({
+          image: null,
+          imageUrl: data.image_url || '',
+          name: data.name || '',
+          phone: data.phone || '',
+          email: data.email || '',
+          address: data.address || '',
+          objective: JSON.parse(data.objective || '[]'),
+          education: JSON.parse(data.education || '[]'),
+          workExperience: JSON.parse(data.work_experience || '[]'),
+          skills: JSON.parse(data.skills || '[]'),
+          certifications: JSON.parse(data.certifications || '[]'),
+          projects: JSON.parse(data.projects || '[]'),
+          languages: JSON.parse(data.languages || '[]'),
+          customLanguages: [],
+          hobbies: JSON.parse(data.hobbies || '[]'),
+          references: JSON.parse(data.references || '[]'),
+          otherInformation: JSON.parse(data.other_information || '[]'),
+        });
+      }
+    };
+    fetchUserCV();
+    // eslint-disable-next-line
+  }, [user]);
 
 
 
@@ -238,6 +272,10 @@ const Form = ({ formData, setFormData, onChange }) => {
 
   const handleSave = async () => {
     try {
+      if (!user) {
+        toast.error('You must be signed in to save your CV.');
+        return;
+      }
       let imageUrl = formData.imageUrl;
 
       if (formData.image) {
@@ -252,6 +290,7 @@ const Form = ({ formData, setFormData, onChange }) => {
 
       // Prepare sanitized payload
       const payload = {
+        user_id: user.id, // associate with user
         image_url: imageUrl && imageUrl.startsWith('http') ? imageUrl : null,
         name: formData.name || '',
         phone: formData.phone || '',
@@ -295,8 +334,10 @@ const Form = ({ formData, setFormData, onChange }) => {
         })))
       };
 
-      // Try full insert
-      const { error } = await supabase.from('cvs').insert([payload]); // <-- updated table name
+      // Upsert (insert or update) by user_id
+      const { error } = await supabase
+        .from('cvs')
+        .upsert([payload], { onConflict: ['user_id'] });
 
       if (!error) {
         toast.success('CV Saved Successfully');
