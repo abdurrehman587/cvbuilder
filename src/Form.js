@@ -314,6 +314,8 @@ const Form = ({ formData, setFormData, onChange, user }) => {
       console.log('Save functionality temporarily disabled - database setup required');
       return;
 
+      // The code below is temporarily disabled until database is set up
+      /*
       let imageUrl = formData.imageUrl;
 
       // Upload image if present
@@ -373,7 +375,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
       };
 
       // Save (insert or update) to Supabase
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('cvs')
         .upsert([payload], { onConflict: 'user_id' });
 
@@ -401,6 +403,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
       if (formData.image && imageUrl) {
         setFormData(prev => ({ ...prev, image: null, imageUrl }));
       }
+      */
     } catch (error) {
       console.error('Unexpected error during save:', error);
       toast.error('An unexpected error occurred while saving.');
@@ -409,13 +412,18 @@ const Form = ({ formData, setFormData, onChange, user }) => {
 
 
   const handleSearch = async () => {
+    // Temporarily disabled until database is set up
+    toast.info('Search functionality requires database setup. Please run the database_setup.sql script in your Supabase dashboard.');
+    return;
+    
+    /*
     try {
       if (!searchName && !searchPhone) {
         toast.error("Please enter name or phone number to search.");
         return;
       }
 
-      let query = supabase.from('cvs').select('*').limit(1); // <-- updated table name
+      let query = supabase.from('cvs').select('*').limit(1);
 
       if (searchName) {
         query = query.ilike('name', `%${searchName}%`);
@@ -454,7 +462,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
         certifications: JSON.parse(cv.certifications || '[]'),
         projects: JSON.parse(cv.projects || '[]'),
         languages: JSON.parse(cv.languages || '[]'),
-        customLanguages: [], // no longer used
+        customLanguages: [],
         hobbies: JSON.parse(cv.hobbies || '[]'),
         references: JSON.parse(cv.references || '[]'),
         otherInformation: JSON.parse(cv.other_information || '[]'),
@@ -465,6 +473,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
       console.error("Unexpected error:", err);
       toast.error("Unexpected error during search.");
     }
+    */
   };
 
   // Guard: Don't render until formData is initialized
