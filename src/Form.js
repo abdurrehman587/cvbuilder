@@ -272,13 +272,20 @@ const Form = ({ formData, setFormData, onChange, user }) => {
 
   const handleSave = async () => {
     try {
+      console.log('Save button clicked');
+      console.log('Current user:', user);
+      
       if (!user) {
         toast.error('You must be signed in to save your CV.');
         return;
       }
+
+      console.log('Form data to save:', formData);
+      
       let imageUrl = formData.imageUrl;
 
       if (formData.image) {
+        console.log('Uploading image...');
         const uploadedUrl = await uploadImage(formData.image);
         if (!uploadedUrl) {
           toast.error('Image upload failed. Please try again.');
@@ -286,11 +293,12 @@ const Form = ({ formData, setFormData, onChange, user }) => {
         }
         imageUrl = uploadedUrl;
         setFormData(prev => ({ ...prev, imageUrl }));
+        console.log('Image uploaded successfully:', imageUrl);
       }
 
       // Prepare sanitized payload
       const payload = {
-        user_id: user.id, // associate with user
+        user_id: user.id,
         image_url: imageUrl && imageUrl.startsWith('http') ? imageUrl : null,
         name: formData.name || '',
         phone: formData.phone || '',
@@ -334,40 +342,47 @@ const Form = ({ formData, setFormData, onChange, user }) => {
         })))
       };
 
-      // Upsert (insert or update) by user_id
-      const { error } = await supabase
-        .from('cvs')
-        .upsert([payload], { onConflict: ['user_id'] });
+      console.log('Payload prepared:', payload);
 
-      if (!error) {
-        toast.success('CV Saved Successfully');
+      // Try to upsert the data
+      const { data, error } = await supabase
+        .from('cvs')
+        .upsert([payload], { onConflict: 'user_id' });
+
+      console.log('Supabase response:', { data, error });
+
+      if (error) {
+        console.error('Supabase error:', error);
+        
+        // Check if it's a table not found error
+        if (error.message && error.message.includes('relation "cvs" does not exist')) {
+          toast.error('Database table not found. Please contact support.');
+          console.error('The cvs table does not exist in your Supabase database');
+          return;
+        }
+        
+        // Check if it's a permission error
+        if (error.message && error.message.includes('permission denied')) {
+          toast.error('Permission denied. Please check your authentication.');
+          console.error('Permission error - check RLS policies');
+          return;
+        }
+        
+        toast.error(`Save failed: ${error.message}`);
         return;
       }
 
-      console.warn('Initial insert failed. Checking individual fields...');
-
-      for (const key in payload) {
-        const testPayload = { [key]: payload[key] };
-        const { error: testError } = await supabase.from('cvs').insert([testPayload]); // <-- updated table name
-
-        if (testError) {
-          alert(
-            `❌ Error saving field: "${key}"\n\n` +
-            `🔹 Value:\n${JSON.stringify(testPayload[key], null, 2)}\n\n` +
-            `🔻 Supabase error:\n${JSON.stringify(testError, null, 2)}`
-          );
-          console.error(`Problem with field "${key}"`, testPayload[key]);
-          console.error('Full error:', testError);
-          return;
-        }
+      if (data) {
+        console.log('Data saved successfully:', data);
+        toast.success('CV Saved Successfully!');
+      } else {
+        console.log('No data returned but no error');
+        toast.success('CV Saved Successfully!');
       }
 
-      alert('⚠️ All fields worked individually, but full insert failed. This may be due to size limits or conflicts.');
-      toast.error('Insert failed. Try simplifying your data or reducing size.');
     } catch (error) {
-      console.error('Unhandled exception during save:', error);
-      alert(`Unexpected error. See console for details.\n\n${error.message}`);
-      toast.error('Unexpected error saving CV.');
+      console.error('Unexpected error during save:', error);
+      toast.error('An unexpected error occurred while saving.');
     }
   };
 
