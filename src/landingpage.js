@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Form from './Form';
 import Template1Preview from './Template1Preview';
 import Template2Preview from './Template2Preview';
