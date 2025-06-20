@@ -347,7 +347,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
       // Try to upsert the data
       const { data, error } = await supabase
         .from('cvs')
-        .upsert([payload], { onConflict: 'user_id' });
+        .upsert([payload], { onConflict: ['user_id'] }); // <-- fix: array not string
 
       console.log('Supabase response:', { data, error });
 
