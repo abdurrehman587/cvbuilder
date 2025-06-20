@@ -34,6 +34,7 @@ const LandingPage = ({ user }) => {
   };
 
   const handleTemplateClick = (template) => {
+    if (selectedTemplate === template) return; // Prevent duplicate selection
     setSelectedTemplate(template);
     // formData is preserved globally, not per template
   };
