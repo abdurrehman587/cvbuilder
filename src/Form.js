@@ -65,10 +65,11 @@ const Form = ({ formData, setFormData, onChange, user }) => {
   useEffect(() => {
     const fetchUserCV = async () => {
       if (!user) return;
+      // Remove .eq('user_id', user.id) if your table does NOT have a user_id column
       const { data, error } = await supabase
         .from('cvs')
         .select('*')
-        .eq('user_id', user.id)
+        // .eq('user_id', user.id) // <-- REMOVE or comment out this line
         .single();
       if (data) {
         setFormData({
