@@ -5,20 +5,56 @@ import LandingPage from './landingpage'; // <-- import LandingPage
 
 const App = () => {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Handle OAuth callback
+    const handleAuthCallback = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (session) {
+        setUser(session.user);
+      }
+      setLoading(false);
+    };
+
     // Check for session on mount
-    const session = supabase.auth.getSession().then(({ data }) => {
-      setUser(data?.session?.user || null);
-    });
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user || null);
+      setLoading(false);
+    };
+
+    // Check if we're on an auth callback page
+    if (window.location.pathname === '/auth/callback') {
+      handleAuthCallback();
+    } else {
+      checkSession();
+    }
+
     // Listen for auth changes
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user || null);
+      setLoading(false);
     });
+
     return () => {
       listener?.subscription?.unsubscribe();
     };
   }, []);
+
+  if (loading) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: '#f5f6fa'
+      }}>
+        <div>Loading...</div>
+      </div>
+    );
+  }
 
   if (!user) {
     return <SignupSignIn onAuth={setUser} />;
@@ -32,7 +68,7 @@ const App = () => {
       >
         Sign Out
       </button>
-      <LandingPage />
+      <LandingPage user={user} /> {/* Pass user prop */}
     </div>
   );
 };
