@@ -64,7 +64,8 @@ const Form = ({ formData, setFormData, onChange, user }) => {
   // Fetch user's CV on mount or when user changes
   useEffect(() => {
     const fetchUserCV = async () => {
-      if (!user) return;
+      // Remove user param if not needed
+      // if (!user) return;
       // Remove .eq('user_id', user.id) if your table does NOT have a user_id column
       const { data, error } = await supabase
         .from('cvs')
