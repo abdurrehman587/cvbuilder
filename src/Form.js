@@ -272,31 +272,25 @@ const Form = ({ formData, setFormData, onChange, user }) => {
 
   const handleSave = async () => {
     try {
-      console.log('Save button clicked');
-      console.log('Current user:', user);
-      
+      // Ensure user is present
       if (!user) {
         toast.error('You must be signed in to save your CV.');
         return;
       }
 
-      console.log('Form data to save:', formData);
-      
       let imageUrl = formData.imageUrl;
 
+      // Upload image if present
       if (formData.image) {
-        console.log('Uploading image...');
         const uploadedUrl = await uploadImage(formData.image);
         if (!uploadedUrl) {
           toast.error('Image upload failed. Please try again.');
           return;
         }
         imageUrl = uploadedUrl;
-        setFormData(prev => ({ ...prev, imageUrl }));
-        console.log('Image uploaded successfully:', imageUrl);
       }
 
-      // Prepare sanitized payload
+      // Prepare payload for Supabase
       const payload = {
         user_id: user.id,
         image_url: imageUrl && imageUrl.startsWith('http') ? imageUrl : null,
@@ -342,46 +336,22 @@ const Form = ({ formData, setFormData, onChange, user }) => {
         })))
       };
 
-      console.log('Payload prepared:', payload);
-
-      // Try to upsert the data
-      const { data, error } = await supabase
+      // Save (upsert) to Supabase
+      const { error } = await supabase
         .from('cvs')
-        .upsert([payload], { onConflict: ['user_id'] }); // <-- fix: array not string
-
-      console.log('Supabase response:', { data, error });
+        .upsert([payload], { onConflict: ['user_id'] });
 
       if (error) {
-        console.error('Supabase error:', error);
-        
-        // Check if it's a table not found error
-        if (error.message && error.message.includes('relation "cvs" does not exist')) {
-          toast.error('Database table not found. Please contact support.');
-          console.error('The cvs table does not exist in your Supabase database');
-          return;
-        }
-        
-        // Check if it's a permission error
-        if (error.message && error.message.includes('permission denied')) {
-          toast.error('Permission denied. Please check your authentication.');
-          console.error('Permission error - check RLS policies');
-          return;
-        }
-        
         toast.error(`Save failed: ${error.message}`);
         return;
       }
 
-      if (data) {
-        console.log('Data saved successfully:', data);
-        toast.success('CV Saved Successfully!');
-      } else {
-        console.log('No data returned but no error');
-        toast.success('CV Saved Successfully!');
+      toast.success('CV Saved Successfully!');
+      // Optionally update formData with new imageUrl if uploaded
+      if (formData.image && imageUrl) {
+        setFormData(prev => ({ ...prev, image: null, imageUrl }));
       }
-
     } catch (error) {
-      console.error('Unexpected error during save:', error);
       toast.error('An unexpected error occurred while saving.');
     }
   };
