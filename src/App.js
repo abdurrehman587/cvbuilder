@@ -56,6 +56,7 @@ const App = () => {
     );
   }
 
+  // Always show SignupSignIn as homepage/root route
   if (!user) {
     return <SignupSignIn onAuth={setUser} />;
   }
@@ -68,7 +69,7 @@ const App = () => {
       >
         Sign Out
       </button>
-      <LandingPage user={user} /> {/* Pass user prop */}
+      <LandingPage user={user} />
     </div>
   );
 };
