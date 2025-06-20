@@ -62,70 +62,67 @@ const Form = ({ formData, setFormData, onChange, user }) => {
   }, [formData, onChange]);
 
   // Fetch user's CV on mount or when user changes
-  // useEffect(() => {
-  //   // Temporarily disabled until database is set up
-  //   /*
-  //   const fetchUserCV = async () => {
-  //     if (!user) return;
-  //     
-  //     try {
-  //       console.log('Fetching CV for user:', user.id);
-  //       const { data, error } = await supabase
-  //         .from('cvs')
-  //         .select('*')
-  //         .eq('user_id', user.id)
-  //         .single();
+  useEffect(() => {
+    const fetchUserCV = async () => {
+      if (!user) return;
+      
+      try {
+        console.log('Fetching CV for user:', user.id);
+        const { data, error } = await supabase
+          .from('cvs')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
 
-  //       if (error) {
-  //         console.error('Error fetching CV:', error);
-  //         
-  //         // Check if table doesn't exist
-  //         if (error.message && error.message.includes('relation "cvs" does not exist')) {
-  //           console.warn('CV table does not exist. Please run the database setup script.');
-  //           return;
-  //         }
-  //         
-  //         // Check if no data found (this is normal for new users)
-  //         if (error.code === 'PGRST116') {
-  //           console.log('No existing CV found for user - this is normal for new users');
-  //           return;
-  //         }
-  //         
-  //         console.error('Unexpected error fetching CV:', error);
-  //         return;
-  //       }
+        if (error) {
+          console.error('Error fetching CV:', error);
+          
+          // Check if table doesn't exist
+          if (error.message && error.message.includes('relation "cvs" does not exist')) {
+            console.warn('CV table does not exist. Please run the database setup script.');
+            return;
+          }
+          
+          // Check if no data found (this is normal for new users)
+          if (error.code === 'PGRST116') {
+            console.log('No existing CV found for user - this is normal for new users');
+            return;
+          }
+          
+          console.error('Unexpected error fetching CV:', error);
+          return;
+        }
 
-  //       if (data) {
-  //         console.log('CV data loaded successfully:', data);
-  //         setFormData({
-  //           image: null,
-  //           imageUrl: data.image_url || '',
-  //           name: data.name || '',
-  //           phone: data.phone || '',
-  //           email: data.email || '',
-  //           address: data.address || '',
-  //           objective: JSON.parse(data.objective || '[]'),
-  //           education: JSON.parse(data.education || '[]'),
-  //           workExperience: JSON.parse(data.work_experience || '[]'),
-  //           skills: JSON.parse(data.skills || '[]'),
-  //           certifications: JSON.parse(data.certifications || '[]'),
-  //           projects: JSON.parse(data.projects || '[]'),
-  //           languages: JSON.parse(data.languages || '[]'),
-  //           customLanguages: [],
-  //           hobbies: JSON.parse(data.hobbies || '[]'),
-  //           references: JSON.parse(data.references || '[]'),
-  //           otherInformation: JSON.parse(data.other_information || '[]'),
-  //         });
-  //       }
-  //     } catch (err) {
-  //       console.error('Exception while fetching CV:', err);
-  //     }
-  //   };
-  //   
-  //   fetchUserCV();
-  //   */
-  //   // eslint-disable-next-line
-  // }, [user]);
+        if (data) {
+          console.log('CV data loaded successfully:', data);
+          setFormData({
+            image: null,
+            imageUrl: data.image_url || '',
+            name: data.name || '',
+            phone: data.phone || '',
+            email: data.email || '',
+            address: data.address || '',
+            objective: JSON.parse(data.objective || '[]'),
+            education: JSON.parse(data.education || '[]'),
+            workExperience: JSON.parse(data.work_experience || '[]'),
+            skills: JSON.parse(data.skills || '[]'),
+            certifications: JSON.parse(data.certifications || '[]'),
+            projects: JSON.parse(data.projects || '[]'),
+            languages: JSON.parse(data.languages || '[]'),
+            customLanguages: [],
+            hobbies: JSON.parse(data.hobbies || '[]'),
+            references: JSON.parse(data.references || '[]'),
+            otherInformation: JSON.parse(data.other_information || '[]'),
+          });
+        }
+      } catch (err) {
+        console.error('Exception while fetching CV:', err);
+      }
+    };
+    
+    fetchUserCV();
+    // eslint-disable-next-line
+  }, [user]);
 
 
 
@@ -309,13 +306,6 @@ const Form = ({ formData, setFormData, onChange, user }) => {
         return;
       }
 
-      // Temporarily show setup message until database is ready
-      toast.info('Database setup required. Please run the database_setup.sql script in your Supabase dashboard to enable saving.');
-      console.log('Save functionality temporarily disabled - database setup required');
-      return;
-
-      // The code below is temporarily disabled until database is set up
-      /*
       let imageUrl = formData.imageUrl;
 
       // Upload image if present
@@ -403,7 +393,6 @@ const Form = ({ formData, setFormData, onChange, user }) => {
       if (formData.image && imageUrl) {
         setFormData(prev => ({ ...prev, image: null, imageUrl }));
       }
-      */
     } catch (error) {
       console.error('Unexpected error during save:', error);
       toast.error('An unexpected error occurred while saving.');
@@ -412,11 +401,6 @@ const Form = ({ formData, setFormData, onChange, user }) => {
 
 
   const handleSearch = async () => {
-    // Temporarily disabled until database is set up
-    toast.info('Search functionality requires database setup. Please run the database_setup.sql script in your Supabase dashboard.');
-    return;
-    
-    /*
     try {
       if (!searchName && !searchPhone) {
         toast.error("Please enter name or phone number to search.");
@@ -473,7 +457,6 @@ const Form = ({ formData, setFormData, onChange, user }) => {
       console.error("Unexpected error:", err);
       toast.error("Unexpected error during search.");
     }
-    */
   };
 
   // Guard: Don't render until formData is initialized
