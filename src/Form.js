@@ -72,7 +72,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
           .from('cvs')
           .select('*')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
 
         if (error) {
           console.error('Error fetching CV:', error);
@@ -86,6 +86,12 @@ const Form = ({ formData, setFormData, onChange, user }) => {
           // Check if no data found (this is normal for new users)
           if (error.code === 'PGRST116') {
             console.log('No existing CV found for user - this is normal for new users');
+            return;
+          }
+          
+          // Check for RLS policy issues
+          if (error.message && error.message.includes('new row violates row-level security policy')) {
+            console.error('RLS policy issue - user may not have proper permissions');
             return;
           }
           
@@ -306,16 +312,22 @@ const Form = ({ formData, setFormData, onChange, user }) => {
         return;
       }
 
+      console.log('Starting save process...');
+      console.log('Current user:', user.id);
+      console.log('Form data to save:', formData);
+
       let imageUrl = formData.imageUrl;
 
       // Upload image if present
       if (formData.image) {
+        console.log('Uploading image...');
         const uploadedUrl = await uploadImage(formData.image);
         if (!uploadedUrl) {
           toast.error('Image upload failed. Please try again.');
           return;
         }
         imageUrl = uploadedUrl;
+        console.log('Image uploaded successfully:', imageUrl);
       }
 
       // Prepare payload for Supabase
@@ -364,10 +376,15 @@ const Form = ({ formData, setFormData, onChange, user }) => {
         })))
       };
 
+      console.log('Prepared payload:', payload);
+
       // Save (insert or update) to Supabase
-      const { error } = await supabase
+      console.log('Attempting to save to database...');
+      const { data, error } = await supabase
         .from('cvs')
         .upsert([payload], { onConflict: 'user_id' });
+
+      console.log('Database response:', { data, error });
 
       if (error) {
         console.error('Supabase error:', error);
@@ -383,12 +400,20 @@ const Form = ({ formData, setFormData, onChange, user }) => {
           toast.error('Permission denied. Please check your authentication.');
           return;
         }
+
+        // Check for RLS policy issues
+        if (error.message && error.message.includes('new row violates row-level security policy')) {
+          toast.error('Security policy issue. Please check your database permissions.');
+          return;
+        }
         
         toast.error(`Save failed: ${error.message}`);
         return;
       }
 
+      console.log('Save successful! Data:', data);
       toast.success('CV Saved Successfully!');
+      
       // Optionally update formData with new imageUrl if uploaded
       if (formData.image && imageUrl) {
         setFormData(prev => ({ ...prev, image: null, imageUrl }));
