@@ -10,7 +10,7 @@ const App = () => {
   useEffect(() => {
     // Handle OAuth callback
     const handleAuthCallback = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         setUser(session.user);
       }
