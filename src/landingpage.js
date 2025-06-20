@@ -104,12 +104,6 @@ const LandingPage = ({ user }) => {
     </button>
   );
 
-  // Debug useEffect to track selectedTemplate changes
-  useEffect(() => {
-    console.log('selectedTemplate changed to:', selectedTemplate);
-    console.log('Will render template view:', selectedTemplate && TemplateComponentsMap[selectedTemplate]);
-  }, [selectedTemplate]);
-
   if (selectedTemplate && TemplateComponentsMap[selectedTemplate]) {
     const PreviewComponent = TemplateComponentsMap[selectedTemplate];
 
