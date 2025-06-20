@@ -79,8 +79,9 @@ const LandingPage = ({ user }) => {
     return (
       <div
         style={{
+          // Remove the left padding to prevent the "zoomed in" effect
           display: 'flex',
-          padding: '20px 40px 20px 180px',
+          padding: '20px 40px 20px 40px', // changed from '20px 40px 20px 180px'
           flexDirection: 'column',
           minHeight: '100vh',
           boxSizing: 'border-box',
@@ -105,7 +106,7 @@ const LandingPage = ({ user }) => {
             display: 'flex',
             width: '100%',
             justifyContent: 'flex-start',
-            gap: '250px',
+            gap: '60px', // changed from '250px' for better layout
           }}
         >
           <div
@@ -119,8 +120,9 @@ const LandingPage = ({ user }) => {
               boxSizing: 'border-box',
               borderRadius: '12px',
               boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-              transform: 'scale(1.2)',
-              transformOrigin: 'top',
+              // Remove the scale transform to prevent zooming
+              // transform: 'scale(1.2)',
+              // transformOrigin: 'top',
             }}
           >
             <Form
@@ -134,12 +136,12 @@ const LandingPage = ({ user }) => {
             style={{
               flex: '0 0 auto',
               boxSizing: 'border-box',
-              transform: 'scale(1.2)',
-              transformOrigin: 'top',
+              // Remove the scale transform to prevent zooming
+              // transform: 'scale(1.2)',
+              // transformOrigin: 'top',
             }}
           >
             {formData ? (
-              // Fix: Ensure PreviewComponent is a valid React component before rendering
               React.isValidElement(<PreviewComponent formData={formData} />) && typeof PreviewComponent === 'function' ? (
                 <PreviewComponent formData={formData} />
               ) : (
