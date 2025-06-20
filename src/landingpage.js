@@ -11,7 +11,7 @@ import Template8Preview from './Template8Preview';
 import Template9Preview from './Template9Preview';
 import Template10Preview from './Template10Preview';
 
-const LandingPage = () => {
+const LandingPage = ({ user }) => {
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [formData, setFormData] = useState(null);
 
@@ -126,6 +126,7 @@ const LandingPage = () => {
               formData={formData}
               setFormData={setFormData}
               onChange={handleFormDataChange}
+              user={user} // <-- pass user prop here
             />
           </div>
           <div
