@@ -336,10 +336,10 @@ const Form = ({ formData, setFormData, onChange, user }) => {
         })))
       };
 
-      // Save (upsert) to Supabase
+      // Save (insert) to Supabase
       const { error } = await supabase
         .from('cvs')
-        .insert([payload]); // <-- Use insert if you do not have a user_id column
+        .insert([payload]); // Use insert if you do not have a user_id column
 
       if (error) {
         toast.error(`Save failed: ${error.message}`);
