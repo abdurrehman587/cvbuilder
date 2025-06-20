@@ -63,6 +63,8 @@ const Form = ({ formData, setFormData, onChange, user }) => {
 
   // Fetch user's CV on mount or when user changes
   useEffect(() => {
+    // Temporarily disabled until database is set up
+    /*
     const fetchUserCV = async () => {
       if (!user) return;
       
@@ -121,6 +123,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
     };
     
     fetchUserCV();
+    */
     // eslint-disable-next-line
   }, [user]);
 
@@ -306,6 +309,11 @@ const Form = ({ formData, setFormData, onChange, user }) => {
         return;
       }
 
+      // Temporarily show setup message until database is ready
+      toast.info('Database setup required. Please run the database_setup.sql script in your Supabase dashboard to enable saving.');
+      console.log('Save functionality temporarily disabled - database setup required');
+      return;
+
       let imageUrl = formData.imageUrl;
 
       // Upload image if present
@@ -394,6 +402,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
         setFormData(prev => ({ ...prev, image: null, imageUrl }));
       }
     } catch (error) {
+      console.error('Unexpected error during save:', error);
       toast.error('An unexpected error occurred while saving.');
     }
   };
