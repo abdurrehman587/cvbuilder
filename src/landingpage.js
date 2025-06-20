@@ -7,15 +7,42 @@ import Template4Preview from './Template4Preview';
 import Template5Preview from './Template5Preview';
 import Template6Preview from './Template6Preview';
 import Template7Preview from './Template7Preview';
-import Template8Preview from './Template8Preview';
-import Template9Preview from './Template9Preview';
-import Template10Preview from './Template10Preview';
 
 const LandingPage = ({ user }) => {
   const [selectedTemplate, setSelectedTemplate] = useState(null);
-  const [formData, setFormData] = useState(null);
+  const [formData, setFormData] = useState({
+    image: null,
+    imageUrl: '',
+    name: '',
+    phone: '',
+    email: '',
+    address: '',
+    objective: ['Seeking a challenging position where I can develop my education skills further and become a valuable team member.'],
+    education: [{ degree: '', institute: '', year: '' }],
+    workExperience: [{ company: '', designation: '', duration: '', details: '' }],
+    skills: [
+      { name: 'Communication', percentage: '90%' },
+      { name: 'Hardworking', percentage: '95%' },
+      { name: 'Time Management', percentage: '95%' },
+      { name: 'Accurate Planning', percentage: '80%' },
+    ],
+    certifications: [''],
+    projects: [''],
+    languages: ['English', 'Urdu', 'Punjabi'],
+    customLanguages: [],
+    hobbies: [''],
+    references: [''],
+    otherInformation: [
+      { id: 1, labelType: 'radio', label: "Father's Name:", checked: true, value: '', name: 'parentSpouse', radioValue: 'father' },
+      { id: 2, labelType: 'radio', label: "Husband's Name:", checked: false, value: '', name: 'parentSpouse', radioValue: 'husband' },
+      { id: 3, labelType: 'checkbox', label: 'CNIC:', checked: true, value: '', isCustom: false },
+      { id: 4, labelType: 'checkbox', label: 'Date of Birth:', checked: true, value: '', isCustom: false },
+      { id: 5, labelType: 'checkbox', label: 'Marital Status:', checked: true, value: '', isCustom: false },
+      { id: 6, labelType: 'checkbox', label: 'Religion:', checked: true, value: '', isCustom: false },
+    ],
+  });
 
-  const templates = Array.from({ length: 10 }, (_, i) => ({
+  const templates = Array.from({ length: 7 }, (_, i) => ({
     name: `Template ${i + 1}`,
     imageUrl: `/templates/template${i + 1}.jpg`,
   }));
@@ -28,15 +55,55 @@ const LandingPage = ({ user }) => {
     'Template 5': Template5Preview,
     'Template 6': Template6Preview,
     'Template 7': Template7Preview,
-    'Template 8': Template8Preview,
-    'Template 9': Template9Preview,
-    'Template 10': Template10Preview,
   };
 
   const handleTemplateClick = (template) => {
+    console.log('Template clicked:', template);
     if (selectedTemplate === template) return; // Prevent duplicate selection
+    
+    if (!TemplateComponentsMap[template]) {
+      console.error('Template component not found:', template);
+      return;
+    }
+    
     setSelectedTemplate(template);
-    // formData is preserved globally, not per template
+    console.log('Template selected:', template);
+    
+    // Initialize formData if it's null
+    if (!formData) {
+      console.log('Initializing formData');
+      setFormData({
+        image: null,
+        imageUrl: '',
+        name: '',
+        phone: '',
+        email: '',
+        address: '',
+        objective: ['Seeking a challenging position where I can develop my education skills further and become a valuable team member.'],
+        education: [{ degree: '', institute: '', year: '' }],
+        workExperience: [{ company: '', designation: '', duration: '', details: '' }],
+        skills: [
+          { name: 'Communication', percentage: '90%' },
+          { name: 'Hardworking', percentage: '95%' },
+          { name: 'Time Management', percentage: '95%' },
+          { name: 'Accurate Planning', percentage: '80%' },
+        ],
+        certifications: [''],
+        projects: [''],
+        languages: ['English', 'Urdu', 'Punjabi'],
+        customLanguages: [],
+        hobbies: [''],
+        references: [''],
+        otherInformation: [
+          { id: 1, labelType: 'radio', label: "Father's Name:", checked: true, value: '', name: 'parentSpouse', radioValue: 'father' },
+          { id: 2, labelType: 'radio', label: "Husband's Name:", checked: false, value: '', name: 'parentSpouse', radioValue: 'husband' },
+          { id: 3, labelType: 'checkbox', label: 'CNIC:', checked: true, value: '', isCustom: false },
+          { id: 4, labelType: 'checkbox', label: 'Date of Birth:', checked: true, value: '', isCustom: false },
+          { id: 5, labelType: 'checkbox', label: 'Marital Status:', checked: true, value: '', isCustom: false },
+          { id: 6, labelType: 'checkbox', label: 'Religion:', checked: true, value: '', isCustom: false },
+        ],
+      });
+    }
   };
 
   const handleBack = () => {
@@ -129,7 +196,7 @@ const LandingPage = ({ user }) => {
               formData={formData}
               setFormData={setFormData}
               onChange={handleFormDataChange}
-              // user={user}
+              user={user}
             />
           </div>
           <div
@@ -142,24 +209,33 @@ const LandingPage = ({ user }) => {
             }}
           >
             {formData ? (
-              React.isValidElement(<PreviewComponent formData={formData} />) && typeof PreviewComponent === 'function' ? (
-                <PreviewComponent formData={formData} />
-              ) : (
-                <div
-                  style={{
-                    height: '100%',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    color: '#999',
-                    fontSize: '1.2rem',
-                    fontStyle: 'italic',
-                    padding: '20px',
-                  }}
-                >
-                  Preview not available.
-                </div>
-              )
+              (() => {
+                console.log('Rendering preview for template:', selectedTemplate);
+                console.log('PreviewComponent:', PreviewComponent);
+                console.log('formData:', formData);
+                
+                if (React.isValidElement(<PreviewComponent formData={formData} />) && typeof PreviewComponent === 'function') {
+                  return <PreviewComponent formData={formData} />;
+                } else {
+                  console.error('Invalid PreviewComponent:', PreviewComponent);
+                  return (
+                    <div
+                      style={{
+                        height: '100%',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        color: '#999',
+                        fontSize: '1.2rem',
+                        fontStyle: 'italic',
+                        padding: '20px',
+                      }}
+                    >
+                      Preview not available.
+                    </div>
+                  );
+                }
+              })()
             ) : (
               <div
                 style={{
