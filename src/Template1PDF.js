@@ -2,8 +2,6 @@ import React, { useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import JazzCashPayment from './JazzCashPayment';
 
-
-// Load html2pdf from CDN dynamically
 const loadHtml2Pdf = () => {
   if (window.html2pdf) return Promise.resolve(window.html2pdf);
   return new Promise((resolve, reject) => {
@@ -15,12 +13,11 @@ const loadHtml2Pdf = () => {
   });
 };
 
-const Template1PDF = ({ formData, visibleSections = [] }) => {
+const Template2PDF = ({ formData, visibleSections = [] }) => {
   const containerRef = useRef(null);
   const buttonRef = useRef(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentCompleted, setPaymentCompleted] = useState(false);
-  const [paymentState, setPaymentState] = useState('idle');
   const [downloadCompleted, setDownloadCompleted] = useState(false);
 
   // Check if download was already completed for this session
@@ -31,319 +28,163 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     }
   }, []);
 
-  const containerStyle = {
-    width: '100%',
-    margin: '2px 0 0',
-    padding: '8px', // reduced from 18px
-    background: '#fdfdfd',
-    borderRadius: '10px',
-    fontFamily: "'Open Sans', Arial, sans-serif",
-    color: '#333',
-    display: 'flex',
-    flexDirection: 'column',
-    boxSizing: 'border-box',
+  const styles = {
+    container: {
+      display: 'flex',
+      fontFamily: "'Roboto', sans-serif",
+      boxSizing: 'border-box',
+      position: 'relative',
+    },
+    leftColumn: {
+      width: '35%',
+      backgroundColor: '#f4f4f4',
+      color: '#333333',
+      padding: '25px 20px',
+      boxSizing: 'border-box',
+    },
+    rightColumn: {
+      width: '65%',
+      backgroundColor: 'transparent',
+      padding: '20px 25px',
+      boxSizing: 'border-box',
+    },
+    photo: {
+      width: '150px',
+      height: '150px',
+      borderRadius: '50%',
+      objectFit: 'cover',
+      border: '5px solid #3498db',
+      margin: '0 auto 20px',
+      display: 'block',
+    },
+    noPhoto: {
+      width: '150px',
+      height: '150px',
+      borderRadius: '50%',
+      backgroundColor: '#bdc3c7',
+      margin: '0 auto 20px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      color: '#2c3e50',
+      fontSize: '1rem',
+    },
+    leftSection: {
+      marginBottom: '20px',
+      breakInside: 'avoid',
+      pageBreakInside: 'avoid',
+    },
+    leftSectionTitle: {
+      fontSize: '1.4rem',
+      color: '#3498db',
+      textTransform: 'uppercase',
+      marginBottom: '15px',
+      borderBottom: '2px solid #3498db',
+      paddingBottom: '5px',
+      letterSpacing: '1px',
+    },
+    contactInfo: {
+      fontSize: '0.9rem',
+      marginBottom: '8px',
+      display: 'flex',
+      alignItems: 'center',
+    },
+    contactIcon: {
+      marginRight: '10px',
+      width: '16px',
+    },
+    skill: {
+      marginBottom: '15px',
+    },
+    skillName: {
+      fontSize: '1rem',
+      fontWeight: 'bold',
+      marginBottom: '5px',
+    },
+    skillBar: {
+      height: '8px',
+      backgroundColor: '#7f8c8d',
+      borderRadius: '4px',
+    },
+    skillProgress: (percentage) => ({
+      height: '100%',
+      width: percentage,
+      backgroundColor: '#3498db',
+      borderRadius: '4px',
+    }),
+    language: {
+      backgroundColor: '#3498db',
+      color: '#fff',
+      padding: '5px 10px',
+      borderRadius: '5px',
+      margin: '0 5px 5px 0',
+      display: 'inline-block',
+      fontSize: '0.9rem',
+    },
+    rightHeader: {
+      textAlign: 'left',
+      marginBottom: '15px',
+    },
+    name: {
+      fontSize: '3.5rem',
+      fontWeight: 'bold',
+      color: '#2c3e50',
+      margin: '0',
+      lineHeight: '1.1',
+    },
+    rightSection: {
+      marginBottom: '8px',
+      breakInside: 'avoid',
+      pageBreakInside: 'avoid',
+    },
+    rightSectionTitle: {
+      fontSize: '1.6rem',
+      color: '#2c3e50',
+      textTransform: 'uppercase',
+      marginBottom: '10px',
+      borderBottom: '3px solid #2c3e50',
+      paddingBottom: '5px',
+    },
+    paragraph: {
+      fontSize: '1rem',
+      lineHeight: '1.3',
+      color: '#34495e',
+      textAlign: 'justify',
+    },
+    listItem: {
+      fontSize: '1rem',
+      lineHeight: '1.2',
+      color: '#34495e',
+      listStyleType: 'square',
+      marginLeft: '20px',
+      margin: '0 0 5px 0',
+    },
+    experienceItem: {
+      marginBottom: '4px',
+    },
+    itemHeader: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'baseline',
+    },
+    itemTitle: {
+      fontSize: '1.2rem',
+      fontWeight: 'bold',
+      color: '#34495e',
+      margin: 0,
+    },
+    itemSubtitle: {
+      fontSize: '1rem',
+      fontStyle: 'italic',
+      color: '#7f8c8d',
+      margin: '2px 0 4px 0',
+    },
+    itemDate: {
+      fontSize: '1rem',
+      color: '#3498db',
+      fontWeight: 'bold',
+    },
   };
-
-  const headerStyle = {
-    display: 'flex',
-    alignItems: 'center',
-    height: '100px', // reduced from 140px
-    marginBottom: '8px', // reduced from 16px
-    gap: '10px', // reduced from 16px
-    breakInside: 'avoid',
-    pageBreakInside: 'avoid',
-  };
-
-  const photoStyle = {
-    flexShrink: 0,
-    width: '100px', // reduced from 140px
-    height: '100px', // reduced from 140px
-    borderRadius: '50%',
-    objectFit: 'cover',
-    border: '2px solid #3f51b5', // thinner border
-    boxShadow: '0 2px 6px rgba(63,81,181,0.2)', // lighter shadow
-  };
-
-  const noPhotoPlaceholderStyle = {
-    ...photoStyle,
-    backgroundColor: '#e0e0e0',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: '#888',
-    fontStyle: 'italic',
-    fontSize: '0.95rem', // restored original font size
-  };
-
-  const personalInfoStyle = {
-    flexGrow: 1,
-    height: '100%',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    color: '#3f51b5',
-  };
-
-  const nameStyle = {
-    fontSize: '2.3rem', // restored original font size
-    fontWeight: 700,
-    margin: 0,
-    letterSpacing: '0.05em',
-  };
-
-  const contactRowStyle = {
-    fontSize: '1rem', // restored original font size
-    margin: '1px 0', // reduced from 2px 0
-    color: '#555',
-  };
-
-  const sectionStyle = {
-    marginBottom: '6px', // reduced from 10px
-    paddingBottom: '1px', // reduced from 2px
-    borderBottom: '1px solid #ddd',
-    breakInside: 'avoid',
-    pageBreakInside: 'avoid',
-    pageBreakAfter: 'auto',
-  };
-
-  const sectionTitleStyle = {
-    fontFamily: "'Merriweather', serif",
-    fontWeight: 700,
-    fontSize: '1.2rem', // restored original font size
-    color: '#3f51b5',
-    marginBottom: '3px', // reduced from 6px
-    textTransform: 'uppercase',
-    letterSpacing: '0.05em',
-    borderLeft: '3px solid #3f51b5', // thinner
-    paddingLeft: '5px', // reduced from 8px
-  };
-
-  const paragraphStyle = {
-    fontSize: '0.85rem', // restored original font size
-    lineHeight: 1.15, // reduced from 1.25
-    color: '#444',
-    marginBottom: '3px', // reduced from 6px
-  };
-
-  const listStyle = {
-    listStyleType: 'disc',
-    paddingLeft: '12px', // reduced from 18px
-    marginBottom: '2px', // reduced from 4px
-  };
-
-  const listItemStyle = {
-    fontSize: '0.85rem', // restored original font size
-    marginBottom: '1px', // reduced from 2px
-    color: '#444',
-  };
-
-  const tableStyle = {
-    width: '100%',
-    borderCollapse: 'collapse',
-    boxShadow: 'none', // remove shadow for compactness
-    marginBottom: '4px', // reduced from 8px
-  };
-
-  const tableHeaderStyle = {
-    backgroundColor: '#3f51b5',
-    color: '#fff',
-    textAlign: 'left',
-    padding: '3px 5px', // reduced from 6px 8px
-    fontWeight: 700,
-    letterSpacing: '0.04em',
-    fontSize: '0.85rem', // restored original font size
-  };
-
-  const tableRowStyle = {
-    borderBottom: '1px solid #eee',
-  };
-
-  const tableCellStyle = {
-    padding: '3px 5px', // reduced from 6px 8px
-    color: '#444',
-    fontSize: '0.85rem', // restored original font size
-  };
-
-  const skillsContainerStyle = {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '4px 8px', // reduced
-  };
-
-  const skillBarContainer = {
-    backgroundColor: '#eee',
-    borderRadius: 6, // reduced from 10
-    height: 8, // reduced from 14
-    width: '100%',
-    overflow: 'hidden',
-  };
-
-  const skillBarFill = (percent) => ({
-    height: '100%',
-    width: percent,
-    backgroundColor: '#3f51b5',
-    borderRadius: '6px 0 0 6px', // reduced
-  });
-
-  const tagsContainerStyle = {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: 4, // reduced from 6
-  };
-
-  const tagStyle = {
-    backgroundColor: '#3f51b5',
-    color: '#fff',
-    padding: '2px 7px', // reduced
-    borderRadius: 14, // reduced from 20
-    fontSize: '0.85rem', // restored original font size
-    fontWeight: 600,
-    userSelect: 'none',
-  };
-
-  const renderEducation = (education) => (
-    <table style={tableStyle} aria-label="Education details">
-      <thead>
-        <tr>
-          <th style={tableHeaderStyle}>Degree</th>
-          <th style={tableHeaderStyle}>Institute</th>
-          <th style={tableHeaderStyle}>Year</th>
-        </tr>
-      </thead>
-      <tbody>
-        {education.map((item, idx) => (
-          <tr key={idx} style={tableRowStyle}>
-            <td style={tableCellStyle}>{item.degree || '-'}</td>
-            <td style={tableCellStyle}>{item.institute || '-'}</td>
-            <td style={tableCellStyle}>{item.year || '-'}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-
-  const renderWorkExperience = (workExp) => (
-  <table style={tableStyle} aria-label="Work experience details">
-    <thead>
-      <tr>
-        <th style={tableHeaderStyle}>Company</th>
-        <th style={tableHeaderStyle}>Designation</th>
-        <th style={tableHeaderStyle}>Duration</th>
-      </tr>
-    </thead>
-    <tbody>
-      {workExp.map((item, idx) => (
-        <React.Fragment key={idx}>
-          <tr style={tableRowStyle}>
-            <td style={tableCellStyle}>{item.company || '-'}</td>
-            <td style={tableCellStyle}>{item.designation || '-'}</td>
-            <td style={tableCellStyle}>{item.duration || '-'}</td>
-          </tr>
-          {item.details?.trim() && (
-            <tr>
-              <td colSpan={3} style={{ ...tableCellStyle, paddingTop: 0, fontStyle: 'italic', color: '#444' }}>
-              {item.details}
-              </td>
-            </tr>
-          )}
-        </React.Fragment>
-      ))}
-    </tbody>
-  </table>
-);
-
-
-
-  const renderSkills = (skills) => (
-    <div style={skillsContainerStyle}>
-      {skills.map((skill, idx) => {
-        let name = '';
-        let percentage = '0%';
-        if (typeof skill === 'string') {
-          name = skill;
-          percentage = '';
-        } else if (skill.name) {
-          name = skill.name;
-          percentage = skill.percentage || '0%';
-        }
-        return (
-          <div key={idx} style={{ display: 'flex', flexDirection: 'column' }}>
-            <div
-              style={{
-                fontWeight: 600,
-                fontSize: '0.9rem',
-                marginBottom: 3,
-                color: '#1e88e5',
-              }}
-              title={percentage}
-            >
-              {name} {percentage ? `(${percentage})` : ''}
-            </div>
-            <div style={skillBarContainer}>
-              <div style={skillBarFill(percentage)} />
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-
-  const renderSimpleList = (items) => (
-    <ul style={listStyle}>
-      {items.map((item, idx) => (
-        <li key={idx} style={listItemStyle}>{item}</li>
-      ))}
-    </ul>
-  );
-
-  const renderLanguages = (languages) => (
-    <div style={tagsContainerStyle}>
-      {languages.map((lang, idx) => (
-        <div key={idx} style={tagStyle} title={lang}>
-          {lang}
-        </div>
-      ))}
-    </div>
-  );
-
-  const renderOtherInformation = (otherInfo) => {
-    if (!Array.isArray(otherInfo) || otherInfo.length === 0) return null;
-
-    const selectedRadio = otherInfo.find(
-      (item) => item.labelType === 'radio' && item.checked && item.name === 'parentSpouse'
-    );
-
-    const checkedCheckboxes = otherInfo.filter(
-      (item) => item.labelType === 'checkbox' && item.checked
-    );
-
-    return (
-      <section style={sectionStyle} aria-label="Other Information Section">
-        <h2 style={sectionTitleStyle}>Other Information</h2>
-
-        {selectedRadio && (
-          <p style={paragraphStyle}>
-            <strong>{selectedRadio.label}</strong> {selectedRadio.value || '-'}
-          </p>
-        )}
-
-        {checkedCheckboxes.map((item) => (
-          <p key={item.id} style={paragraphStyle}>
-            <strong>{item.label}</strong> {item.value || '-'}
-          </p>
-        ))}
-      </section>
-    );
-  };
-
-  const combinedLanguages = (() => {
-    if (!formData.languages) return [];
-    if (!formData.customLanguages || formData.customLanguages.length === 0) return formData.languages;
-    const customSelected = formData.customLanguages
-      .filter(l => l.selected && l.name.trim() !== '')
-      .map(l => l.name.trim());
-    return [...new Set([...formData.languages, ...customSelected])];
-  })();
 
   const generatePDF = async () => {
     if (!containerRef.current || !buttonRef.current) {
@@ -358,18 +199,18 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
 
       await html2pdf()
         .set({
-          margin: 10,
+          margin: 0,
           filename: 'cv.pdf',
           image: { type: 'png', quality: 0.98 },
           html2canvas: {
             scale: 3,
             useCORS: true,
             letterRendering: 1,
-            backgroundColor: null,
+            backgroundColor: '#f4f4f4',
             scrollY: 0,
           },
           jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-          pagebreak: { mode: ['css', 'legacy'] },
+          pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
         })
         .from(containerRef.current)
         .save();
@@ -414,133 +255,225 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     }
   };
 
-  return (
-    <article ref={containerRef} style={containerStyle}>
-      <header style={headerStyle}>
-        {formData.image ? (
-          <img
-            src={URL.createObjectURL(formData.image)}
-            alt="Profile"
-            style={photoStyle}
-          />
-        ) : formData.imageUrl ? (
-          <img
-            src={formData.imageUrl}
-            alt="Profile"
-            style={photoStyle}
-          />
-        ) : (
-          <div style={noPhotoPlaceholderStyle}>No Photo</div>
-        )}
-        <div style={personalInfoStyle}>
-          {formData.name && <h1 style={nameStyle}>{formData.name}</h1>}
-          {formData.phone && <p style={contactRowStyle}>📞 {formData.phone}</p>}
-          {formData.email && <p style={contactRowStyle}>✉️ {formData.email}</p>}
-          {formData.address && <p style={contactRowStyle}>📍 {formData.address}</p>}
+  const renderSkills = (skills) => (
+    <div>
+      {skills.map((skill, idx) => (
+        <div key={idx} style={styles.skill}>
+          <div style={styles.skillName}>{skill.name}</div>
+          <div style={styles.skillBar}>
+            <div style={styles.skillProgress(skill.percentage || '0%')}></div>
+          </div>
         </div>
-      </header>
+      ))}
+    </div>
+  );
 
-      {visibleSections.includes('objective') && formData.objective && (
-        <section style={sectionStyle} aria-label="Objective Section">
-          <h2 style={sectionTitleStyle}>Objective</h2>
-          {formData.objective.map((obj, idx) => (
-            <p key={idx} style={paragraphStyle}>{obj}</p>
-          ))}
-        </section>
-      )}
+  const renderSimpleList = (items) => (
+    <ul style={{ paddingLeft: '20px', marginTop: '10px' }}>
+      {items.map((item, idx) => (
+        <li key={idx} style={styles.listItem}>{item}</li>
+      ))}
+    </ul>
+  );
 
-      {visibleSections.includes('education') && formData.education?.length > 0 && (
-        <section style={sectionStyle} aria-label="Education Section">
-          <h2 style={sectionTitleStyle}>Education</h2>
-          {renderEducation(formData.education)}
-        </section>
-      )}
+  const renderLanguages = (languages, customLanguages) => {
+    const allLanguages = [...languages];
+    customLanguages.forEach(lang => {
+      if (lang.selected && lang.name) {
+        allLanguages.push(lang.name);
+      }
+    });
 
-      {visibleSections.includes('workExperience') && formData.workExperience?.length > 0 && (
-        <section style={sectionStyle} aria-label="Work Experience Section">
-          <h2 style={sectionTitleStyle}>Work Experience</h2>
-          {renderWorkExperience(formData.workExperience)}
-        </section>
-      )}
+    return (
+      <div>
+        {allLanguages.map((lang, idx) => (
+          <span key={idx} style={styles.language}>{lang}</span>
+        ))}
+      </div>
+    );
+  };
 
-      {/* Insert Other Information section here after Work Experience */}
-      {visibleSections.includes('otherInformation') && renderOtherInformation(formData.otherInformation)}
+  const renderOtherInformation = (otherInfo) => {
+    if (!Array.isArray(otherInfo) || otherInfo.length === 0) return null;
 
-      {visibleSections.includes('skills') && formData.skills?.length > 0 && (
-        <section style={sectionStyle} aria-label="Skills Section">
-          <h2 style={sectionTitleStyle}>Skills</h2>
-          {renderSkills(formData.skills)}
-        </section>
-      )}
+    const selectedRadio = otherInfo.find(
+      (item) => item.labelType === 'radio' && item.checked && item.name === 'parentSpouse'
+    );
 
-      {visibleSections.includes('certifications') && formData.certifications?.length > 0 && (
-        <section style={sectionStyle} aria-label="Certifications Section">
-          <h2 style={sectionTitleStyle}>Certifications</h2>
-          {renderSimpleList(formData.certifications)}
-        </section>
-      )}
+    const checkedCheckboxes = otherInfo.filter(
+      (item) => item.labelType === 'checkbox' && item.checked
+    );
 
-      {visibleSections.includes('projects') && formData.projects?.length > 0 && (
-        <section style={sectionStyle} aria-label="Projects Section">
-          <h2 style={sectionTitleStyle}>Projects</h2>
-          {renderSimpleList(formData.projects)}
-        </section>
-      )}
+    if (!selectedRadio && checkedCheckboxes.length === 0) return null;
 
-      {visibleSections.includes('languages') && combinedLanguages.length > 0 && (
-        <section style={sectionStyle} aria-label="Languages Section">
-          <h2 style={sectionTitleStyle}>Languages</h2>
-          {renderLanguages(combinedLanguages)}
-        </section>
-      )}
+    return (
+      <div style={styles.leftSection}>
+        <h2 style={styles.leftSectionTitle}>Other Information</h2>
+        {selectedRadio && (
+          <div style={styles.contactInfo}>
+            <strong>{selectedRadio.label}:</strong>&nbsp;{selectedRadio.value || '-'}
+          </div>
+        )}
+        {checkedCheckboxes.map((item) => (
+          <div key={item.id} style={styles.contactInfo}>
+            <strong>{item.label}:</strong>&nbsp;{item.value || '-'}
+          </div>
+        ))}
+      </div>
+    );
+  };
 
-      {visibleSections.includes('hobbies') && formData.hobbies?.length > 0 && (
-        <section style={sectionStyle} aria-label="Hobbies Section">
-          <h2 style={sectionTitleStyle}>Hobbies</h2>
-          {renderSimpleList(formData.hobbies)}
-        </section>
-      )}
+  return (
+    <div ref={containerRef} style={{ ...styles.container, paddingBottom: '50px' }}>
+      <div style={styles.leftColumn}>
+        {formData.image ? (
+          <img src={URL.createObjectURL(formData.image)} alt="Profile" style={styles.photo} />
+        ) : formData.imageUrl ? (
+          <img src={formData.imageUrl} alt="Profile" style={styles.photo} />
+        ) : (
+          <div style={styles.noPhoto}>No Photo</div>
+        )}
 
-      {visibleSections.includes('references') && formData.references?.length > 0 && (
-        <section style={sectionStyle} aria-label="References Section">
-          <h2 style={sectionTitleStyle}>References</h2>
-          {renderSimpleList(formData.references)}
-        </section>
-      )}
+        <div style={styles.leftSection}>
+          <h2 style={styles.leftSectionTitle}>Contact</h2>
+          {formData.phone && <p style={styles.contactInfo}><span style={styles.contactIcon}>📞</span>{formData.phone}</p>}
+          {formData.email && <p style={styles.contactInfo}><span style={styles.contactIcon}>✉️</span>{formData.email}</p>}
+          {formData.address && <p style={styles.contactInfo}><span style={styles.contactIcon}>📍</span>{formData.address}</p>}
+        </div>
 
+        {visibleSections.includes('otherInformation') && renderOtherInformation(formData.otherInformation)}
+
+        {visibleSections.includes('skills') && formData.skills?.length > 0 && (
+          <div style={styles.leftSection}>
+            <h2 style={styles.leftSectionTitle}>Skills</h2>
+            {renderSkills(formData.skills)}
+          </div>
+        )}
+
+        {visibleSections.includes('languages') && formData.languages?.length > 0 && (
+          <div style={styles.leftSection}>
+            <h2 style={styles.leftSectionTitle}>Languages</h2>
+            {renderLanguages(formData.languages || [], formData.customLanguages || [])}
+          </div>
+        )}
+
+
+        {visibleSections.includes('hobbies') && formData.hobbies?.length > 0 && (
+          <div style={styles.leftSection}>
+            <h2 style={styles.leftSectionTitle}>Hobbies</h2>
+            {renderSimpleList(formData.hobbies)}
+          </div>
+        )}
+      </div>
+
+      <div style={styles.rightColumn}>
+        <div style={styles.rightHeader}>
+          <h1 style={styles.name}>{formData.name || 'Your Name'}</h1>
+        </div>
+
+        {visibleSections.includes('objective') && formData.objective && (
+          <div style={styles.rightSection}>
+            <h2 style={styles.rightSectionTitle}>Objective</h2>
+            <p style={styles.paragraph}>{formData.objective}</p>
+          </div>
+        )}
+
+        {visibleSections.includes('workExperience') && formData.workExperience?.length > 0 && (
+          <div style={styles.rightSection}>
+            <h2 style={styles.rightSectionTitle}>Work Experience</h2>
+            {formData.workExperience.map((exp, idx) => (
+              <div key={idx} style={styles.experienceItem}>
+                <div style={styles.itemHeader}>
+                  <h3 style={styles.itemTitle}>{exp.designation}</h3>
+                  <span style={styles.itemDate}>{exp.duration}</span>
+                </div>
+                <h4 style={styles.itemSubtitle}>{exp.company}</h4>
+
+                {/* Existing description rendering */}
+                {exp.description && <p style={styles.paragraph}>{exp.description}</p>}
+
+                {/* ✅ NEW: Additional Details rendering below description, if any */}
+                {exp.details?.trim() && (
+                  <p style={{ ...styles.paragraph, marginTop: '0px' }}>{exp.details}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+
+        {visibleSections.includes('education') && formData.education?.length > 0 && (
+          <div style={styles.rightSection}>
+            <h2 style={styles.rightSectionTitle}>Education</h2>
+            {formData.education.map((edu, idx) => (
+              <div key={idx} style={styles.experienceItem}>
+                <div style={styles.itemHeader}>
+                  <h3 style={styles.itemTitle}>{edu.degree}</h3>
+                  <span style={styles.itemDate}>{edu.year}</span>
+                </div>
+                <h4 style={styles.itemSubtitle}>{edu.institute}</h4>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {visibleSections.includes('projects') && formData.projects?.length > 0 && (
+          <div style={styles.rightSection}>
+            <h2 style={styles.rightSectionTitle}>Projects</h2>
+            {renderSimpleList(formData.projects)}
+          </div>
+        )}
+
+        {visibleSections.includes('certifications') && formData.certifications?.length > 0 && (
+          <div style={styles.rightSection}>
+            <h2 style={styles.rightSectionTitle}>Certifications</h2>
+            {renderSimpleList(formData.certifications)}
+          </div>
+        )}
+
+        {visibleSections.includes('references') && formData.references?.length > 0 && (
+          <div style={styles.rightSection}>
+            <h2 style={styles.rightSectionTitle}>References</h2>
+            {renderSimpleList(formData.references)}
+          </div>
+        )}
+      </div>
       {!downloadCompleted ? (
         <button
           ref={buttonRef}
           type="button"
           onClick={handleDownloadClick}
           style={{
-            marginTop: 16,
-            cursor: 'pointer',
-            padding: '6px 18px',
-            fontSize: '0.95rem',
-            borderRadius: 6,
+            position: 'absolute',
+            bottom: '20px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            padding: '10px 20px',
+            fontSize: '1rem',
+            borderRadius: '5px',
             border: 'none',
-            backgroundColor: '#3f51b5',
+            backgroundColor: '#2ecc71',
             color: 'white',
+            cursor: 'pointer',
             transition: 'background-color 0.3s ease',
-            alignSelf: 'flex-start',
-            userSelect: 'none',
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#303f9f')}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3f51b5')}
         >
           {paymentCompleted ? 'Download PDF' : 'Download PDF (PKR 200)'}
         </button>
       ) : (
         <div style={{
-          marginTop: 16,
+          position: 'absolute',
+          bottom: '20px',
+          left: '50%',
+          transform: 'translateX(-50%)',
           padding: '12px 16px',
           backgroundColor: '#f0f9ff',
           border: '1px solid #0ea5e9',
-          borderRadius: 6,
+          borderRadius: '5px',
           color: '#0369a1',
           fontSize: '0.9rem',
           textAlign: 'center',
+          maxWidth: '300px',
         }}>
           ✅ CV Downloaded Successfully!<br />
           <small>Sign out and sign in again to download another CV.</small>
@@ -555,13 +488,13 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
           onClose={() => setShowPaymentModal(false)}
         />
       )}
-    </article>
+    </div>
   );
 };
 
-Template1PDF.propTypes = {
+Template2PDF.propTypes = {
   formData: PropTypes.object.isRequired,
   visibleSections: PropTypes.array,
 };
 
-export default Template1PDF;
+export default Template2PDF;
