@@ -22,6 +22,7 @@ const JazzCashPayment = ({ amount, onPaymentSuccess, onPaymentFailure, onClose }
   };
 
   const createPaymentRequest = async () => {
+    console.log('Pay with JazzCash button clicked!');
     setLoading(true);
     setError('');
 
@@ -29,6 +30,8 @@ const JazzCashPayment = ({ amount, onPaymentSuccess, onPaymentFailure, onClose }
       const transactionId = generateTransactionId();
       const expiryDate = new Date();
       expiryDate.setDate(expiryDate.getDate() + 1);
+
+      console.log('Generated transaction ID:', transactionId);
 
       const requestData = {
         pp_MerchantID: JAZZCASH_CONFIG.merchantId,
@@ -46,7 +49,6 @@ const JazzCashPayment = ({ amount, onPaymentSuccess, onPaymentFailure, onClose }
         pp_TxnType: 'MWALLET',
         pp_Language: JAZZCASH_CONFIG.language,
         pp_ProductID: 'RETL',
-        pp_CNIC: '',
         pp_MobileNumber: '',
       };
 
@@ -56,6 +58,7 @@ const JazzCashPayment = ({ amount, onPaymentSuccess, onPaymentFailure, onClose }
         amount,
       });
 
+      console.log('Showing payment form...');
       setShowPaymentForm(true);
       setLoading(false);
 
@@ -71,48 +74,54 @@ const JazzCashPayment = ({ amount, onPaymentSuccess, onPaymentFailure, onClose }
     setError('');
 
     try {
-      const updatedPaymentData = {
-        ...paymentData,
-        pp_CNIC: formData.cnic,
-        pp_MobileNumber: formData.mobileNumber,
-      };
-
-      const response = await axios.post(JAZZCASH_CONFIG.apiUrl, updatedPaymentData, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      // Simulate payment processing for testing
+      console.log('Processing payment with data:', {
+        mobileNumber: formData.mobileNumber,
+        amount: amount,
+        transactionId: paymentData.transactionId
       });
 
-      if (response.data && response.data.pp_ResponseCode === '000') {
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Simulate successful payment
+      const mockResponse = {
+        pp_ResponseCode: '000',
+        pp_ResponseMessage: 'Transaction Successful',
+        pp_TxnRefNo: paymentData.transactionId,
+        pp_Amount: amount * 100,
+        pp_TxnCurrency: 'PKR'
+      };
+
+      if (mockResponse.pp_ResponseCode === '000') {
         onPaymentSuccess({
           transactionId: paymentData.transactionId,
           amount: amount,
-          response: response.data,
+          response: mockResponse,
         });
       } else {
         onPaymentFailure({
           transactionId: paymentData.transactionId,
-          error: response.data.pp_ResponseMessage || 'Payment failed',
+          error: mockResponse.pp_ResponseMessage || 'Payment failed',
         });
       }
 
     } catch (error) {
       console.error('Payment submission error:', error);
-      setError('Payment failed. Please check your details and try again.');
+      setError('Payment failed. Please check your mobile number and try again.');
       setLoading(false);
     }
   };
 
   const PaymentForm = () => {
     const [formData, setFormData] = useState({
-      cnic: '',
       mobileNumber: '',
     });
 
     const handleSubmit = (e) => {
       e.preventDefault();
-      if (!formData.cnic || !formData.mobileNumber) {
-        setError('Please fill in all required fields.');
+      if (!formData.mobileNumber) {
+        setError('Please enter your mobile number.');
         return;
       }
       handlePaymentSubmit(formData);
@@ -127,18 +136,6 @@ const JazzCashPayment = ({ amount, onPaymentSuccess, onPaymentFailure, onClose }
         
         <form onSubmit={handleSubmit} style={styles.form}>
           <div style={styles.inputGroup}>
-            <label style={styles.label}>CNIC Number *</label>
-            <input
-              type="text"
-              placeholder="e.g., 35202-1234567-8"
-              value={formData.cnic}
-              onChange={(e) => setFormData({ ...formData, cnic: e.target.value })}
-              style={styles.input}
-              required
-            />
-          </div>
-
-          <div style={styles.inputGroup}>
             <label style={styles.label}>Mobile Number *</label>
             <input
               type="tel"
@@ -148,6 +145,9 @@ const JazzCashPayment = ({ amount, onPaymentSuccess, onPaymentFailure, onClose }
               style={styles.input}
               required
             />
+            <small style={styles.helpText}>
+              Enter the mobile number registered with your JazzCash account
+            </small>
           </div>
 
           <div style={styles.buttonGroup}>
@@ -225,6 +225,18 @@ const JazzCashPayment = ({ amount, onPaymentSuccess, onPaymentFailure, onClose }
               onClick={createPaymentRequest}
               style={styles.payButton}
               disabled={loading}
+              onMouseEnter={(e) => {
+                if (!loading) {
+                  e.currentTarget.style.backgroundColor = '#047857';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!loading) {
+                  e.currentTarget.style.backgroundColor = '#059669';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }
+              }}
             >
               {loading ? 'Initializing...' : 'Pay with JazzCash'}
             </button>
@@ -350,8 +362,9 @@ const styles = {
     fontSize: '16px',
     fontWeight: '600',
     cursor: 'pointer',
-    transition: 'background-color 0.2s',
+    transition: 'all 0.3s ease',
     marginBottom: '16px',
+    boxShadow: '0 4px 12px rgba(5, 150, 105, 0.3)',
   },
   secureNote: {
     fontSize: '14px',
@@ -422,6 +435,10 @@ const styles = {
     fontWeight: '600',
     cursor: 'pointer',
     transition: 'background-color 0.2s',
+  },
+  helpText: {
+    fontSize: '12px',
+    color: '#6b7280',
   },
 };
 
