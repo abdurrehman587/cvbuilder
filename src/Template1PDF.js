@@ -21,6 +21,15 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentCompleted, setPaymentCompleted] = useState(false);
   const [paymentState, setPaymentState] = useState('idle');
+  const [downloadCompleted, setDownloadCompleted] = useState(false);
+
+  // Check if download was already completed for this session
+  React.useEffect(() => {
+    const hasDownloaded = localStorage.getItem('cv_downloaded');
+    if (hasDownloaded) {
+      setDownloadCompleted(true);
+    }
+  }, []);
 
   const containerStyle = {
     width: '100%',
@@ -364,10 +373,20 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
         })
         .from(containerRef.current)
         .save();
+
+      // Mark download as completed
+      localStorage.setItem('cv_downloaded', 'true');
+      setDownloadCompleted(true);
+      
+      // Show success message
+      alert('CV downloaded successfully! You will need to sign in again to download another CV.');
+      
     } catch (error) {
       alert('Error generating PDF: ' + error.message);
-    } finally {
-      buttonRef.current.style.display = 'inline-block';
+      // Show button again if download failed
+      if (buttonRef.current) {
+        buttonRef.current.style.display = 'inline-block';
+      }
     }
   };
 
@@ -489,28 +508,44 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
         </section>
       )}
 
-      <button
-        ref={buttonRef}
-        type="button"
-        onClick={handleDownloadClick}
-        style={{
+      {!downloadCompleted ? (
+        <button
+          ref={buttonRef}
+          type="button"
+          onClick={handleDownloadClick}
+          style={{
+            marginTop: 16,
+            cursor: 'pointer',
+            padding: '6px 18px',
+            fontSize: '0.95rem',
+            borderRadius: 6,
+            border: 'none',
+            backgroundColor: '#3f51b5',
+            color: 'white',
+            transition: 'background-color 0.3s ease',
+            alignSelf: 'flex-start',
+            userSelect: 'none',
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#303f9f')}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3f51b5')}
+        >
+          {paymentCompleted ? 'Download PDF' : 'Download PDF (PKR 200)'}
+        </button>
+      ) : (
+        <div style={{
           marginTop: 16,
-          cursor: 'pointer',
-          padding: '6px 18px',
-          fontSize: '0.95rem',
+          padding: '12px 16px',
+          backgroundColor: '#f0f9ff',
+          border: '1px solid #0ea5e9',
           borderRadius: 6,
-          border: 'none',
-          backgroundColor: '#3f51b5',
-          color: 'white',
-          transition: 'background-color 0.3s ease',
-          alignSelf: 'flex-start',
-          userSelect: 'none',
-        }}
-        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#303f9f')}
-        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3f51b5')}
-      >
-        {paymentCompleted ? 'Download PDF' : 'Download PDF (PKR 200)'}
-      </button>
+          color: '#0369a1',
+          fontSize: '0.9rem',
+          textAlign: 'center',
+        }}>
+          ✅ CV Downloaded Successfully!<br />
+          <small>Sign out and sign in again to download another CV.</small>
+        </div>
+      )}
 
       {showPaymentModal && (
         <JazzCashPayment
