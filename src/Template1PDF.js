@@ -1,5 +1,6 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import PropTypes from 'prop-types';
+import JazzCashPayment from './JazzCashPayment';
 
 
 // Load html2pdf from CDN dynamically
@@ -17,6 +18,9 @@ const loadHtml2Pdf = () => {
 const Template1PDF = ({ formData, visibleSections = [] }) => {
   const containerRef = useRef(null);
   const buttonRef = useRef(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentCompleted, setPaymentCompleted] = useState(false);
+  const [paymentState, setPaymentState] = useState('idle');
 
   const containerStyle = {
     width: '100%',
@@ -367,6 +371,30 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     }
   };
 
+  const handlePaymentSuccess = (paymentData) => {
+    console.log('Payment successful:', paymentData);
+    setPaymentCompleted(true);
+    setShowPaymentModal(false);
+    // Now trigger the PDF download
+    generatePDF();
+  };
+
+  const handlePaymentFailure = (error) => {
+    console.log('Payment failed:', error);
+    setShowPaymentModal(false);
+    alert('Payment failed. Please try again.');
+  };
+
+  const handleDownloadClick = () => {
+    if (paymentCompleted) {
+      // If payment is already completed, download directly
+      generatePDF();
+    } else {
+      // Show payment modal first
+      setShowPaymentModal(true);
+    }
+  };
+
   return (
     <article ref={containerRef} style={containerStyle}>
       <header style={headerStyle}>
@@ -464,7 +492,7 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
       <button
         ref={buttonRef}
         type="button"
-        onClick={generatePDF}
+        onClick={handleDownloadClick}
         style={{
           marginTop: 16,
           cursor: 'pointer',
@@ -481,8 +509,17 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
         onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#303f9f')}
         onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3f51b5')}
       >
-        Download PDF
+        {paymentCompleted ? 'Download PDF' : 'Download PDF (PKR 200)'}
       </button>
+
+      {showPaymentModal && (
+        <JazzCashPayment
+          amount={200}
+          onPaymentSuccess={handlePaymentSuccess}
+          onPaymentFailure={handlePaymentFailure}
+          onClose={() => setShowPaymentModal(false)}
+        />
+      )}
     </article>
   );
 };
