@@ -1,5 +1,6 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import PropTypes from 'prop-types';
+import JazzCashPayment from './JazzCashPayment';
 
 const loadHtml2Pdf = () => {
   if (window.html2pdf) return Promise.resolve(window.html2pdf);
@@ -15,6 +16,8 @@ const loadHtml2Pdf = () => {
 const Template2PDF = ({ formData, visibleSections = [] }) => {
   const containerRef = useRef(null);
   const buttonRef = useRef(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentCompleted, setPaymentCompleted] = useState(false);
 
   const styles = {
     container: {
@@ -211,6 +214,30 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
     }
   };
 
+  const handlePaymentSuccess = (paymentData) => {
+    console.log('Payment successful:', paymentData);
+    setPaymentCompleted(true);
+    setShowPaymentModal(false);
+    // Now trigger the PDF download
+    generatePDF();
+  };
+
+  const handlePaymentFailure = (error) => {
+    console.log('Payment failed:', error);
+    setShowPaymentModal(false);
+    alert('Payment failed. Please try again.');
+  };
+
+  const handleDownloadClick = () => {
+    if (paymentCompleted) {
+      // If payment is already completed, download directly
+      generatePDF();
+    } else {
+      // Show payment modal first
+      setShowPaymentModal(true);
+    }
+  };
+
   const renderSkills = (skills) => (
     <div>
       {skills.map((skill, idx) => (
@@ -397,7 +424,7 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
       <button
         ref={buttonRef}
         type="button"
-        onClick={generatePDF}
+        onClick={handleDownloadClick}
         style={{
           position: 'absolute',
           bottom: '20px',
@@ -413,8 +440,17 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
           transition: 'background-color 0.3s ease',
         }}
       >
-        Download PDF
+        {paymentCompleted ? 'Download PDF' : 'Download PDF (PKR 200)'}
       </button>
+
+      {showPaymentModal && (
+        <JazzCashPayment
+          amount={200}
+          onPaymentSuccess={handlePaymentSuccess}
+          onPaymentFailure={handlePaymentFailure}
+          onClose={() => setShowPaymentModal(false)}
+        />
+      )}
     </div>
   );
 };
