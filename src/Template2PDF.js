@@ -1,5 +1,6 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import PropTypes from 'prop-types';
+import JazzCashPayment from './JazzCashPayment';
 
 const loadHtml2Pdf = () => {
   if (window.html2pdf) return Promise.resolve(window.html2pdf);
@@ -15,6 +16,17 @@ const loadHtml2Pdf = () => {
 const Template2PDF = ({ formData, visibleSections = [] }) => {
   const containerRef = useRef(null);
   const buttonRef = useRef(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentCompleted, setPaymentCompleted] = useState(false);
+  const [downloadCompleted, setDownloadCompleted] = useState(false);
+
+  // Check if download was already completed for this session
+  React.useEffect(() => {
+    const hasDownloaded = localStorage.getItem('cv_downloaded');
+    if (hasDownloaded) {
+      setDownloadCompleted(true);
+    }
+  }, []);
 
   const styles = {
     container: {
@@ -202,12 +214,44 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
         })
         .from(containerRef.current)
         .save();
+
+      // Mark download as completed
+      localStorage.setItem('cv_downloaded', 'true');
+      setDownloadCompleted(true);
+      
+      // Show success message
+      alert('CV downloaded successfully! You will need to sign in again to download another CV.');
+      
     } catch (error) {
       alert('Error generating PDF: ' + error.message);
-    } finally {
+      // Show button again if download failed
       if (buttonRef.current) {
         buttonRef.current.style.display = 'inline-block';
       }
+    }
+  };
+
+  const handlePaymentSuccess = (paymentData) => {
+    console.log('Payment successful:', paymentData);
+    setPaymentCompleted(true);
+    setShowPaymentModal(false);
+    // Now trigger the PDF download
+    generatePDF();
+  };
+
+  const handlePaymentFailure = (error) => {
+    console.log('Payment failed:', error);
+    setShowPaymentModal(false);
+    alert('Payment failed. Please try again.');
+  };
+
+  const handleDownloadClick = () => {
+    if (paymentCompleted) {
+      // If payment is already completed, download directly
+      generatePDF();
+    } else {
+      // Show payment modal first
+      setShowPaymentModal(true);
     }
   };
 
@@ -394,27 +438,56 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
           </div>
         )}
       </div>
-      <button
-        ref={buttonRef}
-        type="button"
-        onClick={generatePDF}
-        style={{
+      {!downloadCompleted ? (
+        <button
+          ref={buttonRef}
+          type="button"
+          onClick={handleDownloadClick}
+          style={{
+            position: 'absolute',
+            bottom: '20px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            padding: '10px 20px',
+            fontSize: '1rem',
+            borderRadius: '5px',
+            border: 'none',
+            backgroundColor: '#2ecc71',
+            color: 'white',
+            cursor: 'pointer',
+            transition: 'background-color 0.3s ease',
+          }}
+        >
+          {paymentCompleted ? 'Download PDF' : 'Download PDF (PKR 200)'}
+        </button>
+      ) : (
+        <div style={{
           position: 'absolute',
           bottom: '20px',
           left: '50%',
           transform: 'translateX(-50%)',
-          padding: '10px 20px',
-          fontSize: '1rem',
+          padding: '12px 16px',
+          backgroundColor: '#f0f9ff',
+          border: '1px solid #0ea5e9',
           borderRadius: '5px',
-          border: 'none',
-          backgroundColor: '#2ecc71',
-          color: 'white',
-          cursor: 'pointer',
-          transition: 'background-color 0.3s ease',
-        }}
-      >
-        Download PDF
-      </button>
+          color: '#0369a1',
+          fontSize: '0.9rem',
+          textAlign: 'center',
+          maxWidth: '300px',
+        }}>
+          ✅ CV Downloaded Successfully!<br />
+          <small>Sign out and sign in again to download another CV.</small>
+        </div>
+      )}
+
+      {showPaymentModal && (
+        <JazzCashPayment
+          amount={200}
+          onPaymentSuccess={handlePaymentSuccess}
+          onPaymentFailure={handlePaymentFailure}
+          onClose={() => setShowPaymentModal(false)}
+        />
+      )}
     </div>
   );
 };

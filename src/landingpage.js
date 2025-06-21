@@ -7,15 +7,42 @@ import Template4Preview from './Template4Preview';
 import Template5Preview from './Template5Preview';
 import Template6Preview from './Template6Preview';
 import Template7Preview from './Template7Preview';
-import Template8Preview from './Template8Preview';
-import Template9Preview from './Template9Preview';
-import Template10Preview from './Template10Preview';
 
-const LandingPage = () => {
+const LandingPage = ({ user }) => {
   const [selectedTemplate, setSelectedTemplate] = useState(null);
-  const [formData, setFormData] = useState(null);
+  const [formData, setFormData] = useState({
+    image: null,
+    imageUrl: '',
+    name: '',
+    phone: '',
+    email: '',
+    address: '',
+    objective: ['Seeking a challenging position where I can develop my education skills further and become a valuable team member.'],
+    education: [{ degree: '', institute: '', year: '' }],
+    workExperience: [{ company: '', designation: '', duration: '', details: '' }],
+    skills: [
+      { name: 'Communication', percentage: '90%' },
+      { name: 'Hardworking', percentage: '95%' },
+      { name: 'Time Management', percentage: '95%' },
+      { name: 'Accurate Planning', percentage: '80%' },
+    ],
+    certifications: [''],
+    projects: [''],
+    languages: ['English', 'Urdu', 'Punjabi'],
+    customLanguages: [],
+    hobbies: [''],
+    references: [''],
+    otherInformation: [
+      { id: 1, labelType: 'radio', label: "Father's Name:", checked: true, value: '', name: 'parentSpouse', radioValue: 'father' },
+      { id: 2, labelType: 'radio', label: "Husband's Name:", checked: false, value: '', name: 'parentSpouse', radioValue: 'husband' },
+      { id: 3, labelType: 'checkbox', label: 'CNIC:', checked: true, value: '', isCustom: false },
+      { id: 4, labelType: 'checkbox', label: 'Date of Birth:', checked: true, value: '', isCustom: false },
+      { id: 5, labelType: 'checkbox', label: 'Marital Status:', checked: true, value: '', isCustom: false },
+      { id: 6, labelType: 'checkbox', label: 'Religion:', checked: true, value: '', isCustom: false },
+    ],
+  });
 
-  const templates = Array.from({ length: 10 }, (_, i) => ({
+  const templates = Array.from({ length: 7 }, (_, i) => ({
     name: `Template ${i + 1}`,
     imageUrl: `/templates/template${i + 1}.jpg`,
   }));
@@ -28,14 +55,19 @@ const LandingPage = () => {
     'Template 5': Template5Preview,
     'Template 6': Template6Preview,
     'Template 7': Template7Preview,
-    'Template 8': Template8Preview,
-    'Template 9': Template9Preview,
-    'Template 10': Template10Preview,
   };
 
   const handleTemplateClick = (template) => {
+    if (selectedTemplate === template) {
+      return; // Prevent duplicate selection
+    }
+    
+    if (!TemplateComponentsMap[template]) {
+      console.error('Template component not found:', template);
+      return;
+    }
+    
     setSelectedTemplate(template);
-    // formData is preserved globally, not per template
   };
 
   const handleBack = () => {
@@ -78,8 +110,9 @@ const LandingPage = () => {
     return (
       <div
         style={{
+          // Remove the left padding to prevent the "zoomed in" effect
           display: 'flex',
-          padding: '20px 40px 20px 180px',
+          padding: '20px 40px 20px 40px', // changed from '20px 40px 20px 180px'
           flexDirection: 'column',
           minHeight: '100vh',
           boxSizing: 'border-box',
@@ -104,7 +137,7 @@ const LandingPage = () => {
             display: 'flex',
             width: '100%',
             justifyContent: 'flex-start',
-            gap: '250px',
+            gap: '60px', // changed from '250px' for better layout
           }}
         >
           <div
@@ -118,22 +151,25 @@ const LandingPage = () => {
               boxSizing: 'border-box',
               borderRadius: '12px',
               boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-              transform: 'scale(1.2)',
-              transformOrigin: 'top',
+              // Remove the scale transform to prevent zooming
+              // transform: 'scale(1.2)',
+              // transformOrigin: 'top',
             }}
           >
             <Form
               formData={formData}
               setFormData={setFormData}
               onChange={handleFormDataChange}
+              user={user}
             />
           </div>
           <div
             style={{
               flex: '0 0 auto',
               boxSizing: 'border-box',
-              transform: 'scale(1.2)',
-              transformOrigin: 'top',
+              // Remove the scale transform to prevent zooming
+              // transform: 'scale(1.2)',
+              // transformOrigin: 'top',
             }}
           >
             {formData ? (
@@ -165,11 +201,13 @@ const LandingPage = () => {
     <div
       style={{
         minHeight: '100vh',
-        padding: '40px 40px',
+        padding: '40px 20px',
         fontFamily: "'Inter', sans-serif",
         backgroundColor: '#f4f6f8',
         color: '#6b7280',
         boxSizing: 'border-box',
+        width: '100%',
+        maxWidth: '100%',
       }}
     >
       <h1
@@ -187,10 +225,11 @@ const LandingPage = () => {
 
       <div
         style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '32px',
-          justifyContent: 'flex-start',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
+          gap: '24px',
+          width: '100%',
+          maxWidth: '100%',
         }}
       >
         {templates.map((template) => (
@@ -206,7 +245,7 @@ const LandingPage = () => {
             }}
             title={`Click to use ${template.name}`}
             style={{
-              width: '480px',
+              width: '100%',
               height: '750px',
               backgroundColor: '#fff',
               border: '2px solid #3498db',
@@ -220,6 +259,7 @@ const LandingPage = () => {
               cursor: 'pointer',
               transition: 'transform 0.2s ease',
               userSelect: 'none',
+              boxSizing: 'border-box',
             }}
             onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.04)')}
             onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}

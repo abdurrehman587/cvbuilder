@@ -43,7 +43,7 @@ const defaultFormData = {
 
 
 
-const Form = ({ formData, setFormData, onChange }) => {
+const Form = ({ formData, setFormData, onChange, user }) => {
 
   const [searchName, setSearchName] = useState('');
   const [searchPhone, setSearchPhone] = useState('');
@@ -61,6 +61,74 @@ const Form = ({ formData, setFormData, onChange }) => {
     }
   }, [formData, onChange]);
 
+  // Fetch user's CV on mount or when user changes
+  useEffect(() => {
+    const fetchUserCV = async () => {
+      if (!user) return;
+      
+      try {
+        console.log('Fetching CV for user:', user.id);
+        const { data, error } = await supabase
+          .from('cvs')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (error) {
+          console.error('Error fetching CV:', error);
+          
+          // Check if table doesn't exist
+          if (error.message && error.message.includes('relation "cvs" does not exist')) {
+            console.warn('CV table does not exist. Please run the database setup script.');
+            return;
+          }
+          
+          // Check if no data found (this is normal for new users)
+          if (error.code === 'PGRST116') {
+            console.log('No existing CV found for user - this is normal for new users');
+            return;
+          }
+          
+          // Check for RLS policy issues
+          if (error.message && error.message.includes('new row violates row-level security policy')) {
+            console.error('RLS policy issue - user may not have proper permissions');
+            return;
+          }
+          
+          console.error('Unexpected error fetching CV:', error);
+          return;
+        }
+
+        if (data) {
+          console.log('CV data loaded successfully:', data);
+          setFormData({
+            image: null,
+            imageUrl: data.image_url || '',
+            name: data.name || '',
+            phone: data.phone || '',
+            email: data.email || '',
+            address: data.address || '',
+            objective: JSON.parse(data.objective || '[]'),
+            education: JSON.parse(data.education || '[]'),
+            workExperience: JSON.parse(data.work_experience || '[]'),
+            skills: JSON.parse(data.skills || '[]'),
+            certifications: JSON.parse(data.certifications || '[]'),
+            projects: JSON.parse(data.projects || '[]'),
+            languages: JSON.parse(data.languages || '[]'),
+            customLanguages: [],
+            hobbies: JSON.parse(data.hobbies || '[]'),
+            references: JSON.parse(data.references || '[]'),
+            otherInformation: JSON.parse(data.other_information || '[]'),
+          });
+        }
+      } catch (err) {
+        console.error('Exception while fetching CV:', err);
+      }
+    };
+    
+    fetchUserCV();
+    // eslint-disable-next-line
+  }, [user]);
 
 
 
@@ -238,20 +306,33 @@ const Form = ({ formData, setFormData, onChange }) => {
 
   const handleSave = async () => {
     try {
+      // Ensure user is present
+      if (!user) {
+        toast.error('You must be signed in to save your CV.');
+        return;
+      }
+
+      console.log('Starting save process...');
+      console.log('Current user:', user.id);
+      console.log('Form data to save:', formData);
+
       let imageUrl = formData.imageUrl;
 
+      // Upload image if present
       if (formData.image) {
+        console.log('Uploading image...');
         const uploadedUrl = await uploadImage(formData.image);
         if (!uploadedUrl) {
           toast.error('Image upload failed. Please try again.');
           return;
         }
         imageUrl = uploadedUrl;
-        setFormData(prev => ({ ...prev, imageUrl }));
+        console.log('Image uploaded successfully:', imageUrl);
       }
 
-      // Prepare sanitized payload
+      // Prepare payload for Supabase
       const payload = {
+        user_id: user.id,
         image_url: imageUrl && imageUrl.startsWith('http') ? imageUrl : null,
         name: formData.name || '',
         phone: formData.phone || '',
@@ -295,38 +376,51 @@ const Form = ({ formData, setFormData, onChange }) => {
         })))
       };
 
-      // Try full insert
-      const { error } = await supabase.from('cvs').insert([payload]); // <-- updated table name
+      console.log('Prepared payload:', payload);
 
-      if (!error) {
-        toast.success('CV Saved Successfully');
+      // Save (insert or update) to Supabase
+      console.log('Attempting to save to database...');
+      const { data, error } = await supabase
+        .from('cvs')
+        .upsert([payload], { onConflict: 'user_id' });
+
+      console.log('Database response:', { data, error });
+
+      if (error) {
+        console.error('Supabase error:', error);
+        
+        // Check if it's a table not found error
+        if (error.message && error.message.includes('relation "cvs" does not exist')) {
+          toast.error('Database table not found. Please run the database setup script.');
+          return;
+        }
+        
+        // Check if it's a permission error
+        if (error.message && error.message.includes('permission denied')) {
+          toast.error('Permission denied. Please check your authentication.');
+          return;
+        }
+
+        // Check for RLS policy issues
+        if (error.message && error.message.includes('new row violates row-level security policy')) {
+          toast.error('Security policy issue. Please check your database permissions.');
+          return;
+        }
+        
+        toast.error(`Save failed: ${error.message}`);
         return;
       }
 
-      console.warn('Initial insert failed. Checking individual fields...');
-
-      for (const key in payload) {
-        const testPayload = { [key]: payload[key] };
-        const { error: testError } = await supabase.from('cvs').insert([testPayload]); // <-- updated table name
-
-        if (testError) {
-          alert(
-            `❌ Error saving field: "${key}"\n\n` +
-            `🔹 Value:\n${JSON.stringify(testPayload[key], null, 2)}\n\n` +
-            `🔻 Supabase error:\n${JSON.stringify(testError, null, 2)}`
-          );
-          console.error(`Problem with field "${key}"`, testPayload[key]);
-          console.error('Full error:', testError);
-          return;
-        }
+      console.log('Save successful! Data:', data);
+      toast.success('CV Saved Successfully!');
+      
+      // Optionally update formData with new imageUrl if uploaded
+      if (formData.image && imageUrl) {
+        setFormData(prev => ({ ...prev, image: null, imageUrl }));
       }
-
-      alert('⚠️ All fields worked individually, but full insert failed. This may be due to size limits or conflicts.');
-      toast.error('Insert failed. Try simplifying your data or reducing size.');
     } catch (error) {
-      console.error('Unhandled exception during save:', error);
-      alert(`Unexpected error. See console for details.\n\n${error.message}`);
-      toast.error('Unexpected error saving CV.');
+      console.error('Unexpected error during save:', error);
+      toast.error('An unexpected error occurred while saving.');
     }
   };
 
@@ -338,7 +432,7 @@ const Form = ({ formData, setFormData, onChange }) => {
         return;
       }
 
-      let query = supabase.from('cvs').select('*').limit(1); // <-- updated table name
+      let query = supabase.from('cvs').select('*').limit(1);
 
       if (searchName) {
         query = query.ilike('name', `%${searchName}%`);
@@ -377,7 +471,7 @@ const Form = ({ formData, setFormData, onChange }) => {
         certifications: JSON.parse(cv.certifications || '[]'),
         projects: JSON.parse(cv.projects || '[]'),
         languages: JSON.parse(cv.languages || '[]'),
-        customLanguages: [], // no longer used
+        customLanguages: [],
         hobbies: JSON.parse(cv.hobbies || '[]'),
         references: JSON.parse(cv.references || '[]'),
         otherInformation: JSON.parse(cv.other_information || '[]'),
