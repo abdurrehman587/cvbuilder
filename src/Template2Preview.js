@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Template2PDF from './Template2PDF';
 
 const sectionList = [
@@ -14,8 +14,51 @@ const sectionList = [
   { key: 'otherInformation', title: 'Other Information' },
 ];
 
+// Helper function to check if a section has data
+const hasSectionData = (formData, sectionKey) => {
+  switch (sectionKey) {
+    case 'objective':
+      return formData.objective && formData.objective.length > 0 && 
+             formData.objective.some(obj => obj && obj.trim() !== '');
+    case 'education':
+      return formData.education && formData.education.length > 0;
+    case 'workExperience':
+      return formData.workExperience && formData.workExperience.length > 0;
+    case 'skills':
+      return formData.skills && formData.skills.length > 0;
+    case 'certifications':
+      return formData.certifications && formData.certifications.length > 0;
+    case 'projects':
+      return formData.projects && formData.projects.length > 0;
+    case 'languages':
+      return (formData.languages && formData.languages.length > 0) ||
+             (formData.customLanguages && formData.customLanguages.length > 0 && 
+              formData.customLanguages.some(l => l.selected && l.name.trim() !== ''));
+    case 'hobbies':
+      return formData.hobbies && formData.hobbies.length > 0;
+    case 'references':
+      return true; // Always show references section
+    case 'otherInformation':
+      return formData.otherInformation && formData.otherInformation.length > 0 &&
+             formData.otherInformation.some(item => 
+               (item.labelType === 'radio' && item.checked) ||
+               (item.labelType === 'checkbox' && item.checked)
+             );
+    default:
+      return false;
+  }
+};
+
 const Template2Preview = ({ formData }) => {
-  const [visibleSections, setVisibleSections] = useState(sectionList.map(s => s.key));
+  const [visibleSections, setVisibleSections] = useState([]);
+
+  // Update visible sections when formData changes
+  useEffect(() => {
+    const sectionsWithData = sectionList
+      .filter(section => hasSectionData(formData, section.key))
+      .map(section => section.key);
+    setVisibleSections(sectionsWithData);
+  }, [formData]);
 
   const toggleSection = (key) => {
     setVisibleSections((prev) =>

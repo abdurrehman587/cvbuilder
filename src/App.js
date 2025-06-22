@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import supabase from './supabase';
 import SignupSignIn from './SignupSignIn';
-import LandingPage from './landingpage'; // <-- import LandingPage
+import LandingPage from './landingpage';
 
 const App = () => {
   const [user, setUser] = useState(null);
@@ -12,7 +12,12 @@ const App = () => {
     const handleAuthCallback = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        setUser(session.user);
+        const userWithType = {
+          ...session.user,
+          userType: 'user',
+          isAdmin: false
+        };
+        setUser(userWithType);
       }
       setLoading(false);
     };
@@ -20,7 +25,14 @@ const App = () => {
     // Check for session on mount
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user || null);
+      if (session?.user) {
+        const userWithType = {
+          ...session.user,
+          userType: 'user',
+          isAdmin: false
+        };
+        setUser(userWithType);
+      }
       setLoading(false);
     };
 
@@ -33,7 +45,16 @@ const App = () => {
 
     // Listen for auth changes
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user || null);
+      if (session?.user) {
+        const userWithType = {
+          ...session.user,
+          userType: 'user',
+          isAdmin: false
+        };
+        setUser(userWithType);
+      } else {
+        setUser(null);
+      }
       setLoading(false);
     });
 
@@ -58,6 +79,11 @@ const App = () => {
 
   // Always show SignupSignIn as homepage/root route
   if (!user) {
+    return <SignupSignIn onAuth={setUser} />;
+  }
+
+  // If user is admin, they should be handled by SignupSignIn component
+  if (user.isAdmin) {
     return <SignupSignIn onAuth={setUser} />;
   }
 
@@ -116,6 +142,7 @@ const App = () => {
         </svg>
         Sign Out
       </button>
+
       <LandingPage user={user} />
     </div>
   );

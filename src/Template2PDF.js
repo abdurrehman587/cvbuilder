@@ -245,7 +245,57 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
     alert('Payment failed. Please try again.');
   };
 
+  const checkForApprovedPayment = () => {
+    // Check if user is admin (bypass payment)
+    const adminAccess = localStorage.getItem('admin_cv_access');
+    if (adminAccess === 'true') {
+      return true;
+    }
+
+    // Check localStorage for approved payments
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('payment_')) {
+        try {
+          const payment = JSON.parse(localStorage.getItem(key));
+          if (payment.status === 'approved') {
+            return true;
+          }
+        } catch (error) {
+          console.error('Error parsing payment:', error);
+        }
+      }
+    }
+    return false;
+  };
+
+  const getDownloadButtonText = () => {
+    // Check if user is admin
+    const adminAccess = localStorage.getItem('admin_cv_access');
+    if (adminAccess === 'true') {
+      return 'Download PDF (Admin Access)';
+    }
+
+    if (paymentCompleted) {
+      return 'Download PDF';
+    }
+    
+    const hasApprovedPayment = checkForApprovedPayment();
+    if (hasApprovedPayment) {
+      return 'Payment Approved (Download Now)';
+    }
+    
+    return 'Download PDF (PKR 200)';
+  };
+
   const handleDownloadClick = () => {
+    // Check if user is admin (bypass payment)
+    const adminAccess = localStorage.getItem('admin_cv_access');
+    if (adminAccess === 'true') {
+      generatePDF();
+      return;
+    }
+
     if (paymentCompleted) {
       // If payment is already completed, download directly
       generatePDF();
@@ -431,10 +481,14 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
           </div>
         )}
 
-        {visibleSections.includes('references') && formData.references?.length > 0 && (
+        {visibleSections.includes('references') && (
           <div style={styles.rightSection}>
             <h2 style={styles.rightSectionTitle}>References</h2>
-            {renderSimpleList(formData.references)}
+            {formData.references && formData.references.length > 0 ? (
+              renderSimpleList(formData.references)
+            ) : (
+              <p style={styles.paragraph}>Reference would be furnished on demand</p>
+            )}
           </div>
         )}
       </div>
@@ -458,7 +512,7 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
             transition: 'background-color 0.3s ease',
           }}
         >
-          {paymentCompleted ? 'Download PDF' : 'Download PDF (PKR 200)'}
+          {getDownloadButtonText()}
         </button>
       ) : (
         <div style={{

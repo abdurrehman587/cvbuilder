@@ -1,5 +1,6 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
+import ManualPayment from './ManualPayment';
 
 const sectionList = [
   { key: 'objective', title: 'Objective' },
@@ -26,277 +27,498 @@ const loadHtml2Pdf = () => {
   });
 };
 
-const Template1PDF = ({ formData, visibleSections = [] }) => {
+const Template3PDF = ({ formData, visibleSections = [] }) => {
   const containerRef = useRef(null);
   const buttonRef = useRef(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentCompleted, setPaymentCompleted] = useState(false);
+  const [paymentState, setPaymentState] = useState('idle');
+  const [downloadCompleted, setDownloadCompleted] = useState(false);
+
+  // Check download state on component mount
+  useEffect(() => {
+    const isDownloaded = localStorage.getItem('cv_downloaded') === 'true';
+    setDownloadCompleted(isDownloaded);
+  }, []);
 
   const containerStyle = {
-    width: '700px',
-    margin: '2px auto 0',  // Reduced top margin from 6px to 2px
-    padding: '18px',
-    background: '#fdfdfd',
-    borderRadius: '10px',
-    fontFamily: "'Open Sans', Arial, sans-serif",
-    color: '#333',
+    width: '100%',
+    margin: '0',
+    padding: '0',
+    background: '#ffffff',
+    fontFamily: "'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+    color: '#2d3748',
     display: 'flex',
     flexDirection: 'column',
     boxSizing: 'border-box',
-    minHeight: '297mm',
+    minHeight: '100vh',
   };
 
   const headerStyle = {
+    background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 50%, #15803d 100%)',
+    color: '#ffffff',
+    padding: '20px 20px',
+    textAlign: 'center',
+    position: 'relative',
+    overflow: 'hidden',
+  };
+
+  const headerOverlay = {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: 'rgba(255,255,255,0.1)',
+    zIndex: 1,
+  };
+
+  const headerContent = {
+    position: 'relative',
+    zIndex: 2,
     display: 'flex',
-    alignItems: 'center', // Vertical center alignment
-    height: '140px', // Same as image height for stable vertical centering
-    marginBottom: '16px',
-    gap: '16px',
-    breakInside: 'avoid',
-    pageBreakInside: 'avoid',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '25px',
+    flexWrap: 'wrap',
   };
 
   const photoStyle = {
-    flexShrink: 0,
     width: '140px',
     height: '140px',
     borderRadius: '50%',
     objectFit: 'cover',
-    border: '3px solid #3f51b5',
-    boxShadow: '0 3px 12px rgba(63,81,181,0.3)',
+    border: '5px solid rgba(255,255,255,0.4)',
+    boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
   };
 
   const noPhotoPlaceholderStyle = {
     ...photoStyle,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: 'rgba(255,255,255,0.2)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    color: '#888',
+    color: '#ffffff',
     fontStyle: 'italic',
-    fontSize: '0.95rem',
+    fontSize: '1rem',
   };
 
   const personalInfoStyle = {
     flexGrow: 1,
-    height: '100%', // Fill header height for vertical centering
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center', // Vertically centers name and contacts within header height
-    color: '#3f51b5',
+    textAlign: 'left',
   };
 
   const nameStyle = {
-    fontSize: '2.3rem',        // Slightly increased size from 2rem
-    fontWeight: 700,
-    margin: 0,                // Remove margin for tight stacking
+    fontSize: '2.5rem',
+    fontWeight: 800,
+    margin: '0 0 6px 0',
+    letterSpacing: '-0.02em',
+    textShadow: '0 2px 4px rgba(0,0,0,0.3)',
+    color: '#ffffff',
+  };
+
+  const titleStyle = {
+    fontSize: '1.2rem',
+    fontWeight: 400,
+    margin: '0 0 10px 0',
+    opacity: 0.9,
     letterSpacing: '0.05em',
+    color: '#ffffff',
   };
 
   const contactRowStyle = {
-    fontSize: '1rem',          // Increased from 0.85rem
-    margin: '2px 0',           // Keep smaller vertical margins for tight spacing
-    color: '#555',
+    fontSize: '0.95rem',
+    margin: '3px 0',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    opacity: 0.9,
+    color: '#ffffff',
+    fontWeight: 700,
+  };
+
+  const contentStyle = {
+    padding: '0px 20px',
+    flexGrow: 1,
   };
 
   const sectionStyle = {
-    marginBottom: '10px',
-    paddingBottom: '2px',
-    borderBottom: '1px solid #ddd',
+    marginBottom: '0px',
     breakInside: 'avoid',
     pageBreakInside: 'avoid',
-    pageBreakAfter: 'auto',
   };
 
   const sectionTitleStyle = {
-    fontFamily: "'Merriweather', serif",
+    fontSize: '1.3rem',
     fontWeight: 700,
-    fontSize: '1.2rem',
-    color: '#3f51b5',
-    marginBottom: '6px',
+    color: '#22c55e',
+    marginBottom: '0px',
     textTransform: 'uppercase',
-    letterSpacing: '0.05em',
-    borderLeft: '4px solid #3f51b5',
-    paddingLeft: '8px',
+    letterSpacing: '0.1em',
+    borderBottom: '2px solid #22c55e',
+    paddingBottom: '1px',
+    position: 'relative',
+  };
+
+  const sectionTitleAfter = {
+    content: '""',
+    position: 'absolute',
+    bottom: '-2px',
+    left: '0',
+    width: '25px',
+    height: '2px',
+    background: '#16a34a',
   };
 
   const paragraphStyle = {
-    fontSize: '0.85rem',
-    lineHeight: 1.25,
-    color: '#444',
-    marginBottom: '6px',
+    fontSize: '0.95rem',
+    lineHeight: 1.3,
+    color: '#4a5568',
+    marginBottom: '0px',
+    textAlign: 'justify',
+  };
+
+  const compactParagraphStyle = {
+    fontSize: '0.95rem',
+    lineHeight: 1.0,
+    color: '#4a5568',
+    marginBottom: '0px',
+    textAlign: 'justify',
   };
 
   const listStyle = {
-    listStyleType: 'disc',
-    paddingLeft: '18px',
-    marginBottom: '4px',
+    listStyleType: 'none',
+    paddingLeft: '0',
+    marginBottom: '0px',
   };
 
   const listItemStyle = {
-    fontSize: '0.85rem',
-    marginBottom: '2px',
-    color: '#444',
+    fontSize: '0.95rem',
+    marginBottom: '0px',
+    color: '#4a5568',
+    paddingLeft: '18px',
+    position: 'relative',
+  };
+
+  const listItemBefore = {
+    content: '"✦"',
+    position: 'absolute',
+    left: '0',
+    color: '#22c55e',
+    fontWeight: 'bold',
+    fontSize: '0.9rem',
   };
 
   const tableStyle = {
     width: '100%',
     borderCollapse: 'collapse',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-    marginBottom: '8px',
+    marginBottom: '4px',
+    borderRadius: '8px',
+    overflow: 'hidden',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
   };
 
   const tableHeaderStyle = {
-    backgroundColor: '#3f51b5',
-    color: '#fff',
+    backgroundColor: '#22c55e',
+    color: '#ffffff',
     textAlign: 'left',
     padding: '6px 8px',
-    fontWeight: 700,
-    letterSpacing: '0.04em',
-    fontSize: '0.85rem', // Decreased font size for headers
+    fontWeight: 600,
+    fontSize: '0.9rem',
   };
 
   const tableRowStyle = {
-    borderBottom: '1px solid #eee',
+    borderBottom: '1px solid #e2e8f0',
+    transition: 'background-color 0.2s',
+  };
+
+  const tableRowHover = {
+    backgroundColor: '#f0fdf4',
   };
 
   const tableCellStyle = {
     padding: '6px 8px',
-    color: '#444',
-    fontSize: '0.85rem',
+    color: '#4a5568',
+    fontSize: '0.9rem',
   };
 
   const skillsContainerStyle = {
     display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '8px 16px',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+    gap: '10px',
+    justifyContent: 'center',
   };
 
-  const skillBarContainer = {
-    backgroundColor: '#eee',
-    borderRadius: 10,
-    height: 14,
-    width: '100%',
-    overflow: 'hidden',
+  const skillItemStyle = {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    textAlign: 'center',
   };
 
-  const skillBarFill = (percent) => ({
-    height: '100%',
-    width: percent,
-    backgroundColor: '#3f51b5',
-    borderRadius: '10px 0 0 10px',
+  const skillNameStyle = {
+    fontSize: '0.9rem',
+    fontWeight: 600,
+    color: '#2d3748',
+    marginBottom: '4px',
+    textAlign: 'center',
+  };
+
+  const circularProgressContainer = {
+    position: 'relative',
+    width: '60px',
+    height: '60px',
+    marginBottom: '4px',
+  };
+
+  const circularProgressSvg = {
+    width: '60px',
+    height: '60px',
+    transform: 'rotate(-90deg)',
+  };
+
+  const circularProgressBackground = {
+    fill: 'none',
+    stroke: '#e2e8f0',
+    strokeWidth: '6',
+  };
+
+  const circularProgressFill = (percentage) => ({
+    fill: 'none',
+    stroke: '#22c55e',
+    strokeWidth: '6',
+    strokeLinecap: 'round',
+    strokeDasharray: `${2 * Math.PI * 27}`,
+    strokeDashoffset: `${2 * Math.PI * 27 * (1 - parseInt(percentage) / 100)}`,
+    transition: 'stroke-dashoffset 0.5s ease',
   });
+
+  const circularProgressText = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    fontSize: '0.8rem',
+    fontWeight: '600',
+    color: '#2d3748',
+  };
 
   const tagsContainerStyle = {
     display: 'flex',
     flexWrap: 'wrap',
-    gap: 6,
+    gap: '3px',
+    marginTop: '3px',
   };
 
   const tagStyle = {
-    backgroundColor: '#3f51b5',
-    color: '#fff',
-    padding: '4px 10px',
-    borderRadius: 20,
+    background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+    color: '#ffffff',
+    padding: '3px 6px',
+    borderRadius: '14px',
     fontSize: '0.85rem',
+    fontWeight: 500,
+    boxShadow: '0 2px 4px rgba(34, 197, 94, 0.3)',
+  };
+
+  const experienceItemStyle = {
+    background: '#ffffff',
+    border: '1px solid #e2e8f0',
+    borderRadius: '8px',
+    padding: '8px',
+    marginBottom: '4px',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+    transition: 'box-shadow 0.2s',
+  };
+
+  const experienceItemHover = {
+    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+  };
+
+  const experienceHeaderStyle = {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: '3px',
+    flexWrap: 'wrap',
+    gap: '4px',
+  };
+
+  const experienceTitleStyle = {
+    fontSize: '1.1rem',
+    fontWeight: 700,
+    color: '#2d3748',
+    margin: '0',
+  };
+
+  const experienceCompanyStyle = {
+    fontSize: '0.95rem',
     fontWeight: 600,
+    color: '#22c55e',
+    margin: '0',
+  };
+
+  const experienceDateStyle = {
+    fontSize: '0.85rem',
+    color: '#718096',
+    fontWeight: 500,
+    background: '#f0fdf4',
+    padding: '1px 4px',
+    borderRadius: '4px',
+  };
+
+  const educationItemStyle = {
+    background: '#ffffff',
+    border: '1px solid #e2e8f0',
+    borderRadius: '8px',
+    padding: '6px',
+    marginBottom: '4px',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+  };
+
+  const educationHeaderStyle = {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '2px',
+    flexWrap: 'wrap',
+    gap: '4px',
+  };
+
+  const educationTitleStyle = {
+    fontSize: '1rem',
+    fontWeight: 600,
+    color: '#2d3748',
+    margin: '0',
+  };
+
+  const educationInstitutionStyle = {
+    fontSize: '0.9rem',
+    color: '#22c55e',
+    margin: '0',
+  };
+
+  const educationDateStyle = {
+    fontSize: '0.8rem',
+    color: '#718096',
+    fontWeight: 500,
+  };
+
+  const downloadButtonStyle = {
+    marginTop: 16,
+    cursor: 'pointer',
+    padding: '6px 18px',
+    fontSize: '0.95rem',
+    borderRadius: 6,
+    border: 'none',
+    backgroundColor: '#22c55e',
+    color: 'white',
+    transition: 'background-color 0.3s ease',
+    alignSelf: 'flex-start',
     userSelect: 'none',
   };
 
+  const downloadButtonHover = {
+    transform: 'translateY(-2px)',
+    boxShadow: '0 6px 20px rgba(34, 197, 94, 0.6)',
+  };
+
+  const downloadButtonDisabled = {
+    background: '#cbd5e0',
+    cursor: 'not-allowed',
+    boxShadow: 'none',
+  };
+
   const renderEducation = (education) => (
-    <table style={tableStyle} aria-label="Education details">
-      <thead>
-        <tr>
-          <th style={tableHeaderStyle}>Degree</th>
-          <th style={tableHeaderStyle}>Institute</th>
-          <th style={tableHeaderStyle}>Year</th>
-        </tr>
-      </thead>
-      <tbody>
-        {education.map((item, idx) => (
-          <tr key={idx} style={tableRowStyle}>
-            <td style={tableCellStyle}>{item.degree || '-'}</td>
-            <td style={tableCellStyle}>{item.institute || '-'}</td>
-            <td style={tableCellStyle}>{item.year || '-'}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <div style={educationItemStyle}>
+      <div style={educationHeaderStyle}>
+        <div>
+          <h4 style={educationTitleStyle}>{education.degree}</h4>
+          <p style={educationInstitutionStyle}>{education.institute}</p>
+        </div>
+        <span style={educationDateStyle}>{education.year}</span>
+      </div>
+    </div>
   );
 
   const renderWorkExperience = (workExp) => (
-    <table style={tableStyle} aria-label="Work experience details">
-      <thead>
-        <tr>
-          <th style={tableHeaderStyle}>Company</th>
-          <th style={tableHeaderStyle}>Designation</th>
-          <th style={tableHeaderStyle}>Duration</th>
-        </tr>
-      </thead>
-      <tbody>
-        {workExp.map((item, idx) => (
-          <tr key={idx} style={tableRowStyle}>
-            <td style={tableCellStyle}>{item.company || '-'}</td>
-            <td style={tableCellStyle}>{item.designation || '-'}</td>
-            <td style={tableCellStyle}>{item.duration || '-'}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <div style={experienceItemStyle}>
+      <div style={experienceHeaderStyle}>
+        <div>
+          <h4 style={experienceTitleStyle}>{workExp.designation}</h4>
+          <p style={experienceCompanyStyle}>{workExp.company}</p>
+        </div>
+        <span style={experienceDateStyle}>{workExp.duration}</span>
+      </div>
+      {workExp.details && <p style={paragraphStyle}>{workExp.details}</p>}
+    </div>
   );
 
   const renderSkills = (skills) => (
     <div style={skillsContainerStyle}>
-      {skills.map((skill, idx) => {
-        let name = '';
-        let percentage = '0%';
-        if (typeof skill === 'string') {
-          name = skill;
-          percentage = '';
-        } else if (skill.name) {
-          name = skill.name;
-          percentage = skill.percentage || '0%';
-        }
-        return (
-          <div key={idx} style={{ display: 'flex', flexDirection: 'column' }}>
-            <div
-              style={{
-                fontWeight: 600,
-                fontSize: '0.9rem',
-                marginBottom: 3,
-                color: '#1e88e5',
-              }}
-              title={percentage}
-            >
-              {name} {percentage ? `(${percentage})` : ''}
-            </div>
-            <div style={skillBarContainer}>
-              <div style={skillBarFill(percentage)} />
-            </div>
+      {skills.map((skill, index) => (
+        <div key={index} style={skillItemStyle}>
+          <div style={skillNameStyle}>{skill.name}</div>
+          <div style={circularProgressContainer}>
+            <svg style={circularProgressSvg}>
+              <circle style={circularProgressBackground} cx="30" cy="30" r="27"></circle>
+              <circle style={circularProgressFill(skill.percentage)} cx="30" cy="30" r="27"></circle>
+            </svg>
+            <span style={circularProgressText}>{skill.percentage}</span>
           </div>
-        );
-      })}
-    </div>
-  );
-
-  const renderSimpleList = (items) => (
-    <ul style={listStyle}>
-      {items.map((item, idx) => (
-        <li key={idx} style={listItemStyle}>{item}</li>
-      ))}
-    </ul>
-  );
-
-  const renderLanguages = (languages) => (
-    <div style={tagsContainerStyle}>
-      {languages.map((lang, idx) => (
-        <div key={idx} style={tagStyle} title={lang}>
-          {lang}
         </div>
       ))}
     </div>
   );
 
+  const renderSimpleList = (items) => {
+    // Filter out empty, null, or whitespace-only items
+    const validItems = items.filter(item => {
+      if (item === null || item === undefined) return false;
+      if (typeof item === 'string') return item.trim() !== '';
+      if (typeof item === 'object') {
+        const value = item.label || item.value || item.name;
+        return value && value.trim() !== '';
+      }
+      return true;
+    });
+
+    if (validItems.length === 0) return null;
+
+    return (
+      <ul style={listStyle}>
+        {validItems.map((item, index) => (
+          <li key={index} style={listItemStyle}>
+            <span style={{
+              position: 'absolute',
+              left: '0',
+              color: '#22c55e',
+              fontWeight: 'bold',
+              fontSize: '0.9rem',
+            }}>✦</span>
+            {typeof item === 'string' ? item : 
+             typeof item === 'object' && item !== null ? 
+               (item.label || item.value || item.name || JSON.stringify(item)) : 
+               String(item)}
+          </li>
+        ))}
+      </ul>
+    );
+  };
+
+  const renderLanguages = (languages) => (
+    <div style={tagsContainerStyle}>
+      {languages.map((language, index) => (
+        <span key={index} style={tagStyle}>
+          {language}
+        </span>
+      ))}
+    </div>
+  );
+
   const renderOtherInformation = (otherInfo) => {
-    if (!Array.isArray(otherInfo) || otherInfo.length === 0) return null;
+    if (!otherInfo || !Array.isArray(otherInfo)) {
+      return null;
+    }
 
     const selectedRadio = otherInfo.find(
       (item) => item.labelType === 'radio' && item.checked && item.name === 'parentSpouse'
@@ -307,32 +529,21 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     );
 
     return (
-      <section style={sectionStyle} aria-label="Other Information Section">
-        <h2 style={sectionTitleStyle}>Other Information</h2>
-
+      <div>
         {selectedRadio && (
-          <p style={paragraphStyle}>
+          <p style={compactParagraphStyle}>
             <strong>{selectedRadio.label}</strong> {selectedRadio.value || '-'}
           </p>
         )}
 
         {checkedCheckboxes.map((item) => (
-          <p key={item.id} style={paragraphStyle}>
+          <p key={item.id} style={compactParagraphStyle}>
             <strong>{item.label}</strong> {item.value || '-'}
           </p>
         ))}
-      </section>
+      </div>
     );
   };
-
-  const combinedLanguages = (() => {
-    if (!formData.languages) return [];
-    if (!formData.customLanguages || formData.customLanguages.length === 0) return formData.languages;
-    const customSelected = formData.customLanguages
-      .filter(l => l.selected && l.name.trim() !== '')
-      .map(l => l.name.trim());
-    return [...new Set([...formData.languages, ...customSelected])];
-  })();
 
   const generatePDF = async () => {
     if (!containerRef.current || !buttonRef.current) {
@@ -347,7 +558,7 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
 
       await html2pdf()
         .set({
-          margin: 10,
+          margin: 5,
           filename: 'cv.pdf',
           image: { type: 'png', quality: 0.98 },
           html2canvas: {
@@ -362,130 +573,321 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
         })
         .from(containerRef.current)
         .save();
+
+      // Mark as downloaded and clear payment data
+      localStorage.setItem('cv_downloaded', 'true');
+      setDownloadCompleted(true);
+      
+      // Clear all payment data so user has to pay again on next sign-in
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('payment_')) {
+          localStorage.removeItem(key);
+        }
+      }
+
     } catch (error) {
-      alert('Error generating PDF: ' + error.message);
+      console.error('PDF generation failed:', error);
+      alert('Failed to generate PDF. Please try again.');
     } finally {
-      buttonRef.current.style.display = 'inline-block';
+      if (buttonRef.current) {
+        buttonRef.current.style.display = 'block';
+      }
+    }
+  };
+
+  const handlePaymentSuccess = (paymentData) => {
+    setPaymentCompleted(false); // Don't auto-complete, wait for admin approval
+    setShowPaymentModal(false);
+    setPaymentState('pending');
+    
+    // Show message about waiting for approval
+    alert(`Payment proof submitted successfully!\n\nPayment ID: ${paymentData.paymentId}\n\nPlease wait for manual verification. You will be able to download once approved.`);
+  };
+
+  const handlePaymentFailure = (error) => {
+    console.error('Payment failed:', error);
+    setPaymentState('failed');
+    alert('Payment failed. Please try again.');
+  };
+
+  const checkForApprovedPayment = () => {
+    // Check if user is admin (bypass payment)
+    const adminAccess = localStorage.getItem('admin_cv_access');
+    if (adminAccess === 'true') {
+      return true;
+    }
+
+    // Check localStorage for approved payments
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('payment_')) {
+        try {
+          const payment = JSON.parse(localStorage.getItem(key));
+          if (payment.status === 'approved') {
+            return true;
+          }
+        } catch (error) {
+          console.error('Error parsing payment:', error);
+        }
+      }
+    }
+    return false;
+  };
+
+  const getDownloadButtonText = () => {
+    // Check if user is admin
+    const adminAccess = localStorage.getItem('admin_cv_access');
+    if (adminAccess === 'true') {
+      return 'Download PDF (Admin Access)';
+    }
+
+    if (paymentCompleted) {
+      return 'Download PDF';
+    }
+    
+    const hasApprovedPayment = checkForApprovedPayment();
+    if (hasApprovedPayment) {
+      return 'Payment Approved (Download Now)';
+    }
+    
+    return 'Download PDF (PKR 200)';
+  };
+
+  const handleDownloadClick = () => {
+    // Check if user is admin (bypass payment)
+    const adminAccess = localStorage.getItem('admin_cv_access');
+    if (adminAccess === 'true') {
+      generatePDF();
+      return;
+    }
+
+    if (downloadCompleted) {
+      alert('You have already downloaded a CV in this session. Please sign out and sign in again to download another CV.');
+      return;
+    }
+    
+    // Check if user has an approved payment
+    const hasApprovedPayment = checkForApprovedPayment();
+    
+    if (hasApprovedPayment) {
+      // User has an approved payment, allow download
+      generatePDF();
+    } else {
+      // Show payment modal
+      setShowPaymentModal(true);
     }
   };
 
   return (
-    <article ref={containerRef} style={containerStyle}>
-      <header style={headerStyle}>
-        {formData.image ? (
-          <img
-            src={URL.createObjectURL(formData.image)}
-            alt="Profile"
-            style={photoStyle}
-          />
-        ) : (
-          <div style={noPhotoPlaceholderStyle}>No Photo</div>
-        )}
-        <div style={personalInfoStyle}>
-          {formData.name && <h1 style={nameStyle}>{formData.name}</h1>}
-          {formData.phone && <p style={contactRowStyle}>📞 {formData.phone}</p>}
-          {formData.email && <p style={contactRowStyle}>✉️ {formData.email}</p>}
-          {formData.address && <p style={contactRowStyle}>📍 {formData.address}</p>}
+    <>
+      <div ref={containerRef} style={containerStyle}>
+        {/* Header Section */}
+        <div style={headerStyle}>
+          <div style={headerOverlay}></div>
+          <div style={headerContent}>
+            {formData.image ? (
+              <img
+                src={URL.createObjectURL(formData.image)}
+                alt="Profile"
+                style={photoStyle}
+              />
+            ) : formData.imageUrl ? (
+              <img
+                src={formData.imageUrl}
+                alt="Profile"
+                style={photoStyle}
+              />
+            ) : (
+              <div style={noPhotoPlaceholderStyle}>No Photo</div>
+            )}
+            <div style={personalInfoStyle}>
+              <h1 style={nameStyle}>{formData.name || 'Your Name'}</h1>
+              {formData.title && <h2 style={titleStyle}>{formData.title}</h2>}
+              <div>
+                {formData.email && (
+                  <div style={contactRowStyle}>
+                    <span>📧</span> {formData.email}
+                  </div>
+                )}
+                {formData.phone && (
+                  <div style={contactRowStyle}>
+                    <span>📱</span> {formData.phone}
+                  </div>
+                )}
+                {formData.address && (
+                  <div style={contactRowStyle}>
+                    <span>📍</span> {formData.address}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
-      </header>
 
-      {visibleSections.includes('objective') && formData.objective && (
-        <section style={sectionStyle} aria-label="Objective Section">
-          <h2 style={sectionTitleStyle}>Objective</h2>
-          {formData.objective.map((obj, idx) => (
-            <p key={idx} style={paragraphStyle}>{obj}</p>
-          ))}
-        </section>
+        {/* Content Section */}
+        <div style={contentStyle}>
+          {/* Objective */}
+          {visibleSections.includes('objective') && formData.objective && (
+            <div style={sectionStyle}>
+              <h3 style={sectionTitleStyle}>Objective</h3>
+              {Array.isArray(formData.objective) ? (
+                formData.objective.map((obj, index) => (
+                  <p key={index} style={paragraphStyle}>{obj}</p>
+                ))
+              ) : (
+                <p style={paragraphStyle}>{formData.objective}</p>
+              )}
+            </div>
+          )}
+
+          {/* Education */}
+          {visibleSections.includes('education') && formData.education && formData.education.length > 0 && (
+            <div style={sectionStyle}>
+              <h3 style={sectionTitleStyle}>Education</h3>
+              {formData.education.map((edu, index) => (
+                <div key={index}>{renderEducation(edu)}</div>
+              ))}
+            </div>
+          )}
+
+          {/* Work Experience */}
+          {visibleSections.includes('workExperience') && formData.workExperience && formData.workExperience.length > 0 && (
+            <div style={sectionStyle}>
+              <h3 style={sectionTitleStyle}>Work Experience</h3>
+              {formData.workExperience.map((exp, index) => (
+                <div key={index}>{renderWorkExperience(exp)}</div>
+              ))}
+            </div>
+          )}
+
+          {/* Skills */}
+          {visibleSections.includes('skills') && formData.skills && formData.skills.length > 0 && (
+            <div style={sectionStyle}>
+              <h3 style={sectionTitleStyle}>Skills</h3>
+              {renderSkills(formData.skills)}
+            </div>
+          )}
+
+          {/* Other Information */}
+          {visibleSections.includes('otherInformation') && formData.otherInformation && (
+            <div style={sectionStyle}>
+              <h3 style={sectionTitleStyle}>Additional Information</h3>
+              {renderOtherInformation(formData.otherInformation)}
+            </div>
+          )}
+
+          {/* Certifications */}
+          {visibleSections.includes('certifications') && formData.certifications && formData.certifications.length > 0 && (() => {
+            const certificationsList = renderSimpleList(formData.certifications);
+            return certificationsList ? (
+              <div style={sectionStyle}>
+                <h3 style={sectionTitleStyle}>Certifications</h3>
+                {certificationsList}
+              </div>
+            ) : null;
+          })()}
+
+          {/* Projects */}
+          {visibleSections.includes('projects') && formData.projects && formData.projects.length > 0 && (() => {
+            const projectsList = renderSimpleList(formData.projects);
+            return projectsList ? (
+              <div style={sectionStyle}>
+                <h3 style={sectionTitleStyle}>Projects</h3>
+                {projectsList}
+              </div>
+            ) : null;
+          })()}
+
+          {/* Languages */}
+          {visibleSections.includes('languages') && formData.languages && formData.languages.length > 0 && (
+            <div style={sectionStyle}>
+              <h3 style={sectionTitleStyle}>Languages</h3>
+              {renderLanguages(formData.languages)}
+            </div>
+          )}
+
+          {/* Hobbies */}
+          {visibleSections.includes('hobbies') && formData.hobbies && formData.hobbies.length > 0 && (() => {
+            const hobbiesList = renderSimpleList(formData.hobbies);
+            return hobbiesList ? (
+              <div style={sectionStyle}>
+                <h3 style={sectionTitleStyle}>Hobbies</h3>
+                {hobbiesList}
+              </div>
+            ) : null;
+          })()}
+
+          {/* References */}
+          {visibleSections.includes('references') && (() => {
+            const referencesList = renderSimpleList(formData.references);
+            return (
+              <div style={sectionStyle}>
+                <h3 style={sectionTitleStyle}>References</h3>
+                {referencesList ? referencesList : (
+                  <p style={paragraphStyle}>Reference would be furnished on demand</p>
+                )}
+              </div>
+            );
+          })()}
+        </div>
+
+        {/* Download Button */}
+        {!downloadCompleted ? (
+          <button
+            ref={buttonRef}
+            type="button"
+            onClick={handleDownloadClick}
+            style={{
+              ...downloadButtonStyle,
+              ...(downloadCompleted && downloadButtonDisabled)
+            }}
+            onMouseEnter={(e) => {
+              if (!downloadCompleted) {
+                e.currentTarget.style.backgroundColor = '#16a34a';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!downloadCompleted) {
+                e.currentTarget.style.backgroundColor = '#22c55e';
+              }
+            }}
+          >
+            {getDownloadButtonText()}
+          </button>
+        ) : (
+          <div style={{
+            marginTop: 16,
+            padding: '12px 16px',
+            backgroundColor: '#f0fdf4',
+            border: '1px solid #22c55e',
+            borderRadius: 6,
+            color: '#15803d',
+            fontSize: '0.9rem',
+            textAlign: 'center',
+          }}>
+            ✅ CV Downloaded Successfully!<br />
+            <small>Sign out and sign in again to download another CV.</small>
+          </div>
+        )}
+      </div>
+
+      {/* Payment Modal - Outside PDF container */}
+      {showPaymentModal && (
+        <ManualPayment
+          amount={200}
+          onPaymentSuccess={handlePaymentSuccess}
+          onPaymentFailure={handlePaymentFailure}
+          onClose={() => setShowPaymentModal(false)}
+        />
       )}
-
-      {visibleSections.includes('education') && formData.education?.length > 0 && (
-        <section style={sectionStyle} aria-label="Education Section">
-          <h2 style={sectionTitleStyle}>Education</h2>
-          {renderEducation(formData.education)}
-        </section>
-      )}
-
-      {visibleSections.includes('workExperience') && formData.workExperience?.length > 0 && (
-        <section style={sectionStyle} aria-label="Work Experience Section">
-          <h2 style={sectionTitleStyle}>Work Experience</h2>
-          {renderWorkExperience(formData.workExperience)}
-        </section>
-      )}
-
-      {/* Insert Other Information section here after Work Experience */}
-      {visibleSections.includes('otherInformation') && renderOtherInformation(formData.otherInformation)}
-
-      {visibleSections.includes('skills') && formData.skills?.length > 0 && (
-        <section style={sectionStyle} aria-label="Skills Section">
-          <h2 style={sectionTitleStyle}>Skills</h2>
-          {renderSkills(formData.skills)}
-        </section>
-      )}
-
-      {visibleSections.includes('certifications') && formData.certifications?.length > 0 && (
-        <section style={sectionStyle} aria-label="Certifications Section">
-          <h2 style={sectionTitleStyle}>Certifications</h2>
-          {renderSimpleList(formData.certifications)}
-        </section>
-      )}
-
-      {visibleSections.includes('projects') && formData.projects?.length > 0 && (
-        <section style={sectionStyle} aria-label="Projects Section">
-          <h2 style={sectionTitleStyle}>Projects</h2>
-          {renderSimpleList(formData.projects)}
-        </section>
-      )}
-
-      {visibleSections.includes('languages') && combinedLanguages.length > 0 && (
-        <section style={sectionStyle} aria-label="Languages Section">
-          <h2 style={sectionTitleStyle}>Languages</h2>
-          {renderLanguages(combinedLanguages)}
-        </section>
-      )}
-
-      {visibleSections.includes('hobbies') && formData.hobbies?.length > 0 && (
-        <section style={sectionStyle} aria-label="Hobbies Section">
-          <h2 style={sectionTitleStyle}>Hobbies</h2>
-          {renderSimpleList(formData.hobbies)}
-        </section>
-      )}
-
-      {visibleSections.includes('references') && formData.references?.length > 0 && (
-        <section style={sectionStyle} aria-label="References Section">
-          <h2 style={sectionTitleStyle}>References</h2>
-          {renderSimpleList(formData.references)}
-        </section>
-      )}
-
-      <button
-        ref={buttonRef}
-        type="button"
-        onClick={generatePDF}
-        style={{
-          marginTop: 16,
-          cursor: 'pointer',
-          padding: '6px 18px',
-          fontSize: '0.95rem',
-          borderRadius: 6,
-          border: 'none',
-          backgroundColor: '#3f51b5',
-          color: 'white',
-          transition: 'background-color 0.3s ease',
-          alignSelf: 'flex-start',
-          userSelect: 'none',
-        }}
-        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#303f9f')}
-        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3f51b5')}
-      >
-        Download PDF
-      </button>
-    </article>
+    </>
   );
 };
 
-Template1PDF.propTypes = {
+Template3PDF.propTypes = {
   formData: PropTypes.object.isRequired,
-  visibleSections: PropTypes.array,
+  visibleSections: PropTypes.arrayOf(PropTypes.string),
 };
 
-export default Template1PDF;
+export default Template3PDF;

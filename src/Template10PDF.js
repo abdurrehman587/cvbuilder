@@ -450,10 +450,14 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
         </section>
       )}
 
-      {visibleSections.includes('references') && formData.references?.length > 0 && (
+      {visibleSections.includes('references') && (
         <section style={sectionStyle} aria-label="References Section">
           <h2 style={sectionTitleStyle}>References</h2>
-          {renderSimpleList(formData.references)}
+          {formData.references && formData.references.length > 0 ? (
+            renderSimpleList(formData.references)
+          ) : (
+            <p style={paragraphStyle}>Reference would be furnished on demand</p>
+          )}
         </section>
       )}
 

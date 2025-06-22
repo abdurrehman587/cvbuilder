@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Form from './Form';
 import Template1Preview from './Template1Preview';
 import Template2Preview from './Template2Preview';
@@ -10,6 +10,7 @@ import Template7Preview from './Template7Preview';
 
 const LandingPage = ({ user }) => {
   const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [isAdminAccess, setIsAdminAccess] = useState(false);
   const [formData, setFormData] = useState({
     image: null,
     imageUrl: '',
@@ -79,30 +80,56 @@ const LandingPage = ({ user }) => {
     setFormData(data);
   };
 
-  const renderBackButton = () => (
-    <button
-      onClick={handleBack}
-      style={{
-        marginBottom: '0',
-        padding: '10px 20px',
-        fontWeight: '600',
-        backgroundColor: '#3498db',
-        color: 'white',
-        border: 'none',
-        borderRadius: '6px',
-        cursor: 'pointer',
-        transition: 'background-color 0.2s ease',
-        userSelect: 'none',
-        alignSelf: 'flex-start',
-        maxWidth: '160px',
-      }}
-      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#217dbb')}
-      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3498db')}
-      type="button"
-    >
-      &larr; Back to Templates
-    </button>
-  );
+  const renderBackButton = () => {
+    // Don't show the original back button when accessed from admin panel
+    if (isAdminAccess) {
+      return null;
+    }
+    
+    return (
+      <button
+        onClick={handleBack}
+        style={{
+          marginBottom: '0',
+          padding: '10px 20px',
+          fontWeight: '600',
+          backgroundColor: '#3498db',
+          color: 'white',
+          border: 'none',
+          borderRadius: '6px',
+          cursor: 'pointer',
+          transition: 'background-color 0.2s ease',
+          userSelect: 'none',
+          alignSelf: 'flex-start',
+          maxWidth: '160px',
+        }}
+        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#217dbb')}
+        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3498db')}
+        type="button"
+      >
+        &larr; Back to Templates
+      </button>
+    );
+  };
+
+  // Check if this is admin access
+  useEffect(() => {
+    const adminAccess = localStorage.getItem('admin_cv_access');
+    setIsAdminAccess(adminAccess === 'true');
+  }, []);
+
+  // Listen for back to templates event from admin panel
+  useEffect(() => {
+    const handleBackToTemplates = () => {
+      setSelectedTemplate(null);
+    };
+
+    window.addEventListener('backToTemplates', handleBackToTemplates);
+    
+    return () => {
+      window.removeEventListener('backToTemplates', handleBackToTemplates);
+    };
+  }, []);
 
   if (selectedTemplate && TemplateComponentsMap[selectedTemplate]) {
     const PreviewComponent = TemplateComponentsMap[selectedTemplate];

@@ -1,21 +1,64 @@
-import React, { useState } from 'react';
-import Template1PDF from './Template1PDF';
+import React, { useState, useEffect } from 'react';
+import Template3PDF from './Template3PDF';
 
 const sectionList = [
   { key: 'objective', title: 'Objective' },
   { key: 'education', title: 'Education' },
   { key: 'workExperience', title: 'Work Experience' },
   { key: 'skills', title: 'Skills' },
+  { key: 'otherInformation', title: 'Other Information' },
   { key: 'certifications', title: 'Certifications' },
   { key: 'projects', title: 'Projects' },
   { key: 'languages', title: 'Languages' },
   { key: 'hobbies', title: 'Hobbies' },
   { key: 'references', title: 'References' },
-  { key: 'otherInformation', title: 'Other Information' },  // Added new section
 ];
 
-const Template1Preview = ({ formData, formHeight }) => {
+// Helper function to check if a section has data
+const hasSectionData = (formData, sectionKey) => {
+  switch (sectionKey) {
+    case 'objective':
+      return formData.objective && formData.objective.length > 0 && 
+             formData.objective.some(obj => obj && obj.trim() !== '');
+    case 'education':
+      return formData.education && formData.education.length > 0;
+    case 'workExperience':
+      return formData.workExperience && formData.workExperience.length > 0;
+    case 'skills':
+      return formData.skills && formData.skills.length > 0;
+    case 'certifications':
+      return formData.certifications && formData.certifications.length > 0;
+    case 'projects':
+      return formData.projects && formData.projects.length > 0;
+    case 'languages':
+      return (formData.languages && formData.languages.length > 0) ||
+             (formData.customLanguages && formData.customLanguages.length > 0 && 
+              formData.customLanguages.some(l => l.selected && l.name.trim() !== ''));
+    case 'hobbies':
+      return formData.hobbies && formData.hobbies.length > 0;
+    case 'references':
+      return true; // Always show references section
+    case 'otherInformation':
+      return formData.otherInformation && formData.otherInformation.length > 0 &&
+             formData.otherInformation.some(item => 
+               (item.labelType === 'radio' && item.checked) ||
+               (item.labelType === 'checkbox' && item.checked)
+             );
+    default:
+      return false;
+  }
+};
+
+const Template3Preview = ({ formData, formHeight }) => {
   const [visibleSections, setVisibleSections] = useState([]);
+
+  // Update visible sections when formData changes
+  useEffect(() => {
+    const sectionsWithData = sectionList
+      .filter(section => hasSectionData(formData, section.key))
+      .map(section => section.key);
+    setVisibleSections(sectionsWithData);
+  }, [formData]);
 
   const previewHeight = formHeight || 'auto';
 
@@ -58,8 +101,8 @@ const Template1Preview = ({ formData, formHeight }) => {
                   padding: '6px 14px',
                   fontSize: '0.85rem',
                   borderRadius: 30,
-                  border: active ? '2px solid #3f51b5' : '2px solid #ccc',
-                  backgroundColor: active ? '#3f51b5' : '#fff',
+                  border: active ? '2px solid #667eea' : '2px solid #ccc',
+                  backgroundColor: active ? '#667eea' : '#fff',
                   color: active ? '#fff' : '#555',
                   cursor: 'pointer',
                   transition: 'all 0.3s ease',
@@ -80,23 +123,24 @@ const Template1Preview = ({ formData, formHeight }) => {
             height: previewHeight,
             margin: '0 auto',
             padding: 24,
-            background: '#fdfdfd',
+            background: '#ffffff',
             borderRadius: 10,
-            fontFamily: "'Open Sans', Arial, sans-serif",
-            color: '#333',
+            fontFamily: "'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+            color: '#2d3748',
             display: 'flex',
             flexDirection: 'column',
             overflowY: 'visible',
             boxSizing: 'border-box',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
           }}
           aria-label="Curriculum Vitae Preview"
         >
-          <Template1PDF formData={formData} visibleSections={visibleSections} />
+          <Template3PDF formData={formData} visibleSections={visibleSections} />
         </article>
       </div>
     </div>
   );
 };
 
-export default Template1Preview;
+export default Template3Preview;
 

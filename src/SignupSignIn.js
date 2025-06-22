@@ -1,13 +1,20 @@
 import React, { useState } from 'react';
 import supabase from './supabase';
+import PaymentAdmin from './PaymentAdmin';
 
 const SignupSignIn = ({ onAuth }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [mode, setMode] = useState('signin');
+  const [userType, setUserType] = useState('user'); // 'user' or 'admin'
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showResend, setShowResend] = useState(false);
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
+
+  // Admin credentials (in production, this should be in environment variables)
+  const ADMIN_EMAIL = 'admin@cvbuilder.com';
+  const ADMIN_PASSWORD = 'admin123456';
 
   const handleAuth = async (e) => {
     e.preventDefault();
@@ -16,6 +23,27 @@ const SignupSignIn = ({ onAuth }) => {
     setLoading(true);
     
     try {
+      // Check if this is an admin login attempt
+      if (userType === 'admin') {
+        if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+          // Create admin user object
+          const adminUser = {
+            id: 'admin-user',
+            email: ADMIN_EMAIL,
+            user_metadata: { role: 'admin' },
+            isAdmin: true
+          };
+          onAuth(adminUser);
+          setShowAdminPanel(true);
+          return;
+        } else {
+          setError('Invalid admin credentials. Please check your email and password.');
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Regular user authentication
       let result;
       if (mode === 'signup') {
         result = await supabase.auth.signUp({ email, password });
@@ -29,7 +57,13 @@ const SignupSignIn = ({ onAuth }) => {
           setShowResend(true);
         }
       } else if (result.data?.user) {
-        onAuth(result.data.user);
+        // Add user type to user object
+        const userWithType = {
+          ...result.data.user,
+          userType: 'user',
+          isAdmin: false
+        };
+        onAuth(userWithType);
       }
     } catch (err) {
       setError('An unexpected error occurred. Please try again.');
@@ -39,6 +73,11 @@ const SignupSignIn = ({ onAuth }) => {
   };
 
   const handleGoogle = async () => {
+    if (userType === 'admin') {
+      setError('Google sign-in is not available for admin accounts. Please use email/password.');
+      return;
+    }
+
     setError('');
     setLoading(true);
     try {
@@ -70,6 +109,77 @@ const SignupSignIn = ({ onAuth }) => {
     setError('Please check your email inbox and spam folder for the confirmation email. If you did not receive it, try signing up again or contact support.');
   };
 
+  const handleBackToLogin = () => {
+    setShowAdminPanel(false);
+    setUserType('user');
+    setEmail('');
+    setPassword('');
+    setError('');
+  };
+
+  // If admin panel is shown, render the admin interface
+  if (showAdminPanel) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: '#f5f6fa',
+        position: 'relative'
+      }}>
+        <button
+          onClick={handleBackToLogin}
+          style={{
+            position: 'absolute',
+            top: 20,
+            left: 20,
+            zIndex: 1000,
+            padding: '12px 24px',
+            fontSize: '16px',
+            fontWeight: '600',
+            backgroundColor: '#3b82f6',
+            color: 'white',
+            border: 'none',
+            borderRadius: '12px',
+            cursor: 'pointer',
+            boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
+            transition: 'all 0.3s ease',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            fontFamily: "'Inter', sans-serif"
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#2563eb';
+            e.currentTarget.style.transform = 'translateY(-2px)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = '#3b82f6';
+            e.currentTarget.style.transform = 'translateY(0)';
+          }}
+        >
+          ← Back to Login
+        </button>
+        
+        <div style={{
+          position: 'absolute',
+          top: 20,
+          right: 20,
+          zIndex: 1000,
+          padding: '8px 16px',
+          backgroundColor: '#dc2626',
+          color: 'white',
+          borderRadius: '8px',
+          fontSize: '14px',
+          fontWeight: '600',
+          fontFamily: "'Inter', sans-serif"
+        }}>
+          🔐 Admin Mode
+        </div>
+
+        <PaymentAdmin />
+      </div>
+    );
+  }
+
   return (
     <div style={{
       minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -79,7 +189,67 @@ const SignupSignIn = ({ onAuth }) => {
         background: '#fff', padding: 32, borderRadius: 12, boxShadow: '0 2px 12px #0001',
         minWidth: 320, display: 'flex', flexDirection: 'column', gap: 16
       }}>
-        <h2 style={{ margin: 0 }}>{mode === 'signup' ? 'Sign Up' : 'Sign In'}</h2>
+        <h2 style={{ margin: 0, textAlign: 'center' }}>
+          {userType === 'admin' ? '🔐 Admin Login' : (mode === 'signup' ? 'Sign Up' : 'Sign In')}
+        </h2>
+
+        {/* User Type Toggle */}
+        <div style={{
+          display: 'flex',
+          borderRadius: '8px',
+          border: '1px solid #e5e7eb',
+          overflow: 'hidden',
+          marginBottom: '8px'
+        }}>
+          <button
+            type="button"
+            onClick={() => setUserType('user')}
+            style={{
+              flex: 1,
+              padding: '10px',
+              border: 'none',
+              background: userType === 'user' ? '#3f51b5' : '#f9fafb',
+              color: userType === 'user' ? 'white' : '#374151',
+              cursor: 'pointer',
+              fontWeight: userType === 'user' ? '600' : '400',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            👤 User
+          </button>
+          <button
+            type="button"
+            onClick={() => setUserType('admin')}
+            style={{
+              flex: 1,
+              padding: '10px',
+              border: 'none',
+              background: userType === 'admin' ? '#dc2626' : '#f9fafb',
+              color: userType === 'admin' ? 'white' : '#374151',
+              cursor: 'pointer',
+              fontWeight: userType === 'admin' ? '600' : '400',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            🔐 Admin
+          </button>
+        </div>
+
+        {userType === 'admin' && (
+          <div style={{
+            padding: '12px',
+            backgroundColor: '#fef2f2',
+            border: '1px solid #fecaca',
+            borderRadius: '6px',
+            fontSize: '14px',
+            color: '#dc2626'
+          }}>
+            <strong>Admin Access:</strong><br />
+            Email: admin@cvbuilder.com<br />
+            Password: admin123456
+          </div>
+        )}
+
         <input
           type="email"
           placeholder="Email"
@@ -124,32 +294,38 @@ const SignupSignIn = ({ onAuth }) => {
           disabled={loading}
           style={{
             padding: 10, borderRadius: 6, border: 'none', 
-            background: loading ? '#ccc' : '#3f51b5', 
+            background: loading ? '#ccc' : (userType === 'admin' ? '#dc2626' : '#3f51b5'), 
             color: '#fff', fontWeight: 600,
             cursor: loading ? 'not-allowed' : 'pointer'
           }}
         >
-          {loading ? 'Loading...' : (mode === 'signup' ? 'Sign Up' : 'Sign In')}
+          {loading ? 'Loading...' : (userType === 'admin' ? 'Admin Login' : (mode === 'signup' ? 'Sign Up' : 'Sign In'))}
         </button>
-        <button 
-          type="button" 
-          onClick={handleGoogle} 
-          disabled={loading}
-          style={{
-            padding: 10, borderRadius: 6, border: 'none', 
-            background: loading ? '#ccc' : '#ea4335', 
-            color: '#fff', fontWeight: 600,
-            cursor: loading ? 'not-allowed' : 'pointer'
-          }}
-        >
-          {loading ? 'Loading...' : 'Continue with Google'}
-        </button>
-        <div style={{ textAlign: 'center', fontSize: 14 }}>
-          {mode === 'signup'
-            ? <>Already have an account? <span style={{ color: '#3f51b5', cursor: 'pointer' }} onClick={() => setMode('signin')}>Sign In</span></>
-            : <>Don't have an account? <span style={{ color: '#3f51b5', cursor: 'pointer' }} onClick={() => setMode('signup')}>Sign Up</span></>
-          }
-        </div>
+        
+        {userType === 'user' && (
+          <button 
+            type="button" 
+            onClick={handleGoogle} 
+            disabled={loading}
+            style={{
+              padding: 10, borderRadius: 6, border: 'none', 
+              background: loading ? '#ccc' : '#ea4335', 
+              color: '#fff', fontWeight: 600,
+              cursor: loading ? 'not-allowed' : 'pointer'
+            }}
+          >
+            {loading ? 'Loading...' : 'Continue with Google'}
+          </button>
+        )}
+        
+        {userType === 'user' && (
+          <div style={{ textAlign: 'center', fontSize: 14 }}>
+            {mode === 'signup'
+              ? <>Already have an account? <span style={{ color: '#3f51b5', cursor: 'pointer' }} onClick={() => setMode('signin')}>Sign In</span></>
+              : <>Don't have an account? <span style={{ color: '#3f51b5', cursor: 'pointer' }} onClick={() => setMode('signup')}>Sign Up</span></>
+            }
+          </div>
+        )}
       </form>
     </div>
   );

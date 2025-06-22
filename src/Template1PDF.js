@@ -405,6 +405,13 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const handleDownloadClick = () => {
+    // Check if user is admin (bypass payment)
+    const adminAccess = localStorage.getItem('admin_cv_access');
+    if (adminAccess === 'true') {
+      generatePDF();
+      return;
+    }
+
     if (paymentCompleted) {
       // If payment is already completed, download directly
       generatePDF();
@@ -412,6 +419,49 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
       // Show payment modal first
       setShowPaymentModal(true);
     }
+  };
+
+  const checkForApprovedPayment = () => {
+    // Check if user is admin (bypass payment)
+    const adminAccess = localStorage.getItem('admin_cv_access');
+    if (adminAccess === 'true') {
+      return true;
+    }
+
+    // Check localStorage for approved payments
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('payment_')) {
+        try {
+          const payment = JSON.parse(localStorage.getItem(key));
+          if (payment.status === 'approved') {
+            return true;
+          }
+        } catch (error) {
+          console.error('Error parsing payment:', error);
+        }
+      }
+    }
+    return false;
+  };
+
+  const getDownloadButtonText = () => {
+    // Check if user is admin
+    const adminAccess = localStorage.getItem('admin_cv_access');
+    if (adminAccess === 'true') {
+      return 'Download PDF (Admin Access)';
+    }
+
+    if (paymentCompleted) {
+      return 'Download PDF';
+    }
+    
+    const hasApprovedPayment = checkForApprovedPayment();
+    if (hasApprovedPayment) {
+      return 'Payment Approved (Download Now)';
+    }
+    
+    return 'Download PDF (PKR 200)';
   };
 
   return (
@@ -501,10 +551,14 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
         </section>
       )}
 
-      {visibleSections.includes('references') && formData.references?.length > 0 && (
+      {visibleSections.includes('references') && (
         <section style={sectionStyle} aria-label="References Section">
           <h2 style={sectionTitleStyle}>References</h2>
-          {renderSimpleList(formData.references)}
+          {formData.references && formData.references.length > 0 ? (
+            renderSimpleList(formData.references)
+          ) : (
+            <p style={paragraphStyle}>Reference would be furnished on demand</p>
+          )}
         </section>
       )}
 
@@ -529,7 +583,7 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
           onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#303f9f')}
           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3f51b5')}
         >
-          {paymentCompleted ? 'Download PDF' : 'Download PDF (PKR 200)'}
+          {getDownloadButtonText()}
         </button>
       ) : (
         <div style={{
