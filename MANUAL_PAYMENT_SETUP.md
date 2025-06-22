@@ -13,21 +13,21 @@ const paymentMethods = [
   {
     id: 'jazzcash',
     name: 'JazzCash',
-    number: '0300-1234567', // Replace with your actual JazzCash number
+    number: '03153338612', // Your actual JazzCash number
     icon: '📱',
     color: '#00A651'
   },
   {
     id: 'easypaisa',
     name: 'EasyPaisa', 
-    number: '0300-1234567', // Replace with your actual EasyPaisa number
+    number: '03406892728', // Your actual EasyPaisa number
     icon: '📱',
     color: '#00A651'
   },
   {
     id: 'sadapay',
     name: 'SadaPay',
-    number: '0300-1234567', // Replace with your actual SadaPay number
+    number: '03153338612', // Your actual SadaPay number
     icon: '📱',
     color: '#00A651'
   },
@@ -35,10 +35,10 @@ const paymentMethods = [
     id: 'bank',
     name: 'Bank Transfer',
     details: {
-      bank: 'HBL Bank', // Replace with your bank name
-      accountTitle: 'Your Name', // Replace with your account title
-      accountNumber: '1234-5678-9012-3456', // Replace with your account number
-      iban: 'PK36HABB0000123456789012' // Replace with your IBAN
+      bank: 'Meezan Bank', // Your bank name
+      accountTitle: 'Abdul Rehman', // Your account title
+      accountNumber: '02180100520304', // Your account number
+      iban: 'PK72MEZN0002180100520304' // Your IBAN
     },
     icon: '🏦',
     color: '#1E40AF'
@@ -49,7 +49,7 @@ const paymentMethods = [
 ### 2. Update Contact Information
 In `src/ManualPayment.js`, update the contact email:
 ```javascript
-Need help? Contact: your-email@example.com
+Need help? Contact: abdurrehman587@gmail.com
 ```
 
 ### 3. Access Admin Panel

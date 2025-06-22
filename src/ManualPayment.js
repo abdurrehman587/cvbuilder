@@ -11,21 +11,21 @@ const ManualPayment = ({ amount, onPaymentSuccess, onPaymentFailure, onClose }) 
     {
       id: 'jazzcash',
       name: 'JazzCash',
-      number: '0300-1234567', // Replace with your actual number
+      number: '03153338612',
       icon: '📱',
       color: '#00A651'
     },
     {
       id: 'easypaisa',
       name: 'EasyPaisa', 
-      number: '0300-1234567', // Replace with your actual number
+      number: '03406892728',
       icon: '📱',
       color: '#00A651'
     },
     {
       id: 'sadapay',
       name: 'SadaPay',
-      number: '0300-1234567', // Replace with your actual number
+      number: '03153338612',
       icon: '📱',
       color: '#00A651'
     },
@@ -33,10 +33,10 @@ const ManualPayment = ({ amount, onPaymentSuccess, onPaymentFailure, onClose }) 
       id: 'bank',
       name: 'Bank Transfer',
       details: {
-        bank: 'HBL Bank',
-        accountTitle: 'Your Name',
-        accountNumber: '1234-5678-9012-3456',
-        iban: 'PK36HABB0000123456789012'
+        bank: 'Meezan Bank',
+        accountTitle: 'Abdul Rehman',
+        accountNumber: '02180100520304',
+        iban: 'PK72MEZN0002180100520304'
       },
       icon: '🏦',
       color: '#1E40AF'
@@ -344,7 +344,7 @@ const ManualPayment = ({ amount, onPaymentSuccess, onPaymentFailure, onClose }) 
           fontSize: '0.8rem',
           color: '#666'
         }}>
-          Need help? Contact: your-email@example.com
+          Need help? Contact: abdurrehman587@gmail.com
         </div>
       </div>
     </div>
