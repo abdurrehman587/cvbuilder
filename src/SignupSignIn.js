@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import supabase from './supabase';
 import PaymentAdmin from './PaymentAdmin';
 
@@ -15,6 +15,45 @@ const SignupSignIn = ({ onAuth }) => {
   // Admin credentials (in production, this should be in environment variables)
   const ADMIN_EMAIL = 'admin@cvbuilder.com';
   const ADMIN_PASSWORD = 'admin123456';
+
+  useEffect(() => {
+    // Handle automatic sign-out when browser/tab is closed
+    const handleBeforeUnload = () => {
+      // Clear all localStorage data
+      localStorage.clear();
+      // Sign out from Supabase
+      supabase.auth.signOut();
+    };
+
+    // Handle page visibility change (when tab becomes hidden)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        // Clear all localStorage data
+        localStorage.clear();
+        // Sign out from Supabase
+        supabase.auth.signOut();
+      }
+    };
+
+    // Handle page unload (when page is being unloaded)
+    const handlePageHide = () => {
+      // Clear all localStorage data
+      localStorage.clear();
+      // Sign out from Supabase
+      supabase.auth.signOut();
+    };
+
+    // Add event listeners
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('pagehide', handlePageHide);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('pagehide', handlePageHide);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
 
   const handleAuth = async (e) => {
     e.preventDefault();

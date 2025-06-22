@@ -58,8 +58,42 @@ const App = () => {
       setLoading(false);
     });
 
+    // Handle automatic sign-out when browser/tab is closed
+    const handleBeforeUnload = () => {
+      // Clear all localStorage data
+      localStorage.clear();
+      // Sign out from Supabase
+      supabase.auth.signOut();
+    };
+
+    // Handle page visibility change (when tab becomes hidden)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        // Clear all localStorage data
+        localStorage.clear();
+        // Sign out from Supabase
+        supabase.auth.signOut();
+      }
+    };
+
+    // Handle page unload (when page is being unloaded)
+    const handlePageHide = () => {
+      // Clear all localStorage data
+      localStorage.clear();
+      // Sign out from Supabase
+      supabase.auth.signOut();
+    };
+
+    // Add event listeners
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('pagehide', handlePageHide);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     return () => {
       listener?.subscription?.unsubscribe();
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('pagehide', handlePageHide);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
 
