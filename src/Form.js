@@ -66,6 +66,12 @@ const Form = ({ formData, setFormData, onChange, user }) => {
     const fetchUserCV = async () => {
       if (!user) return;
       
+      // Skip auto-loading for admin users - they should use search instead
+      if (user.isAdmin) {
+        console.log('Admin user detected - skipping auto CV load. Use search to find CVs.');
+        return;
+      }
+      
       try {
         console.log('Fetching CV for user:', user.id);
         const { data, error } = await supabase
@@ -306,14 +312,17 @@ const Form = ({ formData, setFormData, onChange, user }) => {
 
   const handleSave = async () => {
     try {
-      // Ensure user is present
-      if (!user) {
+      // Check if this is an admin user
+      const isAdmin = user && user.isAdmin;
+      
+      if (!isAdmin && !user) {
         toast.error('You must be signed in to save your CV.');
         return;
       }
 
       console.log('Starting save process...');
-      console.log('Current user:', user.id);
+      console.log('Current user:', user?.id);
+      console.log('Is admin:', isAdmin);
       console.log('Form data to save:', formData);
 
       let imageUrl = formData.imageUrl;
@@ -332,7 +341,9 @@ const Form = ({ formData, setFormData, onChange, user }) => {
 
       // Prepare payload for Supabase
       const payload = {
-        user_id: user.id,
+        // For admin users, don't set user_id so CVs can be searched by name/phone
+        // For regular users, set user_id for personal CV management
+        ...(isAdmin ? {} : { user_id: user.id }),
         image_url: imageUrl && imageUrl.startsWith('http') ? imageUrl : null,
         name: formData.name || '',
         phone: formData.phone || '',
@@ -380,9 +391,21 @@ const Form = ({ formData, setFormData, onChange, user }) => {
 
       // Save (insert or update) to Supabase
       console.log('Attempting to save to database...');
-      const { data, error } = await supabase
-        .from('cvs')
-        .upsert([payload], { onConflict: 'user_id' });
+      
+      let result;
+      if (isAdmin) {
+        // For admin users, use insert with conflict resolution on name and phone
+        result = await supabase
+          .from('cvs')
+          .upsert([payload], { onConflict: 'name,phone' });
+      } else {
+        // For regular users, use insert with conflict resolution on user_id
+        result = await supabase
+          .from('cvs')
+          .upsert([payload], { onConflict: 'user_id' });
+      }
+
+      const { data, error } = result;
 
       console.log('Database response:', { data, error });
 
@@ -412,7 +435,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
       }
 
       console.log('Save successful! Data:', data);
-      toast.success('CV Saved Successfully!');
+      toast.success(isAdmin ? 'CV Saved Successfully! (Admin Mode)' : 'CV Saved Successfully!');
       
       // Optionally update formData with new imageUrl if uploaded
       if (formData.image && imageUrl) {
@@ -432,6 +455,9 @@ const Form = ({ formData, setFormData, onChange, user }) => {
         return;
       }
 
+      // Check if this is an admin user
+      const isAdmin = user && user.isAdmin;
+
       let query = supabase.from('cvs').select('*').limit(1);
 
       if (searchName) {
@@ -440,6 +466,12 @@ const Form = ({ formData, setFormData, onChange, user }) => {
 
       if (searchPhone) {
         query = query.ilike('phone', `%${searchPhone}%`);
+      }
+
+      // For admin users, search all CVs (including those without user_id)
+      // For regular users, only search their own CVs
+      if (!isAdmin) {
+        query = query.eq('user_id', user.id);
       }
 
       const { data, error } = await query;
@@ -477,7 +509,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
         otherInformation: JSON.parse(cv.other_information || '[]'),
       });
 
-      toast.success("CV loaded successfully.");
+      toast.success(isAdmin ? "CV loaded successfully. (Admin Mode)" : "CV loaded successfully.");
     } catch (err) {
       console.error("Unexpected error:", err);
       toast.error("Unexpected error during search.");
@@ -503,7 +535,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
       }}>
         <input
           type="text"
-          placeholder="Search CV by name"
+          placeholder={user?.isAdmin ? "Search any CV by name" : "Search CV by name"}
           value={searchName}
           onChange={(e) => setSearchName(e.target.value)}
           style={{
@@ -519,7 +551,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
         />
         <input
           type="text"
-          placeholder="Search CV by Phone Number"
+          placeholder={user?.isAdmin ? "Search any CV by Phone Number" : "Search CV by Phone Number"}
           value={searchPhone}
           onChange={(e) => setSearchPhone(e.target.value)}
           style={{
@@ -537,7 +569,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
           onClick={handleSearch}
           style={{
             padding: '0.75rem 1.5rem',
-            backgroundColor: '#2563eb',
+            backgroundColor: user?.isAdmin ? '#dc2626' : '#2563eb',
             color: 'white',
             border: 'none',
             borderRadius: '0.75rem',
@@ -547,7 +579,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
             whiteSpace: 'nowrap'
           }}
         >
-          Search
+          {user?.isAdmin ? '🔍 Admin Search' : 'Search'}
         </button>
       </div>
 
@@ -699,7 +731,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
         />
 
         <button onClick={handleSave} type="button" className="save-btn">
-          Save
+          {user?.isAdmin ? '💾 Save CV (Admin)' : 'Save'}
         </button>
 
       </div>

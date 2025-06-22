@@ -3,8 +3,8 @@ CREATE TABLE IF NOT EXISTS cvs (
   id BIGSERIAL PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
   image_url TEXT,
-  name TEXT,
-  phone TEXT,
+  name TEXT NOT NULL,
+  phone TEXT NOT NULL,
   email TEXT,
   address TEXT,
   objective JSONB,
@@ -21,8 +21,13 @@ CREATE TABLE IF NOT EXISTS cvs (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Create index on user_id for faster queries
+-- Create indexes for faster queries
 CREATE INDEX IF NOT EXISTS idx_cvs_user_id ON cvs(user_id);
+CREATE INDEX IF NOT EXISTS idx_cvs_name ON cvs(name);
+CREATE INDEX IF NOT EXISTS idx_cvs_phone ON cvs(phone);
+
+-- Create unique constraint for name and phone combination (for admin CVs)
+CREATE UNIQUE INDEX IF NOT EXISTS idx_cvs_name_phone_unique ON cvs(name, phone) WHERE user_id IS NULL;
 
 -- Enable Row Level Security (RLS)
 ALTER TABLE cvs ENABLE ROW LEVEL SECURITY;
@@ -32,6 +37,10 @@ DROP POLICY IF EXISTS "Users can view own CVs" ON cvs;
 DROP POLICY IF EXISTS "Users can insert own CVs" ON cvs;
 DROP POLICY IF EXISTS "Users can update own CVs" ON cvs;
 DROP POLICY IF EXISTS "Users can delete own CVs" ON cvs;
+DROP POLICY IF EXISTS "Admin can view all CVs" ON cvs;
+DROP POLICY IF EXISTS "Admin can insert CVs" ON cvs;
+DROP POLICY IF EXISTS "Admin can update CVs" ON cvs;
+DROP POLICY IF EXISTS "Admin can delete CVs" ON cvs;
 
 -- Create policy to allow users to view their own CVs
 CREATE POLICY "Users can view own CVs" ON cvs
@@ -48,6 +57,19 @@ CREATE POLICY "Users can update own CVs" ON cvs
 -- Create policy to allow users to delete their own CVs
 CREATE POLICY "Users can delete own CVs" ON cvs
   FOR DELETE USING (auth.uid() = user_id);
+
+-- Create policies for admin access (admin CVs have user_id = NULL)
+CREATE POLICY "Admin can view all CVs" ON cvs
+  FOR SELECT USING (user_id IS NULL);
+
+CREATE POLICY "Admin can insert CVs" ON cvs
+  FOR INSERT WITH CHECK (user_id IS NULL);
+
+CREATE POLICY "Admin can update CVs" ON cvs
+  FOR UPDATE USING (user_id IS NULL);
+
+CREATE POLICY "Admin can delete CVs" ON cvs
+  FOR DELETE USING (user_id IS NULL);
 
 -- Create function to automatically update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
