@@ -636,10 +636,9 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const getDownloadButtonText = () => {
-    // Check if user is admin
     const adminAccess = localStorage.getItem('admin_cv_access');
     if (adminAccess === 'true') {
-      return 'Download PDF (Admin Access)';
+      return 'Download Now (Admin Access)';
     }
 
     if (paymentCompleted) {
@@ -655,7 +654,6 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const handleDownloadClick = () => {
-    // Check if user is admin (bypass payment)
     const adminAccess = localStorage.getItem('admin_cv_access');
     if (adminAccess === 'true') {
       generatePDF();

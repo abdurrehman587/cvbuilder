@@ -392,6 +392,10 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
   }, [paymentCompleted]);
 
   const getDownloadButtonText = () => {
+    const adminAccess = localStorage.getItem('admin_cv_access');
+    if (adminAccess === 'true') {
+      return 'Download Now (Admin Access)';
+    }
     if (paymentState === 'processing') return 'Processing...';
     if (paymentState === 'error') return 'Error! Retry';
     if (downloadCompleted) return 'Download Again';
@@ -413,8 +417,12 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
   } = formData;
 
   const handleDownloadClick = () => {
+    const adminAccess = localStorage.getItem('admin_cv_access');
+    if (adminAccess === 'true') {
+      generatePDF();
+      return;
+    }
     const isApproved = checkForApprovedPayment();
-  
     if (downloadCompleted || isApproved) {
       generatePDF();
     } else {
