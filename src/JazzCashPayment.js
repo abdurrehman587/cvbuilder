@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 
 const JazzCashPayment = ({ amount, onPaymentSuccess, onPaymentFailure, onClose }) => {
   const [loading, setLoading] = useState(false);

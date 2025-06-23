@@ -20,7 +20,6 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
   const buttonRef = useRef(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentCompleted, setPaymentCompleted] = useState(false);
-  const [paymentState, setPaymentState] = useState('idle');
   const [downloadCompleted, setDownloadCompleted] = useState(false);
 
   // Check if download was already completed for this session

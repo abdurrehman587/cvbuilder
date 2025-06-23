@@ -2,19 +2,6 @@ import React, { useRef, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import ManualPayment from './ManualPayment';
 
-const sectionList = [
-  { key: 'objective', title: 'Objective' },
-  { key: 'education', title: 'Education' },
-  { key: 'workExperience', title: 'Work Experience' },
-  { key: 'otherInformation', title: 'Other Information' },  // Moved early here as per order
-  { key: 'skills', title: 'Skills' },
-  { key: 'certifications', title: 'Certifications' },
-  { key: 'projects', title: 'Projects' },
-  { key: 'languages', title: 'Languages' },
-  { key: 'hobbies', title: 'Hobbies' },
-  { key: 'references', title: 'References' },
-];
-
 // Load html2pdf from CDN dynamically
 const loadHtml2Pdf = () => {
   if (window.html2pdf) return Promise.resolve(window.html2pdf);
@@ -32,7 +19,6 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
   const buttonRef = useRef(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentCompleted, setPaymentCompleted] = useState(false);
-  const [paymentState, setPaymentState] = useState('idle');
   const [downloadCompleted, setDownloadCompleted] = useState(false);
 
   // Check download state on component mount
@@ -160,16 +146,6 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
     position: 'relative',
   };
 
-  const sectionTitleAfter = {
-    content: '""',
-    position: 'absolute',
-    bottom: '-2px',
-    left: '0',
-    width: '25px',
-    height: '2px',
-    background: '#16a34a',
-  };
-
   const paragraphStyle = {
     fontSize: '0.95rem',
     lineHeight: 1.3,
@@ -198,48 +174,6 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
     color: '#4a5568',
     paddingLeft: '18px',
     position: 'relative',
-  };
-
-  const listItemBefore = {
-    content: '"✦"',
-    position: 'absolute',
-    left: '0',
-    color: '#22c55e',
-    fontWeight: 'bold',
-    fontSize: '0.9rem',
-  };
-
-  const tableStyle = {
-    width: '100%',
-    borderCollapse: 'collapse',
-    marginBottom: '4px',
-    borderRadius: '8px',
-    overflow: 'hidden',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-  };
-
-  const tableHeaderStyle = {
-    backgroundColor: '#22c55e',
-    color: '#ffffff',
-    textAlign: 'left',
-    padding: '6px 8px',
-    fontWeight: 600,
-    fontSize: '0.9rem',
-  };
-
-  const tableRowStyle = {
-    borderBottom: '1px solid #e2e8f0',
-    transition: 'background-color 0.2s',
-  };
-
-  const tableRowHover = {
-    backgroundColor: '#f0fdf4',
-  };
-
-  const tableCellStyle = {
-    padding: '6px 8px',
-    color: '#4a5568',
-    fontSize: '0.9rem',
   };
 
   const skillsContainerStyle = {
@@ -330,10 +264,6 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
     transition: 'box-shadow 0.2s',
   };
 
-  const experienceItemHover = {
-    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-  };
-
   const experienceHeaderStyle = {
     display: 'flex',
     justifyContent: 'space-between',
@@ -404,25 +334,22 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const downloadButtonStyle = {
-    marginTop: 16,
-    cursor: 'pointer',
-    padding: '6px 18px',
-    fontSize: '0.95rem',
-    borderRadius: 6,
+    background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+    color: '#ffffff',
     border: 'none',
-    backgroundColor: '#22c55e',
-    color: 'white',
-    transition: 'background-color 0.3s ease',
-    alignSelf: 'flex-start',
-    userSelect: 'none',
+    padding: '12px 24px',
+    borderRadius: '8px',
+    fontSize: '1rem',
+    fontWeight: 600,
+    cursor: 'pointer',
+    boxShadow: '0 4px 12px rgba(34, 197, 94, 0.3)',
+    transition: 'all 0.3s ease',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
   };
 
-  const downloadButtonHover = {
-    transform: 'translateY(-2px)',
-    boxShadow: '0 6px 20px rgba(34, 197, 94, 0.6)',
-  };
-
-  const downloadButtonDisabled = {
+  const downloadButtonDisabledStyle = {
     background: '#cbd5e0',
     cursor: 'not-allowed',
     boxShadow: 'none',
@@ -599,7 +526,6 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
   const handlePaymentSuccess = (paymentData) => {
     setPaymentCompleted(false); // Don't auto-complete, wait for admin approval
     setShowPaymentModal(false);
-    setPaymentState('pending');
     
     // Show message about waiting for approval
     alert(`Payment proof submitted successfully!\n\nPayment ID: ${paymentData.paymentId}\n\nPlease wait for manual verification. You will be able to download once approved.`);
@@ -607,7 +533,6 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
 
   const handlePaymentFailure = (error) => {
     console.error('Payment failed:', error);
-    setPaymentState('failed');
     alert('Payment failed. Please try again.');
   };
 
@@ -838,7 +763,7 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
             onClick={handleDownloadClick}
             style={{
               ...downloadButtonStyle,
-              ...(downloadCompleted && downloadButtonDisabled)
+              ...(downloadCompleted && downloadButtonDisabledStyle)
             }}
             onMouseEnter={(e) => {
               if (!downloadCompleted) {
