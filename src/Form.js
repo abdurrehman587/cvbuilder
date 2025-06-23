@@ -383,22 +383,22 @@ const Form = ({ formData, setFormData, onChange, user }) => {
         console.log('=== ADMIN SAVE PATH ===');
         // Use RPC function for admin users to bypass RLS
         const rpcData = {
-          cv_id: formData.id || null,
-          name: formData.name,
-          phone: formData.phone,
-          email: formData.email,
-          address: formData.address,
-          objective: JSON.stringify(formData.objective),
-          education: JSON.stringify(formData.education),
-          work_experience: JSON.stringify(formData.workExperience),
-          skills: JSON.stringify(formData.skills),
-          certifications: JSON.stringify(formData.certifications),
-          projects: JSON.stringify(formData.projects),
-          languages: JSON.stringify(formData.languages),
-          hobbies: JSON.stringify(formData.hobbies),
-          references: JSON.stringify(formData.references),
-          other_information: JSON.stringify(formData.otherInformation),
-          image_url: imageUrl || null,
+          p_cv_id: formData.id || null,
+          p_name: formData.name,
+          p_phone: formData.phone,
+          p_email: formData.email,
+          p_address: formData.address,
+          p_objective: JSON.stringify(formData.objective),
+          p_education: JSON.stringify(formData.education),
+          p_work_experience: JSON.stringify(formData.workExperience),
+          p_skills: JSON.stringify(formData.skills),
+          p_certifications: JSON.stringify(formData.certifications),
+          p_projects: JSON.stringify(formData.projects),
+          p_languages: JSON.stringify(formData.languages),
+          p_hobbies: JSON.stringify(formData.hobbies),
+          p_references: JSON.stringify(formData.references),
+          p_other_information: JSON.stringify(formData.otherInformation),
+          p_image_url: imageUrl || null,
         };
         
         console.log('Calling admin_update_cv RPC with data:', rpcData);
