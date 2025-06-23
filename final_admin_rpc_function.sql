@@ -1,8 +1,9 @@
--- Create the admin_update_cv RPC function
--- This function allows admin users to create/update CVs bypassing RLS policies
+-- Drop the existing admin_update_cv function first
+DROP FUNCTION IF EXISTS admin_update_cv(uuid,text,text,text,text,text,text,text,text,text,text,text,text,text,text,text);
 
+-- Create the admin_update_cv RPC function with correct schema matching
 CREATE OR REPLACE FUNCTION admin_update_cv(
-  p_cv_id UUID DEFAULT NULL,
+  p_cv_id BIGINT DEFAULT NULL,
   p_name TEXT DEFAULT NULL,
   p_phone TEXT DEFAULT NULL,
   p_email TEXT DEFAULT NULL,
@@ -19,7 +20,7 @@ CREATE OR REPLACE FUNCTION admin_update_cv(
   p_other_information TEXT DEFAULT NULL,
   p_image_url TEXT DEFAULT NULL
 )
-RETURNS TABLE(id UUID, name TEXT, phone TEXT, email TEXT, address TEXT, objective JSONB, education JSONB, work_experience JSONB, skills JSONB, certifications JSONB, projects JSONB, languages JSONB, hobbies JSONB, "references" JSONB, other_information JSONB, image_url TEXT, user_id UUID, created_at TIMESTAMPTZ, updated_at TIMESTAMPTZ)
+RETURNS TABLE(id BIGINT, name TEXT, phone TEXT, email TEXT, address TEXT, objective JSONB, education JSONB, work_experience JSONB, skills JSONB, certifications JSONB, projects JSONB, languages JSONB, hobbies JSONB, "references" JSONB, other_information JSONB, image_url TEXT, user_id UUID, created_at TIMESTAMPTZ, updated_at TIMESTAMPTZ)
 LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$

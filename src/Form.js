@@ -381,9 +381,31 @@ const Form = ({ formData, setFormData, onChange, user }) => {
     try {
       if (user.isAdmin) {
         console.log('=== ADMIN SAVE PATH ===');
+        
+        // First, check if a CV with the same name and phone already exists
+        if (!formData.id) {
+          console.log('Checking for existing CV with same name and phone...');
+          const { data: existingCv, error: searchError } = await supabase
+            .from('cvs')
+            .select('id')
+            .eq('name', formData.name)
+            .eq('phone', formData.phone)
+            .is('user_id', null) // Only check admin-created CVs
+            .limit(1);
+            
+          if (searchError) {
+            console.error('Error searching for existing CV:', searchError);
+          } else if (existingCv && existingCv.length > 0) {
+            console.log('Found existing CV with same name and phone:', existingCv[0]);
+            // Set the existing CV ID so it will be updated instead of created
+            setFormData(prev => ({ ...prev, id: existingCv[0].id }));
+            setCurrentCvId(existingCv[0].id);
+          }
+        }
+        
         // Use RPC function for admin users to bypass RLS
         const rpcData = {
-          p_cv_id: formData.id || null,
+          p_cv_id: formData.id || currentCvId || null,
           p_name: formData.name,
           p_phone: formData.phone,
           p_email: formData.email,
@@ -407,16 +429,18 @@ const Form = ({ formData, setFormData, onChange, user }) => {
         
         if (error) throw error;
         
-        if (formData.id) {
+        if (formData.id || currentCvId) {
           toast.success('CV updated successfully! (Admin Mode)');
           console.log('CV updated successfully via RPC:', data);
         } else {
           toast.success('CV created successfully! (Admin Mode)');
           console.log('CV created successfully via RPC:', data);
           // Update the form data with the new ID
-          if (data && data.id) {
-            setFormData(prev => ({ ...prev, id: data.id }));
-            setCurrentCvId(data.id);
+          if (data && data.length > 0 && data[0].id) {
+            const newId = data[0].id;
+            console.log('Setting new CV ID:', newId);
+            setFormData(prev => ({ ...prev, id: newId }));
+            setCurrentCvId(newId);
           }
         }
       } else {

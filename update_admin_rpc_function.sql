@@ -1,6 +1,7 @@
--- Create the admin_update_cv RPC function
--- This function allows admin users to create/update CVs bypassing RLS policies
+-- Drop the existing admin_update_cv function first
+DROP FUNCTION IF EXISTS admin_update_cv(uuid,text,text,text,text,text,text,text,text,text,text,text,text,text,text,text);
 
+-- Create the admin_update_cv RPC function with proper JSONB handling
 CREATE OR REPLACE FUNCTION admin_update_cv(
   p_cv_id UUID DEFAULT NULL,
   p_name TEXT DEFAULT NULL,
