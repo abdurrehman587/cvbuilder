@@ -47,6 +47,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
 
   const [searchName, setSearchName] = useState('');
   const [searchPhone, setSearchPhone] = useState('');
+  const [currentCvId, setCurrentCvId] = useState(null);
 
   useEffect(() => {
     if (!formData) {
@@ -107,6 +108,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
 
         if (data) {
           console.log('CV data loaded successfully:', data);
+          setCurrentCvId(data.id);
           setFormData({
             image: null,
             imageUrl: data.image_url || '',
@@ -311,18 +313,47 @@ const Form = ({ formData, setFormData, onChange, user }) => {
 
 
   const handleSave = async () => {
-    try {
-      // Check if this is an admin user
-      const isAdmin = user && user.isAdmin;
-      
-      if (!isAdmin && !user) {
-        toast.error('You must be signed in to save your CV.');
-        return;
-      }
+    if (user && user.isAdmin && currentCvId) {
+      try {
+        const { data, error } = await supabase
+          .from('cvs')
+          .update({
+            name: formData.name,
+            phone: formData.phone,
+            email: formData.email,
+            address: formData.address,
+            objective: JSON.stringify(formData.objective),
+            education: JSON.stringify(formData.education),
+            work_experience: JSON.stringify(formData.workExperience),
+            skills: JSON.stringify(formData.skills),
+            certifications: JSON.stringify(formData.certifications),
+            projects: JSON.stringify(formData.projects),
+            languages: JSON.stringify(formData.languages),
+            hobbies: JSON.stringify(formData.hobbies),
+            references: JSON.stringify(formData.references),
+            other_information: JSON.stringify(formData.otherInformation),
+          })
+          .eq('id', currentCvId);
 
+        if (error) throw error;
+        toast.success('CV updated successfully by admin!');
+        console.log('Admin updated CV:', data);
+      } catch (error) {
+        toast.error('Error updating CV as admin: ' + error.message);
+        console.error('Admin CV update error:', error);
+      }
+      return;
+    }
+
+    if (!user) {
+      toast.error('You must be logged in to save a CV.');
+      return;
+    }
+
+    try {
       console.log('Starting save process...');
       console.log('Current user:', user?.id);
-      console.log('Is admin:', isAdmin);
+      console.log('Is admin:', user && user.isAdmin);
       console.log('Form data to save:', formData);
 
       let imageUrl = formData.imageUrl;
@@ -343,7 +374,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
       const payload = {
         // For admin users, don't set user_id so CVs can be searched by name/phone
         // For regular users, set user_id for personal CV management
-        ...(isAdmin ? {} : { user_id: user.id }),
+        ...(user && user.isAdmin ? {} : { user_id: user.id }),
         image_url: imageUrl && imageUrl.startsWith('http') ? imageUrl : null,
         name: formData.name || '',
         phone: formData.phone || '',
@@ -393,7 +424,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
       console.log('Attempting to save to database...');
       
       let result;
-      if (isAdmin) {
+      if (user && user.isAdmin) {
         // For admin users, use insert with conflict resolution on name and phone
         result = await supabase
           .from('cvs')
@@ -435,7 +466,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
       }
 
       console.log('Save successful! Data:', data);
-      toast.success(isAdmin ? 'CV Saved Successfully! (Admin Mode)' : 'CV Saved Successfully!');
+      toast.success(user && user.isAdmin ? 'CV Saved Successfully! (Admin Mode)' : 'CV Saved Successfully!');
       
       // Optionally update formData with new imageUrl if uploaded
       if (formData.image && imageUrl) {
@@ -449,71 +480,69 @@ const Form = ({ formData, setFormData, onChange, user }) => {
 
 
   const handleSearch = async () => {
-    try {
-      if (!searchName && !searchPhone) {
-        toast.error("Please enter name or phone number to search.");
-        return;
-      }
-
-      // Check if this is an admin user
-      const isAdmin = user && user.isAdmin;
-
-      let query = supabase.from('cvs').select('*').limit(1);
-
-      if (searchName) {
-        query = query.ilike('name', `%${searchName}%`);
-      }
-
-      if (searchPhone) {
-        query = query.ilike('phone', `%${searchPhone}%`);
-      }
-
-      // For admin users, search all CVs (including those without user_id)
-      // For regular users, only search their own CVs
-      if (!isAdmin) {
-        query = query.eq('user_id', user.id);
-      }
-
-      const { data, error } = await query;
-
-      if (error) {
-        console.error("Search error:", error);
-        toast.error("Failed to search CV.");
-        return;
-      }
-
-      if (data.length === 0) {
-        toast.info("No matching CV found.");
-        return;
-      }
-
-      const cv = data[0];
-
-      setFormData({
-        image: null,
-        imageUrl: cv.image_url || '',
-        name: cv.name || '',
-        phone: cv.phone || '',
-        email: cv.email || '',
-        address: cv.address || '',
-        objective: JSON.parse(cv.objective || '[]'),
-        education: JSON.parse(cv.education || '[]'),
-        workExperience: JSON.parse(cv.work_experience || '[]'),
-        skills: JSON.parse(cv.skills || '[]'),
-        certifications: JSON.parse(cv.certifications || '[]'),
-        projects: JSON.parse(cv.projects || '[]'),
-        languages: JSON.parse(cv.languages || '[]'),
-        customLanguages: [],
-        hobbies: JSON.parse(cv.hobbies || '[]'),
-        references: JSON.parse(cv.references || '[]'),
-        otherInformation: JSON.parse(cv.other_information || '[]'),
-      });
-
-      toast.success(isAdmin ? "CV loaded successfully. (Admin Mode)" : "CV loaded successfully.");
-    } catch (err) {
-      console.error("Unexpected error:", err);
-      toast.error("Unexpected error during search.");
+    if (!user || !user.isAdmin) {
+      toast.error('Only admins can search for CVs.');
+      return;
     }
+
+    if (!searchName && !searchPhone) {
+      toast.error("Please enter name or phone number to search.");
+      return;
+    }
+
+    let query = supabase.from('cvs').select('*').limit(1);
+
+    if (searchName) {
+      query = query.ilike('name', `%${searchName}%`);
+    }
+
+    if (searchPhone) {
+      query = query.ilike('phone', `%${searchPhone}%`);
+    }
+
+    // For admin users, search all CVs (including those without user_id)
+    // For regular users, only search their own CVs
+    if (!user && user.isAdmin) {
+      query = query.eq('user_id', user.id);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error("Search error:", error);
+      toast.error("Failed to search CV.");
+      return;
+    }
+
+    if (data.length === 0) {
+      toast.info("No matching CV found.");
+      setCurrentCvId(null);
+      return;
+    }
+
+    const cv = data[0];
+    setCurrentCvId(cv.id);
+    setFormData({
+      image: null,
+      imageUrl: cv.image_url || '',
+      name: cv.name || '',
+      phone: cv.phone || '',
+      email: cv.email || '',
+      address: cv.address || '',
+      objective: JSON.parse(cv.objective || '[]'),
+      education: JSON.parse(cv.education || '[]'),
+      workExperience: JSON.parse(cv.work_experience || '[]'),
+      skills: JSON.parse(cv.skills || '[]'),
+      certifications: JSON.parse(cv.certifications || '[]'),
+      projects: JSON.parse(cv.projects || '[]'),
+      languages: JSON.parse(cv.languages || '[]'),
+      customLanguages: [],
+      hobbies: JSON.parse(cv.hobbies || '[]'),
+      references: JSON.parse(cv.references || '[]'),
+      otherInformation: JSON.parse(cv.other_information || '[]'),
+    });
+
+    toast.success(user && user.isAdmin ? "CV loaded successfully. (Admin Mode)" : "CV loaded successfully.");
   };
 
   // Guard: Don't render until formData is initialized
