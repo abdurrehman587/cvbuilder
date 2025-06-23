@@ -319,43 +319,6 @@ const Form = ({ formData, setFormData, onChange, user }) => {
     console.log('Current CV ID:', currentCvId);
     console.log('Form data ID:', formData.id);
 
-    // If an admin is editing a specific CV, use the new Supabase function
-    if (user && user.isAdmin && currentCvId) {
-      console.log('=== ADMIN UPDATE PATH ===');
-      try {
-        const cvDataForUpdate = {
-          name: formData.name,
-          phone: formData.phone,
-          email: formData.email,
-          address: formData.address,
-          objective: formData.objective,
-          education: formData.education,
-          work_experience: formData.workExperience,
-          skills: formData.skills,
-          certifications: formData.certifications,
-          projects: formData.projects,
-          languages: formData.languages,
-          hobbies: formData.hobbies,
-          references: formData.references,
-          other_information: formData.otherInformation,
-        };
-
-        console.log('Calling RPC function with:', { cv_id_to_update: currentCvId, new_data: cvDataForUpdate });
-        const { data, error } = await supabase.rpc('update_any_cv', {
-          cv_id_to_update: currentCvId,
-          new_data: cvDataForUpdate,
-        });
-
-        if (error) throw error;
-        toast.success('CV updated successfully by admin!');
-        console.log('Admin updated CV via RPC:', data);
-      } catch (error) {
-        toast.error('Error updating CV as admin: ' + error.message);
-        console.error('Admin CV update error:', error);
-      }
-      return;
-    }
-
     // Check if user is logged in
     if (!user) {
       console.log('=== NO USER ERROR ===');
