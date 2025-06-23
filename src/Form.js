@@ -379,10 +379,11 @@ const Form = ({ formData, setFormData, onChange, user }) => {
     }
 
     try {
-      if (formData.id) {
-        console.log('=== UPDATING EXISTING CV ===');
-        // Update existing CV by id
-        const updateData = {
+      if (user.isAdmin) {
+        console.log('=== ADMIN SAVE PATH ===');
+        // Use RPC function for admin users to bypass RLS
+        const rpcData = {
+          cv_id: formData.id || null,
           name: formData.name,
           phone: formData.phone,
           email: formData.email,
@@ -397,52 +398,94 @@ const Form = ({ formData, setFormData, onChange, user }) => {
           hobbies: JSON.stringify(formData.hobbies),
           references: JSON.stringify(formData.references),
           other_information: JSON.stringify(formData.otherInformation),
-          user_id: user.id,
           image_url: imageUrl || null,
         };
         
-        console.log('Updating CV with ID:', formData.id);
-        console.log('Update data:', updateData);
+        console.log('Calling admin_update_cv RPC with data:', rpcData);
         
-        const { data, error } = await supabase
-          .from('cvs')
-          .update(updateData)
-          .eq('id', formData.id);
-          
+        const { data, error } = await supabase.rpc('admin_update_cv', rpcData);
+        
         if (error) throw error;
-        toast.success('CV updated successfully!');
-        console.log('CV updated successfully:', data);
+        
+        if (formData.id) {
+          toast.success('CV updated successfully! (Admin Mode)');
+          console.log('CV updated successfully via RPC:', data);
+        } else {
+          toast.success('CV created successfully! (Admin Mode)');
+          console.log('CV created successfully via RPC:', data);
+          // Update the form data with the new ID
+          if (data && data.id) {
+            setFormData(prev => ({ ...prev, id: data.id }));
+            setCurrentCvId(data.id);
+          }
+        }
       } else {
-        console.log('=== CREATING NEW CV ===');
-        // Insert new CV
-        const insertData = {
-          name: formData.name,
-          phone: formData.phone,
-          email: formData.email,
-          address: formData.address,
-          objective: JSON.stringify(formData.objective),
-          education: JSON.stringify(formData.education),
-          work_experience: JSON.stringify(formData.workExperience),
-          skills: JSON.stringify(formData.skills),
-          certifications: JSON.stringify(formData.certifications),
-          projects: JSON.stringify(formData.projects),
-          languages: JSON.stringify(formData.languages),
-          hobbies: JSON.stringify(formData.hobbies),
-          references: JSON.stringify(formData.references),
-          other_information: JSON.stringify(formData.otherInformation),
-          user_id: user.isAdmin ? null : user.id,
-          image_url: imageUrl || null,
-        };
-        
-        console.log('Creating new CV with data:', insertData);
-        
-        const { data, error } = await supabase
-          .from('cvs')
-          .insert([insertData]);
+        // Regular user save logic
+        if (formData.id) {
+          console.log('=== UPDATING EXISTING CV ===');
+          // Update existing CV by id
+          const updateData = {
+            name: formData.name,
+            phone: formData.phone,
+            email: formData.email,
+            address: formData.address,
+            objective: JSON.stringify(formData.objective),
+            education: JSON.stringify(formData.education),
+            work_experience: JSON.stringify(formData.workExperience),
+            skills: JSON.stringify(formData.skills),
+            certifications: JSON.stringify(formData.certifications),
+            projects: JSON.stringify(formData.projects),
+            languages: JSON.stringify(formData.languages),
+            hobbies: JSON.stringify(formData.hobbies),
+            references: JSON.stringify(formData.references),
+            other_information: JSON.stringify(formData.otherInformation),
+            user_id: user.id,
+            image_url: imageUrl || null,
+          };
           
-        if (error) throw error;
-        toast.success('CV created successfully!');
-        console.log('CV created successfully:', data);
+          console.log('Updating CV with ID:', formData.id);
+          console.log('Update data:', updateData);
+          
+          const { data, error } = await supabase
+            .from('cvs')
+            .update(updateData)
+            .eq('id', formData.id);
+            
+          if (error) throw error;
+          toast.success('CV updated successfully!');
+          console.log('CV updated successfully:', data);
+        } else {
+          console.log('=== CREATING NEW CV ===');
+          // Insert new CV
+          const insertData = {
+            name: formData.name,
+            phone: formData.phone,
+            email: formData.email,
+            address: formData.address,
+            objective: JSON.stringify(formData.objective),
+            education: JSON.stringify(formData.education),
+            work_experience: JSON.stringify(formData.workExperience),
+            skills: JSON.stringify(formData.skills),
+            certifications: JSON.stringify(formData.certifications),
+            projects: JSON.stringify(formData.projects),
+            languages: JSON.stringify(formData.languages),
+            hobbies: JSON.stringify(formData.hobbies),
+            references: JSON.stringify(formData.references),
+            other_information: JSON.stringify(formData.otherInformation),
+            user_id: user.id,
+            image_url: imageUrl || null,
+          };
+          
+          console.log('Creating new CV with data:', insertData);
+          
+          const { data, error } = await supabase
+            .from('cvs')
+            .insert([insertData]);
+            
+          if (error) throw error;
+          toast.success('CV created successfully!');
+          console.log('CV created successfully:', data);
+        }
       }
     } catch (error) {
       console.error('=== SAVE ERROR ===');
