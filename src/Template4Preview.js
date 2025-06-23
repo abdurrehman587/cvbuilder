@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import Template1PDF from './Template1PDF';
+import Template4PDF from './Template4PDF';
 
 const sectionList = [
   { key: 'objective', title: 'Objective' },
   { key: 'education', title: 'Education' },
   { key: 'workExperience', title: 'Work Experience' },
   { key: 'skills', title: 'Skills' },
+  { key: 'otherInformation', title: 'Other Information' },
   { key: 'certifications', title: 'Certifications' },
   { key: 'projects', title: 'Projects' },
   { key: 'languages', title: 'Languages' },
   { key: 'hobbies', title: 'Hobbies' },
   { key: 'references', title: 'References' },
-  { key: 'otherInformation', title: 'Other Information' },  // Added new section
 ];
 
 // Helper function to check if a section has data
@@ -49,7 +49,7 @@ const hasSectionData = (formData, sectionKey) => {
   }
 };
 
-const Template1Preview = ({ formData, formHeight }) => {
+const Template4Preview = ({ formData, formHeight }) => {
   const [visibleSections, setVisibleSections] = useState([]);
 
   // Update visible sections when formData changes
@@ -101,8 +101,8 @@ const Template1Preview = ({ formData, formHeight }) => {
                   padding: '6px 14px',
                   fontSize: '0.85rem',
                   borderRadius: 30,
-                  border: active ? '2px solid #3f51b5' : '2px solid #ccc',
-                  backgroundColor: active ? '#3f51b5' : '#fff',
+                  border: active ? '2px solid #667eea' : '2px solid #ccc',
+                  backgroundColor: active ? '#667eea' : '#fff',
                   color: active ? '#fff' : '#555',
                   cursor: 'pointer',
                   transition: 'all 0.3s ease',
@@ -123,23 +123,24 @@ const Template1Preview = ({ formData, formHeight }) => {
             height: previewHeight,
             margin: '0 auto',
             padding: 24,
-            background: '#fdfdfd',
+            background: '#ffffff',
             borderRadius: 10,
-            fontFamily: "'Open Sans', Arial, sans-serif",
-            color: '#333',
+            fontFamily: "'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+            color: '#2d3748',
             display: 'flex',
             flexDirection: 'column',
             overflowY: 'visible',
             boxSizing: 'border-box',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
           }}
           aria-label="Curriculum Vitae Preview"
         >
-          <Template1PDF formData={formData} visibleSections={visibleSections} />
+          <Template4PDF formData={formData} visibleSections={visibleSections} />
         </article>
       </div>
     </div>
   );
 };
 
-export default Template1Preview;
+export default Template4Preview;
 
