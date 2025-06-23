@@ -430,7 +430,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
           hobbies: JSON.stringify(formData.hobbies),
           references: JSON.stringify(formData.references),
           other_information: JSON.stringify(formData.otherInformation),
-          user_id: user.id,
+          user_id: user.isAdmin ? null : user.id,
           image_url: imageUrl || null,
         };
         
@@ -477,7 +477,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
 
     // For admin users, search all CVs (including those without user_id)
     // For regular users, only search their own CVs
-    if (!user && user.isAdmin) {
+    if (user && !user.isAdmin) {
       query = query.eq('user_id', user.id);
     }
 
