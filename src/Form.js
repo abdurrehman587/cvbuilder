@@ -313,8 +313,15 @@ const Form = ({ formData, setFormData, onChange, user }) => {
 
 
   const handleSave = async () => {
+    console.log('=== SAVE FUNCTION STARTED ===');
+    console.log('User:', user);
+    console.log('Is admin:', user?.isAdmin);
+    console.log('Current CV ID:', currentCvId);
+    console.log('Form data ID:', formData.id);
+
     // If an admin is editing a specific CV, use the new Supabase function
     if (user && user.isAdmin && currentCvId) {
+      console.log('=== ADMIN UPDATE PATH ===');
       try {
         const cvDataForUpdate = {
           name: formData.name,
@@ -333,6 +340,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
           other_information: formData.otherInformation,
         };
 
+        console.log('Calling RPC function with:', { cv_id_to_update: currentCvId, new_data: cvDataForUpdate });
         const { data, error } = await supabase.rpc('update_any_cv', {
           cv_id_to_update: currentCvId,
           new_data: cvDataForUpdate,
@@ -348,67 +356,101 @@ const Form = ({ formData, setFormData, onChange, user }) => {
       return;
     }
 
-    // Existing save logic for non-admins or admins creating a new CV
+    // Check if user is logged in
     if (!user) {
+      console.log('=== NO USER ERROR ===');
       toast.error('You must be logged in to save a CV.');
       return;
     }
 
+    console.log('=== REGULAR SAVE PATH ===');
+    
+    // Handle image upload first
+    let imageUrl = formData.imageUrl;
+    if (formData.image) {
+      console.log('Uploading image...');
+      const uploadedUrl = await uploadImage(formData.image);
+      if (!uploadedUrl) {
+        toast.error('Image upload failed. Please try again.');
+        return;
+      }
+      imageUrl = uploadedUrl;
+      console.log('Image uploaded successfully:', imageUrl);
+    }
+
     try {
       if (formData.id) {
+        console.log('=== UPDATING EXISTING CV ===');
         // Update existing CV by id
+        const updateData = {
+          name: formData.name,
+          phone: formData.phone,
+          email: formData.email,
+          address: formData.address,
+          objective: JSON.stringify(formData.objective),
+          education: JSON.stringify(formData.education),
+          work_experience: JSON.stringify(formData.workExperience),
+          skills: JSON.stringify(formData.skills),
+          certifications: JSON.stringify(formData.certifications),
+          projects: JSON.stringify(formData.projects),
+          languages: JSON.stringify(formData.languages),
+          hobbies: JSON.stringify(formData.hobbies),
+          references: JSON.stringify(formData.references),
+          other_information: JSON.stringify(formData.otherInformation),
+          user_id: user.id,
+          image_url: imageUrl || null,
+        };
+        
+        console.log('Updating CV with ID:', formData.id);
+        console.log('Update data:', updateData);
+        
         const { data, error } = await supabase
           .from('cvs')
-          .update({
-            name: formData.name,
-            phone: formData.phone,
-            email: formData.email,
-            address: formData.address,
-            objective: JSON.stringify(formData.objective),
-            education: JSON.stringify(formData.education),
-            work_experience: JSON.stringify(formData.workExperience),
-            skills: JSON.stringify(formData.skills),
-            certifications: JSON.stringify(formData.certifications),
-            projects: JSON.stringify(formData.projects),
-            languages: JSON.stringify(formData.languages),
-            hobbies: JSON.stringify(formData.hobbies),
-            references: JSON.stringify(formData.references),
-            other_information: JSON.stringify(formData.otherInformation),
-            user_id: user.id,
-            image_url: formData.imageUrl || null,
-          })
+          .update(updateData)
           .eq('id', formData.id);
+          
         if (error) throw error;
         toast.success('CV updated successfully!');
+        console.log('CV updated successfully:', data);
       } else {
+        console.log('=== CREATING NEW CV ===');
         // Insert new CV
+        const insertData = {
+          name: formData.name,
+          phone: formData.phone,
+          email: formData.email,
+          address: formData.address,
+          objective: JSON.stringify(formData.objective),
+          education: JSON.stringify(formData.education),
+          work_experience: JSON.stringify(formData.workExperience),
+          skills: JSON.stringify(formData.skills),
+          certifications: JSON.stringify(formData.certifications),
+          projects: JSON.stringify(formData.projects),
+          languages: JSON.stringify(formData.languages),
+          hobbies: JSON.stringify(formData.hobbies),
+          references: JSON.stringify(formData.references),
+          other_information: JSON.stringify(formData.otherInformation),
+          user_id: user.id,
+          image_url: imageUrl || null,
+        };
+        
+        console.log('Creating new CV with data:', insertData);
+        
         const { data, error } = await supabase
           .from('cvs')
-          .insert([{
-            name: formData.name,
-            phone: formData.phone,
-            email: formData.email,
-            address: formData.address,
-            objective: JSON.stringify(formData.objective),
-            education: JSON.stringify(formData.education),
-            work_experience: JSON.stringify(formData.workExperience),
-            skills: JSON.stringify(formData.skills),
-            certifications: JSON.stringify(formData.certifications),
-            projects: JSON.stringify(formData.projects),
-            languages: JSON.stringify(formData.languages),
-            hobbies: JSON.stringify(formData.hobbies),
-            references: JSON.stringify(formData.references),
-            other_information: JSON.stringify(formData.otherInformation),
-            user_id: user.id,
-            image_url: formData.imageUrl || null,
-          }]);
+          .insert([insertData]);
+          
         if (error) throw error;
         toast.success('CV created successfully!');
+        console.log('CV created successfully:', data);
       }
     } catch (error) {
+      console.error('=== SAVE ERROR ===');
+      console.error('Error details:', error);
       toast.error('Error saving CV: ' + error.message);
-      console.error('Save error:', error);
     }
+    
+    console.log('=== SAVE FUNCTION ENDED ===');
   };
 
 
