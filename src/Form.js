@@ -348,136 +348,66 @@ const Form = ({ formData, setFormData, onChange, user }) => {
       return;
     }
 
+    // Existing save logic for non-admins or admins creating a new CV
     if (!user) {
       toast.error('You must be logged in to save a CV.');
       return;
     }
 
     try {
-      console.log('Starting save process...');
-      console.log('Current user:', user?.id);
-      console.log('Is admin:', user && user.isAdmin);
-      console.log('Form data to save:', formData);
-
-      let imageUrl = formData.imageUrl;
-
-      // Upload image if present
-      if (formData.image) {
-        console.log('Uploading image...');
-        const uploadedUrl = await uploadImage(formData.image);
-        if (!uploadedUrl) {
-          toast.error('Image upload failed. Please try again.');
-          return;
-        }
-        imageUrl = uploadedUrl;
-        console.log('Image uploaded successfully:', imageUrl);
-      }
-
-      // Prepare payload for Supabase
-      const payload = {
-        // For admin users, don't set user_id so CVs can be searched by name/phone
-        // For regular users, set user_id for personal CV management
-        ...(user && user.isAdmin ? {} : { user_id: user.id }),
-        image_url: imageUrl && imageUrl.startsWith('http') ? imageUrl : null,
-        name: formData.name || '',
-        phone: formData.phone || '',
-        email: formData.email || '',
-        address: formData.address || '',
-        objective: JSON.stringify((formData.objective || []).map(entry => entry || '')),
-        education: JSON.stringify((formData.education || []).map(e => ({
-          degree: e.degree || '',
-          institute: e.institute || '',
-          year: e.year || ''
-        }))),
-        work_experience: JSON.stringify((formData.workExperience || []).map(w => ({
-          company: w.company || '',
-          designation: w.designation || '',
-          duration: w.duration || '',
-          details: w.details || ''
-        }))),
-        skills: JSON.stringify((formData.skills || []).map(s => ({
-          name: s.name || '',
-          percentage: s.percentage || ''
-        }))),
-        certifications: JSON.stringify((formData.certifications || []).map(c => c || '')),
-        projects: JSON.stringify((formData.projects || []).map(p => p || '')),
-        languages: JSON.stringify([
-          ...(formData.languages || []),
-          ...(formData.customLanguages || [])
-            .filter(lang => lang.selected && lang.name?.trim())
-            .map(lang => lang.name.trim())
-        ]),
-        hobbies: JSON.stringify((formData.hobbies || []).map(h => h || '')),
-        references: JSON.stringify((formData.references || []).map(r => r || '')),
-        other_information: JSON.stringify((formData.otherInformation || []).map(info => ({
-          id: info.id,
-          labelType: info.labelType || '',
-          label: info.label || '',
-          checked: info.checked === true,
-          value: info.value || '',
-          name: info.name || '',
-          radioValue: info.radioValue || '',
-          isCustom: info.isCustom === true
-        })))
-      };
-
-      console.log('Prepared payload:', payload);
-
-      // Save (insert or update) to Supabase
-      console.log('Attempting to save to database...');
-      
-      let result;
-      if (user && user.isAdmin) {
-        // For admin users, use insert with conflict resolution on name and phone
-        result = await supabase
+      if (formData.id) {
+        // Update existing CV by id
+        const { data, error } = await supabase
           .from('cvs')
-          .upsert([payload], { onConflict: 'name,phone' });
+          .update({
+            name: formData.name,
+            phone: formData.phone,
+            email: formData.email,
+            address: formData.address,
+            objective: JSON.stringify(formData.objective),
+            education: JSON.stringify(formData.education),
+            work_experience: JSON.stringify(formData.workExperience),
+            skills: JSON.stringify(formData.skills),
+            certifications: JSON.stringify(formData.certifications),
+            projects: JSON.stringify(formData.projects),
+            languages: JSON.stringify(formData.languages),
+            hobbies: JSON.stringify(formData.hobbies),
+            references: JSON.stringify(formData.references),
+            other_information: JSON.stringify(formData.otherInformation),
+            user_id: user.id,
+            image_url: formData.imageUrl || null,
+          })
+          .eq('id', formData.id);
+        if (error) throw error;
+        toast.success('CV updated successfully!');
       } else {
-        // For regular users, use insert with conflict resolution on user_id
-        result = await supabase
+        // Insert new CV
+        const { data, error } = await supabase
           .from('cvs')
-          .upsert([payload], { onConflict: 'user_id' });
-      }
-
-      const { data, error } = result;
-
-      console.log('Database response:', { data, error });
-
-      if (error) {
-        console.error('Supabase error:', error);
-        
-        // Check if it's a table not found error
-        if (error.message && error.message.includes('relation "cvs" does not exist')) {
-          toast.error('Database table not found. Please run the database setup script.');
-          return;
-        }
-        
-        // Check if it's a permission error
-        if (error.message && error.message.includes('permission denied')) {
-          toast.error('Permission denied. Please check your authentication.');
-          return;
-        }
-
-        // Check for RLS policy issues
-        if (error.message && error.message.includes('new row violates row-level security policy')) {
-          toast.error('Security policy issue. Please check your database permissions.');
-          return;
-        }
-        
-        toast.error(`Save failed: ${error.message}`);
-        return;
-      }
-
-      console.log('Save successful! Data:', data);
-      toast.success(user && user.isAdmin ? 'CV Saved Successfully! (Admin Mode)' : 'CV Saved Successfully!');
-      
-      // Optionally update formData with new imageUrl if uploaded
-      if (formData.image && imageUrl) {
-        setFormData(prev => ({ ...prev, image: null, imageUrl }));
+          .insert([{
+            name: formData.name,
+            phone: formData.phone,
+            email: formData.email,
+            address: formData.address,
+            objective: JSON.stringify(formData.objective),
+            education: JSON.stringify(formData.education),
+            work_experience: JSON.stringify(formData.workExperience),
+            skills: JSON.stringify(formData.skills),
+            certifications: JSON.stringify(formData.certifications),
+            projects: JSON.stringify(formData.projects),
+            languages: JSON.stringify(formData.languages),
+            hobbies: JSON.stringify(formData.hobbies),
+            references: JSON.stringify(formData.references),
+            other_information: JSON.stringify(formData.otherInformation),
+            user_id: user.id,
+            image_url: formData.imageUrl || null,
+          }]);
+        if (error) throw error;
+        toast.success('CV created successfully!');
       }
     } catch (error) {
-      console.error('Unexpected error during save:', error);
-      toast.error('An unexpected error occurred while saving.');
+      toast.error('Error saving CV: ' + error.message);
+      console.error('Save error:', error);
     }
   };
 
