@@ -313,31 +313,34 @@ const Form = ({ formData, setFormData, onChange, user }) => {
 
 
   const handleSave = async () => {
+    // If an admin is editing a specific CV, use the new Supabase function
     if (user && user.isAdmin && currentCvId) {
       try {
-        const { data, error } = await supabase
-          .from('cvs')
-          .update({
-            name: formData.name,
-            phone: formData.phone,
-            email: formData.email,
-            address: formData.address,
-            objective: JSON.stringify(formData.objective),
-            education: JSON.stringify(formData.education),
-            work_experience: JSON.stringify(formData.workExperience),
-            skills: JSON.stringify(formData.skills),
-            certifications: JSON.stringify(formData.certifications),
-            projects: JSON.stringify(formData.projects),
-            languages: JSON.stringify(formData.languages),
-            hobbies: JSON.stringify(formData.hobbies),
-            references: JSON.stringify(formData.references),
-            other_information: JSON.stringify(formData.otherInformation),
-          })
-          .eq('id', currentCvId);
+        const cvDataForUpdate = {
+          name: formData.name,
+          phone: formData.phone,
+          email: formData.email,
+          address: formData.address,
+          objective: formData.objective,
+          education: formData.education,
+          work_experience: formData.workExperience,
+          skills: formData.skills,
+          certifications: formData.certifications,
+          projects: formData.projects,
+          languages: formData.languages,
+          hobbies: formData.hobbies,
+          references: formData.references,
+          other_information: formData.otherInformation,
+        };
+
+        const { data, error } = await supabase.rpc('update_any_cv', {
+          cv_id_to_update: currentCvId,
+          new_data: cvDataForUpdate,
+        });
 
         if (error) throw error;
         toast.success('CV updated successfully by admin!');
-        console.log('Admin updated CV:', data);
+        console.log('Admin updated CV via RPC:', data);
       } catch (error) {
         toast.error('Error updating CV as admin: ' + error.message);
         console.error('Admin CV update error:', error);
