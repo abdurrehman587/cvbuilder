@@ -48,8 +48,8 @@ BEGIN
       other_information = p_other_information::jsonb,
       image_url = p_image_url,
       updated_at = NOW()
-    WHERE id = p_cv_id
-    RETURNING * INTO result_record;
+    WHERE cvs.id = p_cv_id
+    RETURNING cvs.id, cvs.name, cvs.phone, cvs.email, cvs.address, cvs.objective, cvs.education, cvs.work_experience, cvs.skills, cvs.certifications, cvs.projects, cvs.languages, cvs.hobbies, cvs."references", cvs.other_information, cvs.image_url, cvs.user_id, cvs.created_at, cvs.updated_at INTO result_record;
     
     -- Return the updated record
     RETURN QUERY SELECT 
@@ -109,7 +109,7 @@ BEGIN
       p_image_url,
       NULL  -- Admin-created CVs have no user_id
     )
-    RETURNING * INTO result_record;
+    RETURNING cvs.id, cvs.name, cvs.phone, cvs.email, cvs.address, cvs.objective, cvs.education, cvs.work_experience, cvs.skills, cvs.certifications, cvs.projects, cvs.languages, cvs.hobbies, cvs."references", cvs.other_information, cvs.image_url, cvs.user_id, cvs.created_at, cvs.updated_at INTO result_record;
     
     -- Return the inserted record
     RETURN QUERY SELECT 
