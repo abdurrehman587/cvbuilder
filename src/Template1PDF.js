@@ -382,14 +382,9 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
 
       // Mark download as completed (only for non-admin users)
       const adminAccess = localStorage.getItem('admin_cv_access');
-      console.log('Template1PDF generatePDF Debug:', { adminAccess, downloadCompleted });
       if (adminAccess !== 'true') {
-        console.log('Setting downloadCompleted to true for regular user');
         setDownloadCompleted(true);
         localStorage.setItem('cv_downloaded', 'true'); // Persist download state
-      } else {
-        console.log('Admin user - ensuring downloadCompleted stays false');
-        setDownloadCompleted(false); // Force reset for admin users
       }
       
     } catch (error) {
@@ -472,6 +467,9 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     
     return 'Download PDF (PKR 200)';
   };
+
+  // Get admin access status for use in render
+  const adminAccess = localStorage.getItem('admin_cv_access');
 
   return (
     <article ref={containerRef} style={containerStyle}>
@@ -571,84 +569,45 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
         </section>
       )}
 
-      {/* Download Button - Always show for admin users, show success message for regular users after download */}
-      {(() => {
-        const isAdmin = localStorage.getItem('admin_cv_access') === 'true';
-        console.log('Template1PDF Debug:', { isAdmin, downloadCompleted });
-        
-        // For admin users, ALWAYS show the download button regardless of downloadCompleted state
-        if (isAdmin) {
-          return (
-            <button
-              ref={buttonRef}
-              type="button"
-              onClick={handleDownloadClick}
-              style={{
-                marginTop: 16,
-                cursor: 'pointer',
-                padding: '6px 18px',
-                fontSize: '0.95rem',
-                borderRadius: 6,
-                border: 'none',
-                backgroundColor: '#3f51b5',
-                color: 'white',
-                transition: 'background-color 0.3s ease',
-                alignSelf: 'flex-start',
-                userSelect: 'none',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#303f9f')}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3f51b5')}
-            >
-              {getDownloadButtonText()}
-            </button>
-          );
-        }
-        
-        // For regular users, show button only if not downloaded
-        if (!downloadCompleted) {
-          return (
-            <button
-              ref={buttonRef}
-              type="button"
-              onClick={handleDownloadClick}
-              style={{
-                marginTop: 16,
-                cursor: 'pointer',
-                padding: '6px 18px',
-                fontSize: '0.95rem',
-                borderRadius: 6,
-                border: 'none',
-                backgroundColor: '#3f51b5',
-                color: 'white',
-                transition: 'background-color 0.3s ease',
-                alignSelf: 'flex-start',
-                userSelect: 'none',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#303f9f')}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3f51b5')}
-            >
-              {getDownloadButtonText()}
-            </button>
-          );
-        }
-        
-        // For regular users who have downloaded, show success message
-        return (
-          <div style={{
+      {/* Download Button - Same logic as Template3 */}
+      {(adminAccess === 'true' || !downloadCompleted) ? (
+        <button
+          ref={buttonRef}
+          type="button"
+          onClick={handleDownloadClick}
+          style={{
             marginTop: 16,
-            padding: '12px 16px',
-            backgroundColor: '#f0f9ff',
-            border: '1px solid #0ea5e9',
+            cursor: 'pointer',
+            padding: '6px 18px',
+            fontSize: '0.95rem',
             borderRadius: 6,
-            color: '#0369a1',
-            fontSize: '0.9rem',
-            textAlign: 'center',
-          }}>
-            ✅ CV Downloaded Successfully!<br />
-            <small>Sign out and sign in again to download another CV.</small>
-          </div>
-        );
-      })()}
+            border: 'none',
+            backgroundColor: '#3f51b5',
+            color: 'white',
+            transition: 'background-color 0.3s ease',
+            alignSelf: 'flex-start',
+            userSelect: 'none',
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#303f9f')}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3f51b5')}
+        >
+          {getDownloadButtonText()}
+        </button>
+      ) : (
+        <div style={{
+          marginTop: 16,
+          padding: '12px 16px',
+          backgroundColor: '#f0f9ff',
+          border: '1px solid #0ea5e9',
+          borderRadius: 6,
+          color: '#0369a1',
+          fontSize: '0.9rem',
+          textAlign: 'center',
+        }}>
+          ✅ CV Downloaded Successfully!<br />
+          <small>Sign out and sign in again to download another CV.</small>
+        </div>
+      )}
 
       {showPaymentModal && (
         <JazzCashPayment
