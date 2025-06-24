@@ -79,7 +79,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
     }, 300); // 300ms delay
 
     return () => clearTimeout(searchTimeout);
-  }, [searchName, searchPhone, user]);
+  }, [searchName, searchPhone, user, performLiveSearch]);
 
   // Live search function
   const performLiveSearch = async () => {
@@ -586,80 +586,6 @@ const Form = ({ formData, setFormData, onChange, user }) => {
     console.log('=== SAVE FUNCTION ENDED ===');
   };
 
-
-  const handleSearch = async () => {
-    console.log('Form Search Clicked:', { searchName, searchPhone, user });
-    
-    if (!user || !user.isAdmin) {
-      toast.error('Only admins can search for CVs.');
-      return;
-    }
-
-    if (!searchName && !searchPhone) {
-      toast.error("Please enter name or phone number to search.");
-      return;
-    }
-
-    try {
-      // Check if Supabase is configured
-      if (!supabase || !supabase.from) {
-        toast.error('Supabase client is not configured!');
-        return;
-      }
-
-      let query = supabase.from('cvs').select('*');
-
-      if (searchName) {
-        query = query.ilike('name', `%${searchName}%`);
-      }
-
-      if (searchPhone) {
-        // Remove any formatting from phone number for more flexible search
-        const cleanPhone = searchPhone.replace(/[^0-9]/g, '');
-        console.log('Searching for phone:', cleanPhone);
-        query = query.ilike('phone', `%${cleanPhone}%`);
-      }
-
-      // For admin users, search all CVs (including those without user_id)
-      // For regular users, only search their own CVs
-      if (user && !user.isAdmin) {
-        query = query.eq('user_id', user.id);
-      }
-
-      console.log('Executing search query...');
-      const { data, error } = await query;
-      console.log('Search result:', { data, error });
-
-      if (error) {
-        console.error("Search error:", error);
-        toast.error("Failed to search CV: " + error.message);
-        return;
-      }
-
-      if (!data || data.length === 0) {
-        toast.info("No matching CV found.");
-        setSearchResults([]);
-        setShowSearchResults(false);
-        setCurrentCvId(null);
-        return;
-      }
-
-      // Show all matching CVs
-      setSearchResults(data);
-      setShowSearchResults(true);
-      
-      if (data.length === 1) {
-        // If only one result, load it automatically
-        loadCVFromSearch(data[0]);
-      } else {
-        toast.success(`Found ${data.length} matching CV(s). Please select one to load.`);
-      }
-    } catch (error) {
-      console.error("Search exception:", error);
-      toast.error("An error occurred while searching: " + error.message);
-    }
-  };
-
   // Function to load a specific CV from search results
   const loadCVFromSearch = (cv) => {
     console.log('Loading CV from search:', cv);
@@ -902,7 +828,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
             marginBottom: '1rem'
           }}>
             <h3 style={{ margin: 0, color: '#374151' }}>
-              Search Results ({searchResults.length} CV{s})
+              Search Results ({searchResults.length} CV{searchResults.length === 1 ? '' : 's'})
             </h3>
             <button
               onClick={() => {

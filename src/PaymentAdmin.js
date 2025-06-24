@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import LandingPage from './landingpage';
-import supabase from './supabase';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 
 const PaymentAdmin = ({ onAccessCVBuilder }) => {
   const [payments, setPayments] = useState([]);
@@ -207,18 +204,6 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
       padding: '20px',
       fontFamily: "'Inter', sans-serif"
     }}>
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-      />
-      
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
