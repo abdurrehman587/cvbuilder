@@ -417,11 +417,19 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
       return;
     }
 
-    if (paymentCompleted) {
-      // If payment is already completed, download directly
+    if (downloadCompleted) {
+      alert('You have already downloaded a CV in this session. Please sign out and sign in again to download another CV.');
+      return;
+    }
+    
+    // Check if user has an approved payment
+    const hasApprovedPayment = checkForApprovedPayment();
+    
+    if (hasApprovedPayment) {
+      // User has an approved payment, allow download
       generatePDF();
     } else {
-      // Show payment modal first
+      // Show payment modal
       setShowPaymentModal(true);
     }
   };
