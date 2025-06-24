@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import supabase from './supabase';
-import { toast } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './Form.css';
 
@@ -971,6 +971,18 @@ const Form = ({ formData, setFormData, onChange, user }) => {
         </button>
 
       </div>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </>
   );
 };
