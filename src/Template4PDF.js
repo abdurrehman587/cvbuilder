@@ -35,10 +35,19 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
   const [paymentState, setPaymentState] = useState('idle');
   const [downloadCompleted, setDownloadCompleted] = useState(false);
 
-  // Check download state on component mount
+  // Check if download was already completed for this session
   useEffect(() => {
-    const isDownloaded = localStorage.getItem('cv_downloaded') === 'true';
-    setDownloadCompleted(isDownloaded);
+    const adminAccess = localStorage.getItem('admin_cv_access');
+    if (adminAccess === 'true') {
+      // Admin users can download unlimited times
+      setDownloadCompleted(false);
+      return;
+    }
+    
+    const hasDownloaded = localStorage.getItem('cv_downloaded');
+    if (hasDownloaded) {
+      setDownloadCompleted(true);
+    }
   }, []);
 
   const containerStyle = {
@@ -351,9 +360,18 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
         buttonElement.style.display = 'flex';
       }
   
-      setPaymentState('success');
-      setDownloadCompleted(true);
-      localStorage.setItem('cv_downloaded', 'true'); // Persist download state
+      // Mark download as completed (only for non-admin users)
+      const adminAccess = localStorage.getItem('admin_cv_access');
+      if (adminAccess !== 'true') {
+        setPaymentState('success');
+        setDownloadCompleted(true);
+        localStorage.setItem('cv_downloaded', 'true'); // Persist download state
+        // Show success message for regular users
+        alert('CV downloaded successfully! You will need to sign in again to download another CV.');
+      } else {
+        // For admin users, show different message
+        alert('CV downloaded successfully! (Admin Access - Unlimited Downloads)');
+      }
   
     } catch (error) {
       console.error("Error generating PDF:", error);
@@ -381,6 +399,12 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const checkForApprovedPayment = () => {
+    // Check if user is admin (bypass payment)
+    const adminAccess = localStorage.getItem('admin_cv_access');
+    if (adminAccess === 'true') {
+      return true;
+    }
+    
     // This is a mock check. Replace with actual Supabase logic if needed.
     const approved = localStorage.getItem('payment_approved') === 'true';
     if (approved) {

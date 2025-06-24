@@ -21,10 +21,19 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
   const [paymentCompleted, setPaymentCompleted] = useState(false);
   const [downloadCompleted, setDownloadCompleted] = useState(false);
 
-  // Check download state on component mount
+  // Check if download was already completed for this session
   useEffect(() => {
-    const isDownloaded = localStorage.getItem('cv_downloaded') === 'true';
-    setDownloadCompleted(isDownloaded);
+    const adminAccess = localStorage.getItem('admin_cv_access');
+    if (adminAccess === 'true') {
+      // Admin users can download unlimited times
+      setDownloadCompleted(false);
+      return;
+    }
+    
+    const hasDownloaded = localStorage.getItem('cv_downloaded');
+    if (hasDownloaded) {
+      setDownloadCompleted(true);
+    }
   }, []);
 
   const containerStyle = {
@@ -501,16 +510,25 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
         .from(containerRef.current)
         .save();
 
-      // Mark as downloaded and clear payment data
-      localStorage.setItem('cv_downloaded', 'true');
-      setDownloadCompleted(true);
-      
-      // Clear all payment data so user has to pay again on next sign-in
-      for (let i = localStorage.length - 1; i >= 0; i--) {
-        const key = localStorage.key(i);
-        if (key && key.startsWith('payment_')) {
-          localStorage.removeItem(key);
+      // Mark as downloaded and clear payment data (only for non-admin users)
+      const adminAccess = localStorage.getItem('admin_cv_access');
+      if (adminAccess !== 'true') {
+        localStorage.setItem('cv_downloaded', 'true');
+        setDownloadCompleted(true);
+        
+        // Clear all payment data so user has to pay again on next sign-in
+        for (let i = localStorage.length - 1; i >= 0; i--) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('payment_')) {
+            localStorage.removeItem(key);
+          }
         }
+        
+        // Show success message for regular users
+        alert('CV downloaded successfully! You will need to sign in again to download another CV.');
+      } else {
+        // For admin users, show different message
+        alert('CV downloaded successfully! (Admin Access - Unlimited Downloads)');
       }
 
     } catch (error) {
@@ -756,7 +774,7 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
         </div>
 
         {/* Download Button */}
-        {!downloadCompleted ? (
+        {(adminAccess === 'true' || !downloadCompleted) ? (
           <button
             ref={buttonRef}
             type="button"
