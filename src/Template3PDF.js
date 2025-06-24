@@ -620,6 +620,9 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
     }
   };
 
+  // Get admin access status for use in render
+  const adminAccess = localStorage.getItem('admin_cv_access');
+
   return (
     <>
       <div ref={containerRef} style={containerStyle}>
@@ -781,15 +784,15 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
             onClick={handleDownloadClick}
             style={{
               ...downloadButtonStyle,
-              ...(downloadCompleted && downloadButtonDisabledStyle)
+              ...(downloadCompleted && adminAccess !== 'true' && downloadButtonDisabledStyle)
             }}
             onMouseEnter={(e) => {
-              if (!downloadCompleted) {
+              if (!downloadCompleted || adminAccess === 'true') {
                 e.currentTarget.style.backgroundColor = '#16a34a';
               }
             }}
             onMouseLeave={(e) => {
-              if (!downloadCompleted) {
+              if (!downloadCompleted || adminAccess === 'true') {
                 e.currentTarget.style.backgroundColor = '#22c55e';
               }
             }}

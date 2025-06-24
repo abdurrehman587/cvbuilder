@@ -490,6 +490,9 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
     otherInformation: renderOtherInformation(otherInformation),
   };
 
+  // Get admin access status for use in render
+  const adminAccess = localStorage.getItem('admin_cv_access');
+
   return (
     <>
       <div ref={containerRef} style={containerStyle}>
