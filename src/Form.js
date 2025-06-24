@@ -50,6 +50,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
   const [currentCvId, setCurrentCvId] = useState(null);
   const [searchResults, setSearchResults] = useState([]);
   const [showSearchResults, setShowSearchResults] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
     if (!formData) {
@@ -63,6 +64,68 @@ const Form = ({ formData, setFormData, onChange, user }) => {
       onChange(formData);
     }
   }, [formData, onChange]);
+
+  // Debounced live search effect
+  useEffect(() => {
+    if (!user || !user.isAdmin) return;
+
+    const searchTimeout = setTimeout(() => {
+      if (searchName || searchPhone) {
+        performLiveSearch();
+      } else {
+        setSearchResults([]);
+        setShowSearchResults(false);
+      }
+    }, 300); // 300ms delay
+
+    return () => clearTimeout(searchTimeout);
+  }, [searchName, searchPhone, user]);
+
+  // Live search function
+  const performLiveSearch = async () => {
+    if (!user || !user.isAdmin) return;
+    if (!searchName && !searchPhone) {
+      setSearchResults([]);
+      setShowSearchResults(false);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      if (!supabase || !supabase.from) {
+        return;
+      }
+
+      let query = supabase.from('cvs').select('*');
+
+      if (searchName) {
+        query = query.ilike('name', `%${searchName}%`);
+      }
+
+      if (searchPhone) {
+        const cleanPhone = searchPhone.replace(/[^0-9]/g, '');
+        query = query.ilike('phone', `%${cleanPhone}%`);
+      }
+
+      if (user && !user.isAdmin) {
+        query = query.eq('user_id', user.id);
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error("Live search error:", error);
+        return;
+      }
+
+      setSearchResults(data || []);
+      setShowSearchResults(data && data.length > 0);
+    } catch (error) {
+      console.error("Live search exception:", error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   // Fetch user's CV on mount or when user changes
   useEffect(() => {
@@ -623,6 +686,8 @@ const Form = ({ formData, setFormData, onChange, user }) => {
     });
 
     setShowSearchResults(false);
+    setSearchName('');
+    setSearchPhone('');
     toast.success(`CV loaded successfully for ${cv.name || 'Unknown User'}`);
   };
 
@@ -724,77 +789,64 @@ const Form = ({ formData, setFormData, onChange, user }) => {
         flexWrap: 'wrap',
         borderBottom: '1px solid #e5e7eb'
       }}>
-        <input
-          type="text"
-          placeholder={user?.isAdmin ? "Search any CV by name" : "Search CV by name"}
-          value={searchName}
-          onChange={(e) => setSearchName(e.target.value)}
-          style={{
-            flex: '1',
-            padding: '0.75rem 1rem',
-            fontSize: '1rem',
-            borderRadius: '0.75rem',
-            border: '1px solid #d1d5db',
-            fontFamily: 'Inter, sans-serif',
-            outline: 'none',
-            minWidth: '220px'
-          }}
-        />
-        <input
-          type="text"
-          placeholder={user?.isAdmin ? "Search any CV by Phone Number" : "Search CV by Phone Number"}
-          value={searchPhone}
-          onChange={(e) => setSearchPhone(e.target.value)}
-          style={{
-            flex: '1',
-            padding: '0.75rem 1rem',
-            fontSize: '1rem',
-            borderRadius: '0.75rem',
-            border: '1px solid #d1d5db',
-            fontFamily: 'Inter, sans-serif',
-            outline: 'none',
-            minWidth: '220px'
-          }}
-        />
-        <button
-          onClick={handleSearch}
-          style={{
-            padding: '0.75rem 1.5rem',
-            backgroundColor: user?.isAdmin ? '#dc2626' : '#2563eb',
-            color: 'white',
-            border: 'none',
-            borderRadius: '0.75rem',
-            fontSize: '1rem',
-            fontWeight: '600',
-            cursor: 'pointer',
-            whiteSpace: 'nowrap'
-          }}
-        >
-          {user?.isAdmin ? '🔍 Admin Search' : 'Search'}
-        </button>
-        <button
-          onClick={() => {
-            setSearchName('');
-            setSearchPhone('');
-            setCurrentCvId(null);
-            setFormData(defaultFormData);
-            setSearchResults([]);
-            setShowSearchResults(false);
-          }}
-          style={{
-            padding: '0.75rem 1.5rem',
-            backgroundColor: '#6b7280',
-            color: 'white',
-            border: 'none',
-            borderRadius: '0.75rem',
-            fontSize: '1rem',
-            fontWeight: '600',
-            cursor: 'pointer',
-            whiteSpace: 'nowrap'
-          }}
-        >
-          🗑️ Clear
-        </button>
+        <div style={{ flex: '1', minWidth: '220px', position: 'relative' }}>
+          <input
+            type="text"
+            placeholder={user?.isAdmin ? "Search any CV by name" : "Search CV by name"}
+            value={searchName}
+            onChange={(e) => setSearchName(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '0.75rem 1rem',
+              fontSize: '1rem',
+              borderRadius: '0.75rem',
+              border: '1px solid #d1d5db',
+              fontFamily: 'Inter, sans-serif',
+              outline: 'none',
+              paddingRight: isSearching ? '2.5rem' : '1rem'
+            }}
+          />
+          {isSearching && (
+            <div style={{
+              position: 'absolute',
+              right: '0.75rem',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              color: '#6b7280'
+            }}>
+              🔍
+            </div>
+          )}
+        </div>
+        <div style={{ flex: '1', minWidth: '220px', position: 'relative' }}>
+          <input
+            type="text"
+            placeholder={user?.isAdmin ? "Search any CV by Phone Number" : "Search CV by Phone Number"}
+            value={searchPhone}
+            onChange={(e) => setSearchPhone(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '0.75rem 1rem',
+              fontSize: '1rem',
+              borderRadius: '0.75rem',
+              border: '1px solid #d1d5db',
+              fontFamily: 'Inter, sans-serif',
+              outline: 'none',
+              paddingRight: isSearching ? '2.5rem' : '1rem'
+            }}
+          />
+          {isSearching && (
+            <div style={{
+              position: 'absolute',
+              right: '0.75rem',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              color: '#6b7280'
+            }}>
+              🔍
+            </div>
+          )}
+        </div>
         {user?.isAdmin && (
           <button
             onClick={checkAllCVs}
