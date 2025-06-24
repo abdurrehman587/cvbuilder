@@ -440,32 +440,19 @@ const Form = ({ formData, setFormData, onChange, user }) => {
     }
   };
 
-  // Safe JSON parsing function - VERSION 2.0
+  // Safe JSON parsing function
   const safeJsonParse = (value, defaultValue = []) => {
-    console.log('safeJsonParse called with:', { value, type: typeof value, defaultValue });
-    if (!value) {
-      console.log('safeJsonParse: no value, returning default:', defaultValue);
-      return defaultValue;
-    }
-    if (typeof value === 'object') {
-      console.log('safeJsonParse: already object, returning as is:', value);
-      return value; // Already parsed
-    }
+    if (!value) return defaultValue;
+    if (typeof value === 'object') return value; // Already parsed
     if (typeof value === 'string') {
       try {
-        console.log('safeJsonParse: attempting to parse string:', value);
-        const result = JSON.parse(value);
-        console.log('safeJsonParse: successfully parsed:', result);
-        return result;
+        return JSON.parse(value);
       } catch (error) {
-        console.warn('safeJsonParse: Failed to parse JSON:', value, error);
+        console.warn('Failed to parse JSON:', value, error);
         // If it's a simple string, wrap it in an array
-        const wrapped = [value];
-        console.log('safeJsonParse: wrapped string in array:', wrapped);
-        return wrapped;
+        return [value];
       }
     }
-    console.log('safeJsonParse: returning default for unknown type:', defaultValue);
     return defaultValue;
   };
 
@@ -671,119 +658,6 @@ const Form = ({ formData, setFormData, onChange, user }) => {
     toast.success(`CV loaded successfully for ${cv.name || 'Unknown User'}`);
   };
 
-  // Function to check all CVs in database (for debugging)
-  const checkAllCVs = async () => {
-    if (!user || !user.isAdmin) {
-      toast.error('Only admins can check all CVs.');
-      return;
-    }
-
-    try {
-      console.log('Checking Supabase connection...');
-      console.log('Supabase client:', supabase);
-      
-      if (!supabase || !supabase.from) {
-        toast.error('Supabase client is not configured!');
-        return;
-      }
-
-      // Try using RPC function instead of direct table access
-      console.log('Trying RPC function to get all CVs...');
-      const { data, error } = await supabase.rpc('admin_get_all_cvs');
-      console.log('RPC query result:', { data, error });
-      
-      if (error) {
-        console.error('RPC error details:', error);
-        // Fallback to direct table access
-        console.log('Falling back to direct table access...');
-        const { data: directData, error: directError } = await supabase.from('cvs').select('*');
-        console.log('Direct query result:', { data: directData, error: directError });
-        
-        if (directError) {
-          toast.error("Failed to fetch CVs: " + directError.message);
-          return;
-        }
-        
-        console.log('All CVs in database (direct):', directData);
-        
-        if (!directData || directData.length === 0) {
-          toast.info("No CVs found in database.");
-          console.log('Database appears to be empty or query returned no results');
-        } else {
-          toast.success(`Found ${directData.length} CV(s) in database`);
-          console.log('CV details:', directData.map(cv => ({ id: cv.id, name: cv.name, phone: cv.phone, email: cv.email })));
-        }
-        return;
-      }
-
-      console.log('All CVs in database (RPC):', data);
-      
-      if (!data || data.length === 0) {
-        toast.info("No CVs found in database.");
-        console.log('Database appears to be empty or query returned no results');
-      } else {
-        toast.success(`Found ${data.length} CV(s) in database`);
-        console.log('CV details:', data.map(cv => ({ id: cv.id, name: cv.name, phone: cv.phone, email: cv.email })));
-      }
-    } catch (error) {
-      console.error("Check CVs exception:", error);
-      toast.error("An error occurred: " + error.message);
-    }
-  };
-
-  // Function to create a test CV (for debugging)
-  const createTestCV = async () => {
-    if (!user || !user.isAdmin) {
-      toast.error('Only admins can create test CVs.');
-      return;
-    }
-
-    try {
-      const testCVData = {
-        name: 'John Doe',
-        phone: '03153338612',
-        email: 'john.doe@example.com',
-        address: '123 Main Street, City, Country',
-        objective: JSON.stringify(['Seeking a challenging position in software development']),
-        education: JSON.stringify([{ degree: 'Bachelor of Computer Science', institute: 'University of Technology', year: '2020' }]),
-        work_experience: JSON.stringify([{ company: 'Tech Corp', designation: 'Software Developer', duration: '2020-2023', details: 'Developed web applications using React and Node.js' }]),
-        skills: JSON.stringify([
-          { name: 'JavaScript', percentage: '90%' },
-          { name: 'React', percentage: '85%' },
-          { name: 'Node.js', percentage: '80%' }
-        ]),
-        certifications: JSON.stringify(['AWS Certified Developer', 'Microsoft Azure Fundamentals']),
-        projects: JSON.stringify(['E-commerce Platform', 'Task Management App']),
-        languages: JSON.stringify(['English', 'Urdu']),
-        hobbies: JSON.stringify(['Reading', 'Coding', 'Gaming']),
-        references: JSON.stringify(['Available upon request']),
-        other_information: JSON.stringify([
-          { id: 1, labelType: 'radio', label: "Father's Name:", checked: true, value: 'Robert Doe', name: 'parentSpouse', radioValue: 'father' },
-          { id: 3, labelType: 'checkbox', label: 'CNIC:', checked: true, value: '12345-6789012-3', isCustom: false },
-          { id: 4, labelType: 'checkbox', label: 'Date of Birth:', checked: true, value: '1995-05-15', isCustom: false }
-        ]),
-        image_url: '',
-        user_id: null // Admin-created CV
-      };
-
-      const { data, error } = await supabase.from('cvs').insert([testCVData]).select();
-      
-      if (error) {
-        toast.error("Failed to create test CV: " + error.message);
-        return;
-      }
-
-      toast.success("Test CV created successfully!");
-      console.log('Test CV created:', data);
-      
-      // Refresh the CV list
-      checkAllCVs();
-    } catch (error) {
-      console.error("Create test CV exception:", error);
-      toast.error("An error occurred: " + error.message);
-    }
-  };
-
   // Guard: Don't render until formData is initialized
   if (!formData) return null;
 
@@ -859,42 +733,6 @@ const Form = ({ formData, setFormData, onChange, user }) => {
             </div>
           )}
         </div>
-        {user?.isAdmin && (
-          <button
-            onClick={checkAllCVs}
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#8b5cf6',
-              color: 'white',
-              border: 'none',
-              borderRadius: '0.75rem',
-              fontSize: '1rem',
-              fontWeight: '600',
-              cursor: 'pointer',
-              whiteSpace: 'nowrap'
-            }}
-          >
-            📊 Check All CVs
-          </button>
-        )}
-        {user?.isAdmin && (
-          <button
-            onClick={createTestCV}
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#059669',
-              color: 'white',
-              border: 'none',
-              borderRadius: '0.75rem',
-              fontSize: '1rem',
-              fontWeight: '600',
-              cursor: 'pointer',
-              whiteSpace: 'nowrap'
-            }}
-          >
-            ➕ Create Test CV
-          </button>
-        )}
       </div>
 
       {/* Search Results Display */}
