@@ -48,6 +48,8 @@ const Form = ({ formData, setFormData, onChange, user }) => {
   const [searchName, setSearchName] = useState('');
   const [searchPhone, setSearchPhone] = useState('');
   const [currentCvId, setCurrentCvId] = useState(null);
+  const [searchResults, setSearchResults] = useState([]);
+  const [showSearchResults, setShowSearchResults] = useState(false);
 
   useEffect(() => {
     if (!formData) {
@@ -573,39 +575,55 @@ const Form = ({ formData, setFormData, onChange, user }) => {
 
       if (!data || data.length === 0) {
         toast.info("No matching CV found.");
+        setSearchResults([]);
+        setShowSearchResults(false);
         setCurrentCvId(null);
         return;
       }
 
-      const cv = data[0];
-      console.log('Loading CV:', cv);
+      // Show all matching CVs
+      setSearchResults(data);
+      setShowSearchResults(true);
       
-      setCurrentCvId(cv.id);
-      setFormData({
-        image: null,
-        imageUrl: cv.image_url || '',
-        name: cv.name || '',
-        phone: cv.phone || '',
-        email: cv.email || '',
-        address: cv.address || '',
-        objective: JSON.parse(cv.objective || '[]'),
-        education: JSON.parse(cv.education || '[]'),
-        workExperience: JSON.parse(cv.work_experience || '[]'),
-        skills: JSON.parse(cv.skills || '[]'),
-        certifications: JSON.parse(cv.certifications || '[]'),
-        projects: JSON.parse(cv.projects || '[]'),
-        languages: JSON.parse(cv.languages || '[]'),
-        customLanguages: [],
-        hobbies: JSON.parse(cv.hobbies || '[]'),
-        references: JSON.parse(cv.references || '[]'),
-        otherInformation: JSON.parse(cv.other_information || '[]'),
-      });
-
-      toast.success(user && user.isAdmin ? "CV loaded successfully. (Admin Mode)" : "CV loaded successfully.");
+      if (data.length === 1) {
+        // If only one result, load it automatically
+        loadCVFromSearch(data[0]);
+      } else {
+        toast.success(`Found ${data.length} matching CV(s). Please select one to load.`);
+      }
     } catch (error) {
       console.error("Search exception:", error);
       toast.error("An error occurred while searching: " + error.message);
     }
+  };
+
+  // Function to load a specific CV from search results
+  const loadCVFromSearch = (cv) => {
+    console.log('Loading CV from search:', cv);
+    
+    setCurrentCvId(cv.id);
+    setFormData({
+      image: null,
+      imageUrl: cv.image_url || '',
+      name: cv.name || '',
+      phone: cv.phone || '',
+      email: cv.email || '',
+      address: cv.address || '',
+      objective: JSON.parse(cv.objective || '[]'),
+      education: JSON.parse(cv.education || '[]'),
+      workExperience: JSON.parse(cv.work_experience || '[]'),
+      skills: JSON.parse(cv.skills || '[]'),
+      certifications: JSON.parse(cv.certifications || '[]'),
+      projects: JSON.parse(cv.projects || '[]'),
+      languages: JSON.parse(cv.languages || '[]'),
+      customLanguages: [],
+      hobbies: JSON.parse(cv.hobbies || '[]'),
+      references: JSON.parse(cv.references || '[]'),
+      otherInformation: JSON.parse(cv.other_information || '[]'),
+    });
+
+    setShowSearchResults(false);
+    toast.success(`CV loaded successfully for ${cv.name || 'Unknown User'}`);
   };
 
   // Function to check all CVs in database (for debugging)
@@ -760,6 +778,8 @@ const Form = ({ formData, setFormData, onChange, user }) => {
             setSearchPhone('');
             setCurrentCvId(null);
             setFormData(defaultFormData);
+            setSearchResults([]);
+            setShowSearchResults(false);
           }}
           style={{
             padding: '0.75rem 1.5rem',
@@ -813,6 +833,90 @@ const Form = ({ formData, setFormData, onChange, user }) => {
         )}
       </div>
 
+      {/* Search Results Display */}
+      {showSearchResults && searchResults.length > 0 && (
+        <div style={{
+          width: '100%',
+          padding: '1rem',
+          backgroundColor: '#f3f4f6',
+          border: '1px solid #d1d5db',
+          borderRadius: '0.75rem',
+          marginBottom: '1rem'
+        }}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '1rem'
+          }}>
+            <h3 style={{ margin: 0, color: '#374151' }}>
+              Search Results ({searchResults.length} CV{s})
+            </h3>
+            <button
+              onClick={() => {
+                setShowSearchResults(false);
+                setSearchResults([]);
+              }}
+              style={{
+                padding: '0.5rem 1rem',
+                backgroundColor: '#6b7280',
+                color: 'white',
+                border: 'none',
+                borderRadius: '0.5rem',
+                cursor: 'pointer',
+                fontSize: '0.875rem'
+              }}
+            >
+              ✕ Close
+            </button>
+          </div>
+          
+          <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+            {searchResults.map((cv, index) => (
+              <div
+                key={cv.id}
+                style={{
+                  padding: '1rem',
+                  backgroundColor: 'white',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '0.5rem',
+                  marginBottom: '0.5rem',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}
+              >
+                <div>
+                  <div style={{ fontWeight: '600', color: '#111827', marginBottom: '0.25rem' }}>
+                    {cv.name || 'No Name'}
+                  </div>
+                  <div style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.25rem' }}>
+                    📞 {cv.phone || 'No Phone'} | 📧 {cv.email || 'No Email'}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>
+                    ID: {cv.id} | Created: {new Date(cv.created_at).toLocaleDateString()}
+                  </div>
+                </div>
+                <button
+                  onClick={() => loadCVFromSearch(cv)}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    backgroundColor: '#22c55e',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '0.5rem',
+                    cursor: 'pointer',
+                    fontSize: '0.875rem',
+                    fontWeight: '600'
+                  }}
+                >
+                  📝 Load CV
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="form-container">
         {/* Profile Image */}
