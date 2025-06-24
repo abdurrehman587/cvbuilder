@@ -569,44 +569,37 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
         </section>
       )}
 
-      {(adminAccess === 'true' || !downloadCompleted) ? (
-        <button
-          ref={buttonRef}
-          type="button"
-          onClick={handleDownloadClick}
-          style={{
-            marginTop: 16,
-            cursor: 'pointer',
-            padding: '6px 18px',
-            fontSize: '0.95rem',
-            borderRadius: 6,
-            border: 'none',
-            backgroundColor: '#3f51b5',
-            color: 'white',
-            transition: 'background-color 0.3s ease',
-            alignSelf: 'flex-start',
-            userSelect: 'none',
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#303f9f')}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3f51b5')}
-        >
-          {getDownloadButtonText()}
-        </button>
-      ) : (
-        <div style={{
+      {/* Download Button - Always show for admin users, show for regular users regardless of download status */}
+      <button
+        ref={buttonRef}
+        type="button"
+        onClick={handleDownloadClick}
+        style={{
           marginTop: 16,
-          padding: '12px 16px',
-          backgroundColor: '#f0f9ff',
-          border: '1px solid #0ea5e9',
+          cursor: 'pointer',
+          padding: '6px 18px',
+          fontSize: '0.95rem',
           borderRadius: 6,
-          color: '#0369a1',
-          fontSize: '0.9rem',
-          textAlign: 'center',
-        }}>
-          ✅ CV Downloaded Successfully!<br />
-          <small>Sign out and sign in again to download another CV.</small>
-        </div>
-      )}
+          border: 'none',
+          backgroundColor: adminAccess === 'true' ? '#3f51b5' : (downloadCompleted ? '#22c55e' : '#3f51b5'),
+          color: 'white',
+          transition: 'background-color 0.3s ease',
+          alignSelf: 'flex-start',
+          userSelect: 'none',
+        }}
+        onMouseEnter={(e) => {
+          if (adminAccess === 'true' || !downloadCompleted) {
+            e.currentTarget.style.backgroundColor = adminAccess === 'true' ? '#303f9f' : '#16a34a';
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (adminAccess === 'true' || !downloadCompleted) {
+            e.currentTarget.style.backgroundColor = adminAccess === 'true' ? '#3f51b5' : '#22c55e';
+          }
+        }}
+      >
+        {getDownloadButtonText()}
+      </button>
 
       {showPaymentModal && (
         <JazzCashPayment
