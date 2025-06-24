@@ -378,9 +378,6 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
     );
   };
 
-  // Get admin access status for use in render
-  const adminAccess = localStorage.getItem('admin_cv_access');
-
   return (
     <div ref={containerRef} style={{ ...styles.container, paddingBottom: '50px' }}>
       <div style={styles.leftColumn}>
@@ -501,7 +498,7 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
         )}
       </div>
       {/* Download Button - Always show for admin users, show success message for regular users after download */}
-      {adminAccess === 'true' ? (
+      {localStorage.getItem('admin_cv_access') === 'true' ? (
         <button
           ref={buttonRef}
           type="button"

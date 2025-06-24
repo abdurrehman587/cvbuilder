@@ -468,9 +468,6 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     return 'Download PDF (PKR 200)';
   };
 
-  // Get admin access status for use in render
-  const adminAccess = localStorage.getItem('admin_cv_access');
-
   return (
     <article ref={containerRef} style={containerStyle}>
       <header style={headerStyle}>
@@ -570,7 +567,7 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
       )}
 
       {/* Download Button - Always show for admin users, show success message for regular users after download */}
-      {adminAccess === 'true' ? (
+      {localStorage.getItem('admin_cv_access') === 'true' ? (
         <button
           ref={buttonRef}
           type="button"
