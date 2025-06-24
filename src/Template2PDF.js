@@ -23,13 +23,17 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
   // Check if download was already completed for this session
   React.useEffect(() => {
     const adminAccess = localStorage.getItem('admin_cv_access');
+    console.log('Template2PDF useEffect Debug:', { adminAccess, downloadCompleted });
+    
     if (adminAccess === 'true') {
       // Admin users can download unlimited times
+      console.log('Setting downloadCompleted to false for admin user');
       setDownloadCompleted(false);
       return;
     }
     
     const hasDownloaded = localStorage.getItem('cv_downloaded');
+    console.log('Regular user hasDownloaded:', hasDownloaded);
     if (hasDownloaded) {
       setDownloadCompleted(true);
     }
@@ -224,9 +228,13 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
 
       // Mark download as completed (only for non-admin users)
       const adminAccess = localStorage.getItem('admin_cv_access');
+      console.log('Template2PDF generatePDF Debug:', { adminAccess, downloadCompleted });
       if (adminAccess !== 'true') {
+        console.log('Setting downloadCompleted to true for regular user');
         setDownloadCompleted(true);
         localStorage.setItem('cv_downloaded', 'true'); // Persist download state
+      } else {
+        console.log('Admin user - not setting downloadCompleted');
       }
       
     } catch (error) {
@@ -498,73 +506,77 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
         )}
       </div>
       {/* Download Button - Always show for admin users, show success message for regular users after download */}
-      {localStorage.getItem('admin_cv_access') === 'true' ? (
-        <button
-          ref={buttonRef}
-          type="button"
-          onClick={handleDownloadClick}
-          style={{
+      {(() => {
+        const isAdmin = localStorage.getItem('admin_cv_access') === 'true';
+        console.log('Template2PDF Debug:', { isAdmin, downloadCompleted });
+        return isAdmin ? (
+          <button
+            ref={buttonRef}
+            type="button"
+            onClick={handleDownloadClick}
+            style={{
+              position: 'absolute',
+              bottom: '20px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              padding: '10px 20px',
+              fontSize: '1rem',
+              borderRadius: '5px',
+              border: 'none',
+              backgroundColor: '#2ecc71',
+              color: 'white',
+              cursor: 'pointer',
+              transition: 'background-color 0.3s ease',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#27ae60')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#2ecc71')}
+          >
+            {getDownloadButtonText()}
+          </button>
+        ) : !downloadCompleted ? (
+          <button
+            ref={buttonRef}
+            type="button"
+            onClick={handleDownloadClick}
+            style={{
+              position: 'absolute',
+              bottom: '20px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              padding: '10px 20px',
+              fontSize: '1rem',
+              borderRadius: '5px',
+              border: 'none',
+              backgroundColor: '#2ecc71',
+              color: 'white',
+              cursor: 'pointer',
+              transition: 'background-color 0.3s ease',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#27ae60')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#2ecc71')}
+          >
+            {getDownloadButtonText()}
+          </button>
+        ) : (
+          <div style={{
             position: 'absolute',
             bottom: '20px',
             left: '50%',
             transform: 'translateX(-50%)',
-            padding: '10px 20px',
-            fontSize: '1rem',
+            padding: '12px 16px',
+            backgroundColor: '#f0f9ff',
+            border: '1px solid #0ea5e9',
             borderRadius: '5px',
-            border: 'none',
-            backgroundColor: '#2ecc71',
-            color: 'white',
-            cursor: 'pointer',
-            transition: 'background-color 0.3s ease',
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#27ae60')}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#2ecc71')}
-        >
-          {getDownloadButtonText()}
-        </button>
-      ) : !downloadCompleted ? (
-        <button
-          ref={buttonRef}
-          type="button"
-          onClick={handleDownloadClick}
-          style={{
-            position: 'absolute',
-            bottom: '20px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            padding: '10px 20px',
-            fontSize: '1rem',
-            borderRadius: '5px',
-            border: 'none',
-            backgroundColor: '#2ecc71',
-            color: 'white',
-            cursor: 'pointer',
-            transition: 'background-color 0.3s ease',
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#27ae60')}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#2ecc71')}
-        >
-          {getDownloadButtonText()}
-        </button>
-      ) : (
-        <div style={{
-          position: 'absolute',
-          bottom: '20px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          padding: '12px 16px',
-          backgroundColor: '#f0f9ff',
-          border: '1px solid #0ea5e9',
-          borderRadius: '5px',
-          color: '#0369a1',
-          fontSize: '0.9rem',
-          textAlign: 'center',
-          maxWidth: '300px',
-        }}>
-          ✅ CV Downloaded Successfully!<br />
-          <small>Sign out and sign in again to download another CV.</small>
-        </div>
-      )}
+            color: '#0369a1',
+            fontSize: '0.9rem',
+            textAlign: 'center',
+            maxWidth: '300px',
+          }}>
+            ✅ CV Downloaded Successfully!<br />
+            <small>Sign out and sign in again to download another CV.</small>
+          </div>
+        );
+      })()}
 
       {showPaymentModal && (
         <JazzCashPayment
