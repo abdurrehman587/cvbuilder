@@ -367,14 +367,11 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
       // Mark download as completed (only for non-admin users)
       const adminAccess = localStorage.getItem('admin_cv_access');
       if (adminAccess !== 'true') {
-        localStorage.setItem('cv_downloaded', 'true');
         setDownloadCompleted(true);
-        // Show success message for regular users
-        alert('CV downloaded successfully! You will need to sign in again to download another CV.');
-      } else {
-        // For admin users, show different message
-        alert('CV downloaded successfully! (Admin Access - Unlimited Downloads)');
+        localStorage.setItem('cv_downloaded', 'true'); // Persist download state
+        // Success message removed - no alert needed
       }
+      // Admin users don't need any state changes or alerts
       
     } catch (error) {
       alert('Error generating PDF: ' + error.message);

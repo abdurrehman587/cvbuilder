@@ -510,25 +510,11 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
         .from(containerRef.current)
         .save();
 
-      // Mark as downloaded and clear payment data (only for non-admin users)
+      // Mark download as completed (only for non-admin users)
       const adminAccess = localStorage.getItem('admin_cv_access');
       if (adminAccess !== 'true') {
-        localStorage.setItem('cv_downloaded', 'true');
         setDownloadCompleted(true);
-        
-        // Clear all payment data so user has to pay again on next sign-in
-        for (let i = localStorage.length - 1; i >= 0; i--) {
-          const key = localStorage.key(i);
-          if (key && key.startsWith('payment_')) {
-            localStorage.removeItem(key);
-          }
-        }
-        
-        // Show success message for regular users
-        alert('CV downloaded successfully! You will need to sign in again to download another CV.');
-      } else {
-        // For admin users, show different message
-        alert('CV downloaded successfully! (Admin Access - Unlimited Downloads)');
+        localStorage.setItem('cv_downloaded', 'true'); // Persist download state
       }
 
     } catch (error) {

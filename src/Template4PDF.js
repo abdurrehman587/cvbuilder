@@ -366,11 +366,6 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
         setPaymentState('success');
         setDownloadCompleted(true);
         localStorage.setItem('cv_downloaded', 'true'); // Persist download state
-        // Show success message for regular users
-        alert('CV downloaded successfully! You will need to sign in again to download another CV.');
-      } else {
-        // For admin users, show different message
-        alert('CV downloaded successfully! (Admin Access - Unlimited Downloads)');
       }
   
     } catch (error) {
@@ -489,9 +484,6 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
     references: renderReferences(references),
     otherInformation: renderOtherInformation(otherInformation),
   };
-
-  // Get admin access status for use in render
-  const adminAccess = localStorage.getItem('admin_cv_access');
 
   return (
     <>
