@@ -86,37 +86,56 @@ const Form = ({ formData, setFormData, onChange, user }) => {
           return;
         }
 
-        let query = supabase.from('cvs').select('*');
-        console.log('Base query created');
-
-        if (searchName) {
-          query = query.ilike('name', `%${searchName}%`);
-          console.log('Added name filter:', `%${searchName}%`);
-        }
-
-        if (searchPhone) {
-          const cleanPhone = searchPhone.replace(/[^0-9]/g, '');
-          query = query.ilike('phone', `%${cleanPhone}%`);
-          console.log('Added phone filter:', `%${cleanPhone}%`);
-        }
-
-        if (user && !user.isAdmin) {
-          query = query.eq('user_id', user.id);
-          console.log('Added user filter for non-admin');
-        }
-
-        console.log('Executing live search query...');
-        const { data, error } = await query;
-        console.log('Live search result:', { data, error, dataLength: data?.length });
+        // Try using RPC function for search
+        console.log('Trying RPC search...');
+        let searchParams = {};
+        if (searchName) searchParams.p_name = searchName;
+        if (searchPhone) searchParams.p_phone = searchPhone.replace(/[^0-9]/g, '');
+        
+        console.log('RPC search parameters:', searchParams);
+        const { data, error } = await supabase.rpc('admin_search_cvs', searchParams);
+        console.log('RPC search result:', { data, error, dataLength: data?.length });
 
         if (error) {
-          console.error("Live search error:", error);
+          console.error("RPC search error:", error);
+          // Fallback to direct table access
+          console.log('Falling back to direct table search...');
+          let query = supabase.from('cvs').select('*');
+
+          if (searchName) {
+            query = query.ilike('name', `%${searchName}%`);
+            console.log('Added name filter:', `%${searchName}%`);
+          }
+
+          if (searchPhone) {
+            const cleanPhone = searchPhone.replace(/[^0-9]/g, '');
+            query = query.ilike('phone', `%${cleanPhone}%`);
+            console.log('Added phone filter:', `%${cleanPhone}%`);
+          }
+
+          if (user && !user.isAdmin) {
+            query = query.eq('user_id', user.id);
+            console.log('Added user filter for non-admin');
+          }
+
+          console.log('Executing direct search query...');
+          const { data: directData, error: directError } = await query;
+          console.log('Direct search result:', { data: directData, error: directError, dataLength: directData?.length });
+
+          if (directError) {
+            console.error("Direct search error:", directError);
+            return;
+          }
+
+          setSearchResults(directData || []);
+          setShowSearchResults(directData && directData.length > 0);
+          console.log('Search results updated (direct):', { results: directData?.length, showResults: directData && directData.length > 0 });
           return;
         }
 
         setSearchResults(data || []);
         setShowSearchResults(data && data.length > 0);
-        console.log('Search results updated:', { results: data?.length, showResults: data && data.length > 0 });
+        console.log('Search results updated (RPC):', { results: data?.length, showResults: data && data.length > 0 });
       } catch (error) {
         console.error("Live search exception:", error);
       } finally {
@@ -642,17 +661,36 @@ const Form = ({ formData, setFormData, onChange, user }) => {
         return;
       }
 
-      console.log('Executing query: supabase.from("cvs").select("*")');
-      const { data, error } = await supabase.from('cvs').select('*');
-      console.log('Raw query result:', { data, error });
+      // Try using RPC function instead of direct table access
+      console.log('Trying RPC function to get all CVs...');
+      const { data, error } = await supabase.rpc('admin_get_all_cvs');
+      console.log('RPC query result:', { data, error });
       
       if (error) {
-        console.error('Supabase error details:', error);
-        toast.error("Failed to fetch CVs: " + error.message);
+        console.error('RPC error details:', error);
+        // Fallback to direct table access
+        console.log('Falling back to direct table access...');
+        const { data: directData, error: directError } = await supabase.from('cvs').select('*');
+        console.log('Direct query result:', { data: directData, error: directError });
+        
+        if (directError) {
+          toast.error("Failed to fetch CVs: " + directError.message);
+          return;
+        }
+        
+        console.log('All CVs in database (direct):', directData);
+        
+        if (!directData || directData.length === 0) {
+          toast.info("No CVs found in database.");
+          console.log('Database appears to be empty or query returned no results');
+        } else {
+          toast.success(`Found ${directData.length} CV(s) in database`);
+          console.log('CV details:', directData.map(cv => ({ id: cv.id, name: cv.name, phone: cv.phone, email: cv.email })));
+        }
         return;
       }
 
-      console.log('All CVs in database:', data);
+      console.log('All CVs in database (RPC):', data);
       
       if (!data || data.length === 0) {
         toast.info("No CVs found in database.");
