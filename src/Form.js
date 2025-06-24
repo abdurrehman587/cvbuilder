@@ -31,6 +31,7 @@ const defaultFormData = {
   customLanguages: [],
   hobbies: [''],
   references: ['Reference would be furnished on demand'],
+  customSections: [{ heading: '', details: [''] }],
   otherInformation: [
     { id: 1, labelType: 'radio', label: "Father's Name:", checked: true, value: '', name: 'parentSpouse', radioValue: 'father' },
     { id: 2, labelType: 'radio', label: "Husband's Name:", checked: false, value: '', name: 'parentSpouse', radioValue: 'husband' },
@@ -185,6 +186,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
             customLanguages: [],
             hobbies: safeJsonParse(cvData.hobbies, []),
             references: safeJsonParse(cvData.references, []),
+            customSections: safeJsonParse(cvData.custom_sections, [{ heading: '', details: [''] }]),
             otherInformation: safeJsonParse(cvData.other_information, []),
           });
           
@@ -257,6 +259,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
             customLanguages: [],
             hobbies: safeJsonParse(data.hobbies, []),
             references: safeJsonParse(data.references, []),
+            customSections: safeJsonParse(data.custom_sections, [{ heading: '', details: [''] }]),
             otherInformation: safeJsonParse(data.other_information, []),
           });
         }
@@ -388,8 +391,64 @@ const Form = ({ formData, setFormData, onChange, user }) => {
 
   const handleCustomLanguageChange = (index, value) => {
     const updated = [...formData.customLanguages];
-    updated[index].name = value;
+    updated[index] = { ...updated[index], name: value };
     setFormData({ ...formData, customLanguages: updated });
+  };
+
+  // Custom Sections Handlers
+  const handleAddCustomSection = () => {
+    const newSection = { heading: '', details: [''] };
+    setFormData({
+      ...formData,
+      customSections: [...formData.customSections, newSection]
+    });
+  };
+
+  const handleRemoveCustomSection = (sectionIndex) => {
+    const updatedSections = formData.customSections.filter((_, index) => index !== sectionIndex);
+    setFormData({
+      ...formData,
+      customSections: updatedSections
+    });
+  };
+
+  const handleCustomSectionHeadingChange = (sectionIndex, value) => {
+    const updatedSections = [...formData.customSections];
+    updatedSections[sectionIndex] = {
+      ...updatedSections[sectionIndex],
+      heading: value
+    };
+    setFormData({
+      ...formData,
+      customSections: updatedSections
+    });
+  };
+
+  const handleCustomSectionDetailChange = (sectionIndex, detailIndex, value) => {
+    const updatedSections = [...formData.customSections];
+    updatedSections[sectionIndex].details[detailIndex] = value;
+    setFormData({
+      ...formData,
+      customSections: updatedSections
+    });
+  };
+
+  const handleAddCustomSectionDetail = (sectionIndex) => {
+    const updatedSections = [...formData.customSections];
+    updatedSections[sectionIndex].details.push('');
+    setFormData({
+      ...formData,
+      customSections: updatedSections
+    });
+  };
+
+  const handleRemoveCustomSectionDetail = (sectionIndex, detailIndex) => {
+    const updatedSections = [...formData.customSections];
+    updatedSections[sectionIndex].details.splice(detailIndex, 1);
+    setFormData({
+      ...formData,
+      customSections: updatedSections
+    });
   };
 
   const handleImageChange = (e) => {
@@ -526,6 +585,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
           p_languages: JSON.stringify(formData.languages),
           p_hobbies: JSON.stringify(formData.hobbies),
           p_references: JSON.stringify(formData.references),
+          p_custom_sections: JSON.stringify(formData.customSections),
           p_other_information: JSON.stringify(formData.otherInformation),
           p_image_url: imageUrl || null,
         };
@@ -569,6 +629,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
             languages: JSON.stringify(formData.languages),
             hobbies: JSON.stringify(formData.hobbies),
             references: JSON.stringify(formData.references),
+            custom_sections: JSON.stringify(formData.customSections),
             other_information: JSON.stringify(formData.otherInformation),
             user_id: user.id,
             image_url: imageUrl || null,
@@ -602,6 +663,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
             languages: JSON.stringify(formData.languages),
             hobbies: JSON.stringify(formData.hobbies),
             references: JSON.stringify(formData.references),
+            custom_sections: JSON.stringify(formData.customSections),
             other_information: JSON.stringify(formData.otherInformation),
             user_id: user.id,
             image_url: imageUrl || null,
@@ -649,6 +711,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
       customLanguages: [],
       hobbies: safeJsonParse(cv.hobbies, []),
       references: safeJsonParse(cv.references, []),
+      customSections: safeJsonParse(cv.custom_sections, [{ heading: '', details: [''] }]),
       otherInformation: safeJsonParse(cv.other_information, []),
     });
 
@@ -964,6 +1027,16 @@ const Form = ({ formData, setFormData, onChange, user }) => {
           onRemove={(index) => handleRemoveEntry('references', index)}
           placeholder="Provide your references..."
           rows={1}
+        />
+
+        <CustomSectionsSection
+          customSections={formData.customSections}
+          onHeadingChange={handleCustomSectionHeadingChange}
+          onDetailChange={handleCustomSectionDetailChange}
+          onAddDetail={handleAddCustomSectionDetail}
+          onRemoveDetail={handleRemoveCustomSectionDetail}
+          onAddSection={handleAddCustomSection}
+          onRemoveSection={handleRemoveCustomSection}
         />
 
         <button onClick={handleSave} type="button" className="save-btn">
@@ -1285,6 +1358,147 @@ const DynamicSection = ({ title, entries, onChange, onAdd, onRemove, placeholder
         Add
       </button>
     )}
+  </div>
+);
+
+const CustomSectionsSection = ({
+  customSections,
+  onHeadingChange,
+  onDetailChange,
+  onAddDetail,
+  onRemoveDetail,
+  onAddSection,
+  onRemoveSection,
+}) => (
+  <div style={{ marginBottom: '1.5rem' }}>
+    <h3 style={{ fontWeight: 700, fontSize: '1.25rem', marginBottom: 8, color: '#374151' }}>
+      Add More Section
+    </h3>
+    {customSections.map((section, sectionIndex) => (
+      <div key={sectionIndex} style={{ 
+        border: '1px solid #e5e7eb', 
+        borderRadius: '8px', 
+        padding: '1rem', 
+        marginBottom: '1rem',
+        backgroundColor: '#f9fafb'
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <input
+            type="text"
+            value={section.heading}
+            onChange={(e) => onHeadingChange(sectionIndex, e.target.value)}
+            placeholder="Section Heading"
+            style={{
+              flex: 1,
+              padding: '0.5rem',
+              fontSize: '1rem',
+              border: '1px solid #d1d5db',
+              borderRadius: '4px',
+              marginRight: '1rem'
+            }}
+          />
+          <button
+            onClick={() => onRemoveSection(sectionIndex)}
+            disabled={customSections.length <= 1}
+            className="remove-btn"
+            type="button"
+            title={customSections.length <= 1 ? 'At least one section required' : 'Remove section'}
+            style={{
+              padding: '0.5rem 1rem',
+              backgroundColor: '#ef4444',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: customSections.length <= 1 ? 'not-allowed' : 'pointer',
+              opacity: customSections.length <= 1 ? 0.5 : 1
+            }}
+          >
+            Remove Section
+          </button>
+        </div>
+        
+        <div style={{ marginBottom: '1rem' }}>
+          <h4 style={{ margin: '0 0 0.5rem 0', color: '#374151', fontSize: '1rem' }}>Section Details:</h4>
+          {section.details.map((detail, detailIndex) => (
+            <div key={detailIndex} style={{ 
+              display: 'flex', 
+              alignItems: 'flex-start', 
+              gap: '0.5rem', 
+              marginBottom: '0.5rem' 
+            }}>
+              <textarea
+                value={detail}
+                onChange={(e) => onDetailChange(sectionIndex, detailIndex, e.target.value)}
+                placeholder="Enter section detail..."
+                rows={2}
+                style={{
+                  flex: 1,
+                  padding: '0.5rem',
+                  fontSize: '0.875rem',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '4px',
+                  resize: 'vertical'
+                }}
+              />
+              <button
+                onClick={() => onRemoveDetail(sectionIndex, detailIndex)}
+                disabled={section.details.length <= 1}
+                className="remove-btn"
+                type="button"
+                title={section.details.length <= 1 ? 'At least one detail required' : 'Remove detail'}
+                style={{
+                  padding: '0.5rem',
+                  backgroundColor: '#6b7280',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: section.details.length <= 1 ? 'not-allowed' : 'pointer',
+                  opacity: section.details.length <= 1 ? 0.5 : 1,
+                  fontSize: '0.75rem'
+                }}
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+          <button
+            onClick={() => onAddDetail(sectionIndex)}
+            className="add-btn"
+            type="button"
+            style={{
+              padding: '0.5rem 1rem',
+              backgroundColor: '#22c55e',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '0.875rem',
+              marginTop: '0.5rem'
+            }}
+          >
+            Add Detail
+          </button>
+        </div>
+      </div>
+    ))}
+    
+    <button
+      onClick={onAddSection}
+      className="add-btn"
+      type="button"
+      style={{
+        padding: '0.75rem 1.5rem',
+        backgroundColor: '#3b82f6',
+        color: 'white',
+        border: 'none',
+        borderRadius: '6px',
+        cursor: 'pointer',
+        fontSize: '1rem',
+        fontWeight: '600'
+      }}
+    >
+      Add New Section
+    </button>
   </div>
 );
 

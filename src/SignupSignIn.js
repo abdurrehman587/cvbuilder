@@ -11,10 +11,12 @@ const SignupSignIn = ({ onAuth }) => {
   const [loading, setLoading] = useState(false);
   const [showResend, setShowResend] = useState(false);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const [showAdminToggle, setShowAdminToggle] = useState(false);
+  const [adminAccessAttempts, setAdminAccessAttempts] = useState(0);
 
   // Admin credentials (in production, this should be in environment variables)
-  const ADMIN_EMAIL = 'admin@cvbuilder.com';
-  const ADMIN_PASSWORD = 'admin123456';
+  const ADMIN_EMAIL = process.env.REACT_APP_ADMIN_EMAIL || 'admin@cvbuilder.com';
+  const ADMIN_PASSWORD = process.env.REACT_APP_ADMIN_PASSWORD || 'admin123456';
 
   useEffect(() => {
     // Handle automatic sign-out when browser/tab is closed
@@ -43,17 +45,28 @@ const SignupSignIn = ({ onAuth }) => {
       supabase.auth.signOut();
     };
 
+    // Handle keyboard shortcuts for admin access
+    const handleKeyPress = (e) => {
+      // Ctrl + Alt + A to toggle admin access (hidden feature)
+      if (e.ctrlKey && e.altKey && e.key === 'a') {
+        e.preventDefault();
+        setShowAdminToggle(!showAdminToggle);
+      }
+    };
+
     // Add event listeners
     window.addEventListener('beforeunload', handleBeforeUnload);
     window.addEventListener('pagehide', handlePageHide);
     document.addEventListener('visibilitychange', handleVisibilityChange);
+    document.addEventListener('keydown', handleKeyPress);
 
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
       window.removeEventListener('pagehide', handlePageHide);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      document.removeEventListener('keydown', handleKeyPress);
     };
-  }, []);
+  }, [showAdminToggle]);
 
   const handleAuth = async (e) => {
     e.preventDefault();
@@ -64,6 +77,13 @@ const SignupSignIn = ({ onAuth }) => {
     try {
       // Check if this is an admin login attempt
       if (userType === 'admin') {
+        // Rate limiting for admin access attempts
+        if (adminAccessAttempts >= 3) {
+          setError('Too many admin access attempts. Please try again later.');
+          setLoading(false);
+          return;
+        }
+
         if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
           // Create admin user object
           const adminUser = {
@@ -74,9 +94,12 @@ const SignupSignIn = ({ onAuth }) => {
           };
           onAuth(adminUser);
           setShowAdminPanel(true);
+          setAdminAccessAttempts(0); // Reset attempts on successful login
           return;
         } else {
-          setError('Invalid admin credentials. Please check your email and password.');
+          setAdminAccessAttempts(prev => prev + 1);
+          const remainingAttempts = 3 - adminAccessAttempts - 1;
+          setError(`Invalid admin credentials. ${remainingAttempts > 0 ? `${remainingAttempts} attempts remaining.` : 'No attempts remaining.'}`);
           setLoading(false);
           return;
         }
@@ -232,17 +255,23 @@ const SignupSignIn = ({ onAuth }) => {
           {userType === 'admin' ? '🔐 Admin Login' : (mode === 'signup' ? 'Sign Up' : 'Sign In')}
         </h2>
 
-        {/* User Type Toggle */}
+        {/* Hidden Admin Toggle - Only show on specific conditions */}
         <div style={{
           display: 'flex',
           borderRadius: '8px',
           border: '1px solid #e5e7eb',
           overflow: 'hidden',
-          marginBottom: '8px'
+          marginBottom: '8px',
+          opacity: showAdminToggle ? 1 : 0.1,
+          transition: 'opacity 0.3s ease',
+          pointerEvents: showAdminToggle ? 'auto' : 'none'
         }}>
           <button
             type="button"
-            onClick={() => setUserType('user')}
+            onClick={() => {
+              setUserType('user');
+              setAdminAccessAttempts(0); // Reset attempts when switching to user mode
+            }}
             style={{
               flex: 1,
               padding: '10px',
@@ -274,6 +303,7 @@ const SignupSignIn = ({ onAuth }) => {
           </button>
         </div>
 
+        {/* Admin access info with rate limiting display */}
         {userType === 'admin' && (
           <div style={{
             padding: '12px',
@@ -284,8 +314,12 @@ const SignupSignIn = ({ onAuth }) => {
             color: '#dc2626'
           }}>
             <strong>Admin Access:</strong><br />
-            Email: admin@cvbuilder.com<br />
-            Password: admin123456
+            Please contact the system administrator for access credentials.
+            {adminAccessAttempts > 0 && (
+              <div style={{ marginTop: '8px', fontSize: '12px' }}>
+                Failed attempts: {adminAccessAttempts}/3
+              </div>
+            )}
           </div>
         )}
 
@@ -363,6 +397,24 @@ const SignupSignIn = ({ onAuth }) => {
               ? <>Already have an account? <span style={{ color: '#3f51b5', cursor: 'pointer' }} onClick={() => setMode('signin')}>Sign In</span></>
               : <>Don't have an account? <span style={{ color: '#3f51b5', cursor: 'pointer' }} onClick={() => setMode('signup')}>Sign Up</span></>
             }
+          </div>
+        )}
+
+        {/* Hidden admin access indicator - only shows when admin mode is active */}
+        {showAdminToggle && (
+          <div style={{
+            position: 'absolute',
+            top: '10px',
+            right: '10px',
+            padding: '4px 8px',
+            backgroundColor: '#dc2626',
+            color: 'white',
+            borderRadius: '4px',
+            fontSize: '10px',
+            fontFamily: 'monospace',
+            opacity: 0.7
+          }}>
+            ADMIN
           </div>
         )}
       </form>

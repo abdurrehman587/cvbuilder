@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS cvs (
   languages JSONB,
   hobbies JSONB,
   references JSONB,
+  custom_sections JSONB DEFAULT '[]'::jsonb,
   other_information JSONB,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()

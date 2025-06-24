@@ -7,7 +7,7 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
   const [showCVBuilder, setShowCVBuilder] = useState(false);
   const [adminUser] = useState({
     id: 'admin-user',
-    email: 'admin@cvbuilder.com',
+    email: process.env.REACT_APP_ADMIN_EMAIL || 'admin@cvbuilder.com',
     user_metadata: { role: 'admin' },
     isAdmin: true
   });
