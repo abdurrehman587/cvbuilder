@@ -523,6 +523,8 @@ const Form = ({ formData, setFormData, onChange, user }) => {
 
 
   const handleSearch = async () => {
+    console.log('Form Search Clicked:', { searchName, searchPhone, user });
+    
     if (!user || !user.isAdmin) {
       toast.error('Only admins can search for CVs.');
       return;
@@ -533,59 +535,74 @@ const Form = ({ formData, setFormData, onChange, user }) => {
       return;
     }
 
-    let query = supabase.from('cvs').select('*').limit(1);
+    try {
+      // Check if Supabase is configured
+      if (!supabase || !supabase.from) {
+        toast.error('Supabase client is not configured!');
+        return;
+      }
 
-    if (searchName) {
-      query = query.ilike('name', `%${searchName}%`);
+      let query = supabase.from('cvs').select('*');
+
+      if (searchName) {
+        query = query.ilike('name', `%${searchName}%`);
+      }
+
+      if (searchPhone) {
+        query = query.ilike('phone', `%${searchPhone}%`);
+      }
+
+      // For admin users, search all CVs (including those without user_id)
+      // For regular users, only search their own CVs
+      if (user && !user.isAdmin) {
+        query = query.eq('user_id', user.id);
+      }
+
+      console.log('Executing search query...');
+      const { data, error } = await query;
+      console.log('Search result:', { data, error });
+
+      if (error) {
+        console.error("Search error:", error);
+        toast.error("Failed to search CV: " + error.message);
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        toast.info("No matching CV found.");
+        setCurrentCvId(null);
+        return;
+      }
+
+      const cv = data[0];
+      console.log('Loading CV:', cv);
+      
+      setCurrentCvId(cv.id);
+      setFormData({
+        image: null,
+        imageUrl: cv.image_url || '',
+        name: cv.name || '',
+        phone: cv.phone || '',
+        email: cv.email || '',
+        address: cv.address || '',
+        objective: JSON.parse(cv.objective || '[]'),
+        education: JSON.parse(cv.education || '[]'),
+        workExperience: JSON.parse(cv.work_experience || '[]'),
+        skills: JSON.parse(cv.skills || '[]'),
+        certifications: JSON.parse(cv.certifications || '[]'),
+        projects: JSON.parse(cv.projects || '[]'),
+        languages: JSON.parse(cv.languages || '[]'),
+        customLanguages: [],
+        hobbies: JSON.parse(cv.hobbies || '[]'),
+        references: JSON.parse(cv.references || '[]'),
+        otherInformation: JSON.parse(cv.other_information || '[]'),
+      });
+
+      toast.success(user && user.isAdmin ? "CV loaded successfully. (Admin Mode)" : "CV loaded successfully.");
+    } catch (error) {
+      console.error("Search exception:", error);
+      toast.error("An error occurred while searching: " + error.message);
     }
-
-    if (searchPhone) {
-      query = query.ilike('phone', `%${searchPhone}%`);
-    }
-
-    // For admin users, search all CVs (including those without user_id)
-    // For regular users, only search their own CVs
-    if (user && !user.isAdmin) {
-      query = query.eq('user_id', user.id);
-    }
-
-    const { data, error } = await query;
-
-    if (error) {
-      console.error("Search error:", error);
-      toast.error("Failed to search CV.");
-      return;
-    }
-
-    if (data.length === 0) {
-      toast.info("No matching CV found.");
-      setCurrentCvId(null);
-      return;
-    }
-
-    const cv = data[0];
-    setCurrentCvId(cv.id);
-    setFormData({
-      image: null,
-      imageUrl: cv.image_url || '',
-      name: cv.name || '',
-      phone: cv.phone || '',
-      email: cv.email || '',
-      address: cv.address || '',
-      objective: JSON.parse(cv.objective || '[]'),
-      education: JSON.parse(cv.education || '[]'),
-      workExperience: JSON.parse(cv.work_experience || '[]'),
-      skills: JSON.parse(cv.skills || '[]'),
-      certifications: JSON.parse(cv.certifications || '[]'),
-      projects: JSON.parse(cv.projects || '[]'),
-      languages: JSON.parse(cv.languages || '[]'),
-      customLanguages: [],
-      hobbies: JSON.parse(cv.hobbies || '[]'),
-      references: JSON.parse(cv.references || '[]'),
-      otherInformation: JSON.parse(cv.other_information || '[]'),
-    });
-
-    toast.success(user && user.isAdmin ? "CV loaded successfully. (Admin Mode)" : "CV loaded successfully.");
   };
 
   // Guard: Don't render until formData is initialized
@@ -652,6 +669,27 @@ const Form = ({ formData, setFormData, onChange, user }) => {
           }}
         >
           {user?.isAdmin ? '🔍 Admin Search' : 'Search'}
+        </button>
+        <button
+          onClick={() => {
+            setSearchName('');
+            setSearchPhone('');
+            setCurrentCvId(null);
+            setFormData(defaultFormData);
+          }}
+          style={{
+            padding: '0.75rem 1.5rem',
+            backgroundColor: '#6b7280',
+            color: 'white',
+            border: 'none',
+            borderRadius: '0.75rem',
+            fontSize: '1rem',
+            fontWeight: '600',
+            cursor: 'pointer',
+            whiteSpace: 'nowrap'
+          }}
+        >
+          🗑️ Clear
         </button>
       </div>
 
