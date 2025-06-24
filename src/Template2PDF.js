@@ -332,13 +332,40 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
     </div>
   );
 
-  const renderSimpleList = (items) => (
-    <ul style={{ paddingLeft: '20px', marginTop: '10px' }}>
-      {items.map((item, idx) => (
-        <li key={idx} style={styles.listItem}>{item}</li>
-      ))}
-    </ul>
-  );
+  const renderSimpleList = (items) => {
+    // Filter out empty, null, or whitespace-only items
+    const validItems = items.filter(item => {
+      if (item === null || item === undefined) return false;
+      if (typeof item === 'string') return item.trim() !== '';
+      if (typeof item === 'object') {
+        const value = item.label || item.value || item.name;
+        return value && value.trim() !== '';
+      }
+      return true;
+    });
+
+    if (validItems.length === 0) return null;
+
+    return (
+      <ul style={{ paddingLeft: '20px', marginTop: '10px' }}>
+        {validItems.map((item, idx) => (
+          <li key={idx} style={styles.listItem}>
+            <span style={{
+              position: 'absolute',
+              left: '0',
+              color: '#2ecc71',
+              fontWeight: 'bold',
+              fontSize: '0.9rem',
+            }}>✦</span>
+            {typeof item === 'string' ? item : 
+             typeof item === 'object' && item !== null ? 
+               (item.label || item.value || item.name || JSON.stringify(item)) : 
+               String(item)}
+          </li>
+        ))}
+      </ul>
+    );
+  };
 
   const renderLanguages = (languages, customLanguages) => {
     const allLanguages = [...languages];
@@ -424,13 +451,15 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
           </div>
         )}
 
-
-        {visibleSections.includes('hobbies') && formData.hobbies?.length > 0 && (
-          <div style={styles.leftSection}>
-            <h2 style={styles.leftSectionTitle}>Hobbies</h2>
-            {renderSimpleList(formData.hobbies)}
-          </div>
-        )}
+        {visibleSections.includes('hobbies') && formData.hobbies && formData.hobbies.length > 0 && (() => {
+          const hobbiesList = renderSimpleList(formData.hobbies);
+          return hobbiesList ? (
+            <div style={styles.leftSection}>
+              <h2 style={styles.leftSectionTitle}>Hobbies</h2>
+              {hobbiesList}
+            </div>
+          ) : null;
+        })()}
       </div>
 
       <div style={styles.rightColumn}>
@@ -484,19 +513,25 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
           </div>
         )}
 
-        {visibleSections.includes('projects') && formData.projects?.length > 0 && (
-          <div style={styles.rightSection}>
-            <h2 style={styles.rightSectionTitle}>Projects</h2>
-            {renderSimpleList(formData.projects)}
-          </div>
-        )}
+        {visibleSections.includes('projects') && formData.projects && formData.projects.length > 0 && (() => {
+          const projectsList = renderSimpleList(formData.projects);
+          return projectsList ? (
+            <div style={styles.rightSection}>
+              <h2 style={styles.rightSectionTitle}>Projects</h2>
+              {projectsList}
+            </div>
+          ) : null;
+        })()}
 
-        {visibleSections.includes('certifications') && formData.certifications?.length > 0 && (
-          <div style={styles.rightSection}>
-            <h2 style={styles.rightSectionTitle}>Certifications</h2>
-            {renderSimpleList(formData.certifications)}
-          </div>
-        )}
+        {visibleSections.includes('certifications') && formData.certifications && formData.certifications.length > 0 && (() => {
+          const certificationsList = renderSimpleList(formData.certifications);
+          return certificationsList ? (
+            <div style={styles.rightSection}>
+              <h2 style={styles.rightSectionTitle}>Certifications</h2>
+              {certificationsList}
+            </div>
+          ) : null;
+        })()}
 
         {visibleSections.includes('references') && (
           <div style={styles.rightSection}>

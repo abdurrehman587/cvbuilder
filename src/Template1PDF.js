@@ -294,13 +294,40 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     </div>
   );
 
-  const renderSimpleList = (items) => (
-    <ul style={listStyle}>
-      {items.map((item, idx) => (
-        <li key={idx} style={listItemStyle}>{item}</li>
-      ))}
-    </ul>
-  );
+  const renderSimpleList = (items) => {
+    // Filter out empty, null, or whitespace-only items
+    const validItems = items.filter(item => {
+      if (item === null || item === undefined) return false;
+      if (typeof item === 'string') return item.trim() !== '';
+      if (typeof item === 'object') {
+        const value = item.label || item.value || item.name;
+        return value && value.trim() !== '';
+      }
+      return true;
+    });
+
+    if (validItems.length === 0) return null;
+
+    return (
+      <ul style={listStyle}>
+        {validItems.map((item, idx) => (
+          <li key={idx} style={listItemStyle}>
+            <span style={{
+              position: 'absolute',
+              left: '0',
+              color: '#3f51b5',
+              fontWeight: 'bold',
+              fontSize: '0.9rem',
+            }}>✦</span>
+            {typeof item === 'string' ? item : 
+             typeof item === 'object' && item !== null ? 
+               (item.label || item.value || item.name || JSON.stringify(item)) : 
+               String(item)}
+          </li>
+        ))}
+      </ul>
+    );
+  };
 
   const renderLanguages = (languages) => (
     <div style={tagsContainerStyle}>
@@ -539,19 +566,25 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
         </section>
       )}
 
-      {visibleSections.includes('certifications') && formData.certifications?.length > 0 && (
-        <section style={sectionStyle} aria-label="Certifications Section">
-          <h2 style={sectionTitleStyle}>Certifications</h2>
-          {renderSimpleList(formData.certifications)}
-        </section>
-      )}
+      {visibleSections.includes('certifications') && formData.certifications && formData.certifications.length > 0 && (() => {
+        const certificationsList = renderSimpleList(formData.certifications);
+        return certificationsList ? (
+          <section style={sectionStyle} aria-label="Certifications Section">
+            <h2 style={sectionTitleStyle}>Certifications</h2>
+            {certificationsList}
+          </section>
+        ) : null;
+      })()}
 
-      {visibleSections.includes('projects') && formData.projects?.length > 0 && (
-        <section style={sectionStyle} aria-label="Projects Section">
-          <h2 style={sectionTitleStyle}>Projects</h2>
-          {renderSimpleList(formData.projects)}
-        </section>
-      )}
+      {visibleSections.includes('projects') && formData.projects && formData.projects.length > 0 && (() => {
+        const projectsList = renderSimpleList(formData.projects);
+        return projectsList ? (
+          <section style={sectionStyle} aria-label="Projects Section">
+            <h2 style={sectionTitleStyle}>Projects</h2>
+            {projectsList}
+          </section>
+        ) : null;
+      })()}
 
       {visibleSections.includes('languages') && combinedLanguages.length > 0 && (
         <section style={sectionStyle} aria-label="Languages Section">
@@ -560,12 +593,15 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
         </section>
       )}
 
-      {visibleSections.includes('hobbies') && formData.hobbies?.length > 0 && (
-        <section style={sectionStyle} aria-label="Hobbies Section">
-          <h2 style={sectionTitleStyle}>Hobbies</h2>
-          {renderSimpleList(formData.hobbies)}
-        </section>
-      )}
+      {visibleSections.includes('hobbies') && formData.hobbies && formData.hobbies.length > 0 && (() => {
+        const hobbiesList = renderSimpleList(formData.hobbies);
+        return hobbiesList ? (
+          <section style={sectionStyle} aria-label="Hobbies Section">
+            <h2 style={sectionTitleStyle}>Hobbies</h2>
+            {hobbiesList}
+          </section>
+        ) : null;
+      })()}
 
       {visibleSections.includes('references') && (
         <section style={sectionStyle} aria-label="References Section">
