@@ -78,28 +78,36 @@ const Form = ({ formData, setFormData, onChange, user }) => {
         return;
       }
 
+      console.log('Live search triggered with:', { searchName, searchPhone });
       setIsSearching(true);
       try {
         if (!supabase || !supabase.from) {
+          console.error('Supabase client not available');
           return;
         }
 
         let query = supabase.from('cvs').select('*');
+        console.log('Base query created');
 
         if (searchName) {
           query = query.ilike('name', `%${searchName}%`);
+          console.log('Added name filter:', `%${searchName}%`);
         }
 
         if (searchPhone) {
           const cleanPhone = searchPhone.replace(/[^0-9]/g, '');
           query = query.ilike('phone', `%${cleanPhone}%`);
+          console.log('Added phone filter:', `%${cleanPhone}%`);
         }
 
         if (user && !user.isAdmin) {
           query = query.eq('user_id', user.id);
+          console.log('Added user filter for non-admin');
         }
 
+        console.log('Executing live search query...');
         const { data, error } = await query;
+        console.log('Live search result:', { data, error, dataLength: data?.length });
 
         if (error) {
           console.error("Live search error:", error);
@@ -108,6 +116,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
 
         setSearchResults(data || []);
         setShowSearchResults(data && data.length > 0);
+        console.log('Search results updated:', { results: data?.length, showResults: data && data.length > 0 });
       } catch (error) {
         console.error("Live search exception:", error);
       } finally {
@@ -625,16 +634,29 @@ const Form = ({ formData, setFormData, onChange, user }) => {
     }
 
     try {
+      console.log('Checking Supabase connection...');
+      console.log('Supabase client:', supabase);
+      
+      if (!supabase || !supabase.from) {
+        toast.error('Supabase client is not configured!');
+        return;
+      }
+
+      console.log('Executing query: supabase.from("cvs").select("*")');
       const { data, error } = await supabase.from('cvs').select('*');
-      console.log('All CVs in database:', data);
+      console.log('Raw query result:', { data, error });
       
       if (error) {
+        console.error('Supabase error details:', error);
         toast.error("Failed to fetch CVs: " + error.message);
         return;
       }
 
+      console.log('All CVs in database:', data);
+      
       if (!data || data.length === 0) {
         toast.info("No CVs found in database.");
+        console.log('Database appears to be empty or query returned no results');
       } else {
         toast.success(`Found ${data.length} CV(s) in database`);
         console.log('CV details:', data.map(cv => ({ id: cv.id, name: cv.name, phone: cv.phone, email: cv.email })));
