@@ -636,6 +636,59 @@ const Form = ({ formData, setFormData, onChange, user }) => {
     }
   };
 
+  // Function to create a test CV (for debugging)
+  const createTestCV = async () => {
+    if (!user || !user.isAdmin) {
+      toast.error('Only admins can create test CVs.');
+      return;
+    }
+
+    try {
+      const testCVData = {
+        name: 'John Doe',
+        phone: '03153338612',
+        email: 'john.doe@example.com',
+        address: '123 Main Street, City, Country',
+        objective: JSON.stringify(['Seeking a challenging position in software development']),
+        education: JSON.stringify([{ degree: 'Bachelor of Computer Science', institute: 'University of Technology', year: '2020' }]),
+        work_experience: JSON.stringify([{ company: 'Tech Corp', designation: 'Software Developer', duration: '2020-2023', details: 'Developed web applications using React and Node.js' }]),
+        skills: JSON.stringify([
+          { name: 'JavaScript', percentage: '90%' },
+          { name: 'React', percentage: '85%' },
+          { name: 'Node.js', percentage: '80%' }
+        ]),
+        certifications: JSON.stringify(['AWS Certified Developer', 'Microsoft Azure Fundamentals']),
+        projects: JSON.stringify(['E-commerce Platform', 'Task Management App']),
+        languages: JSON.stringify(['English', 'Urdu']),
+        hobbies: JSON.stringify(['Reading', 'Coding', 'Gaming']),
+        references: JSON.stringify(['Available upon request']),
+        other_information: JSON.stringify([
+          { id: 1, labelType: 'radio', label: "Father's Name:", checked: true, value: 'Robert Doe', name: 'parentSpouse', radioValue: 'father' },
+          { id: 3, labelType: 'checkbox', label: 'CNIC:', checked: true, value: '12345-6789012-3', isCustom: false },
+          { id: 4, labelType: 'checkbox', label: 'Date of Birth:', checked: true, value: '1995-05-15', isCustom: false }
+        ]),
+        image_url: '',
+        user_id: null // Admin-created CV
+      };
+
+      const { data, error } = await supabase.from('cvs').insert([testCVData]).select();
+      
+      if (error) {
+        toast.error("Failed to create test CV: " + error.message);
+        return;
+      }
+
+      toast.success("Test CV created successfully!");
+      console.log('Test CV created:', data);
+      
+      // Refresh the CV list
+      checkAllCVs();
+    } catch (error) {
+      console.error("Create test CV exception:", error);
+      toast.error("An error occurred: " + error.message);
+    }
+  };
+
   // Guard: Don't render until formData is initialized
   if (!formData) return null;
 
@@ -738,6 +791,24 @@ const Form = ({ formData, setFormData, onChange, user }) => {
             }}
           >
             📊 Check All CVs
+          </button>
+        )}
+        {user?.isAdmin && (
+          <button
+            onClick={createTestCV}
+            style={{
+              padding: '0.75rem 1.5rem',
+              backgroundColor: '#059669',
+              color: 'white',
+              border: 'none',
+              borderRadius: '0.75rem',
+              fontSize: '1rem',
+              fontWeight: '600',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            ➕ Create Test CV
           </button>
         )}
       </div>
