@@ -232,9 +232,9 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
       
     } catch (error) {
       alert('Error generating PDF: ' + error.message);
-      // Show button again if download failed
+    } finally {
       if (buttonRef.current) {
-        buttonRef.current.style.display = 'inline-block';
+        buttonRef.current.style.display = 'block';
       }
     }
   };

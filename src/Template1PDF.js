@@ -387,11 +387,9 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
         localStorage.setItem('cv_downloaded', 'true'); // Persist download state
       }
       
-    } catch (error) {
-      alert('Error generating PDF: ' + error.message);
-      // Show button again if download failed
+    } finally {
       if (buttonRef.current) {
-        buttonRef.current.style.display = 'inline-block';
+        buttonRef.current.style.display = 'block'; // ⭐ Button is shown again after download
       }
     }
   };
