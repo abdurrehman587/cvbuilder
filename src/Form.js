@@ -175,17 +175,17 @@ const Form = ({ formData, setFormData, onChange, user }) => {
             phone: cvData.phone || '',
             email: cvData.email || '',
             address: cvData.address || '',
-            objective: JSON.parse(cvData.objective || '[]'),
-            education: JSON.parse(cvData.education || '[]'),
-            workExperience: JSON.parse(cvData.work_experience || '[]'),
-            skills: JSON.parse(cvData.skills || '[]'),
-            certifications: JSON.parse(cvData.certifications || '[]'),
-            projects: JSON.parse(cvData.projects || '[]'),
-            languages: JSON.parse(cvData.languages || '[]'),
+            objective: safeJsonParse(cvData.objective, []),
+            education: safeJsonParse(cvData.education, []),
+            workExperience: safeJsonParse(cvData.work_experience, []),
+            skills: safeJsonParse(cvData.skills, []),
+            certifications: safeJsonParse(cvData.certifications, []),
+            projects: safeJsonParse(cvData.projects, []),
+            languages: safeJsonParse(cvData.languages, []),
             customLanguages: [],
-            hobbies: JSON.parse(cvData.hobbies || '[]'),
-            references: JSON.parse(cvData.references || '[]'),
-            otherInformation: JSON.parse(cvData.other_information || '[]'),
+            hobbies: safeJsonParse(cvData.hobbies, []),
+            references: safeJsonParse(cvData.references, []),
+            otherInformation: safeJsonParse(cvData.other_information, []),
           });
           
           // Clear the admin selected CV from localStorage after loading
@@ -247,17 +247,17 @@ const Form = ({ formData, setFormData, onChange, user }) => {
             phone: data.phone || '',
             email: data.email || '',
             address: data.address || '',
-            objective: JSON.parse(data.objective || '[]'),
-            education: JSON.parse(data.education || '[]'),
-            workExperience: JSON.parse(data.work_experience || '[]'),
-            skills: JSON.parse(data.skills || '[]'),
-            certifications: JSON.parse(data.certifications || '[]'),
-            projects: JSON.parse(data.projects || '[]'),
-            languages: JSON.parse(data.languages || '[]'),
+            objective: safeJsonParse(data.objective, []),
+            education: safeJsonParse(data.education, []),
+            workExperience: safeJsonParse(data.work_experience, []),
+            skills: safeJsonParse(data.skills, []),
+            certifications: safeJsonParse(data.certifications, []),
+            projects: safeJsonParse(data.projects, []),
+            languages: safeJsonParse(data.languages, []),
             customLanguages: [],
-            hobbies: JSON.parse(data.hobbies || '[]'),
-            references: JSON.parse(data.references || '[]'),
-            otherInformation: JSON.parse(data.other_information || '[]'),
+            hobbies: safeJsonParse(data.hobbies, []),
+            references: safeJsonParse(data.references, []),
+            otherInformation: safeJsonParse(data.other_information, []),
           });
         }
       } catch (err) {
@@ -440,8 +440,21 @@ const Form = ({ formData, setFormData, onChange, user }) => {
     }
   };
 
-
-
+  // Safe JSON parsing function
+  const safeJsonParse = (value, defaultValue = []) => {
+    if (!value) return defaultValue;
+    if (typeof value === 'object') return value; // Already parsed
+    if (typeof value === 'string') {
+      try {
+        return JSON.parse(value);
+      } catch (error) {
+        console.warn('Failed to parse JSON:', value, error);
+        // If it's a simple string, wrap it in an array
+        return [value];
+      }
+    }
+    return defaultValue;
+  };
 
   const handleSave = async () => {
     console.log('=== SAVE FUNCTION STARTED ===');
@@ -614,7 +627,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
     console.log('=== SAVE FUNCTION ENDED ===');
   };
 
-  // Function to load a specific CV from search results
+  // Function to load CV from search results
   const loadCVFromSearch = (cv) => {
     console.log('Loading CV from search:', cv);
     
@@ -626,17 +639,17 @@ const Form = ({ formData, setFormData, onChange, user }) => {
       phone: cv.phone || '',
       email: cv.email || '',
       address: cv.address || '',
-      objective: JSON.parse(cv.objective || '[]'),
-      education: JSON.parse(cv.education || '[]'),
-      workExperience: JSON.parse(cv.work_experience || '[]'),
-      skills: JSON.parse(cv.skills || '[]'),
-      certifications: JSON.parse(cv.certifications || '[]'),
-      projects: JSON.parse(cv.projects || '[]'),
-      languages: JSON.parse(cv.languages || '[]'),
+      objective: safeJsonParse(cv.objective, []),
+      education: safeJsonParse(cv.education, []),
+      workExperience: safeJsonParse(cv.work_experience, []),
+      skills: safeJsonParse(cv.skills, []),
+      certifications: safeJsonParse(cv.certifications, []),
+      projects: safeJsonParse(cv.projects, []),
+      languages: safeJsonParse(cv.languages, []),
       customLanguages: [],
-      hobbies: JSON.parse(cv.hobbies || '[]'),
-      references: JSON.parse(cv.references || '[]'),
-      otherInformation: JSON.parse(cv.other_information || '[]'),
+      hobbies: safeJsonParse(cv.hobbies, []),
+      references: safeJsonParse(cv.references, []),
+      otherInformation: safeJsonParse(cv.other_information, []),
     });
 
     setShowSearchResults(false);
