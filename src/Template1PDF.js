@@ -24,6 +24,13 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
 
   // Check if download was already completed for this session
   React.useEffect(() => {
+    const adminAccess = localStorage.getItem('admin_cv_access');
+    if (adminAccess === 'true') {
+      // Admin users can download unlimited times
+      setDownloadCompleted(false);
+      return;
+    }
+    
     const hasDownloaded = localStorage.getItem('cv_downloaded');
     if (hasDownloaded) {
       setDownloadCompleted(true);
@@ -373,12 +380,17 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
         .from(containerRef.current)
         .save();
 
-      // Mark download as completed
-      localStorage.setItem('cv_downloaded', 'true');
-      setDownloadCompleted(true);
-      
-      // Show success message
-      alert('CV downloaded successfully! You will need to sign in again to download another CV.');
+      // Mark download as completed (only for non-admin users)
+      const adminAccess = localStorage.getItem('admin_cv_access');
+      if (adminAccess !== 'true') {
+        localStorage.setItem('cv_downloaded', 'true');
+        setDownloadCompleted(true);
+        // Show success message for regular users
+        alert('CV downloaded successfully! You will need to sign in again to download another CV.');
+      } else {
+        // For admin users, show different message
+        alert('CV downloaded successfully! (Admin Access - Unlimited Downloads)');
+      }
       
     } catch (error) {
       alert('Error generating PDF: ' + error.message);
@@ -460,6 +472,9 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     
     return 'Download PDF (PKR 200)';
   };
+
+  // Get admin access status for use in render
+  const adminAccess = localStorage.getItem('admin_cv_access');
 
   return (
     <article ref={containerRef} style={containerStyle}>
@@ -559,7 +574,7 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
         </section>
       )}
 
-      {!downloadCompleted ? (
+      {(adminAccess === 'true' || !downloadCompleted) ? (
         <button
           ref={buttonRef}
           type="button"
