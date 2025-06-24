@@ -11,7 +11,7 @@ const SignupSignIn = ({ onAuth }) => {
   const [loading, setLoading] = useState(false);
   const [showResend, setShowResend] = useState(false);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
-  const [showAdminToggle, setShowAdminToggle] = useState(false);
+  const [showAdminToggle, setShowAdminToggle] = useState(true);
   const [adminAccessAttempts, setAdminAccessAttempts] = useState(0);
 
   // Admin credentials (in production, this should be in environment variables)

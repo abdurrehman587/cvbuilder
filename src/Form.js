@@ -1030,7 +1030,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
         />
 
         <CustomSectionsSection
-          customSections={formData.customSections}
+          customSections={formData.customSections || [{ heading: '', details: [''] }]}
           onHeadingChange={handleCustomSectionHeadingChange}
           onDetailChange={handleCustomSectionDetailChange}
           onAddDetail={handleAddCustomSectionDetail}
@@ -1362,7 +1362,7 @@ const DynamicSection = ({ title, entries, onChange, onAdd, onRemove, placeholder
 );
 
 const CustomSectionsSection = ({
-  customSections,
+  customSections = [],
   onHeadingChange,
   onDetailChange,
   onAddDetail,
@@ -1374,7 +1374,7 @@ const CustomSectionsSection = ({
     <h3 style={{ fontWeight: 700, fontSize: '1.25rem', marginBottom: 8, color: '#374151' }}>
       Add More Section
     </h3>
-    {customSections.map((section, sectionIndex) => (
+    {(customSections || []).map((section, sectionIndex) => (
       <div key={sectionIndex} style={{ 
         border: '1px solid #e5e7eb', 
         borderRadius: '8px', 
@@ -1385,7 +1385,7 @@ const CustomSectionsSection = ({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
           <input
             type="text"
-            value={section.heading}
+            value={section.heading || ''}
             onChange={(e) => onHeadingChange(sectionIndex, e.target.value)}
             placeholder="Section Heading"
             style={{
@@ -1399,18 +1399,18 @@ const CustomSectionsSection = ({
           />
           <button
             onClick={() => onRemoveSection(sectionIndex)}
-            disabled={customSections.length <= 1}
+            disabled={(customSections || []).length <= 1}
             className="remove-btn"
             type="button"
-            title={customSections.length <= 1 ? 'At least one section required' : 'Remove section'}
+            title={(customSections || []).length <= 1 ? 'At least one section required' : 'Remove section'}
             style={{
               padding: '0.5rem 1rem',
               backgroundColor: '#ef4444',
               color: 'white',
               border: 'none',
               borderRadius: '4px',
-              cursor: customSections.length <= 1 ? 'not-allowed' : 'pointer',
-              opacity: customSections.length <= 1 ? 0.5 : 1
+              cursor: (customSections || []).length <= 1 ? 'not-allowed' : 'pointer',
+              opacity: (customSections || []).length <= 1 ? 0.5 : 1
             }}
           >
             Remove Section
@@ -1419,7 +1419,7 @@ const CustomSectionsSection = ({
         
         <div style={{ marginBottom: '1rem' }}>
           <h4 style={{ margin: '0 0 0.5rem 0', color: '#374151', fontSize: '1rem' }}>Section Details:</h4>
-          {section.details.map((detail, detailIndex) => (
+          {(section.details || []).map((detail, detailIndex) => (
             <div key={detailIndex} style={{ 
               display: 'flex', 
               alignItems: 'flex-start', 
@@ -1427,7 +1427,7 @@ const CustomSectionsSection = ({
               marginBottom: '0.5rem' 
             }}>
               <textarea
-                value={detail}
+                value={detail || ''}
                 onChange={(e) => onDetailChange(sectionIndex, detailIndex, e.target.value)}
                 placeholder="Enter section detail..."
                 rows={2}
@@ -1442,18 +1442,18 @@ const CustomSectionsSection = ({
               />
               <button
                 onClick={() => onRemoveDetail(sectionIndex, detailIndex)}
-                disabled={section.details.length <= 1}
+                disabled={(section.details || []).length <= 1}
                 className="remove-btn"
                 type="button"
-                title={section.details.length <= 1 ? 'At least one detail required' : 'Remove detail'}
+                title={(section.details || []).length <= 1 ? 'At least one detail required' : 'Remove detail'}
                 style={{
                   padding: '0.5rem',
                   backgroundColor: '#6b7280',
                   color: 'white',
                   border: 'none',
                   borderRadius: '4px',
-                  cursor: section.details.length <= 1 ? 'not-allowed' : 'pointer',
-                  opacity: section.details.length <= 1 ? 0.5 : 1,
+                  cursor: (section.details || []).length <= 1 ? 'not-allowed' : 'pointer',
+                  opacity: (section.details || []).length <= 1 ? 0.5 : 1,
                   fontSize: '0.75rem'
                 }}
               >
