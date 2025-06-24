@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 
 const sectionList = [
@@ -29,6 +29,7 @@ const loadHtml2Pdf = () => {
 const Template1PDF = ({ formData, visibleSections = [] }) => {
   const containerRef = useRef(null);
   const buttonRef = useRef(null);
+  const [downloadCompleted, setDownloadCompleted] = useState(false);
 
   const containerStyle = {
     width: '700px',
@@ -362,6 +363,19 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
         })
         .from(containerRef.current)
         .save();
+
+      // Mark download as completed (only for non-admin users)
+      const adminAccess = localStorage.getItem('admin_cv_access');
+      if (adminAccess !== 'true') {
+        localStorage.setItem('cv_downloaded', 'true');
+        setDownloadCompleted(true);
+        // Show success message for regular users
+        alert('CV downloaded successfully! You will need to sign in again to download another CV.');
+      } else {
+        // For admin users, show different message
+        alert('CV downloaded successfully! (Admin Access - Unlimited Downloads)');
+      }
+      
     } catch (error) {
       alert('Error generating PDF: ' + error.message);
     } finally {
@@ -399,7 +413,7 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
       return 'Download Now (Admin Access)';
     }
 
-    if (paymentCompleted) {
+    if (downloadCompleted) {
       return 'Download PDF';
     }
     
@@ -418,14 +432,32 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
       return;
     }
 
-    if (paymentCompleted) {
-      // If payment is already completed, download directly
+    if (downloadCompleted) {
+      // If download was already completed for this session, download directly
       generatePDF();
     } else {
       // Show payment modal first
-      setShowPaymentModal(true);
+      setDownloadCompleted(false);
     }
   };
+
+  // Check if download was already completed for this session
+  useEffect(() => {
+    const adminAccess = localStorage.getItem('admin_cv_access');
+    if (adminAccess === 'true') {
+      // Admin users can download unlimited times
+      setDownloadCompleted(false);
+      return;
+    }
+    
+    const hasDownloaded = localStorage.getItem('cv_downloaded');
+    if (hasDownloaded) {
+      setDownloadCompleted(true);
+    }
+  }, []);
+
+  // Get admin access status for use in render
+  const adminAccess = localStorage.getItem('admin_cv_access');
 
   return (
     <article ref={containerRef} style={containerStyle}>
@@ -519,28 +551,44 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
         </section>
       )}
 
-      <button
-        ref={buttonRef}
-        type="button"
-        onClick={handleDownloadClick}
-        style={{
+      {(adminAccess === 'true' || !downloadCompleted) ? (
+        <button
+          ref={buttonRef}
+          type="button"
+          onClick={handleDownloadClick}
+          style={{
+            marginTop: 16,
+            cursor: 'pointer',
+            padding: '6px 18px',
+            fontSize: '0.95rem',
+            borderRadius: 6,
+            border: 'none',
+            backgroundColor: '#3f51b5',
+            color: 'white',
+            transition: 'background-color 0.3s ease',
+            alignSelf: 'flex-start',
+            userSelect: 'none',
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#303f9f')}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3f51b5')}
+        >
+          {getDownloadButtonText()}
+        </button>
+      ) : (
+        <div style={{
           marginTop: 16,
-          cursor: 'pointer',
-          padding: '6px 18px',
-          fontSize: '0.95rem',
+          padding: '12px 16px',
+          backgroundColor: '#f0f9ff',
+          border: '1px solid #0ea5e9',
           borderRadius: 6,
-          border: 'none',
-          backgroundColor: '#3f51b5',
-          color: 'white',
-          transition: 'background-color 0.3s ease',
-          alignSelf: 'flex-start',
-          userSelect: 'none',
-        }}
-        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#303f9f')}
-        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3f51b5')}
-      >
-        {getDownloadButtonText()}
-      </button>
+          color: '#0369a1',
+          fontSize: '0.9rem',
+          textAlign: 'center',
+        }}>
+          ✅ CV Downloaded Successfully!<br />
+          <small>Sign out and sign in again to download another CV.</small>
+        </div>
+      )}
     </article>
   );
 };
