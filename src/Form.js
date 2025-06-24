@@ -62,10 +62,6 @@ const Form = ({ formData, setFormData, onChange, user }) => {
 
   useEffect(() => {
     if (formData && onChange) {
-      console.log('Form.js - calling onChange with formData:', formData);
-      console.log('Form.js - customSections in formData:', formData.customSections);
-      console.log('Form.js - customSections type:', typeof formData.customSections);
-      console.log('Form.js - customSections length:', formData.customSections?.length);
       onChange(formData);
     }
   }, [formData, onChange]);
@@ -401,33 +397,21 @@ const Form = ({ formData, setFormData, onChange, user }) => {
 
   // Custom Sections Handlers
   const handleAddCustomSection = () => {
-    console.log('Form.js - handleAddCustomSection called');
     const newSection = { heading: '', details: [''] };
     const updatedCustomSections = [...formData.customSections, newSection];
-    console.log('Form.js - adding new section:', updatedCustomSections);
-    setFormData({ ...formData, customSections: updatedCustomSections });
-  };
-
-  const handleRemoveCustomSection = (sectionIndex) => {
-    console.log('Form.js - handleRemoveCustomSection called:', sectionIndex);
-    const updatedCustomSections = formData.customSections.filter((_, index) => index !== sectionIndex);
-    console.log('Form.js - removing section:', updatedCustomSections);
     setFormData({ ...formData, customSections: updatedCustomSections });
   };
 
   const handleCustomSectionHeadingChange = (sectionIndex, value) => {
-    console.log('Form.js - handleCustomSectionHeadingChange called:', { sectionIndex, value });
     const updatedCustomSections = [...formData.customSections];
     updatedCustomSections[sectionIndex] = {
       ...updatedCustomSections[sectionIndex],
       heading: value
     };
-    console.log('Form.js - updated customSections after heading change:', updatedCustomSections);
     setFormData({ ...formData, customSections: updatedCustomSections });
   };
 
   const handleCustomSectionDetailChange = (sectionIndex, detailIndex, value) => {
-    console.log('Form.js - handleCustomSectionDetailChange called:', { sectionIndex, detailIndex, value });
     const updatedCustomSections = [...formData.customSections];
     updatedCustomSections[sectionIndex] = {
       ...updatedCustomSections[sectionIndex],
@@ -435,29 +419,29 @@ const Form = ({ formData, setFormData, onChange, user }) => {
         index === detailIndex ? value : detail
       )
     };
-    console.log('Form.js - updated customSections after detail change:', updatedCustomSections);
     setFormData({ ...formData, customSections: updatedCustomSections });
   };
 
   const handleAddCustomSectionDetail = (sectionIndex) => {
-    console.log('Form.js - handleAddCustomSectionDetail called:', sectionIndex);
     const updatedCustomSections = [...formData.customSections];
     updatedCustomSections[sectionIndex] = {
       ...updatedCustomSections[sectionIndex],
       details: [...updatedCustomSections[sectionIndex].details, '']
     };
-    console.log('Form.js - adding detail:', updatedCustomSections);
     setFormData({ ...formData, customSections: updatedCustomSections });
   };
 
   const handleRemoveCustomSectionDetail = (sectionIndex, detailIndex) => {
-    console.log('Form.js - handleRemoveCustomSectionDetail called:', { sectionIndex, detailIndex });
     const updatedCustomSections = [...formData.customSections];
     updatedCustomSections[sectionIndex] = {
       ...updatedCustomSections[sectionIndex],
       details: updatedCustomSections[sectionIndex].details.filter((_, index) => index !== detailIndex)
     };
-    console.log('Form.js - removing detail:', updatedCustomSections);
+    setFormData({ ...formData, customSections: updatedCustomSections });
+  };
+
+  const handleRemoveCustomSection = (sectionIndex) => {
+    const updatedCustomSections = formData.customSections.filter((_, index) => index !== sectionIndex);
     setFormData({ ...formData, customSections: updatedCustomSections });
   };
 
@@ -1380,8 +1364,6 @@ const CustomSectionsSection = ({
   onAddSection,
   onRemoveSection,
 }) => {
-  console.log('CustomSectionsSection - rendered with:', customSections);
-  
   return (
     <div style={{ marginBottom: '1.5rem' }}>
       <h3 style={{ fontWeight: 700, fontSize: '1.25rem', marginBottom: 8, color: '#374151' }}>
@@ -1399,10 +1381,7 @@ const CustomSectionsSection = ({
             <input
               type="text"
               value={section.heading || ''}
-              onChange={(e) => {
-                console.log('CustomSectionsSection - heading onChange triggered:', e.target.value);
-                onHeadingChange(sectionIndex, e.target.value);
-              }}
+              onChange={(e) => onHeadingChange(sectionIndex, e.target.value)}
               placeholder="Section Heading"
               style={{
                 flex: 1,
@@ -1444,10 +1423,7 @@ const CustomSectionsSection = ({
               }}>
                 <textarea
                   value={detail || ''}
-                  onChange={(e) => {
-                    console.log('CustomSectionsSection - detail onChange triggered:', e.target.value);
-                    onDetailChange(sectionIndex, detailIndex, e.target.value);
-                  }}
+                  onChange={(e) => onDetailChange(sectionIndex, detailIndex, e.target.value)}
                   placeholder="Enter section detail..."
                   rows={2}
                   style={{
