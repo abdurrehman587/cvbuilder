@@ -69,6 +69,52 @@ const Form = ({ formData, setFormData, onChange, user }) => {
   useEffect(() => {
     if (!user || !user.isAdmin) return;
 
+    // Live search function defined inside useEffect
+    const performLiveSearch = async () => {
+      if (!user || !user.isAdmin) return;
+      if (!searchName && !searchPhone) {
+        setSearchResults([]);
+        setShowSearchResults(false);
+        return;
+      }
+
+      setIsSearching(true);
+      try {
+        if (!supabase || !supabase.from) {
+          return;
+        }
+
+        let query = supabase.from('cvs').select('*');
+
+        if (searchName) {
+          query = query.ilike('name', `%${searchName}%`);
+        }
+
+        if (searchPhone) {
+          const cleanPhone = searchPhone.replace(/[^0-9]/g, '');
+          query = query.ilike('phone', `%${cleanPhone}%`);
+        }
+
+        if (user && !user.isAdmin) {
+          query = query.eq('user_id', user.id);
+        }
+
+        const { data, error } = await query;
+
+        if (error) {
+          console.error("Live search error:", error);
+          return;
+        }
+
+        setSearchResults(data || []);
+        setShowSearchResults(data && data.length > 0);
+      } catch (error) {
+        console.error("Live search exception:", error);
+      } finally {
+        setIsSearching(false);
+      }
+    };
+
     const searchTimeout = setTimeout(() => {
       if (searchName || searchPhone) {
         performLiveSearch();
@@ -79,53 +125,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
     }, 300); // 300ms delay
 
     return () => clearTimeout(searchTimeout);
-  }, [searchName, searchPhone, user, performLiveSearch]);
-
-  // Live search function
-  const performLiveSearch = async () => {
-    if (!user || !user.isAdmin) return;
-    if (!searchName && !searchPhone) {
-      setSearchResults([]);
-      setShowSearchResults(false);
-      return;
-    }
-
-    setIsSearching(true);
-    try {
-      if (!supabase || !supabase.from) {
-        return;
-      }
-
-      let query = supabase.from('cvs').select('*');
-
-      if (searchName) {
-        query = query.ilike('name', `%${searchName}%`);
-      }
-
-      if (searchPhone) {
-        const cleanPhone = searchPhone.replace(/[^0-9]/g, '');
-        query = query.ilike('phone', `%${cleanPhone}%`);
-      }
-
-      if (user && !user.isAdmin) {
-        query = query.eq('user_id', user.id);
-      }
-
-      const { data, error } = await query;
-
-      if (error) {
-        console.error("Live search error:", error);
-        return;
-      }
-
-      setSearchResults(data || []);
-      setShowSearchResults(data && data.length > 0);
-    } catch (error) {
-      console.error("Live search exception:", error);
-    } finally {
-      setIsSearching(false);
-    }
-  };
+  }, [searchName, searchPhone, user]);
 
   // Fetch user's CV on mount or when user changes
   useEffect(() => {
