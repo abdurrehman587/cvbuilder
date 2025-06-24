@@ -407,13 +407,26 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const renderCustomSections = (customSections) => {
-    if (!customSections || customSections.length === 0) return null;
+    console.log('Template2PDF - renderCustomSections called with:', customSections);
+    
+    if (!customSections || customSections.length === 0) {
+      console.log('Template2PDF - renderCustomSections: no customSections or empty array');
+      return null;
+    }
 
     return customSections.map((section, sectionIndex) => {
+      console.log(`Template2PDF - processing section ${sectionIndex}:`, section);
+      
       if (!section.heading || !section.details || section.details.length === 0) {
+        console.log(`Template2PDF - section ${sectionIndex} invalid:`, {
+          hasHeading: !!section.heading,
+          hasDetails: !!section.details,
+          detailsLength: section.details?.length
+        });
         return null;
       }
 
+      console.log(`Template2PDF - rendering section ${sectionIndex}:`, section.heading);
       return (
         <div key={sectionIndex} style={styles.rightSection}>
           <h2 style={styles.rightSectionTitle}>{section.heading}</h2>
@@ -547,9 +560,17 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
         })()}
 
         {/* Custom Sections - rendered before references */}
-        {visibleSections.includes('customSections') && formData.customSections && formData.customSections.length > 0 && (
-          renderCustomSections(formData.customSections)
-        )}
+        {(() => {
+          console.log('Template2PDF - customSections check:', {
+            visibleSections,
+            hasCustomSections: visibleSections.includes('customSections'),
+            formDataCustomSections: formData.customSections,
+            customSectionsLength: formData.customSections?.length
+          });
+          return visibleSections.includes('customSections') && formData.customSections && formData.customSections.length > 0 && (
+            renderCustomSections(formData.customSections)
+          );
+        })()}
 
         {visibleSections.includes('references') && (
           <div style={styles.rightSection}>

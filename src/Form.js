@@ -62,6 +62,10 @@ const Form = ({ formData, setFormData, onChange, user }) => {
 
   useEffect(() => {
     if (formData && onChange) {
+      console.log('Form.js - calling onChange with formData:', formData);
+      console.log('Form.js - customSections in formData:', formData.customSections);
+      console.log('Form.js - customSections type:', typeof formData.customSections);
+      console.log('Form.js - customSections length:', formData.customSections?.length);
       onChange(formData);
     }
   }, [formData, onChange]);
@@ -397,58 +401,64 @@ const Form = ({ formData, setFormData, onChange, user }) => {
 
   // Custom Sections Handlers
   const handleAddCustomSection = () => {
+    console.log('Form.js - handleAddCustomSection called');
     const newSection = { heading: '', details: [''] };
-    setFormData({
-      ...formData,
-      customSections: [...formData.customSections, newSection]
-    });
+    const updatedCustomSections = [...formData.customSections, newSection];
+    console.log('Form.js - adding new section:', updatedCustomSections);
+    setFormData({ ...formData, customSections: updatedCustomSections });
   };
 
   const handleRemoveCustomSection = (sectionIndex) => {
-    const updatedSections = formData.customSections.filter((_, index) => index !== sectionIndex);
-    setFormData({
-      ...formData,
-      customSections: updatedSections
-    });
+    console.log('Form.js - handleRemoveCustomSection called:', sectionIndex);
+    const updatedCustomSections = formData.customSections.filter((_, index) => index !== sectionIndex);
+    console.log('Form.js - removing section:', updatedCustomSections);
+    setFormData({ ...formData, customSections: updatedCustomSections });
   };
 
   const handleCustomSectionHeadingChange = (sectionIndex, value) => {
-    const updatedSections = [...formData.customSections];
-    updatedSections[sectionIndex] = {
-      ...updatedSections[sectionIndex],
+    console.log('Form.js - handleCustomSectionHeadingChange called:', { sectionIndex, value });
+    const updatedCustomSections = [...formData.customSections];
+    updatedCustomSections[sectionIndex] = {
+      ...updatedCustomSections[sectionIndex],
       heading: value
     };
-    setFormData({
-      ...formData,
-      customSections: updatedSections
-    });
+    console.log('Form.js - updated customSections after heading change:', updatedCustomSections);
+    setFormData({ ...formData, customSections: updatedCustomSections });
   };
 
   const handleCustomSectionDetailChange = (sectionIndex, detailIndex, value) => {
-    const updatedSections = [...formData.customSections];
-    updatedSections[sectionIndex].details[detailIndex] = value;
-    setFormData({
-      ...formData,
-      customSections: updatedSections
-    });
+    console.log('Form.js - handleCustomSectionDetailChange called:', { sectionIndex, detailIndex, value });
+    const updatedCustomSections = [...formData.customSections];
+    updatedCustomSections[sectionIndex] = {
+      ...updatedCustomSections[sectionIndex],
+      details: updatedCustomSections[sectionIndex].details.map((detail, index) => 
+        index === detailIndex ? value : detail
+      )
+    };
+    console.log('Form.js - updated customSections after detail change:', updatedCustomSections);
+    setFormData({ ...formData, customSections: updatedCustomSections });
   };
 
   const handleAddCustomSectionDetail = (sectionIndex) => {
-    const updatedSections = [...formData.customSections];
-    updatedSections[sectionIndex].details.push('');
-    setFormData({
-      ...formData,
-      customSections: updatedSections
-    });
+    console.log('Form.js - handleAddCustomSectionDetail called:', sectionIndex);
+    const updatedCustomSections = [...formData.customSections];
+    updatedCustomSections[sectionIndex] = {
+      ...updatedCustomSections[sectionIndex],
+      details: [...updatedCustomSections[sectionIndex].details, '']
+    };
+    console.log('Form.js - adding detail:', updatedCustomSections);
+    setFormData({ ...formData, customSections: updatedCustomSections });
   };
 
   const handleRemoveCustomSectionDetail = (sectionIndex, detailIndex) => {
-    const updatedSections = [...formData.customSections];
-    updatedSections[sectionIndex].details.splice(detailIndex, 1);
-    setFormData({
-      ...formData,
-      customSections: updatedSections
-    });
+    console.log('Form.js - handleRemoveCustomSectionDetail called:', { sectionIndex, detailIndex });
+    const updatedCustomSections = [...formData.customSections];
+    updatedCustomSections[sectionIndex] = {
+      ...updatedCustomSections[sectionIndex],
+      details: updatedCustomSections[sectionIndex].details.filter((_, index) => index !== detailIndex)
+    };
+    console.log('Form.js - removing detail:', updatedCustomSections);
+    setFormData({ ...formData, customSections: updatedCustomSections });
   };
 
   const handleImageChange = (e) => {
@@ -1369,138 +1379,148 @@ const CustomSectionsSection = ({
   onRemoveDetail,
   onAddSection,
   onRemoveSection,
-}) => (
-  <div style={{ marginBottom: '1.5rem' }}>
-    <h3 style={{ fontWeight: 700, fontSize: '1.25rem', marginBottom: 8, color: '#374151' }}>
-      Add More Section
-    </h3>
-    {(customSections || []).map((section, sectionIndex) => (
-      <div key={sectionIndex} style={{ 
-        border: '1px solid #e5e7eb', 
-        borderRadius: '8px', 
-        padding: '1rem', 
-        marginBottom: '1rem',
-        backgroundColor: '#f9fafb'
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-          <input
-            type="text"
-            value={section.heading || ''}
-            onChange={(e) => onHeadingChange(sectionIndex, e.target.value)}
-            placeholder="Section Heading"
-            style={{
-              flex: 1,
-              padding: '0.5rem',
-              fontSize: '1rem',
-              border: '1px solid #d1d5db',
-              borderRadius: '4px',
-              marginRight: '1rem'
-            }}
-          />
-          <button
-            onClick={() => onRemoveSection(sectionIndex)}
-            disabled={(customSections || []).length <= 1}
-            className="remove-btn"
-            type="button"
-            title={(customSections || []).length <= 1 ? 'At least one section required' : 'Remove section'}
-            style={{
-              padding: '0.5rem 1rem',
-              backgroundColor: '#ef4444',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: (customSections || []).length <= 1 ? 'not-allowed' : 'pointer',
-              opacity: (customSections || []).length <= 1 ? 0.5 : 1
-            }}
-          >
-            Remove Section
-          </button>
+}) => {
+  console.log('CustomSectionsSection - rendered with:', customSections);
+  
+  return (
+    <div style={{ marginBottom: '1.5rem' }}>
+      <h3 style={{ fontWeight: 700, fontSize: '1.25rem', marginBottom: 8, color: '#374151' }}>
+        Add More Section
+      </h3>
+      {(customSections || []).map((section, sectionIndex) => (
+        <div key={sectionIndex} style={{ 
+          border: '1px solid #e5e7eb', 
+          borderRadius: '8px', 
+          padding: '1rem', 
+          marginBottom: '1rem',
+          backgroundColor: '#f9fafb'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <input
+              type="text"
+              value={section.heading || ''}
+              onChange={(e) => {
+                console.log('CustomSectionsSection - heading onChange triggered:', e.target.value);
+                onHeadingChange(sectionIndex, e.target.value);
+              }}
+              placeholder="Section Heading"
+              style={{
+                flex: 1,
+                padding: '0.5rem',
+                fontSize: '1rem',
+                border: '1px solid #d1d5db',
+                borderRadius: '4px',
+                marginRight: '1rem'
+              }}
+            />
+            <button
+              onClick={() => onRemoveSection(sectionIndex)}
+              disabled={(customSections || []).length <= 1}
+              className="remove-btn"
+              type="button"
+              title={(customSections || []).length <= 1 ? 'At least one section required' : 'Remove section'}
+              style={{
+                padding: '0.5rem 1rem',
+                backgroundColor: '#ef4444',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: (customSections || []).length <= 1 ? 'not-allowed' : 'pointer',
+                opacity: (customSections || []).length <= 1 ? 0.5 : 1
+              }}
+            >
+              Remove Section
+            </button>
+          </div>
+          
+          <div style={{ marginBottom: '1rem' }}>
+            <h4 style={{ margin: '0 0 0.5rem 0', color: '#374151', fontSize: '1rem' }}>Section Details:</h4>
+            {(section.details || []).map((detail, detailIndex) => (
+              <div key={detailIndex} style={{ 
+                display: 'flex', 
+                alignItems: 'flex-start', 
+                gap: '0.5rem', 
+                marginBottom: '0.5rem' 
+              }}>
+                <textarea
+                  value={detail || ''}
+                  onChange={(e) => {
+                    console.log('CustomSectionsSection - detail onChange triggered:', e.target.value);
+                    onDetailChange(sectionIndex, detailIndex, e.target.value);
+                  }}
+                  placeholder="Enter section detail..."
+                  rows={2}
+                  style={{
+                    flex: 1,
+                    padding: '0.5rem',
+                    fontSize: '0.875rem',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '4px',
+                    resize: 'vertical'
+                  }}
+                />
+                <button
+                  onClick={() => onRemoveDetail(sectionIndex, detailIndex)}
+                  disabled={(section.details || []).length <= 1}
+                  className="remove-btn"
+                  type="button"
+                  title={(section.details || []).length <= 1 ? 'At least one detail required' : 'Remove detail'}
+                  style={{
+                    padding: '0.5rem',
+                    backgroundColor: '#6b7280',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: (section.details || []).length <= 1 ? 'not-allowed' : 'pointer',
+                    opacity: (section.details || []).length <= 1 ? 0.5 : 1,
+                    fontSize: '0.75rem'
+                  }}
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+            <button
+              onClick={() => onAddDetail(sectionIndex)}
+              className="add-btn"
+              type="button"
+              style={{
+                padding: '0.5rem 1rem',
+                backgroundColor: '#22c55e',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '0.875rem',
+                marginTop: '0.5rem'
+              }}
+            >
+              Add Detail
+            </button>
+          </div>
         </div>
-        
-        <div style={{ marginBottom: '1rem' }}>
-          <h4 style={{ margin: '0 0 0.5rem 0', color: '#374151', fontSize: '1rem' }}>Section Details:</h4>
-          {(section.details || []).map((detail, detailIndex) => (
-            <div key={detailIndex} style={{ 
-              display: 'flex', 
-              alignItems: 'flex-start', 
-              gap: '0.5rem', 
-              marginBottom: '0.5rem' 
-            }}>
-              <textarea
-                value={detail || ''}
-                onChange={(e) => onDetailChange(sectionIndex, detailIndex, e.target.value)}
-                placeholder="Enter section detail..."
-                rows={2}
-                style={{
-                  flex: 1,
-                  padding: '0.5rem',
-                  fontSize: '0.875rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '4px',
-                  resize: 'vertical'
-                }}
-              />
-              <button
-                onClick={() => onRemoveDetail(sectionIndex, detailIndex)}
-                disabled={(section.details || []).length <= 1}
-                className="remove-btn"
-                type="button"
-                title={(section.details || []).length <= 1 ? 'At least one detail required' : 'Remove detail'}
-                style={{
-                  padding: '0.5rem',
-                  backgroundColor: '#6b7280',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: (section.details || []).length <= 1 ? 'not-allowed' : 'pointer',
-                  opacity: (section.details || []).length <= 1 ? 0.5 : 1,
-                  fontSize: '0.75rem'
-                }}
-              >
-                Remove
-              </button>
-            </div>
-          ))}
-          <button
-            onClick={() => onAddDetail(sectionIndex)}
-            className="add-btn"
-            type="button"
-            style={{
-              padding: '0.5rem 1rem',
-              backgroundColor: '#22c55e',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '0.875rem',
-              marginTop: '0.5rem'
-            }}
-          >
-            Add Detail
-          </button>
-        </div>
-      </div>
-    ))}
-    
-    <button
-      onClick={onAddSection}
-      className="add-btn"
-      type="button"
-      style={{
-        padding: '0.75rem 1.5rem',
-        backgroundColor: '#3b82f6',
-        color: 'white',
-        border: 'none',
-        borderRadius: '6px',
-        cursor: 'pointer',
-        fontSize: '1rem',
-        fontWeight: '600'
-      }}
-    >
-      Add New Section
-    </button>
-  </div>
-);
+      ))}
+      
+      <button
+        onClick={onAddSection}
+        className="add-btn"
+        type="button"
+        style={{
+          padding: '0.75rem 1.5rem',
+          backgroundColor: '#3b82f6',
+          color: 'white',
+          border: 'none',
+          borderRadius: '6px',
+          cursor: 'pointer',
+          fontSize: '1rem',
+          fontWeight: '600'
+        }}
+      >
+        Add New Section
+      </button>
+    </div>
+  );
+};
 
 export default Form;
 

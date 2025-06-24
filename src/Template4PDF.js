@@ -209,6 +209,14 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
     marginBottom: '0px',
   };
 
+  const listItemStyle = {
+    fontSize: '0.95rem',
+    lineHeight: 1.4,
+    color: '#4a5568',
+    marginBottom: '8px',
+    paddingLeft: '0',
+  };
+
   const downloadButtonStyle = {
     position: 'fixed',
     bottom: '30px',

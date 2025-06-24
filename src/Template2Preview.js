@@ -38,10 +38,21 @@ const hasSectionData = (formData, sectionKey) => {
     case 'hobbies':
       return formData.hobbies && formData.hobbies.length > 0;
     case 'customSections':
-      return formData.customSections && formData.customSections.length > 0 &&
+      const hasCustomSections = formData.customSections && formData.customSections.length > 0 &&
              formData.customSections.some(section => 
                section.heading && section.details && section.details.length > 0
              );
+      console.log('Template2Preview - customSections check:', {
+        customSections: formData.customSections,
+        hasCustomSections,
+        sections: formData.customSections?.map(s => ({
+          heading: s.heading,
+          detailsLength: s.details?.length,
+          hasHeading: !!s.heading,
+          hasDetails: s.details && s.details.length > 0
+        }))
+      });
+      return hasCustomSections;
     case 'references':
       return true; // Always show references section
     case 'otherInformation':
@@ -60,9 +71,18 @@ const Template2Preview = ({ formData }) => {
 
   // Update visible sections when formData changes
   useEffect(() => {
+    console.log('Template2Preview - formData changed:', formData);
+    console.log('Template2Preview - customSections:', formData.customSections);
+    
     const sectionsWithData = sectionList
-      .filter(section => hasSectionData(formData, section.key))
+      .filter(section => {
+        const hasData = hasSectionData(formData, section.key);
+        console.log(`Template2Preview - Section ${section.key}:`, hasData);
+        return hasData;
+      })
       .map(section => section.key);
+    
+    console.log('Template2Preview - sectionsWithData:', sectionsWithData);
     setVisibleSections(sectionsWithData);
   }, [formData]);
 
