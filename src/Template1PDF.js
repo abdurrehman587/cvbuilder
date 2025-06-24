@@ -387,6 +387,9 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
         localStorage.setItem('cv_downloaded', 'true'); // Persist download state
       }
       
+    } catch (error) {
+      console.error('PDF generation failed:', error);
+      alert('Failed to generate PDF. Please try again.');
     } finally {
       if (buttonRef.current) {
         buttonRef.current.style.display = 'block'; // ⭐ Button is shown again after download
