@@ -311,20 +311,45 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
   );
 
   const renderOtherInformation = (otherInfo) => {
-    if (!otherInfo) return null;
-    const checkedItems = otherInfo.filter(item => item.checked);
-    if (checkedItems.length === 0) return <p style={paragraphStyle}>No additional information provided.</p>;
+    if (!otherInfo || otherInfo.length === 0) return null;
+
+    const checkedItems = otherInfo.filter(item => 
+      (item.labelType === 'radio' && item.checked) ||
+      (item.labelType === 'checkbox' && item.checked)
+    );
+
+    if (checkedItems.length === 0) return null;
 
     return (
-      <ul style={{ ...listStyle, paddingLeft: '20px', listStyleType: 'disc' }}>
-        {checkedItems.map((item, index) => (
-          <li key={index} style={{ marginBottom: '4px' }}>
-            {item.text || 'Untitled Information'}
-          </li>
+      <ul style={listStyle}>
+        {checkedItems.map((item, idx) => (
+          <li key={idx} style={listItemStyle}>{item.label}</li>
         ))}
       </ul>
     );
   };
+
+  const renderCustomSections = (customSections) => {
+    if (!customSections || customSections.length === 0) return null;
+
+    return customSections.map((section, sectionIndex) => {
+      if (!section.heading || !section.details || section.details.length === 0) {
+        return null;
+      }
+
+      return (
+        <div key={sectionIndex} style={sectionStyle}>
+          <h3 style={sectionTitleStyle}>{section.heading}</h3>
+          <ul style={listStyle}>
+            {section.details.map((detail, detailIndex) => (
+              <li key={detailIndex} style={listItemStyle}>{detail}</li>
+            ))}
+          </ul>
+        </div>
+      );
+    });
+  };
+
   const generatePDF = async () => {
     if (paymentState === 'processing') return;
   
@@ -470,7 +495,7 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
 
   // This is where we will map our sections to the new layout
   const leftColumnSections = ['education', 'certifications', 'projects', 'hobbies'];
-  const rightColumnSections = ['objective', 'workExperience', 'skills', 'languages', 'references', 'otherInformation'];
+  const rightColumnSections = ['objective', 'workExperience', 'skills', 'languages', 'customSections', 'references', 'otherInformation'];
 
   const sectionData = {
     objective: renderObjective(objective),
@@ -481,6 +506,7 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
     projects: renderSimpleList(projects),
     languages: renderLanguages(allLanguages),
     hobbies: renderSimpleList(hobbies),
+    customSections: renderCustomSections(formData.customSections),
     references: renderReferences(references),
     otherInformation: renderOtherInformation(otherInformation),
   };

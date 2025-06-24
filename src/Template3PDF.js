@@ -452,33 +452,43 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
   );
 
   const renderOtherInformation = (otherInfo) => {
-    if (!otherInfo || !Array.isArray(otherInfo)) {
-      return null;
-    }
+    if (!otherInfo || otherInfo.length === 0) return null;
 
-    const selectedRadio = otherInfo.find(
-      (item) => item.labelType === 'radio' && item.checked && item.name === 'parentSpouse'
+    const checkedItems = otherInfo.filter(item => 
+      (item.labelType === 'radio' && item.checked) ||
+      (item.labelType === 'checkbox' && item.checked)
     );
 
-    const checkedCheckboxes = otherInfo.filter(
-      (item) => item.labelType === 'checkbox' && item.checked
-    );
+    if (checkedItems.length === 0) return null;
 
     return (
-      <div>
-        {selectedRadio && (
-          <p style={compactParagraphStyle}>
-            <strong>{selectedRadio.label}</strong> {selectedRadio.value || '-'}
-          </p>
-        )}
-
-        {checkedCheckboxes.map((item) => (
-          <p key={item.id} style={compactParagraphStyle}>
-            <strong>{item.label}</strong> {item.value || '-'}
-          </p>
+      <ul style={listStyle}>
+        {checkedItems.map((item, idx) => (
+          <li key={idx} style={listItemStyle}>{item.label}</li>
         ))}
-      </div>
+      </ul>
     );
+  };
+
+  const renderCustomSections = (customSections) => {
+    if (!customSections || customSections.length === 0) return null;
+
+    return customSections.map((section, sectionIndex) => {
+      if (!section.heading || !section.details || section.details.length === 0) {
+        return null;
+      }
+
+      return (
+        <div key={sectionIndex} style={sectionStyle}>
+          <h3 style={sectionTitleStyle}>{section.heading}</h3>
+          <ul style={listStyle}>
+            {section.details.map((detail, detailIndex) => (
+              <li key={detailIndex} style={listItemStyle}>{detail}</li>
+            ))}
+          </ul>
+        </div>
+      );
+    });
   };
 
   const generatePDF = async () => {
@@ -747,6 +757,11 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
               </div>
             ) : null;
           })()}
+
+          {/* Custom Sections - rendered before references */}
+          {visibleSections.includes('customSections') && formData.customSections && formData.customSections.length > 0 && (
+            renderCustomSections(formData.customSections)
+          )}
 
           {/* References */}
           {visibleSections.includes('references') && (() => {

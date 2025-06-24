@@ -385,33 +385,46 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const renderOtherInformation = (otherInfo) => {
-    if (!Array.isArray(otherInfo) || otherInfo.length === 0) return null;
+    if (!otherInfo || otherInfo.length === 0) return null;
 
-    const selectedRadio = otherInfo.find(
-      (item) => item.labelType === 'radio' && item.checked && item.name === 'parentSpouse'
+    const checkedItems = otherInfo.filter(item => 
+      (item.labelType === 'radio' && item.checked) ||
+      (item.labelType === 'checkbox' && item.checked)
     );
 
-    const checkedCheckboxes = otherInfo.filter(
-      (item) => item.labelType === 'checkbox' && item.checked
-    );
-
-    if (!selectedRadio && checkedCheckboxes.length === 0) return null;
+    if (checkedItems.length === 0) return null;
 
     return (
       <div style={styles.leftSection}>
         <h2 style={styles.leftSectionTitle}>Other Information</h2>
-        {selectedRadio && (
-          <div style={styles.contactInfo}>
-            <strong>{selectedRadio.label}:</strong>&nbsp;{selectedRadio.value || '-'}
-          </div>
-        )}
-        {checkedCheckboxes.map((item) => (
-          <div key={item.id} style={styles.contactInfo}>
-            <strong>{item.label}:</strong>&nbsp;{item.value || '-'}
-          </div>
-        ))}
+        <ul style={styles.list}>
+          {checkedItems.map((item, idx) => (
+            <li key={idx} style={styles.listItem}>{item.label}</li>
+          ))}
+        </ul>
       </div>
     );
+  };
+
+  const renderCustomSections = (customSections) => {
+    if (!customSections || customSections.length === 0) return null;
+
+    return customSections.map((section, sectionIndex) => {
+      if (!section.heading || !section.details || section.details.length === 0) {
+        return null;
+      }
+
+      return (
+        <div key={sectionIndex} style={styles.rightSection}>
+          <h2 style={styles.rightSectionTitle}>{section.heading}</h2>
+          <ul style={styles.list}>
+            {section.details.map((detail, detailIndex) => (
+              <li key={detailIndex} style={styles.listItem}>{detail}</li>
+            ))}
+          </ul>
+        </div>
+      );
+    });
   };
 
   // Get admin access status for use in render
@@ -532,6 +545,11 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
             </div>
           ) : null;
         })()}
+
+        {/* Custom Sections - rendered before references */}
+        {visibleSections.includes('customSections') && formData.customSections && formData.customSections.length > 0 && (
+          renderCustomSections(formData.customSections)
+        )}
 
         {visibleSections.includes('references') && (
           <div style={styles.rightSection}>

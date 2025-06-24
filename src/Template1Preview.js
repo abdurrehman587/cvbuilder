@@ -10,6 +10,7 @@ const sectionList = [
   { key: 'projects', title: 'Projects' },
   { key: 'languages', title: 'Languages' },
   { key: 'hobbies', title: 'Hobbies' },
+  { key: 'customSections', title: 'Custom Sections' },
   { key: 'references', title: 'References' },
   { key: 'otherInformation', title: 'Other Information' },  // Added new section
 ];
@@ -36,6 +37,11 @@ const hasSectionData = (formData, sectionKey) => {
               formData.customLanguages.some(l => l.selected && l.name.trim() !== ''));
     case 'hobbies':
       return formData.hobbies && formData.hobbies.length > 0;
+    case 'customSections':
+      return formData.customSections && formData.customSections.length > 0 &&
+             formData.customSections.some(section => 
+               section.heading && section.details && section.details.length > 0
+             );
     case 'references':
       return true; // Always show references section
     case 'otherInformation':
