@@ -43,6 +43,7 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
   };
 
   const handleSearchCV = async () => {
+    console.log('Admin Search Clicked:', { searchName, searchPhone });
     if (!searchName && !searchPhone) {
       toast.error("Please enter name or phone number to search.");
       return;
@@ -50,6 +51,11 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
 
     setIsSearching(true);
     try {
+      if (!supabase || !supabase.from) {
+        toast.error('Supabase client is not configured!');
+        setIsSearching(false);
+        return;
+      }
       let query = supabase.from('cvs').select('*');
 
       if (searchName) {
@@ -61,23 +67,24 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
       }
 
       const { data, error } = await query;
+      console.log('Supabase search result:', { data, error });
 
       if (error) {
-        console.error("Search error:", error);
-        toast.error("Failed to search CVs.");
+        toast.error("Failed to search CVs: " + error.message);
+        setIsSearching(false);
         return;
       }
 
       setSearchResults(data || []);
       
-      if (data.length === 0) {
+      if (!data || data.length === 0) {
         toast.info("No matching CVs found.");
       } else {
         toast.success(`Found ${data.length} CV(s)`);
       }
     } catch (error) {
       console.error("Search exception:", error);
-      toast.error("An error occurred while searching.");
+      toast.error("An error occurred while searching: " + error.message);
     } finally {
       setIsSearching(false);
     }
