@@ -440,19 +440,32 @@ const Form = ({ formData, setFormData, onChange, user }) => {
     }
   };
 
-  // Safe JSON parsing function
+  // Safe JSON parsing function - VERSION 2.0
   const safeJsonParse = (value, defaultValue = []) => {
-    if (!value) return defaultValue;
-    if (typeof value === 'object') return value; // Already parsed
+    console.log('safeJsonParse called with:', { value, type: typeof value, defaultValue });
+    if (!value) {
+      console.log('safeJsonParse: no value, returning default:', defaultValue);
+      return defaultValue;
+    }
+    if (typeof value === 'object') {
+      console.log('safeJsonParse: already object, returning as is:', value);
+      return value; // Already parsed
+    }
     if (typeof value === 'string') {
       try {
-        return JSON.parse(value);
+        console.log('safeJsonParse: attempting to parse string:', value);
+        const result = JSON.parse(value);
+        console.log('safeJsonParse: successfully parsed:', result);
+        return result;
       } catch (error) {
-        console.warn('Failed to parse JSON:', value, error);
+        console.warn('safeJsonParse: Failed to parse JSON:', value, error);
         // If it's a simple string, wrap it in an array
-        return [value];
+        const wrapped = [value];
+        console.log('safeJsonParse: wrapped string in array:', wrapped);
+        return wrapped;
       }
     }
+    console.log('safeJsonParse: returning default for unknown type:', defaultValue);
     return defaultValue;
   };
 
