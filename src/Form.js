@@ -549,7 +549,10 @@ const Form = ({ formData, setFormData, onChange, user }) => {
       }
 
       if (searchPhone) {
-        query = query.ilike('phone', `%${searchPhone}%`);
+        // Remove any formatting from phone number for more flexible search
+        const cleanPhone = searchPhone.replace(/[^0-9]/g, '');
+        console.log('Searching for phone:', cleanPhone);
+        query = query.ilike('phone', `%${cleanPhone}%`);
       }
 
       // For admin users, search all CVs (including those without user_id)
@@ -602,6 +605,34 @@ const Form = ({ formData, setFormData, onChange, user }) => {
     } catch (error) {
       console.error("Search exception:", error);
       toast.error("An error occurred while searching: " + error.message);
+    }
+  };
+
+  // Function to check all CVs in database (for debugging)
+  const checkAllCVs = async () => {
+    if (!user || !user.isAdmin) {
+      toast.error('Only admins can check all CVs.');
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.from('cvs').select('*');
+      console.log('All CVs in database:', data);
+      
+      if (error) {
+        toast.error("Failed to fetch CVs: " + error.message);
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        toast.info("No CVs found in database.");
+      } else {
+        toast.success(`Found ${data.length} CV(s) in database`);
+        console.log('CV details:', data.map(cv => ({ id: cv.id, name: cv.name, phone: cv.phone, email: cv.email })));
+      }
+    } catch (error) {
+      console.error("Check CVs exception:", error);
+      toast.error("An error occurred: " + error.message);
     }
   };
 
@@ -691,6 +722,24 @@ const Form = ({ formData, setFormData, onChange, user }) => {
         >
           🗑️ Clear
         </button>
+        {user?.isAdmin && (
+          <button
+            onClick={checkAllCVs}
+            style={{
+              padding: '0.75rem 1.5rem',
+              backgroundColor: '#8b5cf6',
+              color: 'white',
+              border: 'none',
+              borderRadius: '0.75rem',
+              fontSize: '1rem',
+              fontWeight: '600',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            📊 Check All CVs
+          </button>
+        )}
       </div>
 
 
