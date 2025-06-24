@@ -1,10 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import LandingPage from './landingpage';
+import supabase from './supabase';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const PaymentAdmin = ({ onAccessCVBuilder }) => {
   const [payments, setPayments] = useState([]);
   const [filter, setFilter] = useState('all'); // all, pending, approved, rejected
   const [showCVBuilder, setShowCVBuilder] = useState(false);
+  const [searchName, setSearchName] = useState('');
+  const [searchPhone, setSearchPhone] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
   const [adminUser] = useState({
     id: 'admin-user',
     email: 'admin@cvbuilder.com',
@@ -33,6 +40,62 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
     // Sort by timestamp (newest first)
     allPayments.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
     setPayments(allPayments);
+  };
+
+  const handleSearchCV = async () => {
+    if (!searchName && !searchPhone) {
+      toast.error("Please enter name or phone number to search.");
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      let query = supabase.from('cvs').select('*');
+
+      if (searchName) {
+        query = query.ilike('name', `%${searchName}%`);
+      }
+
+      if (searchPhone) {
+        query = query.ilike('phone', `%${searchPhone}%`);
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error("Search error:", error);
+        toast.error("Failed to search CVs.");
+        return;
+      }
+
+      setSearchResults(data || []);
+      
+      if (data.length === 0) {
+        toast.info("No matching CVs found.");
+      } else {
+        toast.success(`Found ${data.length} CV(s)`);
+      }
+    } catch (error) {
+      console.error("Search exception:", error);
+      toast.error("An error occurred while searching.");
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleLoadCV = (cvData) => {
+    // Store the CV data in localStorage for the CV Builder to access
+    localStorage.setItem('admin_selected_cv', JSON.stringify(cvData));
+    localStorage.setItem('admin_cv_access', 'true');
+    localStorage.setItem('admin_user', JSON.stringify(adminUser));
+    setShowCVBuilder(true);
+    toast.success(`Loading CV for ${cvData.name || 'Unknown User'}...`);
+  };
+
+  const clearSearch = () => {
+    setSearchName('');
+    setSearchPhone('');
+    setSearchResults([]);
   };
 
   const approvePayment = (paymentId) => {
@@ -89,6 +152,11 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
     // Clear admin access flag
     localStorage.removeItem('admin_cv_access');
     localStorage.removeItem('admin_user');
+    localStorage.removeItem('admin_selected_cv');
+    // Clear search results
+    setSearchResults([]);
+    setSearchName('');
+    setSearchPhone('');
   };
 
   const filteredPayments = payments.filter(payment => {
@@ -203,6 +271,18 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
       padding: '20px',
       fontFamily: "'Inter', sans-serif"
     }}>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
+      
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
@@ -269,6 +349,155 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
           Click "Access CV Builder" to use the CV builder app without any payment restrictions. 
           You can create, edit, and download CVs freely as an admin user.
         </p>
+      </div>
+
+      {/* CV Search Section */}
+      <div style={{
+        marginBottom: '20px',
+        padding: '20px',
+        backgroundColor: '#fef3c7',
+        borderRadius: '8px',
+        border: '1px solid #f59e0b'
+      }}>
+        <h3 style={{ margin: '0 0 15px 0', color: '#92400e' }}>🔍 Search & Load CVs</h3>
+        <p style={{ margin: '0 0 15px 0', color: '#92400e', fontSize: '14px' }}>
+          Search for existing CVs by name or phone number. Click "Load CV" to open the CV in the builder with all data pre-filled.
+        </p>
+        
+        <div style={{
+          display: 'flex',
+          gap: '12px',
+          marginBottom: '15px',
+          flexWrap: 'wrap',
+          alignItems: 'center'
+        }}>
+          <input
+            type="text"
+            placeholder="Search by name..."
+            value={searchName}
+            onChange={(e) => setSearchName(e.target.value)}
+            style={{
+              flex: '1',
+              minWidth: '200px',
+              padding: '10px 12px',
+              fontSize: '14px',
+              borderRadius: '6px',
+              border: '1px solid #d1d5db',
+              fontFamily: 'Inter, sans-serif',
+              outline: 'none'
+            }}
+          />
+          <input
+            type="text"
+            placeholder="Search by phone..."
+            value={searchPhone}
+            onChange={(e) => setSearchPhone(e.target.value)}
+            style={{
+              flex: '1',
+              minWidth: '200px',
+              padding: '10px 12px',
+              fontSize: '14px',
+              borderRadius: '6px',
+              border: '1px solid #d1d5db',
+              fontFamily: 'Inter, sans-serif',
+              outline: 'none'
+            }}
+          />
+          <button
+            onClick={handleSearchCV}
+            disabled={isSearching}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: isSearching ? '#9ca3af' : '#f59e0b',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: isSearching ? 'not-allowed' : 'pointer',
+              fontSize: '14px',
+              fontWeight: '600',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            {isSearching ? '🔍 Searching...' : '🔍 Search CVs'}
+          </button>
+          <button
+            onClick={clearSearch}
+            style={{
+              padding: '10px 16px',
+              backgroundColor: '#6b7280',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: '600'
+            }}
+          >
+            🗑️ Clear
+          </button>
+        </div>
+
+        {/* Search Results */}
+        {searchResults.length > 0 && (
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '6px',
+            border: '1px solid #e5e7eb',
+            overflow: 'hidden'
+          }}>
+            <div style={{
+              padding: '12px',
+              backgroundColor: '#f9fafb',
+              borderBottom: '1px solid #e5e7eb',
+              fontWeight: '600',
+              color: '#374151'
+            }}>
+              Search Results ({searchResults.length})
+            </div>
+            <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+              {searchResults.map((cv, index) => (
+                <div
+                  key={cv.id}
+                  style={{
+                    padding: '12px',
+                    borderBottom: '1px solid #f3f4f6',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    backgroundColor: index % 2 === 0 ? 'white' : '#f9fafb'
+                  }}
+                >
+                  <div>
+                    <div style={{ fontWeight: '600', color: '#111827', marginBottom: '4px' }}>
+                      {cv.name || 'No Name'}
+                    </div>
+                    <div style={{ fontSize: '14px', color: '#6b7280' }}>
+                      📞 {cv.phone || 'No Phone'} | 📧 {cv.email || 'No Email'}
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#9ca3af', marginTop: '2px' }}>
+                      ID: {cv.id} | Created: {new Date(cv.created_at).toLocaleDateString()}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleLoadCV(cv)}
+                    style={{
+                      padding: '8px 16px',
+                      backgroundColor: '#22c55e',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      fontWeight: '600'
+                    }}
+                  >
+                    📝 Load CV
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Filter Buttons */}

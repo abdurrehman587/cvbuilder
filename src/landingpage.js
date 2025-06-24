@@ -116,6 +116,14 @@ const LandingPage = ({ user }) => {
   useEffect(() => {
     const adminAccess = localStorage.getItem('admin_cv_access');
     setIsAdminAccess(adminAccess === 'true');
+    
+    // If admin is accessing and has selected a CV, automatically select Template 1
+    if (adminAccess === 'true') {
+      const adminSelectedCV = localStorage.getItem('admin_selected_cv');
+      if (adminSelectedCV) {
+        setSelectedTemplate('Template 1');
+      }
+    }
   }, []);
 
   // Listen for back to templates event from admin panel

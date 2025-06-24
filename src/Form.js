@@ -67,6 +67,44 @@ const Form = ({ formData, setFormData, onChange, user }) => {
     const fetchUserCV = async () => {
       if (!user) return;
       
+      // Check if admin has selected a CV to load
+      const adminSelectedCV = localStorage.getItem('admin_selected_cv');
+      if (user.isAdmin && adminSelectedCV) {
+        try {
+          const cvData = JSON.parse(adminSelectedCV);
+          console.log('Loading admin-selected CV:', cvData);
+          
+          setCurrentCvId(cvData.id);
+          setFormData({
+            image: null,
+            imageUrl: cvData.image_url || '',
+            name: cvData.name || '',
+            phone: cvData.phone || '',
+            email: cvData.email || '',
+            address: cvData.address || '',
+            objective: JSON.parse(cvData.objective || '[]'),
+            education: JSON.parse(cvData.education || '[]'),
+            workExperience: JSON.parse(cvData.work_experience || '[]'),
+            skills: JSON.parse(cvData.skills || '[]'),
+            certifications: JSON.parse(cvData.certifications || '[]'),
+            projects: JSON.parse(cvData.projects || '[]'),
+            languages: JSON.parse(cvData.languages || '[]'),
+            customLanguages: [],
+            hobbies: JSON.parse(cvData.hobbies || '[]'),
+            references: JSON.parse(cvData.references || '[]'),
+            otherInformation: JSON.parse(cvData.other_information || '[]'),
+          });
+          
+          // Clear the admin selected CV from localStorage after loading
+          localStorage.removeItem('admin_selected_cv');
+          toast.success('CV loaded successfully from admin search!');
+          return;
+        } catch (error) {
+          console.error('Error parsing admin-selected CV:', error);
+          localStorage.removeItem('admin_selected_cv');
+        }
+      }
+      
       // Skip auto-loading for admin users - they should use search instead
       if (user.isAdmin) {
         console.log('Admin user detected - skipping auto CV load. Use search to find CVs.');
