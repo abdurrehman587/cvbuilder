@@ -23,21 +23,22 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
   // Check if download was already completed for this session
   React.useEffect(() => {
     const adminAccess = localStorage.getItem('admin_cv_access');
-    console.log('Template2PDF useEffect Debug:', { adminAccess, downloadCompleted });
+    console.log('Template2PDF useEffect Debug:', { adminAccess });
     
     if (adminAccess === 'true') {
-      // Admin users can download unlimited times
-      console.log('Setting downloadCompleted to false for admin user');
+      // Admin users can download unlimited times - never set downloadCompleted to true
+      console.log('Admin user detected - ensuring downloadCompleted stays false');
       setDownloadCompleted(false);
       return;
     }
     
+    // Only check localStorage for regular users
     const hasDownloaded = localStorage.getItem('cv_downloaded');
     console.log('Regular user hasDownloaded:', hasDownloaded);
     if (hasDownloaded) {
       setDownloadCompleted(true);
     }
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const styles = {
     container: {
@@ -234,7 +235,8 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
         setDownloadCompleted(true);
         localStorage.setItem('cv_downloaded', 'true'); // Persist download state
       } else {
-        console.log('Admin user - not setting downloadCompleted');
+        console.log('Admin user - ensuring downloadCompleted stays false');
+        setDownloadCompleted(false); // Force reset for admin users
       }
       
     } catch (error) {
@@ -509,55 +511,67 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
       {(() => {
         const isAdmin = localStorage.getItem('admin_cv_access') === 'true';
         console.log('Template2PDF Debug:', { isAdmin, downloadCompleted });
-        return isAdmin ? (
-          <button
-            ref={buttonRef}
-            type="button"
-            onClick={handleDownloadClick}
-            style={{
-              position: 'absolute',
-              bottom: '20px',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              padding: '10px 20px',
-              fontSize: '1rem',
-              borderRadius: '5px',
-              border: 'none',
-              backgroundColor: '#2ecc71',
-              color: 'white',
-              cursor: 'pointer',
-              transition: 'background-color 0.3s ease',
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#27ae60')}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#2ecc71')}
-          >
-            {getDownloadButtonText()}
-          </button>
-        ) : !downloadCompleted ? (
-          <button
-            ref={buttonRef}
-            type="button"
-            onClick={handleDownloadClick}
-            style={{
-              position: 'absolute',
-              bottom: '20px',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              padding: '10px 20px',
-              fontSize: '1rem',
-              borderRadius: '5px',
-              border: 'none',
-              backgroundColor: '#2ecc71',
-              color: 'white',
-              cursor: 'pointer',
-              transition: 'background-color 0.3s ease',
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#27ae60')}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#2ecc71')}
-          >
-            {getDownloadButtonText()}
-          </button>
-        ) : (
+        
+        // For admin users, ALWAYS show the download button regardless of downloadCompleted state
+        if (isAdmin) {
+          return (
+            <button
+              ref={buttonRef}
+              type="button"
+              onClick={handleDownloadClick}
+              style={{
+                position: 'absolute',
+                bottom: '20px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                padding: '10px 20px',
+                fontSize: '1rem',
+                borderRadius: '5px',
+                border: 'none',
+                backgroundColor: '#2ecc71',
+                color: 'white',
+                cursor: 'pointer',
+                transition: 'background-color 0.3s ease',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#27ae60')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#2ecc71')}
+            >
+              {getDownloadButtonText()}
+            </button>
+          );
+        }
+        
+        // For regular users, show button only if not downloaded
+        if (!downloadCompleted) {
+          return (
+            <button
+              ref={buttonRef}
+              type="button"
+              onClick={handleDownloadClick}
+              style={{
+                position: 'absolute',
+                bottom: '20px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                padding: '10px 20px',
+                fontSize: '1rem',
+                borderRadius: '5px',
+                border: 'none',
+                backgroundColor: '#2ecc71',
+                color: 'white',
+                cursor: 'pointer',
+                transition: 'background-color 0.3s ease',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#27ae60')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#2ecc71')}
+            >
+              {getDownloadButtonText()}
+            </button>
+          );
+        }
+        
+        // For regular users who have downloaded, show success message
+        return (
           <div style={{
             position: 'absolute',
             bottom: '20px',
