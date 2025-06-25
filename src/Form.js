@@ -804,6 +804,8 @@ const Form = ({ formData, setFormData, onChange, user }) => {
     console.log('Loading CV from search:', cv);
     console.log('Search CV - Raw custom_sections:', cv.custom_sections);
     console.log('Search CV - Type of custom_sections:', typeof cv.custom_sections);
+    console.log('Search CV - Raw other_information:', cv.other_information);
+    console.log('Search CV - Type of other_information:', typeof cv.other_information);
     
     // Ensure admin access flag is maintained for admin users
     if (user?.isAdmin) {
