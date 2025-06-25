@@ -397,11 +397,11 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
     console.log('Template2PDF - renderOtherInformation items to show:', itemsToShow);
 
     return (
-      <div style={styles.leftSection}>
-        <h2 style={styles.leftSectionTitle}>Other Information</h2>
-        <ul style={styles.list}>
+      <div style={styles.rightSection}>
+        <h2 style={styles.rightSectionTitle}>Other Information</h2>
+        <ul style={{ paddingLeft: '20px', marginTop: '10px' }}>
           {itemsToShow.map((item, idx) => (
-            <li key={idx} style={styles.listItem}>
+            <li key={idx} style={{ ...styles.listItem, marginLeft: '0px' }}>
               {item.label} {item.value || '-'}
             </li>
           ))}
