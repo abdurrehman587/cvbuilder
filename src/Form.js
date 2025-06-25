@@ -54,13 +54,6 @@ const Form = ({ formData, setFormData, onChange, user }) => {
   const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
-    if (!formData) {
-      setFormData(defaultFormData);
-    }
-  }, [formData, setFormData]);
-
-
-  useEffect(() => {
     if (formData && onChange) {
       onChange(formData);
     }
@@ -88,57 +81,31 @@ const Form = ({ formData, setFormData, onChange, user }) => {
         }
 
         // Try using RPC function for search
-        console.log('Trying RPC search...');
         let searchParams = {};
         if (searchName) searchParams.p_name = searchName;
         if (searchPhone) searchParams.p_phone = searchPhone.replace(/[^0-9]/g, '');
         
-        console.log('RPC search parameters:', searchParams);
         const { data, error } = await supabase.rpc('admin_search_cvs', searchParams);
-        console.log('RPC search result:', { data, error, dataLength: data?.length });
-
-        // Add detailed debugging for search results
-        if (data && data.length > 0) {
-          console.log('RPC search - First result structure:', Object.keys(data[0]));
-          console.log('RPC search - First result custom_sections:', data[0].custom_sections);
-          console.log('RPC search - First result custom_sections type:', typeof data[0].custom_sections);
-          console.log('RPC search - First result custom_sections JSON:', JSON.stringify(data[0].custom_sections));
-          console.log('RPC search - Full first result:', data[0]);
-        }
 
         if (error) {
           console.error("RPC search error:", error);
           // Fallback to direct table access
-          console.log('Falling back to direct table search...');
           let query = supabase.from('cvs').select('*');
 
           if (searchName) {
             query = query.ilike('name', `%${searchName}%`);
-            console.log('Added name filter:', `%${searchName}%`);
           }
 
           if (searchPhone) {
             const cleanPhone = searchPhone.replace(/[^0-9]/g, '');
             query = query.ilike('phone', `%${cleanPhone}%`);
-            console.log('Added phone filter:', `%${cleanPhone}%`);
           }
 
           if (user && !user.isAdmin) {
             query = query.eq('user_id', user.id);
-            console.log('Added user filter for non-admin');
           }
 
-          console.log('Executing direct search query...');
           const { data: directData, error: directError } = await query;
-          console.log('Direct search result:', { data: directData, error: directError, dataLength: directData?.length });
-
-          // Add detailed debugging for direct search results
-          if (directData && directData.length > 0) {
-            console.log('Direct search - First result structure:', Object.keys(directData[0]));
-            console.log('Direct search - First result custom_sections:', directData[0].custom_sections);
-            console.log('Direct search - First result custom_sections type:', typeof directData[0].custom_sections);
-            console.log('Direct search - First result custom_sections JSON:', JSON.stringify(directData[0].custom_sections));
-          }
 
           if (directError) {
             console.error("Direct search error:", directError);
@@ -147,13 +114,11 @@ const Form = ({ formData, setFormData, onChange, user }) => {
 
           setSearchResults(directData || []);
           setShowSearchResults(directData && directData.length > 0);
-          console.log('Search results updated (direct):', { results: directData?.length, showResults: directData && directData.length > 0 });
           return;
         }
 
         setSearchResults(data || []);
         setShowSearchResults(data && data.length > 0);
-        console.log('Search results updated (RPC):', { results: data?.length, showResults: data && data.length > 0 });
       } catch (error) {
         console.error("Live search exception:", error);
       } finally {
@@ -370,17 +335,6 @@ const Form = ({ formData, setFormData, onChange, user }) => {
     fetchUserCV();
     // eslint-disable-next-line
   }, [user]);
-
-  // Ensure otherInformation is always properly set
-  useEffect(() => {
-    if (formData && (!formData.otherInformation || formData.otherInformation.length === 0)) {
-      console.log('Form - Fixing undefined otherInformation, setting to default');
-      setFormData(prev => ({
-        ...prev,
-        otherInformation: defaultFormData.otherInformation
-      }));
-    }
-  }, [formData, setFormData]);
 
   const handleChange = (field) => (e) => {
     setFormData({ ...formData, [field]: e.target.value });
@@ -834,34 +788,18 @@ const Form = ({ formData, setFormData, onChange, user }) => {
 
   // Function to load CV from search results
   const loadCVFromSearch = (cv) => {
-    console.log('=== LOAD CV FROM SEARCH STARTED ===');
-    console.log('Loading CV from search:', cv);
-    console.log('Search CV - Raw custom_sections:', cv.custom_sections);
-    console.log('Search CV - Type of custom_sections:', typeof cv.custom_sections);
-    console.log('Search CV - Raw other_information:', cv.other_information);
-    console.log('Search CV - Type of other_information:', typeof cv.other_information);
+    console.log('Loading CV from search:', cv.name);
     
     try {
       // Parse other_information data
       const parsedOtherInformation = safeJsonParse(cv.other_information, defaultFormData.otherInformation);
-      console.log('Search CV - Parsed other information:', parsedOtherInformation);
       
       // Ensure admin access flag is maintained for admin users
       if (user?.isAdmin) {
         localStorage.setItem('admin_cv_access', 'true');
-        console.log('Admin access flag maintained for CV loading from search');
       }
       
       const parsedCustomSections = safeJsonParse(cv.custom_sections, []);
-      console.log('Search CV - Parsed custom sections:', parsedCustomSections);
-      console.log('Search CV - Parsed custom sections type:', typeof parsedCustomSections);
-      console.log('Search CV - Parsed custom sections length:', parsedCustomSections?.length);
-      console.log('Search CV - Parsed custom sections structure:', parsedCustomSections?.map(s => ({
-        heading: s?.heading,
-        details: s?.details,
-        detailsLength: s?.details?.length,
-        hasValidData: s?.heading && s?.details && s?.details.length > 0
-      })));
       
       // Validate custom sections data - be more lenient to preserve sections for editing
       const validatedCustomSections = Array.isArray(parsedCustomSections) 
@@ -878,9 +816,6 @@ const Form = ({ formData, setFormData, onChange, user }) => {
           }))
         : [];
       
-      console.log('Search CV - Validated custom sections:', validatedCustomSections);
-      
-      console.log('Setting currentCvId to:', cv.id);
       setCurrentCvId(cv.id);
       
       const newFormData = {
@@ -904,55 +839,33 @@ const Form = ({ formData, setFormData, onChange, user }) => {
         otherInformation: parsedOtherInformation || defaultFormData.otherInformation,
       };
       
-      console.log('Setting formData with:', newFormData);
       setFormData(newFormData);
-      console.log('FormData set successfully');
-      console.log('FormData after setFormData:', newFormData);
-
-      // Force a re-render by updating a state variable
       setCurrentCvId(cv.id);
-      console.log('Current CV ID set to:', cv.id);
-
-      console.log('Search CV - Form data set with otherInformation:', parsedOtherInformation || defaultFormData.otherInformation);
 
       setShowSearchResults(false);
       setSearchName('');
       setSearchPhone('');
       toast.success(`CV loaded successfully for ${cv.name || 'Unknown User'}`);
-      console.log('=== LOAD CV FROM SEARCH COMPLETED ===');
-      
-      // Add a small delay and check if formData was actually updated
-      setTimeout(() => {
-        console.log('=== CHECKING FORM DATA AFTER LOAD ===');
-        console.log('Current formData state:', formData);
-        console.log('Current currentCvId:', currentCvId);
-      }, 100);
     } catch (error) {
-      console.error('=== ERROR IN LOAD CV FROM SEARCH ===');
-      console.error('Error details:', error);
+      console.error('Error loading CV:', error);
       toast.error('Error loading CV: ' + error.message);
     }
   };
 
   // Add debugging for formData.customSections changes
   React.useEffect(() => {
-    console.log('Form - useEffect - formData.customSections changed:', formData.customSections);
-    console.log('Form - useEffect - formData.customSections type:', typeof formData.customSections);
-    console.log('Form - useEffect - formData.customSections length:', formData.customSections?.length);
-    console.log('Form - useEffect - formData.customSections JSON:', JSON.stringify(formData.customSections));
-    
-    // Add stack trace to see where the change is coming from
-    console.trace('Form - customSections change stack trace');
+    // Keep minimal debugging for troubleshooting
+    if (formData.customSections && formData.customSections.length > 0) {
+      console.log('Form - customSections loaded:', formData.customSections.length, 'sections');
+    }
   }, [formData.customSections]);
 
   // Add debugging for entire formData changes
   React.useEffect(() => {
-    console.log('Form - useEffect - entire formData changed:', {
-      hasCustomSections: 'customSections' in formData,
-      customSectionsValue: formData.customSections,
-      customSectionsType: typeof formData.customSections,
-      formDataKeys: Object.keys(formData)
-    });
+    // Keep minimal debugging for troubleshooting
+    if (formData.name && formData.name.length > 0) {
+      console.log('Form - CV loaded:', formData.name);
+    }
   }, [formData]);
 
   // Add debugging for form values
