@@ -257,6 +257,13 @@ const Form = ({ formData, setFormData, onChange, user }) => {
           
           const parsedCustomSections = safeJsonParse(data.custom_sections, [{ heading: '', details: [''] }]);
           console.log('Parsed custom sections:', parsedCustomSections);
+          console.log('Parsed custom sections type:', typeof parsedCustomSections);
+          console.log('Parsed custom sections length:', parsedCustomSections?.length);
+          console.log('Parsed custom sections structure:', parsedCustomSections?.map(s => ({
+            heading: s?.heading,
+            details: s?.details,
+            detailsLength: s?.details?.length
+          })));
           
           setCurrentCvId(data.id);
           setFormData({
@@ -517,12 +524,24 @@ const Form = ({ formData, setFormData, onChange, user }) => {
     if (typeof value === 'string') {
       try {
         const parsed = JSON.parse(value);
+        
         // Special handling for custom sections to ensure proper structure
-        if (Array.isArray(parsed) && parsed.length > 0 && parsed[0] && typeof parsed[0] === 'object') {
-          // This looks like custom sections data
-          console.log('Parsing custom sections data:', parsed);
+        if (Array.isArray(parsed)) {
+          // Check if this looks like custom sections data (array of objects with heading and details)
+          if (parsed.length > 0 && parsed[0] && typeof parsed[0] === 'object' && 
+              (parsed[0].heading !== undefined || parsed[0].details !== undefined)) {
+            console.log('Parsing custom sections data:', parsed);
+            return parsed;
+          }
+          // Regular array data
           return parsed;
         }
+        
+        // If parsed is an object but not an array, return as is
+        if (typeof parsed === 'object') {
+          return parsed;
+        }
+        
         return parsed;
       } catch (error) {
         console.warn('Failed to parse JSON:', value, error);
@@ -715,6 +734,8 @@ const Form = ({ formData, setFormData, onChange, user }) => {
     
     const parsedCustomSections = safeJsonParse(cv.custom_sections, [{ heading: '', details: [''] }]);
     console.log('Search CV - Parsed custom sections:', parsedCustomSections);
+    console.log('Search CV - Parsed custom sections type:', typeof parsedCustomSections);
+    console.log('Search CV - Parsed custom sections length:', parsedCustomSections?.length);
     
     // Set admin access flag if user is admin
     if (user?.isAdmin) {
