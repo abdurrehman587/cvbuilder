@@ -449,60 +449,16 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
 
   return (
     <div ref={containerRef} style={{ ...styles.container, paddingBottom: '50px' }}>
-      <div style={styles.leftColumn}>
-        {formData.image ? (
-          <img src={URL.createObjectURL(formData.image)} alt="Profile" style={styles.photo} />
-        ) : formData.imageUrl ? (
-          <img src={formData.imageUrl} alt="Profile" style={styles.photo} />
-        ) : (
-          <div style={styles.noPhoto}>No Photo</div>
-        )}
+      <div style={{ ...styles.rightColumn, width: '100%' }}>
+        <div style={styles.rightHeader}>
+          <h1 style={styles.name}>{formData.name || 'Your Name'}</h1>
+        </div>
 
-        <div style={styles.leftSection}>
-          <h2 style={styles.leftSectionTitle}>Contact</h2>
+        {/* Contact Information moved to top */}
+        <div style={{ marginBottom: '20px' }}>
           {formData.phone && <p style={styles.contactInfo}><span style={styles.contactIcon}>📞</span>{formData.phone}</p>}
           {formData.email && <p style={styles.contactInfo}><span style={styles.contactIcon}>✉️</span>{formData.email}</p>}
           {formData.address && <p style={styles.contactInfo}><span style={styles.contactIcon}>📍</span>{formData.address}</p>}
-        </div>
-
-        {(() => {
-          console.log('Template2PDF - otherInformation check:', {
-            visibleSections,
-            hasOtherInformation: visibleSections.includes('otherInformation'),
-            formDataOtherInformation: formData.otherInformation,
-            otherInformationLength: formData.otherInformation?.length
-          });
-          return visibleSections.includes('otherInformation') && renderOtherInformation(formData.otherInformation);
-        })()}
-
-        {visibleSections.includes('skills') && formData.skills?.length > 0 && (
-          <div style={styles.leftSection}>
-            <h2 style={styles.leftSectionTitle}>Skills</h2>
-            {renderSkills(formData.skills)}
-          </div>
-        )}
-
-        {visibleSections.includes('languages') && formData.languages?.length > 0 && (
-          <div style={styles.leftSection}>
-            <h2 style={styles.leftSectionTitle}>Languages</h2>
-            {renderLanguages(formData.languages || [], formData.customLanguages || [])}
-          </div>
-        )}
-
-        {visibleSections.includes('hobbies') && formData.hobbies && formData.hobbies.length > 0 && (() => {
-          const hobbiesList = renderSimpleList(formData.hobbies);
-          return hobbiesList ? (
-            <div style={styles.leftSection}>
-              <h2 style={styles.leftSectionTitle}>Hobbies</h2>
-              {hobbiesList}
-            </div>
-          ) : null;
-        })()}
-      </div>
-
-      <div style={styles.rightColumn}>
-        <div style={styles.rightHeader}>
-          <h1 style={styles.name}>{formData.name || 'Your Name'}</h1>
         </div>
 
         {visibleSections.includes('objective') && formData.objective && (
@@ -535,7 +491,6 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
           </div>
         )}
 
-
         {visibleSections.includes('education') && formData.education?.length > 0 && (
           <div style={styles.rightSection}>
             <h2 style={styles.rightSectionTitle}>Education</h2>
@@ -550,6 +505,30 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
             ))}
           </div>
         )}
+
+        {visibleSections.includes('skills') && formData.skills?.length > 0 && (
+          <div style={styles.rightSection}>
+            <h2 style={styles.rightSectionTitle}>Skills</h2>
+            {renderSkills(formData.skills)}
+          </div>
+        )}
+
+        {visibleSections.includes('languages') && formData.languages?.length > 0 && (
+          <div style={styles.rightSection}>
+            <h2 style={styles.rightSectionTitle}>Languages</h2>
+            {renderLanguages(formData.languages || [], formData.customLanguages || [])}
+          </div>
+        )}
+
+        {visibleSections.includes('hobbies') && formData.hobbies && formData.hobbies.length > 0 && (() => {
+          const hobbiesList = renderSimpleList(formData.hobbies);
+          return hobbiesList ? (
+            <div style={styles.rightSection}>
+              <h2 style={styles.rightSectionTitle}>Hobbies</h2>
+              {hobbiesList}
+            </div>
+          ) : null;
+        })()}
 
         {visibleSections.includes('projects') && formData.projects && formData.projects.length > 0 && (() => {
           const projectsList = renderSimpleList(formData.projects);
@@ -569,6 +548,17 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
               {certificationsList}
             </div>
           ) : null;
+        })()}
+
+        {/* Other Information section */}
+        {(() => {
+          console.log('Template2PDF - otherInformation check:', {
+            visibleSections,
+            hasOtherInformation: visibleSections.includes('otherInformation'),
+            formDataOtherInformation: formData.otherInformation,
+            otherInformationLength: formData.otherInformation?.length
+          });
+          return visibleSections.includes('otherInformation') && renderOtherInformation(formData.otherInformation);
         })()}
 
         {/* Custom Sections - rendered before references */}
