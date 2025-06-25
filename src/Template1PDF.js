@@ -24,6 +24,7 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentCompleted, setPaymentCompleted] = useState(false);
   const [downloadCompleted, setDownloadCompleted] = useState(false);
+  const [isAdminUser, setIsAdminUser] = useState(false);
 
   // Check if download was already completed for this session
   React.useEffect(() => {
@@ -31,6 +32,8 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     const adminAccess = localStorage.getItem('admin_cv_access');
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
+    
+    setIsAdminUser(isAdmin);
     
     if (isAdmin) {
       // Admin users can download unlimited times
@@ -43,6 +46,25 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
       setDownloadCompleted(true);
     }
   }, []);
+
+  // Add a periodic check to maintain admin status
+  React.useEffect(() => {
+    const checkAdminStatus = () => {
+      const adminAccess = localStorage.getItem('admin_cv_access');
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
+      
+      if (isAdmin !== isAdminUser) {
+        setIsAdminUser(isAdmin);
+        console.log('Admin status updated:', isAdmin);
+      }
+    };
+
+    // Check every 5 seconds
+    const interval = setInterval(checkAdminStatus, 5000);
+    
+    return () => clearInterval(interval);
+  }, [isAdminUser]);
 
   const containerStyle = {
     width: '100%',
@@ -496,12 +518,8 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const handleDownloadClick = () => {
-    // Check both localStorage and user object for admin access
-    const adminAccess = localStorage.getItem('admin_cv_access');
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
-    
-    if (isAdmin) {
+    // Use the state instead of checking localStorage every time
+    if (isAdminUser) {
       generatePDF();
       return;
     }
@@ -524,12 +542,8 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const checkForApprovedPayment = () => {
-    // Check if user is admin (bypass payment)
-    const adminAccess = localStorage.getItem('admin_cv_access');
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
-    
-    if (isAdmin) {
+    // Use the state instead of checking localStorage every time
+    if (isAdminUser) {
       return true;
     }
 
@@ -551,12 +565,8 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const getDownloadButtonText = () => {
-    // Check both localStorage and user object for admin access
-    const adminAccess = localStorage.getItem('admin_cv_access');
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
-    
-    if (isAdmin) {
+    // Use the state instead of checking localStorage every time
+    if (isAdminUser) {
       return 'Download Now (Admin Access)';
     }
 
@@ -705,12 +715,8 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
 
       {/* Download Button - Same logic as Template3 */}
       {(() => {
-        // Check both localStorage and user object for admin access
-        const adminAccess = localStorage.getItem('admin_cv_access');
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
-        
-        return (isAdmin || !downloadCompleted) ? (
+        // Use the state instead of checking localStorage every time
+        return (isAdminUser || !downloadCompleted) ? (
           <button
             ref={buttonRef}
             type="button"

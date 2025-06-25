@@ -60,70 +60,52 @@ const App = () => {
 
     // Handle automatic sign-out when browser/tab is closed
     const handleBeforeUnload = () => {
-      // Preserve admin access flag and user object for admin users
+      // Only clear non-admin related data, preserve admin access
       const adminAccess = localStorage.getItem('admin_cv_access');
       const user = localStorage.getItem('user');
       const isAdmin = adminAccess === 'true' || (user && JSON.parse(user)?.isAdmin);
       
-      // Clear all localStorage data
-      localStorage.clear();
-      
-      // Restore admin access flag and user object for admin users
-      if (isAdmin) {
-        localStorage.setItem('admin_cv_access', 'true');
-        if (user) {
-          localStorage.setItem('user', user);
-        }
+      if (!isAdmin) {
+        // Only clear localStorage for non-admin users
+        localStorage.clear();
+        // Sign out from Supabase
+        supabase.auth.signOut();
       }
-      
-      // Sign out from Supabase
-      supabase.auth.signOut();
+      // Admin users keep their session intact
     };
 
     // Handle page visibility change (when tab becomes hidden)
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
-        // Preserve admin access flag and user object for admin users
+        // Only clear non-admin related data, preserve admin access
         const adminAccess = localStorage.getItem('admin_cv_access');
         const user = localStorage.getItem('user');
         const isAdmin = adminAccess === 'true' || (user && JSON.parse(user)?.isAdmin);
         
-        // Clear all localStorage data
-        localStorage.clear();
-        
-        // Restore admin access flag and user object for admin users
-        if (isAdmin) {
-          localStorage.setItem('admin_cv_access', 'true');
-          if (user) {
-            localStorage.setItem('user', user);
-          }
+        if (!isAdmin) {
+          // Only clear localStorage for non-admin users
+          localStorage.clear();
+          // Sign out from Supabase
+          supabase.auth.signOut();
         }
-        
-        // Sign out from Supabase
-        supabase.auth.signOut();
+        // Admin users keep their session intact
       }
     };
 
     // Handle page unload (when page is being unloaded)
     const handlePageHide = () => {
-      // Preserve admin access flag and user object for admin users
+      // Only clear non-admin related data, preserve admin access
       const adminAccess = localStorage.getItem('admin_cv_access');
       const user = localStorage.getItem('user');
       const isAdmin = adminAccess === 'true' || (user && JSON.parse(user)?.isAdmin);
       
-      // Clear all localStorage data
-      localStorage.clear();
-      
-      // Restore admin access flag and user object for admin users
-      if (isAdmin) {
-        localStorage.setItem('admin_cv_access', 'true');
-        if (user) {
-          localStorage.setItem('user', user);
-        }
+      if (!isAdmin) {
+        // Only clear localStorage for non-admin users
+        localStorage.clear();
+        // Sign out from Supabase
+        supabase.auth.signOut();
       }
-      
-      // Sign out from Supabase
-      supabase.auth.signOut();
+      // Admin users keep their session intact
     };
 
     // Add event listeners
