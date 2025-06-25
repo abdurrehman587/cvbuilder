@@ -103,6 +103,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
           console.log('RPC search - First result custom_sections:', data[0].custom_sections);
           console.log('RPC search - First result custom_sections type:', typeof data[0].custom_sections);
           console.log('RPC search - First result custom_sections JSON:', JSON.stringify(data[0].custom_sections));
+          console.log('RPC search - Full first result:', data[0]);
         }
 
         if (error) {
