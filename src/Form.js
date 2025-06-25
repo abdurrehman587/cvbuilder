@@ -907,6 +907,11 @@ const Form = ({ formData, setFormData, onChange, user }) => {
       console.log('Setting formData with:', newFormData);
       setFormData(newFormData);
       console.log('FormData set successfully');
+      console.log('FormData after setFormData:', newFormData);
+
+      // Force a re-render by updating a state variable
+      setCurrentCvId(cv.id);
+      console.log('Current CV ID set to:', cv.id);
 
       console.log('Search CV - Form data set with otherInformation:', parsedOtherInformation || defaultFormData.otherInformation);
 
@@ -915,6 +920,13 @@ const Form = ({ formData, setFormData, onChange, user }) => {
       setSearchPhone('');
       toast.success(`CV loaded successfully for ${cv.name || 'Unknown User'}`);
       console.log('=== LOAD CV FROM SEARCH COMPLETED ===');
+      
+      // Add a small delay and check if formData was actually updated
+      setTimeout(() => {
+        console.log('=== CHECKING FORM DATA AFTER LOAD ===');
+        console.log('Current formData state:', formData);
+        console.log('Current currentCvId:', currentCvId);
+      }, 100);
     } catch (error) {
       console.error('=== ERROR IN LOAD CV FROM SEARCH ===');
       console.error('Error details:', error);
@@ -942,6 +954,17 @@ const Form = ({ formData, setFormData, onChange, user }) => {
       formDataKeys: Object.keys(formData)
     });
   }, [formData]);
+
+  // Add debugging for form values
+  React.useEffect(() => {
+    console.log('=== FORM VALUES DEBUG ===');
+    console.log('formData.name:', formData.name);
+    console.log('formData.phone:', formData.phone);
+    console.log('formData.email:', formData.email);
+    console.log('formData.customSections:', formData.customSections);
+    console.log('formData.otherInformation:', formData.otherInformation);
+    console.log('currentCvId:', currentCvId);
+  }, [formData, currentCvId]);
 
   // Guard: Don't render until formData is initialized
   if (!formData) return null;
