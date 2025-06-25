@@ -360,10 +360,8 @@ const Form = ({ formData, setFormData, onChange, user }) => {
   const handleChange = (field) => (e) => {
     const newFormData = { ...formData, [field]: e.target.value };
     setFormData(newFormData);
-    // Call onChange to notify parent component of user changes
-    if (onChange) {
-      onChange(newFormData);
-    }
+    // Remove the onChange call to prevent input fields from losing focus
+    // The setFormData call above already updates the parent component
   };
 
   const handleWorkExperienceChange = (index, field, value) => {
