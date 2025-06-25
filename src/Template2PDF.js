@@ -451,8 +451,12 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
     <div ref={containerRef} style={{ ...styles.container, paddingBottom: '50px' }}>
       {/* Left Column */}
       <div style={styles.leftColumn}>
-        {/* Photo placeholder */}
-        <div style={styles.noPhoto}>Photo</div>
+        {/* Photo */}
+        {formData.photo ? (
+          <img src={formData.photo} alt="Profile" style={styles.photo} />
+        ) : (
+          <div style={styles.noPhoto}>Photo</div>
+        )}
         
         {/* Contact Information */}
         <div style={styles.leftSection}>
