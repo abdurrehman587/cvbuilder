@@ -1611,7 +1611,7 @@ const CustomSectionsSection = ({
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
               <input
                 type="text"
-                value={section.title || ''}
+                value={section.heading || ''}
                 onChange={(e) => onHeadingChange(sectionIndex, e.target.value)}
                 placeholder="Section Title"
                 style={{
@@ -1643,7 +1643,7 @@ const CustomSectionsSection = ({
             
             <div style={{ marginBottom: '1rem' }}>
               <h4 style={{ margin: '0 0 0.5rem 0', color: '#374151', fontSize: '1rem' }}>Section Items:</h4>
-              {(section.items || []).map((item, itemIndex) => (
+              {(section.details || []).map((item, itemIndex) => (
                 <div key={itemIndex} style={{ 
                   display: 'flex', 
                   alignItems: 'flex-start', 
@@ -1666,18 +1666,18 @@ const CustomSectionsSection = ({
                   />
                   <button
                     onClick={() => onRemoveDetail(sectionIndex, itemIndex)}
-                    disabled={(section.items || []).length <= 1}
+                    disabled={(section.details || []).length <= 1}
                     className="remove-btn"
                     type="button"
-                    title={(section.items || []).length <= 1 ? 'At least one item required' : 'Remove item'}
+                    title={(section.details || []).length <= 1 ? 'At least one item required' : 'Remove item'}
                     style={{
                       padding: '0.5rem',
                       backgroundColor: '#6b7280',
                       color: 'white',
                       border: 'none',
                       borderRadius: '4px',
-                      cursor: (section.items || []).length <= 1 ? 'not-allowed' : 'pointer',
-                      opacity: (section.items || []).length <= 1 ? 0.5 : 1,
+                      cursor: (section.details || []).length <= 1 ? 'not-allowed' : 'pointer',
+                      opacity: (section.details || []).length <= 1 ? 0.5 : 1,
                       fontSize: '0.75rem'
                     }}
                   >
