@@ -305,7 +305,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
           console.log('Parsed other information:', parsedOtherInformation);
           
           setCurrentCvId(data.id);
-          setFormData({
+          const newFormData = {
             image: null,
             imageUrl: data.image_url || '',
             name: data.name || '',
@@ -323,8 +323,10 @@ const Form = ({ formData, setFormData, onChange, user }) => {
             hobbies: safeJsonParse(data.hobbies, []),
             references: safeJsonParse(data.references, []),
             customSections: validatedCustomSections,
-            otherInformation: parsedOtherInformation || defaultFormData.otherInformation,
-          });
+            otherInformation: parsedOtherInformation && parsedOtherInformation.length > 0 ? parsedOtherInformation : defaultFormData.otherInformation,
+          };
+          
+          setFormData(newFormData);
         }
       } catch (err) {
         console.error('Exception while fetching CV:', err);
@@ -833,7 +835,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
         hobbies: safeJsonParse(cv.hobbies, []),
         references: safeJsonParse(cv.references, []),
         customSections: validatedCustomSections,
-        otherInformation: parsedOtherInformation || defaultFormData.otherInformation,
+        otherInformation: parsedOtherInformation && parsedOtherInformation.length > 0 ? parsedOtherInformation : defaultFormData.otherInformation,
       };
       
       setFormData(newFormData);
