@@ -710,7 +710,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
         
         // Use RPC function for admin users to bypass RLS
         const rpcData = {
-          p_cv_id: formData.id || currentCvId || null,
+          p_cv_id: formData.id || currentCvId,
           p_name: formData.name,
           p_phone: formData.phone,
           p_email: formData.email,
@@ -730,6 +730,10 @@ const Form = ({ formData, setFormData, onChange, user }) => {
         };
         
         console.log('Calling admin_update_cv RPC with data:', rpcData);
+        console.log('DEBUG - formData.customSections before JSON.stringify:', formData.customSections);
+        console.log('DEBUG - p_custom_sections after JSON.stringify:', rpcData.p_custom_sections);
+        console.log('DEBUG - formData.otherInformation before JSON.stringify:', formData.otherInformation);
+        console.log('DEBUG - p_other_information after JSON.stringify:', rpcData.p_other_information);
         
         const { data, error } = await supabase.rpc('admin_update_cv', rpcData);
         
