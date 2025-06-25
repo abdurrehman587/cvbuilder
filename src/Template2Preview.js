@@ -41,16 +41,18 @@ const hasSectionData = (formData, sectionKey) => {
       const hasCustomSections = formData.customSections && formData.customSections.length > 0 &&
              formData.customSections.some(section => 
                section && typeof section === 'object' && 
-               (section.heading || section.details) // Show if either heading or details exist
+               (section.title || section.heading) && // Check for title or heading
+               (section.items || section.details) && // Check for items or details
+               (Array.isArray(section.items || section.details) && (section.items || section.details).length > 0) // Ensure there are items
              );
       console.log('Template2Preview - customSections check:', {
         customSections: formData.customSections,
         hasCustomSections,
         sections: formData.customSections?.map(s => ({
-          heading: s.heading,
-          detailsLength: s.details?.length,
-          hasHeading: !!s.heading,
-          hasDetails: s.details && s.details.length > 0
+          title: s.title || s.heading,
+          itemsLength: (s.items || s.details)?.length,
+          hasTitle: !!(s.title || s.heading),
+          hasItems: (s.items || s.details) && (s.items || s.details).length > 0
         }))
       });
       return hasCustomSections;

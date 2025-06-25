@@ -31,7 +31,7 @@ const defaultFormData = {
   customLanguages: [],
   hobbies: [''],
   references: ['Reference would be furnished on demand'],
-  customSections: [{ heading: '', details: [''] }],
+  customSections: [],
   otherInformation: [
     { id: 1, labelType: 'radio', label: "Father's Name:", checked: true, value: '', name: 'parentSpouse', radioValue: 'father' },
     { id: 2, labelType: 'radio', label: "Husband's Name:", checked: false, value: '', name: 'parentSpouse', radioValue: 'husband' },
@@ -216,7 +216,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
           console.log('Admin CV - Raw custom_sections:', cvData.custom_sections);
           console.log('Admin CV - Type of custom_sections:', typeof cvData.custom_sections);
           
-          const parsedCustomSections = safeJsonParse(cvData.custom_sections, [{ heading: '', details: [''] }]);
+          const parsedCustomSections = safeJsonParse(cvData.custom_sections, []);
           console.log('Admin CV - Parsed custom sections:', parsedCustomSections);
           
           // Validate custom sections data - be more lenient to preserve sections for editing
@@ -224,13 +224,15 @@ const Form = ({ formData, setFormData, onChange, user }) => {
             ? parsedCustomSections.filter(section => 
                 section && 
                 typeof section === 'object' && 
-                section.heading !== undefined && 
-                section.details !== undefined
+                (section.title !== undefined || section.heading !== undefined) && 
+                (section.items !== undefined || section.details !== undefined)
               ).map(section => ({
-                heading: section.heading || '',
-                details: Array.isArray(section.details) ? section.details : ['']
+                id: section.id || Date.now() + Math.random(),
+                title: section.title || section.heading || '',
+                items: Array.isArray(section.items) ? section.items : 
+                       Array.isArray(section.details) ? section.details : ['']
               }))
-            : [{ heading: '', details: [''] }];
+            : [];
           
           console.log('Admin CV - Validated custom sections:', validatedCustomSections);
           
@@ -313,30 +315,30 @@ const Form = ({ formData, setFormData, onChange, user }) => {
           console.log('Raw custom_sections from database:', data.custom_sections);
           console.log('Type of custom_sections:', typeof data.custom_sections);
           
-          const parsedCustomSections = safeJsonParse(data.custom_sections, [{ heading: '', details: [''] }]);
+          // Parse custom sections with new structure
+          const parsedCustomSections = safeJsonParse(data.custom_sections, []);
           console.log('Parsed custom sections:', parsedCustomSections);
-          console.log('Parsed custom sections type:', typeof parsedCustomSections);
-          console.log('Parsed custom sections length:', parsedCustomSections?.length);
-          console.log('Parsed custom sections structure:', parsedCustomSections?.map(s => ({
-            heading: s?.heading,
-            details: s?.details,
-            detailsLength: s?.details?.length
-          })));
           
-          // Validate custom sections data - be more lenient to preserve sections for editing
+          // Validate and normalize custom sections data
           const validatedCustomSections = Array.isArray(parsedCustomSections) 
             ? parsedCustomSections.filter(section => 
                 section && 
                 typeof section === 'object' && 
-                section.heading !== undefined && 
-                section.details !== undefined
+                (section.title !== undefined || section.heading !== undefined) && 
+                (section.items !== undefined || section.details !== undefined)
               ).map(section => ({
-                heading: section.heading || '',
-                details: Array.isArray(section.details) ? section.details : ['']
+                id: section.id || Date.now() + Math.random(),
+                title: section.title || section.heading || '',
+                items: Array.isArray(section.items) ? section.items : 
+                       Array.isArray(section.details) ? section.details : ['']
               }))
-            : [{ heading: '', details: [''] }];
+            : [];
           
           console.log('Validated custom sections:', validatedCustomSections);
+          
+          // Parse other information
+          const parsedOtherInformation = safeJsonParse(data.other_information, []);
+          console.log('Parsed other information:', parsedOtherInformation);
           
           setCurrentCvId(data.id);
           setFormData({
@@ -357,7 +359,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
             hobbies: safeJsonParse(data.hobbies, []),
             references: safeJsonParse(data.references, []),
             customSections: validatedCustomSections,
-            otherInformation: safeJsonParse(data.other_information, []),
+            otherInformation: parsedOtherInformation || defaultFormData.otherInformation,
           });
         }
       } catch (err) {
@@ -501,54 +503,72 @@ const Form = ({ formData, setFormData, onChange, user }) => {
     setFormData({ ...formData, customLanguages: updated });
   };
 
-  // Custom Sections Handlers
+  // Custom Sections Handlers - NEW IMPLEMENTATION
   const handleAddCustomSection = () => {
-    const newSection = { heading: '', details: [''] };
-    const updatedCustomSections = [...formData.customSections, newSection];
-    setFormData({ ...formData, customSections: updatedCustomSections });
-  };
-
-  const handleCustomSectionHeadingChange = (sectionIndex, value) => {
-    const updatedCustomSections = [...formData.customSections];
-    updatedCustomSections[sectionIndex] = {
-      ...updatedCustomSections[sectionIndex],
-      heading: value
+    const newSection = {
+      id: Date.now(),
+      title: '',
+      items: ['']
     };
-    setFormData({ ...formData, customSections: updatedCustomSections });
-  };
-
-  const handleCustomSectionDetailChange = (sectionIndex, detailIndex, value) => {
-    const updatedCustomSections = [...formData.customSections];
-    updatedCustomSections[sectionIndex] = {
-      ...updatedCustomSections[sectionIndex],
-      details: updatedCustomSections[sectionIndex].details.map((detail, index) => 
-        index === detailIndex ? value : detail
-      )
-    };
-    setFormData({ ...formData, customSections: updatedCustomSections });
-  };
-
-  const handleAddCustomSectionDetail = (sectionIndex) => {
-    const updatedCustomSections = [...formData.customSections];
-    updatedCustomSections[sectionIndex] = {
-      ...updatedCustomSections[sectionIndex],
-      details: [...updatedCustomSections[sectionIndex].details, '']
-    };
-    setFormData({ ...formData, customSections: updatedCustomSections });
-  };
-
-  const handleRemoveCustomSectionDetail = (sectionIndex, detailIndex) => {
-    const updatedCustomSections = [...formData.customSections];
-    updatedCustomSections[sectionIndex] = {
-      ...updatedCustomSections[sectionIndex],
-      details: updatedCustomSections[sectionIndex].details.filter((_, index) => index !== detailIndex)
-    };
-    setFormData({ ...formData, customSections: updatedCustomSections });
+    setFormData(prev => ({
+      ...prev,
+      customSections: [...prev.customSections, newSection]
+    }));
   };
 
   const handleRemoveCustomSection = (sectionIndex) => {
-    const updatedCustomSections = formData.customSections.filter((_, index) => index !== sectionIndex);
-    setFormData({ ...formData, customSections: updatedCustomSections });
+    setFormData(prev => ({
+      ...prev,
+      customSections: prev.customSections.filter((_, index) => index !== sectionIndex)
+    }));
+  };
+
+  const handleCustomSectionTitleChange = (sectionIndex, value) => {
+    setFormData(prev => ({
+      ...prev,
+      customSections: prev.customSections.map((section, index) => 
+        index === sectionIndex ? { ...section, title: value } : section
+      )
+    }));
+  };
+
+  const handleCustomSectionItemChange = (sectionIndex, itemIndex, value) => {
+    setFormData(prev => ({
+      ...prev,
+      customSections: prev.customSections.map((section, index) => 
+        index === sectionIndex 
+          ? { 
+              ...section, 
+              items: section.items.map((item, i) => i === itemIndex ? value : item)
+            }
+          : section
+      )
+    }));
+  };
+
+  const handleAddCustomSectionItem = (sectionIndex) => {
+    setFormData(prev => ({
+      ...prev,
+      customSections: prev.customSections.map((section, index) => 
+        index === sectionIndex 
+          ? { ...section, items: [...section.items, ''] }
+          : section
+      )
+    }));
+  };
+
+  const handleRemoveCustomSectionItem = (sectionIndex, itemIndex) => {
+    setFormData(prev => ({
+      ...prev,
+      customSections: prev.customSections.map((section, index) => 
+        index === sectionIndex 
+          ? { 
+              ...section, 
+              items: section.items.filter((_, i) => i !== itemIndex)
+            }
+          : section
+      )
+    }));
   };
 
   const handleImageChange = (e) => {
@@ -826,7 +846,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
       console.log('Admin access flag maintained for CV loading from search');
     }
     
-    const parsedCustomSections = safeJsonParse(cv.custom_sections, [{ heading: '', details: [''] }]);
+    const parsedCustomSections = safeJsonParse(cv.custom_sections, []);
     console.log('Search CV - Parsed custom sections:', parsedCustomSections);
     console.log('Search CV - Parsed custom sections type:', typeof parsedCustomSections);
     console.log('Search CV - Parsed custom sections length:', parsedCustomSections?.length);
@@ -842,13 +862,15 @@ const Form = ({ formData, setFormData, onChange, user }) => {
       ? parsedCustomSections.filter(section => 
           section && 
           typeof section === 'object' && 
-          section.heading !== undefined && 
-          section.details !== undefined
+          (section.title !== undefined || section.heading !== undefined) && 
+          (section.items !== undefined || section.details !== undefined)
         ).map(section => ({
-          heading: section.heading || '',
-          details: Array.isArray(section.details) ? section.details : ['']
+          id: section.id || Date.now() + Math.random(),
+          title: section.title || section.heading || '',
+          items: Array.isArray(section.items) ? section.items : 
+                 Array.isArray(section.details) ? section.details : ['']
         }))
-      : [{ heading: '', details: [''] }];
+      : [];
     
     console.log('Search CV - Validated custom sections:', validatedCustomSections);
     
@@ -1211,27 +1233,12 @@ const Form = ({ formData, setFormData, onChange, user }) => {
           rows={1}
         />
 
-        {/* Debug information for custom sections */}
-        {console.log('Form render - formData.customSections:', formData.customSections)}
-        {console.log('Form render - customSections type:', typeof formData.customSections)}
-        {console.log('Form render - customSections length:', formData.customSections?.length)}
-        {console.log('Form render - customSections structure:', formData.customSections?.map(s => ({
-          heading: s?.heading,
-          details: s?.details,
-          detailsLength: s?.details?.length,
-          hasValidData: s?.heading && s?.details && s?.details.length > 0
-        })))}
-
-        {/* Debug the exact prop being passed */}
-        {console.log('Form render - About to render CustomSectionsSection with:', formData.customSections || [{ heading: '', details: [''] }])}
-        {console.log('Form render - About to render CustomSectionsSection JSON:', JSON.stringify(formData.customSections || [{ heading: '', details: [''] }]))}
-
         <CustomSectionsSection
-          customSections={formData.customSections || [{ heading: '', details: [''] }]}
-          onHeadingChange={handleCustomSectionHeadingChange}
-          onDetailChange={handleCustomSectionDetailChange}
-          onAddDetail={handleAddCustomSectionDetail}
-          onRemoveDetail={handleRemoveCustomSectionDetail}
+          customSections={formData.customSections}
+          onHeadingChange={handleCustomSectionTitleChange}
+          onDetailChange={handleCustomSectionItemChange}
+          onAddDetail={handleAddCustomSectionItem}
+          onRemoveDetail={handleRemoveCustomSectionItem}
           onAddSection={handleAddCustomSection}
           onRemoveSection={handleRemoveCustomSection}
         />
@@ -1567,146 +1574,130 @@ const CustomSectionsSection = ({
   onAddSection,
   onRemoveSection,
 }) => {
-  // Add useEffect to track prop changes
-  React.useEffect(() => {
-    console.log('CustomSectionsSection - useEffect - customSections changed:', customSections);
-    console.log('CustomSectionsSection - useEffect - customSections type:', typeof customSections);
-    console.log('CustomSectionsSection - useEffect - customSections length:', customSections?.length);
-    console.log('CustomSectionsSection - useEffect - customSections JSON:', JSON.stringify(customSections));
-  }, [customSections]);
-
-  console.log('CustomSectionsSection - received customSections:', customSections);
-  console.log('CustomSectionsSection - customSections type:', typeof customSections);
-  console.log('CustomSectionsSection - customSections length:', customSections?.length);
-  console.log('CustomSectionsSection - customSections structure:', customSections?.map(s => ({
-    heading: s?.heading,
-    details: s?.details,
-    detailsLength: s?.details?.length,
-    hasValidData: s?.heading && s?.details && s?.details.length > 0
-  })));
-  
-  // Safety check - ensure we always have valid data
-  const safeCustomSections = Array.isArray(customSections) && customSections.length > 0 
-    ? customSections 
-    : [{ heading: '', details: [''] }];
-  
-  if (!Array.isArray(customSections) || customSections.length === 0) {
-    console.warn('CustomSectionsSection - Received invalid customSections:', customSections);
-    console.warn('CustomSectionsSection - Using fallback data:', safeCustomSections);
-  }
-  
   return (
     <div style={{ marginBottom: '1.5rem' }}>
       <h3 style={{ fontWeight: 700, fontSize: '1.25rem', marginBottom: 8, color: '#374151' }}>
-        Add More Section
+        Custom Sections
       </h3>
-      {safeCustomSections.map((section, sectionIndex) => (
-        <div key={sectionIndex} style={{ 
-          border: '1px solid #e5e7eb', 
-          borderRadius: '8px', 
-          padding: '1rem', 
-          marginBottom: '1rem',
-          backgroundColor: '#f9fafb'
+      
+      {customSections.length === 0 ? (
+        <div style={{ 
+          textAlign: 'center', 
+          padding: '2rem', 
+          border: '2px dashed #d1d5db', 
+          borderRadius: '8px',
+          color: '#6b7280'
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <input
-              type="text"
-              value={section.heading || ''}
-              onChange={(e) => onHeadingChange(sectionIndex, e.target.value)}
-              placeholder="Section Heading"
-              style={{
-                flex: 1,
-                padding: '0.5rem',
-                fontSize: '1rem',
-                border: '1px solid #d1d5db',
-                borderRadius: '4px',
-                marginRight: '1rem'
-              }}
-            />
-            <button
-              onClick={() => onRemoveSection(sectionIndex)}
-              disabled={safeCustomSections.length <= 1}
-              className="remove-btn"
-              type="button"
-              title={safeCustomSections.length <= 1 ? 'At least one section required' : 'Remove section'}
-              style={{
-                padding: '0.5rem 1rem',
-                backgroundColor: '#ef4444',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: safeCustomSections.length <= 1 ? 'not-allowed' : 'pointer',
-                opacity: safeCustomSections.length <= 1 ? 0.5 : 1
-              }}
-            >
-              Remove Section
-            </button>
-          </div>
-          
-          <div style={{ marginBottom: '1rem' }}>
-            <h4 style={{ margin: '0 0 0.5rem 0', color: '#374151', fontSize: '1rem' }}>Section Details:</h4>
-            {(section.details || []).map((detail, detailIndex) => (
-              <div key={detailIndex} style={{ 
-                display: 'flex', 
-                alignItems: 'flex-start', 
-                gap: '0.5rem', 
-                marginBottom: '0.5rem' 
-              }}>
-                <textarea
-                  value={detail || ''}
-                  onChange={(e) => onDetailChange(sectionIndex, detailIndex, e.target.value)}
-                  placeholder="Enter section detail..."
-                  rows={2}
-                  style={{
-                    flex: 1,
-                    padding: '0.5rem',
-                    fontSize: '0.875rem',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '4px',
-                    resize: 'vertical'
-                  }}
-                />
-                <button
-                  onClick={() => onRemoveDetail(sectionIndex, detailIndex)}
-                  disabled={(section.details || []).length <= 1}
-                  className="remove-btn"
-                  type="button"
-                  title={(section.details || []).length <= 1 ? 'At least one detail required' : 'Remove detail'}
-                  style={{
-                    padding: '0.5rem',
-                    backgroundColor: '#6b7280',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: (section.details || []).length <= 1 ? 'not-allowed' : 'pointer',
-                    opacity: (section.details || []).length <= 1 ? 0.5 : 1,
-                    fontSize: '0.75rem'
-                  }}
-                >
-                  Remove
-                </button>
-              </div>
-            ))}
-            <button
-              onClick={() => onAddDetail(sectionIndex)}
-              className="add-btn"
-              type="button"
-              style={{
-                padding: '0.5rem 1rem',
-                backgroundColor: '#22c55e',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '0.875rem',
-                marginTop: '0.5rem'
-              }}
-            >
-              Add Detail
-            </button>
-          </div>
+          <p>No custom sections added yet.</p>
+          <p>Click "Add New Section" to create your first custom section.</p>
         </div>
-      ))}
+      ) : (
+        customSections.map((section, sectionIndex) => (
+          <div key={section.id || sectionIndex} style={{ 
+            border: '1px solid #e5e7eb', 
+            borderRadius: '8px', 
+            padding: '1rem', 
+            marginBottom: '1rem',
+            backgroundColor: '#f9fafb'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <input
+                type="text"
+                value={section.title || ''}
+                onChange={(e) => onHeadingChange(sectionIndex, e.target.value)}
+                placeholder="Section Title"
+                style={{
+                  flex: 1,
+                  padding: '0.5rem',
+                  fontSize: '1rem',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '4px',
+                  marginRight: '1rem'
+                }}
+              />
+              <button
+                onClick={() => onRemoveSection(sectionIndex)}
+                className="remove-btn"
+                type="button"
+                title="Remove section"
+                style={{
+                  padding: '0.5rem 1rem',
+                  backgroundColor: '#ef4444',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                Remove Section
+              </button>
+            </div>
+            
+            <div style={{ marginBottom: '1rem' }}>
+              <h4 style={{ margin: '0 0 0.5rem 0', color: '#374151', fontSize: '1rem' }}>Section Items:</h4>
+              {(section.items || []).map((item, itemIndex) => (
+                <div key={itemIndex} style={{ 
+                  display: 'flex', 
+                  alignItems: 'flex-start', 
+                  gap: '0.5rem', 
+                  marginBottom: '0.5rem' 
+                }}>
+                  <textarea
+                    value={item || ''}
+                    onChange={(e) => onDetailChange(sectionIndex, itemIndex, e.target.value)}
+                    placeholder="Enter section item..."
+                    rows={2}
+                    style={{
+                      flex: 1,
+                      padding: '0.5rem',
+                      fontSize: '0.875rem',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '4px',
+                      resize: 'vertical'
+                    }}
+                  />
+                  <button
+                    onClick={() => onRemoveDetail(sectionIndex, itemIndex)}
+                    disabled={(section.items || []).length <= 1}
+                    className="remove-btn"
+                    type="button"
+                    title={(section.items || []).length <= 1 ? 'At least one item required' : 'Remove item'}
+                    style={{
+                      padding: '0.5rem',
+                      backgroundColor: '#6b7280',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: (section.items || []).length <= 1 ? 'not-allowed' : 'pointer',
+                      opacity: (section.items || []).length <= 1 ? 0.5 : 1,
+                      fontSize: '0.75rem'
+                    }}
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+              <button
+                onClick={() => onAddDetail(sectionIndex)}
+                className="add-btn"
+                type="button"
+                style={{
+                  padding: '0.5rem 1rem',
+                  backgroundColor: '#22c55e',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '0.875rem',
+                  marginTop: '0.5rem'
+                }}
+              >
+                Add Item
+              </button>
+            </div>
+          </div>
+        ))
+      )}
       
       <button
         onClick={onAddSection}

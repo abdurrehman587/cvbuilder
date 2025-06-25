@@ -421,22 +421,30 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
     return customSections.map((section, sectionIndex) => {
       console.log(`Template2PDF - processing section ${sectionIndex}:`, section);
       
-      // More lenient validation: require details but heading can be empty
-      if (!section.details || section.details.length === 0) {
-        console.log(`Template2PDF - section ${sectionIndex} invalid: no details`);
+      // Get title and items, supporting both new and old structure
+      const sectionTitle = section.title || section.heading || 'Additional Information';
+      const sectionItems = section.items || section.details || [];
+      
+      // More lenient validation: require items but title can be empty
+      if (!sectionItems || sectionItems.length === 0) {
+        console.log(`Template2PDF - section ${sectionIndex} invalid: no items`);
         return null;
       }
 
-      // Use default heading if empty
-      const sectionHeading = section.heading?.trim() || 'Additional Information';
+      // Filter out empty items
+      const validItems = sectionItems.filter(item => item && item.trim() !== '');
+      if (validItems.length === 0) {
+        console.log(`Template2PDF - section ${sectionIndex} invalid: no valid items`);
+        return null;
+      }
       
-      console.log(`Template2PDF - rendering section ${sectionIndex}:`, sectionHeading);
+      console.log(`Template2PDF - rendering section ${sectionIndex}:`, sectionTitle);
       return (
         <div key={sectionIndex} style={styles.rightSection}>
-          <h2 style={styles.rightSectionTitle}>{sectionHeading}</h2>
-          <ul style={styles.list}>
-            {section.details.map((detail, detailIndex) => (
-              <li key={detailIndex} style={styles.listItem}>{detail}</li>
+          <h2 style={styles.rightSectionTitle}>{sectionTitle}</h2>
+          <ul style={{ paddingLeft: '20px', marginTop: '10px' }}>
+            {validItems.map((item, itemIndex) => (
+              <li key={itemIndex} style={{ ...styles.listItem, marginLeft: '0px' }}>{item}</li>
             ))}
           </ul>
         </div>
