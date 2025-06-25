@@ -69,7 +69,7 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
   const containerStyle = {
     width: '100%',
     margin: '2px 0 0',
-    padding: '8px', // reduced from 18px
+    padding: '16px', // increased from 8px for more page margin
     background: '#fdfdfd',
     borderRadius: '10px',
     fontFamily: "'Open Sans', Arial, sans-serif",
