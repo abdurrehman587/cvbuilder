@@ -834,78 +834,92 @@ const Form = ({ formData, setFormData, onChange, user }) => {
 
   // Function to load CV from search results
   const loadCVFromSearch = (cv) => {
+    console.log('=== LOAD CV FROM SEARCH STARTED ===');
     console.log('Loading CV from search:', cv);
     console.log('Search CV - Raw custom_sections:', cv.custom_sections);
     console.log('Search CV - Type of custom_sections:', typeof cv.custom_sections);
     console.log('Search CV - Raw other_information:', cv.other_information);
     console.log('Search CV - Type of other_information:', typeof cv.other_information);
     
-    // Parse other_information data
-    const parsedOtherInformation = safeJsonParse(cv.other_information, defaultFormData.otherInformation);
-    console.log('Search CV - Parsed other information:', parsedOtherInformation);
-    
-    // Ensure admin access flag is maintained for admin users
-    if (user?.isAdmin) {
-      localStorage.setItem('admin_cv_access', 'true');
-      console.log('Admin access flag maintained for CV loading from search');
+    try {
+      // Parse other_information data
+      const parsedOtherInformation = safeJsonParse(cv.other_information, defaultFormData.otherInformation);
+      console.log('Search CV - Parsed other information:', parsedOtherInformation);
+      
+      // Ensure admin access flag is maintained for admin users
+      if (user?.isAdmin) {
+        localStorage.setItem('admin_cv_access', 'true');
+        console.log('Admin access flag maintained for CV loading from search');
+      }
+      
+      const parsedCustomSections = safeJsonParse(cv.custom_sections, []);
+      console.log('Search CV - Parsed custom sections:', parsedCustomSections);
+      console.log('Search CV - Parsed custom sections type:', typeof parsedCustomSections);
+      console.log('Search CV - Parsed custom sections length:', parsedCustomSections?.length);
+      console.log('Search CV - Parsed custom sections structure:', parsedCustomSections?.map(s => ({
+        heading: s?.heading,
+        details: s?.details,
+        detailsLength: s?.details?.length,
+        hasValidData: s?.heading && s?.details && s?.details.length > 0
+      })));
+      
+      // Validate custom sections data - be more lenient to preserve sections for editing
+      const validatedCustomSections = Array.isArray(parsedCustomSections) 
+        ? parsedCustomSections.filter(section => 
+            section && 
+            typeof section === 'object' && 
+            (section.title !== undefined || section.heading !== undefined) && 
+            (section.items !== undefined || section.details !== undefined)
+          ).map(section => ({
+            id: section.id || Date.now() + Math.random(),
+            title: section.title || section.heading || '',
+            items: Array.isArray(section.items) ? section.items : 
+                   Array.isArray(section.details) ? section.details : ['']
+          }))
+        : [];
+      
+      console.log('Search CV - Validated custom sections:', validatedCustomSections);
+      
+      console.log('Setting currentCvId to:', cv.id);
+      setCurrentCvId(cv.id);
+      
+      const newFormData = {
+        image: null,
+        imageUrl: cv.image_url || '',
+        name: cv.name || '',
+        phone: cv.phone || '',
+        email: cv.email || '',
+        address: cv.address || '',
+        objective: safeJsonParse(cv.objective, []),
+        education: safeJsonParse(cv.education, []),
+        workExperience: safeJsonParse(cv.work_experience, []),
+        skills: safeJsonParse(cv.skills, []),
+        certifications: safeJsonParse(cv.certifications, []),
+        projects: safeJsonParse(cv.projects, []),
+        languages: safeJsonParse(cv.languages, []),
+        customLanguages: safeJsonParse(cv.custom_languages, []),
+        hobbies: safeJsonParse(cv.hobbies, []),
+        references: safeJsonParse(cv.references, []),
+        customSections: validatedCustomSections,
+        otherInformation: parsedOtherInformation || defaultFormData.otherInformation,
+      };
+      
+      console.log('Setting formData with:', newFormData);
+      setFormData(newFormData);
+      console.log('FormData set successfully');
+
+      console.log('Search CV - Form data set with otherInformation:', parsedOtherInformation || defaultFormData.otherInformation);
+
+      setShowSearchResults(false);
+      setSearchName('');
+      setSearchPhone('');
+      toast.success(`CV loaded successfully for ${cv.name || 'Unknown User'}`);
+      console.log('=== LOAD CV FROM SEARCH COMPLETED ===');
+    } catch (error) {
+      console.error('=== ERROR IN LOAD CV FROM SEARCH ===');
+      console.error('Error details:', error);
+      toast.error('Error loading CV: ' + error.message);
     }
-    
-    const parsedCustomSections = safeJsonParse(cv.custom_sections, []);
-    console.log('Search CV - Parsed custom sections:', parsedCustomSections);
-    console.log('Search CV - Parsed custom sections type:', typeof parsedCustomSections);
-    console.log('Search CV - Parsed custom sections length:', parsedCustomSections?.length);
-    console.log('Search CV - Parsed custom sections structure:', parsedCustomSections?.map(s => ({
-      heading: s?.heading,
-      details: s?.details,
-      detailsLength: s?.details?.length,
-      hasValidData: s?.heading && s?.details && s?.details.length > 0
-    })));
-    
-    // Validate custom sections data - be more lenient to preserve sections for editing
-    const validatedCustomSections = Array.isArray(parsedCustomSections) 
-      ? parsedCustomSections.filter(section => 
-          section && 
-          typeof section === 'object' && 
-          (section.title !== undefined || section.heading !== undefined) && 
-          (section.items !== undefined || section.details !== undefined)
-        ).map(section => ({
-          id: section.id || Date.now() + Math.random(),
-          title: section.title || section.heading || '',
-          items: Array.isArray(section.items) ? section.items : 
-                 Array.isArray(section.details) ? section.details : ['']
-        }))
-      : [];
-    
-    console.log('Search CV - Validated custom sections:', validatedCustomSections);
-    
-    setCurrentCvId(cv.id);
-    setFormData({
-      image: null,
-      imageUrl: cv.image_url || '',
-      name: cv.name || '',
-      phone: cv.phone || '',
-      email: cv.email || '',
-      address: cv.address || '',
-      objective: safeJsonParse(cv.objective, []),
-      education: safeJsonParse(cv.education, []),
-      workExperience: safeJsonParse(cv.work_experience, []),
-      skills: safeJsonParse(cv.skills, []),
-      certifications: safeJsonParse(cv.certifications, []),
-      projects: safeJsonParse(cv.projects, []),
-      languages: safeJsonParse(cv.languages, []),
-      customLanguages: safeJsonParse(cv.custom_languages, []),
-      hobbies: safeJsonParse(cv.hobbies, []),
-      references: safeJsonParse(cv.references, []),
-      customSections: validatedCustomSections,
-      otherInformation: parsedOtherInformation || defaultFormData.otherInformation,
-    });
-
-    console.log('Search CV - Form data set with otherInformation:', parsedOtherInformation || defaultFormData.otherInformation);
-
-    setShowSearchResults(false);
-    setSearchName('');
-    setSearchPhone('');
-    toast.success(`CV loaded successfully for ${cv.name || 'Unknown User'}`);
   };
 
   // Add debugging for formData.customSections changes
