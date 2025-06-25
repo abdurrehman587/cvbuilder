@@ -136,18 +136,44 @@ const Form = ({ formData, setFormData, onChange, user }) => {
     if (user?.isAdmin) {
       // Set admin access flag immediately
       localStorage.setItem('admin_cv_access', 'true');
-      console.log('Admin access flag set for admin user');
+      // Also store user object for resilient admin access check
+      localStorage.setItem('user', JSON.stringify(user));
+      console.log('Admin access flag and user object set for admin user');
       
-      // Set up interval to maintain admin access flag
+      // Set up interval to maintain admin access flag more frequently
       const adminAccessInterval = setInterval(() => {
         const currentAdminAccess = localStorage.getItem('admin_cv_access');
         if (currentAdminAccess !== 'true') {
           localStorage.setItem('admin_cv_access', 'true');
           console.log('Admin access flag restored');
         }
-      }, 5000); // Check every 5 seconds
+        // Also maintain user object
+        const currentUser = localStorage.getItem('user');
+        if (!currentUser || !JSON.parse(currentUser)?.isAdmin) {
+          localStorage.setItem('user', JSON.stringify(user));
+          console.log('User object restored');
+        }
+      }, 2000); // Check every 2 seconds instead of 5 seconds
       
-      return () => clearInterval(adminAccessInterval);
+      // Also set up a more frequent check for critical operations
+      const criticalCheckInterval = setInterval(() => {
+        const currentAdminAccess = localStorage.getItem('admin_cv_access');
+        if (currentAdminAccess !== 'true') {
+          localStorage.setItem('admin_cv_access', 'true');
+          console.log('Admin access flag critical restore');
+        }
+        // Also maintain user object
+        const currentUser = localStorage.getItem('user');
+        if (!currentUser || !JSON.parse(currentUser)?.isAdmin) {
+          localStorage.setItem('user', JSON.stringify(user));
+          console.log('User object critical restore');
+        }
+      }, 1000); // Check every 1 second for critical operations
+      
+      return () => {
+        clearInterval(adminAccessInterval);
+        clearInterval(criticalCheckInterval);
+      };
     }
   }, [user]);
 

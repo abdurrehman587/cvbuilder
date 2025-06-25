@@ -22,9 +22,12 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
 
   // Check if download was already completed for this session
   React.useEffect(() => {
+    // Check both localStorage and user object for admin access
     const adminAccess = localStorage.getItem('admin_cv_access');
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
     
-    if (adminAccess === 'true') {
+    if (isAdmin) {
       // Admin users can download unlimited times
       setDownloadCompleted(false);
       return;
@@ -256,7 +259,10 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
   const checkForApprovedPayment = () => {
     // Check if user is admin (bypass payment)
     const adminAccess = localStorage.getItem('admin_cv_access');
-    if (adminAccess === 'true') {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
+    
+    if (isAdmin) {
       return true;
     }
 
@@ -278,8 +284,12 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const getDownloadButtonText = () => {
+    // Check both localStorage and user object for admin access
     const adminAccess = localStorage.getItem('admin_cv_access');
-    if (adminAccess === 'true') {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
+    
+    if (isAdmin) {
       return 'Download Now (Admin Access)';
     }
 
@@ -296,8 +306,12 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const handleDownloadClick = () => {
+    // Check both localStorage and user object for admin access
     const adminAccess = localStorage.getItem('admin_cv_access');
-    if (adminAccess === 'true') {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
+    
+    if (isAdmin) {
       generatePDF();
       return;
     }
@@ -610,49 +624,56 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
         )}
       </div>
       {/* Download Button - Same logic as Template3 */}
-      {(adminAccess === 'true' || !downloadCompleted) ? (
-        <button
-          ref={buttonRef}
-          type="button"
-          onClick={handleDownloadClick}
-          style={{
+      {(() => {
+        // Check both localStorage and user object for admin access
+        const adminAccess = localStorage.getItem('admin_cv_access');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
+        
+        return (isAdmin || !downloadCompleted) ? (
+          <button
+            ref={buttonRef}
+            type="button"
+            onClick={handleDownloadClick}
+            style={{
+              position: 'absolute',
+              bottom: '20px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              padding: '10px 20px',
+              fontSize: '1rem',
+              borderRadius: '5px',
+              border: 'none',
+              backgroundColor: '#2ecc71',
+              color: 'white',
+              cursor: 'pointer',
+              transition: 'background-color 0.3s ease',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#27ae60')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#2ecc71')}
+          >
+            {getDownloadButtonText()}
+          </button>
+        ) : (
+          <div style={{
             position: 'absolute',
             bottom: '20px',
             left: '50%',
             transform: 'translateX(-50%)',
-            padding: '10px 20px',
-            fontSize: '1rem',
+            padding: '12px 16px',
+            backgroundColor: '#f0f9ff',
+            border: '1px solid #0ea5e9',
             borderRadius: '5px',
-            border: 'none',
-            backgroundColor: '#2ecc71',
-            color: 'white',
-            cursor: 'pointer',
-            transition: 'background-color 0.3s ease',
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#27ae60')}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#2ecc71')}
-        >
-          {getDownloadButtonText()}
-        </button>
-      ) : (
-        <div style={{
-          position: 'absolute',
-          bottom: '20px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          padding: '12px 16px',
-          backgroundColor: '#f0f9ff',
-          border: '1px solid #0ea5e9',
-          borderRadius: '5px',
-          color: '#0369a1',
-          fontSize: '0.9rem',
-          textAlign: 'center',
-          maxWidth: '300px',
-        }}>
-          ✅ CV Downloaded Successfully!<br />
-          <small>Sign out and sign in again to download another CV.</small>
-        </div>
-      )}
+            color: '#0369a1',
+            fontSize: '0.9rem',
+            textAlign: 'center',
+            maxWidth: '300px',
+          }}>
+            ✅ CV Downloaded Successfully!<br />
+            <small>Sign out and sign in again to download another CV.</small>
+          </div>
+        );
+      })()}
 
       {showPaymentModal && (
         <JazzCashPayment

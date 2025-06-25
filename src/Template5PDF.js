@@ -404,7 +404,10 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
   const checkForApprovedPayment = () => {
     // Check if user is admin (bypass payment)
     const adminAccess = localStorage.getItem('admin_cv_access');
-    if (adminAccess === 'true') {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
+    
+    if (isAdmin {
       return true;
     }
 
@@ -426,8 +429,12 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const getDownloadButtonText = () => {
+    // Check both localStorage and user object for admin access
     const adminAccess = localStorage.getItem('admin_cv_access');
-    if (adminAccess === 'true') {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
+    
+    if (isAdmin {
       return 'Download Now (Admin Access)';
     }
 
@@ -444,8 +451,12 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const handleDownloadClick = () => {
+    // Check both localStorage and user object for admin access
     const adminAccess = localStorage.getItem('admin_cv_access');
-    if (adminAccess === 'true') {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
+    
+    if (isAdmin {
       generatePDF();
       return;
     }
@@ -574,7 +585,13 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
         </section>
       )}
 
-      {(adminAccess === 'true' || !downloadCompleted) ? (
+      {(() => {
+        // Check both localStorage and user object for admin access
+        const adminAccess = localStorage.getItem('admin_cv_access');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
+        
+        return (isAdmin || !downloadCompleted) ? (
         <button
           ref={buttonRef}
           type="button"
