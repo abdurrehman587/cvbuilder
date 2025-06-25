@@ -452,8 +452,10 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
       {/* Left Column */}
       <div style={styles.leftColumn}>
         {/* Photo */}
-        {formData.photo ? (
-          <img src={formData.photo} alt="Profile" style={styles.photo} />
+        {formData.image ? (
+          <img src={URL.createObjectURL(formData.image)} alt="Profile" style={styles.photo} />
+        ) : formData.imageUrl ? (
+          <img src={formData.imageUrl} alt="Profile" style={styles.photo} />
         ) : (
           <div style={styles.noPhoto}>Photo</div>
         )}
