@@ -350,14 +350,16 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     if (checkedItems.length === 0) return null;
 
     return (
-      <section style={sectionStyle} aria-label="Other Information Section">
-        <h2 style={sectionTitleStyle}>Other Information</h2>
-        <ul style={listStyle}>
+      <div style={styles.leftSection}>
+        <h2 style={styles.leftSectionTitle}>Other Information</h2>
+        <ul style={styles.list}>
           {checkedItems.map((item, idx) => (
-            <li key={idx} style={listItemStyle}>{item.label}</li>
+            <li key={idx} style={styles.listItem}>
+              {item.label} {item.value || '-'}
+            </li>
           ))}
         </ul>
-      </section>
+      </div>
     );
   };
 

@@ -378,21 +378,33 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const renderOtherInformation = (otherInfo) => {
-    if (!otherInfo || otherInfo.length === 0) return null;
+    console.log('Template2PDF - renderOtherInformation called with:', otherInfo);
+    
+    if (!otherInfo || otherInfo.length === 0) {
+      console.log('Template2PDF - renderOtherInformation: no otherInfo or empty array');
+      return null;
+    }
 
     const checkedItems = otherInfo.filter(item => 
       (item.labelType === 'radio' && item.checked) ||
       (item.labelType === 'checkbox' && item.checked)
     );
 
-    if (checkedItems.length === 0) return null;
+    console.log('Template2PDF - renderOtherInformation filtered items:', checkedItems);
+
+    if (checkedItems.length === 0) {
+      console.log('Template2PDF - renderOtherInformation: no checked items');
+      return null;
+    }
 
     return (
       <div style={styles.leftSection}>
         <h2 style={styles.leftSectionTitle}>Other Information</h2>
         <ul style={styles.list}>
           {checkedItems.map((item, idx) => (
-            <li key={idx} style={styles.listItem}>{item.label}</li>
+            <li key={idx} style={styles.listItem}>
+              {item.label} {item.value || '-'}
+            </li>
           ))}
         </ul>
       </div>
@@ -454,7 +466,15 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
           {formData.address && <p style={styles.contactInfo}><span style={styles.contactIcon}>📍</span>{formData.address}</p>}
         </div>
 
-        {visibleSections.includes('otherInformation') && renderOtherInformation(formData.otherInformation)}
+        {(() => {
+          console.log('Template2PDF - otherInformation check:', {
+            visibleSections,
+            hasOtherInformation: visibleSections.includes('otherInformation'),
+            formDataOtherInformation: formData.otherInformation,
+            otherInformationLength: formData.otherInformation?.length
+          });
+          return visibleSections.includes('otherInformation') && renderOtherInformation(formData.otherInformation);
+        })()}
 
         {visibleSections.includes('skills') && formData.skills?.length > 0 && (
           <div style={styles.leftSection}>

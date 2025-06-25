@@ -329,11 +329,16 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
     if (checkedItems.length === 0) return null;
 
     return (
-      <ul style={listStyle}>
-        {checkedItems.map((item, idx) => (
-          <li key={idx} style={listItemStyle}>{item.label}</li>
-        ))}
-      </ul>
+      <div style={styles.leftSection}>
+        <h2 style={styles.leftSectionTitle}>Other Information</h2>
+        <ul style={styles.list}>
+          {checkedItems.map((item, idx) => (
+            <li key={idx} style={styles.listItem}>
+              {item.label} {item.value || '-'}
+            </li>
+          ))}
+        </ul>
+      </div>
     );
   };
 

@@ -296,32 +296,26 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
   );
 
   const renderOtherInformation = (otherInfo) => {
-    if (!Array.isArray(otherInfo) || otherInfo.length === 0) return null;
+    if (!otherInfo || otherInfo.length === 0) return null;
 
-    const selectedRadio = otherInfo.find(
-      (item) => item.labelType === 'radio' && item.checked && item.name === 'parentSpouse'
+    const checkedItems = otherInfo.filter(item => 
+      (item.labelType === 'radio' && item.checked) ||
+      (item.labelType === 'checkbox' && item.checked)
     );
 
-    const checkedCheckboxes = otherInfo.filter(
-      (item) => item.labelType === 'checkbox' && item.checked
-    );
+    if (checkedItems.length === 0) return null;
 
     return (
-      <section style={sectionStyle} aria-label="Other Information Section">
-        <h2 style={sectionTitleStyle}>Other Information</h2>
-
-        {selectedRadio && (
-          <p style={paragraphStyle}>
-            <strong>{selectedRadio.label}</strong> {selectedRadio.value || '-'}
-          </p>
-        )}
-
-        {checkedCheckboxes.map((item) => (
-          <p key={item.id} style={paragraphStyle}>
-            <strong>{item.label}</strong> {item.value || '-'}
-          </p>
-        ))}
-      </section>
+      <div style={styles.leftSection}>
+        <h2 style={styles.leftSectionTitle}>Other Information</h2>
+        <ul style={styles.list}>
+          {checkedItems.map((item, idx) => (
+            <li key={idx} style={styles.listItem}>
+              {item.label} {item.value || '-'}
+            </li>
+          ))}
+        </ul>
+      </div>
     );
   };
 

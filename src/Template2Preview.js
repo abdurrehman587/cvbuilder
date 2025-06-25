@@ -57,6 +57,19 @@ const hasSectionData = (formData, sectionKey) => {
     case 'references':
       return true; // Always show references section
     case 'otherInformation':
+      console.log('Template2Preview - otherInformation check:', {
+        otherInformation: formData.otherInformation,
+        length: formData.otherInformation?.length,
+        items: formData.otherInformation?.map(item => ({
+          labelType: item.labelType,
+          checked: item.checked,
+          value: item.value,
+          label: item.label,
+          hasValue: item.value && item.value.trim() !== '',
+          shouldShow: (item.labelType === 'radio' && item.checked) ||
+                     (item.labelType === 'checkbox' && item.checked)
+        }))
+      });
       return formData.otherInformation && formData.otherInformation.length > 0 &&
              formData.otherInformation.some(item => 
                (item.labelType === 'radio' && item.checked) ||
