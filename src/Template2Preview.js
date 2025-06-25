@@ -80,6 +80,27 @@ const hasSectionData = (formData, sectionKey) => {
   }
 };
 
+const renderOtherInformation = (otherInfo) => {
+  if (!otherInfo || otherInfo.length === 0) return null;
+  const checkedItems = otherInfo.filter(item =>
+    (item.labelType === 'radio' && item.checked) ||
+    (item.labelType === 'checkbox' && item.checked)
+  );
+  if (checkedItems.length === 0) return null;
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <h2 style={{ fontSize: '1.1rem', margin: '8px 0' }}>Other Information</h2>
+      <ul style={{ paddingLeft: 18, margin: 0 }}>
+        {checkedItems.map((item, idx) => (
+          <li key={idx} style={{ fontSize: '0.95rem', marginBottom: 2 }}>
+            {item.label} {item.value || '-'}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
 const Template2Preview = ({ formData }) => {
   const [visibleSections, setVisibleSections] = useState([]);
 
@@ -162,10 +183,20 @@ const Template2Preview = ({ formData }) => {
           background: '#fff',
           boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
           boxSizing: 'border-box',
+          display: 'flex',
+          flexDirection: 'row',
         }}
         aria-label="Curriculum Vitae Preview"
       >
-        <Template2PDF formData={formData} visibleSections={visibleSections} />
+        {/* Left column for sidebar sections */}
+        <div style={{ width: '35%', padding: '24px 16px 24px 24px', background: '#f7f7f7', minHeight: '100%' }}>
+          {/* Render Other Information in the left column if visible */}
+          {visibleSections.includes('otherInformation') && renderOtherInformation(formData.otherInformation)}
+        </div>
+        {/* Main content (PDF preview) */}
+        <div style={{ width: '65%', padding: '24px' }}>
+          <Template2PDF formData={formData} visibleSections={visibleSections} />
+        </div>
       </article>
     </div>
   );
