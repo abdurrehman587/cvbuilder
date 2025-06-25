@@ -303,26 +303,6 @@ const SignupSignIn = ({ onAuth }) => {
           </button>
         </div>
 
-        {/* Admin access info with rate limiting display */}
-        {userType === 'admin' && (
-          <div style={{
-            padding: '12px',
-            backgroundColor: '#fef2f2',
-            border: '1px solid #fecaca',
-            borderRadius: '6px',
-            fontSize: '14px',
-            color: '#dc2626'
-          }}>
-            <strong>Admin Access:</strong><br />
-            Please contact the system administrator for access credentials.
-            {adminAccessAttempts > 0 && (
-              <div style={{ marginTop: '8px', fontSize: '12px' }}>
-                Failed attempts: {adminAccessAttempts}/3
-              </div>
-            )}
-          </div>
-        )}
-
         <input
           type="email"
           placeholder="Email"
