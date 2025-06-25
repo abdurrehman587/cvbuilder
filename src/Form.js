@@ -169,6 +169,13 @@ const Form = ({ formData, setFormData, onChange, user }) => {
           console.log('Loading admin-selected CV:', cvData);
           
           setCurrentCvId(cvData.id);
+          
+          console.log('Admin CV - Raw custom_sections:', cvData.custom_sections);
+          console.log('Admin CV - Type of custom_sections:', typeof cvData.custom_sections);
+          
+          const parsedCustomSections = safeJsonParse(cvData.custom_sections, [{ heading: '', details: [''] }]);
+          console.log('Admin CV - Parsed custom sections:', parsedCustomSections);
+          
           setFormData({
             image: null,
             imageUrl: cvData.image_url || '',
@@ -186,7 +193,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
             customLanguages: [],
             hobbies: safeJsonParse(cvData.hobbies, []),
             references: safeJsonParse(cvData.references, []),
-            customSections: safeJsonParse(cvData.custom_sections, [{ heading: '', details: [''] }]),
+            customSections: parsedCustomSections,
             otherInformation: safeJsonParse(cvData.other_information, []),
           });
           
@@ -241,6 +248,12 @@ const Form = ({ formData, setFormData, onChange, user }) => {
 
         if (data) {
           console.log('CV data loaded successfully:', data);
+          console.log('Raw custom_sections from database:', data.custom_sections);
+          console.log('Type of custom_sections:', typeof data.custom_sections);
+          
+          const parsedCustomSections = safeJsonParse(data.custom_sections, [{ heading: '', details: [''] }]);
+          console.log('Parsed custom sections:', parsedCustomSections);
+          
           setCurrentCvId(data.id);
           setFormData({
             image: null,
@@ -259,7 +272,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
             customLanguages: [],
             hobbies: safeJsonParse(data.hobbies, []),
             references: safeJsonParse(data.references, []),
-            customSections: safeJsonParse(data.custom_sections, [{ heading: '', details: [''] }]),
+            customSections: parsedCustomSections,
             otherInformation: safeJsonParse(data.other_information, []),
           });
         }
@@ -499,7 +512,14 @@ const Form = ({ formData, setFormData, onChange, user }) => {
     if (typeof value === 'object') return value; // Already parsed
     if (typeof value === 'string') {
       try {
-        return JSON.parse(value);
+        const parsed = JSON.parse(value);
+        // Special handling for custom sections to ensure proper structure
+        if (Array.isArray(parsed) && parsed.length > 0 && parsed[0] && typeof parsed[0] === 'object') {
+          // This looks like custom sections data
+          console.log('Parsing custom sections data:', parsed);
+          return parsed;
+        }
+        return parsed;
       } catch (error) {
         console.warn('Failed to parse JSON:', value, error);
         // If it's a simple string, wrap it in an array
@@ -686,6 +706,11 @@ const Form = ({ formData, setFormData, onChange, user }) => {
   // Function to load CV from search results
   const loadCVFromSearch = (cv) => {
     console.log('Loading CV from search:', cv);
+    console.log('Search CV - Raw custom_sections:', cv.custom_sections);
+    console.log('Search CV - Type of custom_sections:', typeof cv.custom_sections);
+    
+    const parsedCustomSections = safeJsonParse(cv.custom_sections, [{ heading: '', details: [''] }]);
+    console.log('Search CV - Parsed custom sections:', parsedCustomSections);
     
     setCurrentCvId(cv.id);
     setFormData({
@@ -705,7 +730,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
       customLanguages: [],
       hobbies: safeJsonParse(cv.hobbies, []),
       references: safeJsonParse(cv.references, []),
-      customSections: safeJsonParse(cv.custom_sections, [{ heading: '', details: [''] }]),
+      customSections: parsedCustomSections,
       otherInformation: safeJsonParse(cv.other_information, []),
     });
 
