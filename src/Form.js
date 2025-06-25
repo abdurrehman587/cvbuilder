@@ -213,8 +213,8 @@ const Form = ({ formData, setFormData, onChange, user }) => {
               ).map(section => ({
                 id: section.id || Date.now() + Math.random(),
                 title: section.title || section.heading || '',
-                items: Array.isArray(section.items) ? section.items : 
-                       Array.isArray(section.details) ? section.details : ['']
+                details: Array.isArray(section.details) ? section.details : 
+                        Array.isArray(section.items) ? section.items : ['']
               }))
             : [];
           
@@ -313,8 +313,8 @@ const Form = ({ formData, setFormData, onChange, user }) => {
               ).map(section => ({
                 id: section.id || Date.now() + Math.random(),
                 title: section.title || section.heading || '',
-                items: Array.isArray(section.items) ? section.items : 
-                       Array.isArray(section.details) ? section.details : ['']
+                details: Array.isArray(section.details) ? section.details : 
+                        Array.isArray(section.items) ? section.items : ['']
               }))
             : [];
           
@@ -486,7 +486,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
     const newSection = {
       id: Date.now(),
       title: '',
-      items: ['']
+      details: ['']
     };
     setFormData(prev => ({
       ...prev,
@@ -838,8 +838,8 @@ const Form = ({ formData, setFormData, onChange, user }) => {
           ).map(section => ({
             id: section.id || Date.now() + Math.random(),
             title: section.title || section.heading || '',
-            items: Array.isArray(section.items) ? section.items : 
-                   Array.isArray(section.details) ? section.details : ['']
+            details: Array.isArray(section.details) ? section.details : 
+                    Array.isArray(section.items) ? section.items : ['']
           }))
         : [];
       
