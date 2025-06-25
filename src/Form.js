@@ -517,7 +517,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
         index === sectionIndex 
           ? { 
               ...section, 
-              details: section.details.map((item, i) => i === itemIndex ? value : item)
+              details: (section.details || []).map((item, i) => i === itemIndex ? value : item)
             }
           : section
       )
@@ -529,7 +529,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
       ...prev,
       customSections: prev.customSections.map((section, index) => 
         index === sectionIndex 
-          ? { ...section, details: [...section.details, ''] }
+          ? { ...section, details: [...(section.details || []), ''] }
           : section
       )
     }));
@@ -542,7 +542,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
         index === sectionIndex 
           ? { 
               ...section, 
-              details: section.details.filter((_, i) => i !== itemIndex)
+              details: (section.details || []).filter((_, i) => i !== itemIndex)
             }
           : section
       )
