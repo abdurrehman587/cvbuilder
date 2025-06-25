@@ -80,40 +80,6 @@ const hasSectionData = (formData, sectionKey) => {
   }
 };
 
-const renderOtherInformation = (otherInfo) => {
-  console.log('Template2Preview - renderOtherInformation called with:', otherInfo);
-  
-  if (!otherInfo || otherInfo.length === 0) {
-    console.log('Template2Preview - renderOtherInformation: no otherInfo or empty array');
-    return null;
-  }
-
-  // Force show all items for debugging
-  const checkedItems = otherInfo.filter(item =>
-    (item.labelType === 'radio' && item.checked) ||
-    (item.labelType === 'checkbox' && item.checked)
-  );
-
-  console.log('Template2Preview - renderOtherInformation filtered items:', checkedItems);
-
-  // If no checked items, show all items for debugging
-  const itemsToShow = checkedItems.length > 0 ? checkedItems : otherInfo;
-  console.log('Template2Preview - renderOtherInformation items to show:', itemsToShow);
-
-  return (
-    <div style={{ marginBottom: 16 }}>
-      <h2 style={{ fontSize: '1.1rem', margin: '8px 0' }}>Other Information</h2>
-      <ul style={{ paddingLeft: 18, margin: 0 }}>
-        {itemsToShow.map((item, idx) => (
-          <li key={idx} style={{ fontSize: '0.95rem', marginBottom: 2 }}>
-            {item.label} {item.value || '-'}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-};
-
 const Template2Preview = ({ formData }) => {
   const [visibleSections, setVisibleSections] = useState([]);
 
@@ -203,16 +169,7 @@ const Template2Preview = ({ formData }) => {
       >
         {/* Left column for sidebar sections */}
         <div style={{ width: '35%', padding: '24px 16px 24px 24px', background: '#f7f7f7', minHeight: '100%' }}>
-          {/* Render Other Information in the left column if visible */}
-          {(() => {
-            console.log('Template2Preview - otherInformation rendering check:', {
-              visibleSections,
-              hasOtherInformation: visibleSections.includes('otherInformation'),
-              formDataOtherInformation: formData.otherInformation,
-              otherInformationLength: formData.otherInformation?.length
-            });
-            return visibleSections.includes('otherInformation') && renderOtherInformation(formData.otherInformation);
-          })()}
+          {/* Other Information is handled by Template2PDF.js */}
         </div>
         {/* Main content (PDF preview) */}
         <div style={{ width: '65%', padding: '24px' }}>
