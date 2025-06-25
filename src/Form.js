@@ -856,6 +856,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
     console.log('Form - useEffect - formData.customSections changed:', formData.customSections);
     console.log('Form - useEffect - formData.customSections type:', typeof formData.customSections);
     console.log('Form - useEffect - formData.customSections length:', formData.customSections?.length);
+    console.log('Form - useEffect - formData.customSections JSON:', JSON.stringify(formData.customSections));
   }, [formData.customSections]);
 
   return (
@@ -1176,6 +1177,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
 
         {/* Debug the exact prop being passed */}
         {console.log('Form render - About to render CustomSectionsSection with:', formData.customSections || [{ heading: '', details: [''] }])}
+        {console.log('Form render - About to render CustomSectionsSection JSON:', JSON.stringify(formData.customSections || [{ heading: '', details: [''] }]))}
 
         <CustomSectionsSection
           customSections={formData.customSections || [{ heading: '', details: [''] }]}
@@ -1523,11 +1525,13 @@ const CustomSectionsSection = ({
     console.log('CustomSectionsSection - useEffect - customSections changed:', customSections);
     console.log('CustomSectionsSection - useEffect - customSections type:', typeof customSections);
     console.log('CustomSectionsSection - useEffect - customSections length:', customSections?.length);
+    console.log('CustomSectionsSection - useEffect - customSections JSON:', JSON.stringify(customSections));
   }, [customSections]);
 
   console.log('CustomSectionsSection - received customSections:', customSections);
   console.log('CustomSectionsSection - customSections type:', typeof customSections);
   console.log('CustomSectionsSection - customSections length:', customSections?.length);
+  console.log('CustomSectionsSection - customSections JSON:', JSON.stringify(customSections));
   console.log('CustomSectionsSection - customSections structure:', customSections?.map(s => ({
     heading: s?.heading,
     details: s?.details,
