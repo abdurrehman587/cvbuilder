@@ -679,7 +679,15 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
           formDataCustomSections: formData.customSections,
           customSectionsLength: formData.customSections?.length
         });
-        return visibleSections.includes('customSections') && formData.customSections && formData.customSections.length > 0 && (
+        
+        // Force custom sections to be visible if they exist
+        const shouldShowCustomSections = (visibleSections.includes('customSections') || formData.customSections?.length > 0) && 
+                                        formData.customSections && 
+                                        formData.customSections.length > 0;
+        
+        console.log('Template1PDF - shouldShowCustomSections:', shouldShowCustomSections);
+        
+        return shouldShowCustomSections && (
           renderCustomSections(formData.customSections)
         );
       })()}
