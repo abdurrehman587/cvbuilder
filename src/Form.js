@@ -369,7 +369,16 @@ const Form = ({ formData, setFormData, onChange, user }) => {
     // eslint-disable-next-line
   }, [user]);
 
-
+  // Ensure otherInformation is always properly set
+  useEffect(() => {
+    if (formData && (!formData.otherInformation || formData.otherInformation.length === 0)) {
+      console.log('Form - Fixing undefined otherInformation, setting to default');
+      setFormData(prev => ({
+        ...prev,
+        otherInformation: defaultFormData.otherInformation
+      }));
+    }
+  }, [formData]);
 
   const handleChange = (field) => (e) => {
     setFormData({ ...formData, [field]: e.target.value });
@@ -807,6 +816,10 @@ const Form = ({ formData, setFormData, onChange, user }) => {
     console.log('Search CV - Raw other_information:', cv.other_information);
     console.log('Search CV - Type of other_information:', typeof cv.other_information);
     
+    // Parse other_information data
+    const parsedOtherInformation = safeJsonParse(cv.other_information, defaultFormData.otherInformation);
+    console.log('Search CV - Parsed other information:', parsedOtherInformation);
+    
     // Ensure admin access flag is maintained for admin users
     if (user?.isAdmin) {
       localStorage.setItem('admin_cv_access', 'true');
@@ -858,7 +871,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
       hobbies: safeJsonParse(cv.hobbies, []),
       references: safeJsonParse(cv.references, []),
       customSections: validatedCustomSections,
-      otherInformation: safeJsonParse(cv.other_information, []),
+      otherInformation: parsedOtherInformation,
     });
 
     setShowSearchResults(false);

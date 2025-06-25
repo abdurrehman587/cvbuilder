@@ -171,3 +171,5 @@ After updating each template:
 ---
 
 **Note:** All templates follow the same pattern. The custom sections will always appear before the references section as requested. 
+
+console.log('Rendering checkedItems:', checkedItems); 

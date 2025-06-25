@@ -88,6 +88,7 @@ const renderOtherInformation = (otherInfo) => {
     return null;
   }
 
+  // Force show all items for debugging
   const checkedItems = otherInfo.filter(item =>
     (item.labelType === 'radio' && item.checked) ||
     (item.labelType === 'checkbox' && item.checked)
@@ -95,18 +96,17 @@ const renderOtherInformation = (otherInfo) => {
 
   console.log('Template2Preview - renderOtherInformation filtered items:', checkedItems);
 
-  if (checkedItems.length === 0) {
-    console.log('Template2Preview - renderOtherInformation: no checked items');
-    return null;
-  }
+  // If no checked items, show all items for debugging
+  const itemsToShow = checkedItems.length > 0 ? checkedItems : otherInfo;
+  console.log('Template2Preview - renderOtherInformation items to show:', itemsToShow);
 
   return (
     <div style={{ marginBottom: 16 }}>
       <h2 style={{ fontSize: '1.1rem', margin: '8px 0' }}>Other Information</h2>
       <ul style={{ paddingLeft: 18, margin: 0 }}>
-        {checkedItems.map((item, idx) => (
+        {itemsToShow.map((item, idx) => (
           <li key={idx} style={{ fontSize: '0.95rem', marginBottom: 2 }}>
-            {item.label} {item.value || '-'}
+            {item.label} {item.value || '-'} (checked: {item.checked ? 'yes' : 'no'})
           </li>
         ))}
       </ul>

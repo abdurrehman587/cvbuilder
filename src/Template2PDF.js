@@ -392,18 +392,17 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
 
     console.log('Template2PDF - renderOtherInformation filtered items:', checkedItems);
 
-    if (checkedItems.length === 0) {
-      console.log('Template2PDF - renderOtherInformation: no checked items');
-      return null;
-    }
+    // If no checked items, show all items for debugging
+    const itemsToShow = checkedItems.length > 0 ? checkedItems : otherInfo;
+    console.log('Template2PDF - renderOtherInformation items to show:', itemsToShow);
 
     return (
       <div style={styles.leftSection}>
         <h2 style={styles.leftSectionTitle}>Other Information</h2>
         <ul style={styles.list}>
-          {checkedItems.map((item, idx) => (
+          {itemsToShow.map((item, idx) => (
             <li key={idx} style={styles.listItem}>
-              {item.label} {item.value || '-'}
+              {item.label} {item.value || '-'} (checked: {item.checked ? 'yes' : 'no'})
             </li>
           ))}
         </ul>
