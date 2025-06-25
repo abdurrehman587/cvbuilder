@@ -1,5 +1,6 @@
-// Template1PDF.js - Version 2.0 - Custom Sections Fix
-// Last updated: 2024-12-19 15:30:00
+// Template1PDF.js - Version 2.1 - Custom Sections Fix - CACHE BUSTED
+// Last updated: 2024-12-19 15:45:00
+// Unique ID: CS_FIX_20241219_1545
 import React, { useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import JazzCashPayment from './JazzCashPayment';
@@ -370,7 +371,8 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const renderCustomSections = (customSections) => {
-    console.log('=== TEMPLATE1PDF VERSION 2.0 RUNNING ===');
+    console.log('=== TEMPLATE1PDF VERSION 2.1 CACHE BUSTED RUNNING ===');
+    console.log('=== CS_FIX_20241219_1545 ===');
     console.log('Template1PDF - renderCustomSections called with:', customSections);
     console.log('Template1PDF - customSections type:', typeof customSections);
     console.log('Template1PDF - customSections length:', customSections?.length);
