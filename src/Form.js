@@ -789,9 +789,13 @@ const Form = ({ formData, setFormData, onChange, user }) => {
 
   // Function to load CV from search results
   const loadCVFromSearch = (cv) => {
+    console.log('=== LOADING CV FROM SEARCH ===');
+    console.log('CV data received:', cv);
+    
     try {
       // Parse other_information data
       const parsedOtherInformation = safeJsonParse(cv.other_information, defaultFormData.otherInformation);
+      console.log('Parsed other information:', parsedOtherInformation);
       
       // Ensure admin access flag is maintained for admin users
       if (user?.isAdmin) {
@@ -799,6 +803,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
       }
       
       const parsedCustomSections = safeJsonParse(cv.custom_sections, []);
+      console.log('Parsed custom sections:', parsedCustomSections);
       
       // Validate custom sections data - be more lenient to preserve sections for editing
       const validatedCustomSections = Array.isArray(parsedCustomSections) 
@@ -838,6 +843,11 @@ const Form = ({ formData, setFormData, onChange, user }) => {
         otherInformation: parsedOtherInformation && parsedOtherInformation.length > 0 ? parsedOtherInformation : defaultFormData.otherInformation,
       };
       
+      console.log('New form data to be set:', newFormData);
+      console.log('Name field:', newFormData.name);
+      console.log('Phone field:', newFormData.phone);
+      console.log('Email field:', newFormData.email);
+      
       setFormData(newFormData);
       setCurrentCvId(cv.id);
 
@@ -845,11 +855,31 @@ const Form = ({ formData, setFormData, onChange, user }) => {
       setSearchName('');
       setSearchPhone('');
       toast.success(`CV loaded successfully for ${cv.name || 'Unknown User'}`);
+      
+      // Add a delay to check if form data was actually updated
+      setTimeout(() => {
+        console.log('=== CHECKING FORM DATA AFTER SET ===');
+        console.log('Current formData state:', formData);
+        console.log('Current formData.name:', formData.name);
+        console.log('Current formData.phone:', formData.phone);
+        console.log('Current formData.email:', formData.email);
+      }, 100);
     } catch (error) {
       console.error('Error loading CV:', error);
       toast.error('Error loading CV: ' + error.message);
     }
   };
+
+  // Add debugging useEffect to monitor form data changes
+  useEffect(() => {
+    console.log('=== FORM DATA CHANGED ===');
+    console.log('formData.name:', formData.name);
+    console.log('formData.phone:', formData.phone);
+    console.log('formData.email:', formData.email);
+    console.log('formData.address:', formData.address);
+    console.log('formData.customSections:', formData.customSections);
+    console.log('formData.otherInformation:', formData.otherInformation);
+  }, [formData]);
 
   // Guard: Don't render until formData is initialized
   if (!formData) return null;
