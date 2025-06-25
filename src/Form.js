@@ -156,10 +156,36 @@ const Form = ({ formData, setFormData, onChange, user }) => {
     return () => clearTimeout(searchTimeout);
   }, [searchName, searchPhone, user]);
 
+  // Maintain admin access flag for admin users
+  useEffect(() => {
+    if (user?.isAdmin) {
+      // Set admin access flag immediately
+      localStorage.setItem('admin_cv_access', 'true');
+      console.log('Admin access flag set for admin user');
+      
+      // Set up interval to maintain admin access flag
+      const adminAccessInterval = setInterval(() => {
+        const currentAdminAccess = localStorage.getItem('admin_cv_access');
+        if (currentAdminAccess !== 'true') {
+          localStorage.setItem('admin_cv_access', 'true');
+          console.log('Admin access flag restored');
+        }
+      }, 5000); // Check every 5 seconds
+      
+      return () => clearInterval(adminAccessInterval);
+    }
+  }, [user]);
+
   // Fetch user's CV on mount or when user changes
   useEffect(() => {
     const fetchUserCV = async () => {
       if (!user) return;
+      
+      // Ensure admin access flag is maintained for admin users
+      if (user.isAdmin) {
+        localStorage.setItem('admin_cv_access', 'true');
+        console.log('Admin access flag maintained for admin user');
+      }
       
       // Check if admin has selected a CV to load
       const adminSelectedCV = localStorage.getItem('admin_selected_cv');
@@ -175,6 +201,20 @@ const Form = ({ formData, setFormData, onChange, user }) => {
           
           const parsedCustomSections = safeJsonParse(cvData.custom_sections, [{ heading: '', details: [''] }]);
           console.log('Admin CV - Parsed custom sections:', parsedCustomSections);
+          
+          // Validate custom sections data
+          const validatedCustomSections = Array.isArray(parsedCustomSections) 
+            ? parsedCustomSections.filter(section => 
+                section && 
+                typeof section === 'object' && 
+                section.heading && 
+                section.details && 
+                Array.isArray(section.details) &&
+                section.details.length > 0
+              )
+            : [{ heading: '', details: [''] }];
+          
+          console.log('Admin CV - Validated custom sections:', validatedCustomSections);
           
           // Ensure admin access flag is set for admin-selected CV
           localStorage.setItem('admin_cv_access', 'true');
@@ -197,7 +237,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
             customLanguages: [],
             hobbies: safeJsonParse(cvData.hobbies, []),
             references: safeJsonParse(cvData.references, []),
-            customSections: parsedCustomSections,
+            customSections: validatedCustomSections,
             otherInformation: safeJsonParse(cvData.other_information, []),
           });
           
@@ -265,6 +305,20 @@ const Form = ({ formData, setFormData, onChange, user }) => {
             detailsLength: s?.details?.length
           })));
           
+          // Validate custom sections data
+          const validatedCustomSections = Array.isArray(parsedCustomSections) 
+            ? parsedCustomSections.filter(section => 
+                section && 
+                typeof section === 'object' && 
+                section.heading && 
+                section.details && 
+                Array.isArray(section.details) &&
+                section.details.length > 0
+              )
+            : [{ heading: '', details: [''] }];
+          
+          console.log('Validated custom sections:', validatedCustomSections);
+          
           setCurrentCvId(data.id);
           setFormData({
             image: null,
@@ -283,7 +337,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
             customLanguages: [],
             hobbies: safeJsonParse(data.hobbies, []),
             references: safeJsonParse(data.references, []),
-            customSections: parsedCustomSections,
+            customSections: validatedCustomSections,
             otherInformation: safeJsonParse(data.other_information, []),
           });
         }
@@ -732,16 +786,36 @@ const Form = ({ formData, setFormData, onChange, user }) => {
     console.log('Search CV - Raw custom_sections:', cv.custom_sections);
     console.log('Search CV - Type of custom_sections:', typeof cv.custom_sections);
     
+    // Ensure admin access flag is maintained for admin users
+    if (user?.isAdmin) {
+      localStorage.setItem('admin_cv_access', 'true');
+      console.log('Admin access flag maintained for CV loading from search');
+    }
+    
     const parsedCustomSections = safeJsonParse(cv.custom_sections, [{ heading: '', details: [''] }]);
     console.log('Search CV - Parsed custom sections:', parsedCustomSections);
     console.log('Search CV - Parsed custom sections type:', typeof parsedCustomSections);
     console.log('Search CV - Parsed custom sections length:', parsedCustomSections?.length);
+    console.log('Search CV - Parsed custom sections structure:', parsedCustomSections?.map(s => ({
+      heading: s?.heading,
+      details: s?.details,
+      detailsLength: s?.details?.length,
+      hasValidData: s?.heading && s?.details && s?.details.length > 0
+    })));
     
-    // Set admin access flag if user is admin
-    if (user?.isAdmin) {
-      localStorage.setItem('admin_cv_access', 'true');
-      console.log('Admin access flag set for CV loading from search');
-    }
+    // Validate custom sections data
+    const validatedCustomSections = Array.isArray(parsedCustomSections) 
+      ? parsedCustomSections.filter(section => 
+          section && 
+          typeof section === 'object' && 
+          section.heading && 
+          section.details && 
+          Array.isArray(section.details) &&
+          section.details.length > 0
+        )
+      : [{ heading: '', details: [''] }];
+    
+    console.log('Search CV - Validated custom sections:', validatedCustomSections);
     
     setCurrentCvId(cv.id);
     setFormData({
@@ -761,7 +835,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
       customLanguages: [],
       hobbies: safeJsonParse(cv.hobbies, []),
       references: safeJsonParse(cv.references, []),
-      customSections: parsedCustomSections,
+      customSections: validatedCustomSections,
       otherInformation: safeJsonParse(cv.other_information, []),
     });
 
