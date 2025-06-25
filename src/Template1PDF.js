@@ -647,9 +647,17 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
       })()}
 
       {/* Custom Sections - rendered before references */}
-      {visibleSections.includes('customSections') && formData.customSections && formData.customSections.length > 0 && (
-        renderCustomSections(formData.customSections)
-      )}
+      {(() => {
+        console.log('Template1PDF - customSections check:', {
+          visibleSections,
+          hasCustomSections: visibleSections.includes('customSections'),
+          formDataCustomSections: formData.customSections,
+          customSectionsLength: formData.customSections?.length
+        });
+        return visibleSections.includes('customSections') && formData.customSections && formData.customSections.length > 0 && (
+          renderCustomSections(formData.customSections)
+        );
+      })()}
 
       {visibleSections.includes('references') && (
         <section style={sectionStyle} aria-label="References Section">
