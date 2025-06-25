@@ -72,7 +72,6 @@ const Form = ({ formData, setFormData, onChange, user }) => {
         return;
       }
 
-      console.log('Live search triggered with:', { searchName, searchPhone });
       setIsSearching(true);
       try {
         if (!supabase || !supabase.from) {
@@ -788,8 +787,6 @@ const Form = ({ formData, setFormData, onChange, user }) => {
 
   // Function to load CV from search results
   const loadCVFromSearch = (cv) => {
-    console.log('Loading CV from search:', cv.name);
-    
     try {
       // Parse other_information data
       const parsedOtherInformation = safeJsonParse(cv.other_information, defaultFormData.otherInformation);
@@ -851,33 +848,6 @@ const Form = ({ formData, setFormData, onChange, user }) => {
       toast.error('Error loading CV: ' + error.message);
     }
   };
-
-  // Add debugging for formData.customSections changes
-  React.useEffect(() => {
-    // Keep minimal debugging for troubleshooting
-    if (formData.customSections && formData.customSections.length > 0) {
-      console.log('Form - customSections loaded:', formData.customSections.length, 'sections');
-    }
-  }, [formData.customSections]);
-
-  // Add debugging for entire formData changes
-  React.useEffect(() => {
-    // Keep minimal debugging for troubleshooting
-    if (formData.name && formData.name.length > 0) {
-      console.log('Form - CV loaded:', formData.name);
-    }
-  }, [formData]);
-
-  // Add debugging for form values
-  React.useEffect(() => {
-    console.log('=== FORM VALUES DEBUG ===');
-    console.log('formData.name:', formData.name);
-    console.log('formData.phone:', formData.phone);
-    console.log('formData.email:', formData.email);
-    console.log('formData.customSections:', formData.customSections);
-    console.log('formData.otherInformation:', formData.otherInformation);
-    console.log('currentCvId:', currentCvId);
-  }, [formData, currentCvId]);
 
   // Guard: Don't render until formData is initialized
   if (!formData) return null;
