@@ -53,12 +53,6 @@ const Form = ({ formData, setFormData, onChange, user }) => {
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
 
-  useEffect(() => {
-    if (formData && onChange) {
-      onChange(formData);
-    }
-  }, [formData, onChange]);
-
   // Debounced live search effect
   useEffect(() => {
     if (!user || !user.isAdmin) return;
@@ -338,7 +332,12 @@ const Form = ({ formData, setFormData, onChange, user }) => {
   }, [user]);
 
   const handleChange = (field) => (e) => {
-    setFormData({ ...formData, [field]: e.target.value });
+    const newFormData = { ...formData, [field]: e.target.value };
+    setFormData(newFormData);
+    // Call onChange to notify parent component of user changes
+    if (onChange) {
+      onChange(newFormData);
+    }
   };
 
   const handleWorkExperienceChange = (index, field, value) => {
