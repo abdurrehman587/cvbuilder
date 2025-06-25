@@ -851,6 +851,13 @@ const Form = ({ formData, setFormData, onChange, user }) => {
   // Guard: Don't render until formData is initialized
   if (!formData) return null;
 
+  // Add debugging for formData.customSections changes
+  React.useEffect(() => {
+    console.log('Form - useEffect - formData.customSections changed:', formData.customSections);
+    console.log('Form - useEffect - formData.customSections type:', typeof formData.customSections);
+    console.log('Form - useEffect - formData.customSections length:', formData.customSections?.length);
+  }, [formData.customSections]);
+
   return (
     <>
       {/* Search Container Above Form */}
@@ -1156,16 +1163,6 @@ const Form = ({ formData, setFormData, onChange, user }) => {
           rows={1}
         />
 
-        <CustomSectionsSection
-          customSections={formData.customSections || [{ heading: '', details: [''] }]}
-          onHeadingChange={handleCustomSectionHeadingChange}
-          onDetailChange={handleCustomSectionDetailChange}
-          onAddDetail={handleAddCustomSectionDetail}
-          onRemoveDetail={handleRemoveCustomSectionDetail}
-          onAddSection={handleAddCustomSection}
-          onRemoveSection={handleRemoveCustomSection}
-        />
-        
         {/* Debug information for custom sections */}
         {console.log('Form render - formData.customSections:', formData.customSections)}
         {console.log('Form render - customSections type:', typeof formData.customSections)}
@@ -1177,6 +1174,19 @@ const Form = ({ formData, setFormData, onChange, user }) => {
           hasValidData: s?.heading && s?.details && s?.details.length > 0
         })))}
 
+        {/* Debug the exact prop being passed */}
+        {console.log('Form render - About to render CustomSectionsSection with:', formData.customSections || [{ heading: '', details: [''] }])}
+
+        <CustomSectionsSection
+          customSections={formData.customSections || [{ heading: '', details: [''] }]}
+          onHeadingChange={handleCustomSectionHeadingChange}
+          onDetailChange={handleCustomSectionDetailChange}
+          onAddDetail={handleAddCustomSectionDetail}
+          onRemoveDetail={handleRemoveCustomSectionDetail}
+          onAddSection={handleAddCustomSection}
+          onRemoveSection={handleRemoveCustomSection}
+        />
+        
         <button onClick={handleSave} type="button" className="save-btn">
           {user?.isAdmin ? '💾 Save CV (Admin)' : 'Save'}
         </button>
@@ -1508,6 +1518,13 @@ const CustomSectionsSection = ({
   onAddSection,
   onRemoveSection,
 }) => {
+  // Add useEffect to track prop changes
+  React.useEffect(() => {
+    console.log('CustomSectionsSection - useEffect - customSections changed:', customSections);
+    console.log('CustomSectionsSection - useEffect - customSections type:', typeof customSections);
+    console.log('CustomSectionsSection - useEffect - customSections length:', customSections?.length);
+  }, [customSections]);
+
   console.log('CustomSectionsSection - received customSections:', customSections);
   console.log('CustomSectionsSection - customSections type:', typeof customSections);
   console.log('CustomSectionsSection - customSections length:', customSections?.length);
