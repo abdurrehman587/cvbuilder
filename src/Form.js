@@ -176,6 +176,10 @@ const Form = ({ formData, setFormData, onChange, user }) => {
           const parsedCustomSections = safeJsonParse(cvData.custom_sections, [{ heading: '', details: [''] }]);
           console.log('Admin CV - Parsed custom sections:', parsedCustomSections);
           
+          // Ensure admin access flag is set for admin-selected CV
+          localStorage.setItem('admin_cv_access', 'true');
+          console.log('Admin access flag set for admin-selected CV');
+          
           setFormData({
             image: null,
             imageUrl: cvData.image_url || '',
@@ -711,6 +715,12 @@ const Form = ({ formData, setFormData, onChange, user }) => {
     
     const parsedCustomSections = safeJsonParse(cv.custom_sections, [{ heading: '', details: [''] }]);
     console.log('Search CV - Parsed custom sections:', parsedCustomSections);
+    
+    // Set admin access flag if user is admin
+    if (user?.isAdmin) {
+      localStorage.setItem('admin_cv_access', 'true');
+      console.log('Admin access flag set for CV loading from search');
+    }
     
     setCurrentCvId(cv.id);
     setFormData({
