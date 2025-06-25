@@ -867,12 +867,14 @@ const Form = ({ formData, setFormData, onChange, user }) => {
       certifications: safeJsonParse(cv.certifications, []),
       projects: safeJsonParse(cv.projects, []),
       languages: safeJsonParse(cv.languages, []),
-      customLanguages: [],
+      customLanguages: safeJsonParse(cv.custom_languages, []),
       hobbies: safeJsonParse(cv.hobbies, []),
       references: safeJsonParse(cv.references, []),
       customSections: validatedCustomSections,
-      otherInformation: parsedOtherInformation,
+      otherInformation: parsedOtherInformation || defaultFormData.otherInformation,
     });
+
+    console.log('Search CV - Form data set with otherInformation:', parsedOtherInformation || defaultFormData.otherInformation);
 
     setShowSearchResults(false);
     setSearchName('');
