@@ -350,13 +350,6 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
       <ul style={{ paddingLeft: '20px', marginTop: '10px' }}>
         {validItems.map((item, idx) => (
           <li key={idx} style={styles.listItem}>
-            <span style={{
-              position: 'absolute',
-              left: '0',
-              color: '#2ecc71',
-              fontWeight: 'bold',
-              fontSize: '0.9rem',
-            }}>✦</span>
             {typeof item === 'string' ? item : 
              typeof item === 'object' && item !== null ? 
                (item.label || item.value || item.name || JSON.stringify(item)) : 
