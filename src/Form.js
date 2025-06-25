@@ -1063,12 +1063,36 @@ const Form = ({ formData, setFormData, onChange, user }) => {
 
         {/* Contact Info Row */}
         <div className="contact-row">
-          <InputField label="Name" value={formData.name} onChange={handleChange('name')} placeholder="Your full name" />
-          <InputField label="Phone" value={formData.phone} onChange={handleChange('phone')} placeholder="Your phone number" />
+          <InputField 
+            label="Name" 
+            value={formData.name} 
+            onChange={handleChange('name')} 
+            placeholder="Your full name" 
+            key={`name-${formData.name}`}
+          />
+          <InputField 
+            label="Phone" 
+            value={formData.phone} 
+            onChange={handleChange('phone')} 
+            placeholder="Your phone number" 
+            key={`phone-${formData.phone}`}
+          />
         </div>
         <div className="contact-row">
-          <InputField label="Email" value={formData.email} onChange={handleChange('email')} placeholder="Your email address" />
-          <InputField label="Address" value={formData.address} onChange={handleChange('address')} placeholder="Your address" />
+          <InputField 
+            label="Email" 
+            value={formData.email} 
+            onChange={handleChange('email')} 
+            placeholder="Your email address" 
+            key={`email-${formData.email}`}
+          />
+          <InputField 
+            label="Address" 
+            value={formData.address} 
+            onChange={handleChange('address')} 
+            placeholder="Your address" 
+            key={`address-${formData.address}`}
+          />
         </div>
 
         {/* Other sections unchanged for brevity, same as previous cleaned-up version */}
@@ -1220,12 +1244,21 @@ const Form = ({ formData, setFormData, onChange, user }) => {
   );
 };
 
-const InputField = ({ label, value, onChange, placeholder }) => (
-  <div className="input-field">
-    <label>{label}</label>
-    <input type="text" value={value} onChange={onChange} placeholder={placeholder} />
-  </div>
-);
+const InputField = ({ label, value, onChange, placeholder }) => {
+  console.log(`InputField ${label} rendering with value:`, value);
+  return (
+    <div className="input-field">
+      <label>{label}</label>
+      <input 
+        type="text" 
+        value={value || ''} 
+        onChange={onChange} 
+        placeholder={placeholder}
+        style={{ border: value ? '2px solid green' : '1px solid #ccc' }}
+      />
+    </div>
+  );
+};
 
 const EducationSection = ({ education, onChange, onAdd, onRemove }) => (
   <div style={{ marginBottom: '1.5rem' }}>
