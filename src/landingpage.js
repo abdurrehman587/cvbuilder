@@ -33,6 +33,7 @@ const LandingPage = ({ user }) => {
     customLanguages: [],
     hobbies: [''],
     references: [''],
+    customSections: [{ heading: '', details: [''] }],
     otherInformation: [
       { id: 1, labelType: 'radio', label: "Father's Name:", checked: true, value: '', name: 'parentSpouse', radioValue: 'father' },
       { id: 2, labelType: 'radio', label: "Husband's Name:", checked: false, value: '', name: 'parentSpouse', radioValue: 'husband' },

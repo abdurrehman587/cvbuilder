@@ -882,16 +882,29 @@ const Form = ({ formData, setFormData, onChange, user }) => {
     toast.success(`CV loaded successfully for ${cv.name || 'Unknown User'}`);
   };
 
-  // Guard: Don't render until formData is initialized
-  if (!formData) return null;
-
   // Add debugging for formData.customSections changes
   React.useEffect(() => {
     console.log('Form - useEffect - formData.customSections changed:', formData.customSections);
     console.log('Form - useEffect - formData.customSections type:', typeof formData.customSections);
     console.log('Form - useEffect - formData.customSections length:', formData.customSections?.length);
     console.log('Form - useEffect - formData.customSections JSON:', JSON.stringify(formData.customSections));
+    
+    // Add stack trace to see where the change is coming from
+    console.trace('Form - customSections change stack trace');
   }, [formData.customSections]);
+
+  // Add debugging for entire formData changes
+  React.useEffect(() => {
+    console.log('Form - useEffect - entire formData changed:', {
+      hasCustomSections: 'customSections' in formData,
+      customSectionsValue: formData.customSections,
+      customSectionsType: typeof formData.customSections,
+      formDataKeys: Object.keys(formData)
+    });
+  }, [formData]);
+
+  // Guard: Don't render until formData is initialized
+  if (!formData) return null;
 
   return (
     <>
@@ -1565,7 +1578,6 @@ const CustomSectionsSection = ({
   console.log('CustomSectionsSection - received customSections:', customSections);
   console.log('CustomSectionsSection - customSections type:', typeof customSections);
   console.log('CustomSectionsSection - customSections length:', customSections?.length);
-  console.log('CustomSectionsSection - customSections JSON:', JSON.stringify(customSections));
   console.log('CustomSectionsSection - customSections structure:', customSections?.map(s => ({
     heading: s?.heading,
     details: s?.details,
@@ -1573,12 +1585,22 @@ const CustomSectionsSection = ({
     hasValidData: s?.heading && s?.details && s?.details.length > 0
   })));
   
+  // Safety check - ensure we always have valid data
+  const safeCustomSections = Array.isArray(customSections) && customSections.length > 0 
+    ? customSections 
+    : [{ heading: '', details: [''] }];
+  
+  if (!Array.isArray(customSections) || customSections.length === 0) {
+    console.warn('CustomSectionsSection - Received invalid customSections:', customSections);
+    console.warn('CustomSectionsSection - Using fallback data:', safeCustomSections);
+  }
+  
   return (
     <div style={{ marginBottom: '1.5rem' }}>
       <h3 style={{ fontWeight: 700, fontSize: '1.25rem', marginBottom: 8, color: '#374151' }}>
         Add More Section
       </h3>
-      {(customSections || []).map((section, sectionIndex) => (
+      {safeCustomSections.map((section, sectionIndex) => (
         <div key={sectionIndex} style={{ 
           border: '1px solid #e5e7eb', 
           borderRadius: '8px', 
@@ -1603,18 +1625,18 @@ const CustomSectionsSection = ({
             />
             <button
               onClick={() => onRemoveSection(sectionIndex)}
-              disabled={(customSections || []).length <= 1}
+              disabled={safeCustomSections.length <= 1}
               className="remove-btn"
               type="button"
-              title={(customSections || []).length <= 1 ? 'At least one section required' : 'Remove section'}
+              title={safeCustomSections.length <= 1 ? 'At least one section required' : 'Remove section'}
               style={{
                 padding: '0.5rem 1rem',
                 backgroundColor: '#ef4444',
                 color: 'white',
                 border: 'none',
                 borderRadius: '4px',
-                cursor: (customSections || []).length <= 1 ? 'not-allowed' : 'pointer',
-                opacity: (customSections || []).length <= 1 ? 0.5 : 1
+                cursor: safeCustomSections.length <= 1 ? 'not-allowed' : 'pointer',
+                opacity: safeCustomSections.length <= 1 ? 0.5 : 1
               }}
             >
               Remove Section
