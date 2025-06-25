@@ -443,7 +443,7 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
     
-    if (isAdmin {
+    if (isAdmin) {
       return true;
     }
     
@@ -475,7 +475,7 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
     
-    if (isAdmin {
+    if (isAdmin) {
       return 'Download Now (Admin Access)';
     }
     if (paymentState === 'processing') return 'Processing...';
@@ -504,7 +504,7 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
     
-    if (isAdmin {
+    if (isAdmin) {
       generatePDF();
       return;
     }
