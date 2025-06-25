@@ -162,19 +162,11 @@ const Template2Preview = ({ formData }) => {
           background: '#fff',
           boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
           boxSizing: 'border-box',
-          display: 'flex',
-          flexDirection: 'row',
         }}
         aria-label="Curriculum Vitae Preview"
       >
-        {/* Left column for sidebar sections */}
-        <div style={{ width: '35%', padding: '24px 16px 24px 24px', background: '#f7f7f7', minHeight: '100%' }}>
-          {/* Other Information is handled by Template2PDF.js */}
-        </div>
-        {/* Main content (PDF preview) */}
-        <div style={{ width: '65%', padding: '24px' }}>
-          <Template2PDF formData={formData} visibleSections={visibleSections} />
-        </div>
+        {/* Single column layout - Template2PDF handles its own layout */}
+        <Template2PDF formData={formData} visibleSections={visibleSections} />
       </article>
     </div>
   );
