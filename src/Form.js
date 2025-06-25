@@ -1611,7 +1611,7 @@ const CustomSectionsSection = ({
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
               <input
                 type="text"
-                value={section.heading || ''}
+                value={section.title || ''}
                 onChange={(e) => onHeadingChange(sectionIndex, e.target.value)}
                 placeholder="Section Title"
                 style={{
