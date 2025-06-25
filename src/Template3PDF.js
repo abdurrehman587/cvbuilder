@@ -474,13 +474,19 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
     if (!customSections || customSections.length === 0) return null;
 
     return customSections.map((section, sectionIndex) => {
-      if (!section.heading || !section.details || section.details.length === 0) {
+      // More lenient validation: require details but heading can be empty
+      if (!section.details || section.details.length === 0) {
+        console.log(`Template3PDF - section ${sectionIndex} invalid: no details`);
         return null;
       }
 
+      // Use default heading if empty
+      const sectionHeading = section.heading?.trim() || 'Additional Information';
+      
+      console.log(`Template3PDF - rendering section ${sectionIndex}:`, sectionHeading);
       return (
         <div key={sectionIndex} style={sectionStyle}>
-          <h3 style={sectionTitleStyle}>{section.heading}</h3>
+          <h3 style={sectionTitleStyle}>{sectionHeading}</h3>
           <ul style={listStyle}>
             {section.details.map((detail, detailIndex) => (
               <li key={detailIndex} style={listItemStyle}>{detail}</li>

@@ -410,19 +410,19 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
     return customSections.map((section, sectionIndex) => {
       console.log(`Template2PDF - processing section ${sectionIndex}:`, section);
       
-      if (!section.heading || !section.details || section.details.length === 0) {
-        console.log(`Template2PDF - section ${sectionIndex} invalid:`, {
-          hasHeading: !!section.heading,
-          hasDetails: !!section.details,
-          detailsLength: section.details?.length
-        });
+      // More lenient validation: require details but heading can be empty
+      if (!section.details || section.details.length === 0) {
+        console.log(`Template2PDF - section ${sectionIndex} invalid: no details`);
         return null;
       }
 
-      console.log(`Template2PDF - rendering section ${sectionIndex}:`, section.heading);
+      // Use default heading if empty
+      const sectionHeading = section.heading?.trim() || 'Additional Information';
+      
+      console.log(`Template2PDF - rendering section ${sectionIndex}:`, sectionHeading);
       return (
         <div key={sectionIndex} style={styles.rightSection}>
-          <h2 style={styles.rightSectionTitle}>{section.heading}</h2>
+          <h2 style={styles.rightSectionTitle}>{sectionHeading}</h2>
           <ul style={styles.list}>
             {section.details.map((detail, detailIndex) => (
               <li key={detailIndex} style={styles.listItem}>{detail}</li>

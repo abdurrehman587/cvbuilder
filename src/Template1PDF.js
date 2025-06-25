@@ -365,19 +365,25 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     if (!customSections || customSections.length === 0) return null;
 
     return customSections.map((section, sectionIndex) => {
-      if (!section.heading || !section.details || section.details.length === 0) {
+      // More lenient validation: require details but heading can be empty
+      if (!section.details || section.details.length === 0) {
+        console.log(`Template1PDF - section ${sectionIndex} invalid: no details`);
         return null;
       }
 
+      // Use default heading if empty
+      const sectionHeading = section.heading?.trim() || 'Additional Information';
+      
+      console.log(`Template1PDF - rendering section ${sectionIndex}:`, sectionHeading);
       return (
-        <section key={sectionIndex} style={sectionStyle} aria-label={`${section.heading} Section`}>
-          <h2 style={sectionTitleStyle}>{section.heading}</h2>
+        <div key={sectionIndex} style={sectionStyle} aria-label={`${sectionHeading} Section`}>
+          <h2 style={sectionTitleStyle}>{sectionHeading}</h2>
           <ul style={listStyle}>
             {section.details.map((detail, detailIndex) => (
               <li key={detailIndex} style={listItemStyle}>{detail}</li>
             ))}
           </ul>
-        </section>
+        </div>
       );
     });
   };
