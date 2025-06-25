@@ -40,7 +40,8 @@ const hasSectionData = (formData, sectionKey) => {
     case 'customSections':
       const hasCustomSections = formData.customSections && formData.customSections.length > 0 &&
              formData.customSections.some(section => 
-               section.heading && section.details && section.details.length > 0
+               section && typeof section === 'object' && 
+               (section.heading || section.details) // Show if either heading or details exist
              );
       console.log('Template2Preview - customSections check:', {
         customSections: formData.customSections,

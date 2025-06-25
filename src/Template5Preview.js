@@ -40,7 +40,8 @@ const hasSectionData = (formData, sectionKey) => {
     case 'customSections':
       return formData.customSections && formData.customSections.length > 0 &&
              formData.customSections.some(section => 
-               section.heading && section.details && section.details.length > 0
+               section && typeof section === 'object' && 
+               (section.heading || section.details) // Show if either heading or details exist
              );
     case 'references':
       return true; // Always show references section
