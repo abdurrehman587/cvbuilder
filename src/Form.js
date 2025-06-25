@@ -202,16 +202,17 @@ const Form = ({ formData, setFormData, onChange, user }) => {
           const parsedCustomSections = safeJsonParse(cvData.custom_sections, [{ heading: '', details: [''] }]);
           console.log('Admin CV - Parsed custom sections:', parsedCustomSections);
           
-          // Validate custom sections data
+          // Validate custom sections data - be more lenient to preserve sections for editing
           const validatedCustomSections = Array.isArray(parsedCustomSections) 
             ? parsedCustomSections.filter(section => 
                 section && 
                 typeof section === 'object' && 
-                section.heading && 
-                section.details && 
-                Array.isArray(section.details) &&
-                section.details.length > 0
-              )
+                section.heading !== undefined && 
+                section.details !== undefined
+              ).map(section => ({
+                heading: section.heading || '',
+                details: Array.isArray(section.details) ? section.details : ['']
+              }))
             : [{ heading: '', details: [''] }];
           
           console.log('Admin CV - Validated custom sections:', validatedCustomSections);
@@ -305,16 +306,17 @@ const Form = ({ formData, setFormData, onChange, user }) => {
             detailsLength: s?.details?.length
           })));
           
-          // Validate custom sections data
+          // Validate custom sections data - be more lenient to preserve sections for editing
           const validatedCustomSections = Array.isArray(parsedCustomSections) 
             ? parsedCustomSections.filter(section => 
                 section && 
                 typeof section === 'object' && 
-                section.heading && 
-                section.details && 
-                Array.isArray(section.details) &&
-                section.details.length > 0
-              )
+                section.heading !== undefined && 
+                section.details !== undefined
+              ).map(section => ({
+                heading: section.heading || '',
+                details: Array.isArray(section.details) ? section.details : ['']
+              }))
             : [{ heading: '', details: [''] }];
           
           console.log('Validated custom sections:', validatedCustomSections);
@@ -803,16 +805,17 @@ const Form = ({ formData, setFormData, onChange, user }) => {
       hasValidData: s?.heading && s?.details && s?.details.length > 0
     })));
     
-    // Validate custom sections data
+    // Validate custom sections data - be more lenient to preserve sections for editing
     const validatedCustomSections = Array.isArray(parsedCustomSections) 
       ? parsedCustomSections.filter(section => 
           section && 
           typeof section === 'object' && 
-          section.heading && 
-          section.details && 
-          Array.isArray(section.details) &&
-          section.details.length > 0
-        )
+          section.heading !== undefined && 
+          section.details !== undefined
+        ).map(section => ({
+          heading: section.heading || '',
+          details: Array.isArray(section.details) ? section.details : ['']
+        }))
       : [{ heading: '', details: [''] }];
     
     console.log('Search CV - Validated custom sections:', validatedCustomSections);
@@ -1162,6 +1165,17 @@ const Form = ({ formData, setFormData, onChange, user }) => {
           onAddSection={handleAddCustomSection}
           onRemoveSection={handleRemoveCustomSection}
         />
+        
+        {/* Debug information for custom sections */}
+        {console.log('Form render - formData.customSections:', formData.customSections)}
+        {console.log('Form render - customSections type:', typeof formData.customSections)}
+        {console.log('Form render - customSections length:', formData.customSections?.length)}
+        {console.log('Form render - customSections structure:', formData.customSections?.map(s => ({
+          heading: s?.heading,
+          details: s?.details,
+          detailsLength: s?.details?.length,
+          hasValidData: s?.heading && s?.details && s?.details.length > 0
+        })))}
 
         <button onClick={handleSave} type="button" className="save-btn">
           {user?.isAdmin ? '💾 Save CV (Admin)' : 'Save'}
@@ -1494,6 +1508,16 @@ const CustomSectionsSection = ({
   onAddSection,
   onRemoveSection,
 }) => {
+  console.log('CustomSectionsSection - received customSections:', customSections);
+  console.log('CustomSectionsSection - customSections type:', typeof customSections);
+  console.log('CustomSectionsSection - customSections length:', customSections?.length);
+  console.log('CustomSectionsSection - customSections structure:', customSections?.map(s => ({
+    heading: s?.heading,
+    details: s?.details,
+    detailsLength: s?.details?.length,
+    hasValidData: s?.heading && s?.details && s?.details.length > 0
+  })));
+  
   return (
     <div style={{ marginBottom: '1.5rem' }}>
       <h3 style={{ fontWeight: 700, fontSize: '1.25rem', marginBottom: 8, color: '#374151' }}>
