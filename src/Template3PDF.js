@@ -468,13 +468,21 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const renderCustomSections = (customSections) => {
-    if (!customSections || customSections.length === 0) return null;
+    console.log('Template3PDF - renderCustomSections called with:', customSections);
+    
+    if (!customSections || customSections.length === 0) {
+      console.log('Template3PDF - renderCustomSections: no customSections or empty array');
+      return null;
+    }
 
     return customSections.map((section, sectionIndex) => {
-      // Support both new and old structure
+      console.log(`Template3PDF - processing section ${sectionIndex}:`, section);
+      
+      // Get title and items, supporting both new and old structure
       const sectionTitle = section.title || section.heading || 'Additional Information';
       const sectionItems = section.items || section.details || [];
-
+      
+      // More lenient validation: require items but title can be empty
       if (!sectionItems || sectionItems.length === 0) {
         console.log(`Template3PDF - section ${sectionIndex} invalid: no items`);
         return null;
@@ -486,7 +494,7 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
         console.log(`Template3PDF - section ${sectionIndex} invalid: no valid items`);
         return null;
       }
-
+      
       console.log(`Template3PDF - rendering section ${sectionIndex}:`, sectionTitle);
       return (
         <div key={sectionIndex} style={sectionStyle}>

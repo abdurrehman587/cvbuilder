@@ -368,13 +368,21 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const renderCustomSections = (customSections) => {
-    if (!customSections || customSections.length === 0) return null;
+    console.log('Template1PDF - renderCustomSections called with:', customSections);
+    
+    if (!customSections || customSections.length === 0) {
+      console.log('Template1PDF - renderCustomSections: no customSections or empty array');
+      return null;
+    }
 
     return customSections.map((section, sectionIndex) => {
-      // Support both new and old structure
+      console.log(`Template1PDF - processing section ${sectionIndex}:`, section);
+      
+      // Get title and items, supporting both new and old structure
       const sectionTitle = section.title || section.heading || 'Additional Information';
       const sectionItems = section.items || section.details || [];
-
+      
+      // More lenient validation: require items but title can be empty
       if (!sectionItems || sectionItems.length === 0) {
         console.log(`Template1PDF - section ${sectionIndex} invalid: no items`);
         return null;
@@ -386,7 +394,7 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
         console.log(`Template1PDF - section ${sectionIndex} invalid: no valid items`);
         return null;
       }
-
+      
       console.log(`Template1PDF - rendering section ${sectionIndex}:`, sectionTitle);
       return (
         <div key={sectionIndex} style={sectionStyle} aria-label={`${sectionTitle} Section`}>
