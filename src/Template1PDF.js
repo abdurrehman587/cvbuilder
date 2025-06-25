@@ -1,3 +1,5 @@
+// Template1PDF.js - Version 2.0 - Custom Sections Fix
+// Last updated: 2024-12-19 15:30:00
 import React, { useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import JazzCashPayment from './JazzCashPayment';
@@ -368,6 +370,7 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const renderCustomSections = (customSections) => {
+    console.log('=== TEMPLATE1PDF VERSION 2.0 RUNNING ===');
     console.log('Template1PDF - renderCustomSections called with:', customSections);
     console.log('Template1PDF - customSections type:', typeof customSections);
     console.log('Template1PDF - customSections length:', customSections?.length);
