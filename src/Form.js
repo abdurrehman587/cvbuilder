@@ -97,6 +97,14 @@ const Form = ({ formData, setFormData, onChange, user }) => {
         const { data, error } = await supabase.rpc('admin_search_cvs', searchParams);
         console.log('RPC search result:', { data, error, dataLength: data?.length });
 
+        // Add detailed debugging for search results
+        if (data && data.length > 0) {
+          console.log('RPC search - First result structure:', Object.keys(data[0]));
+          console.log('RPC search - First result custom_sections:', data[0].custom_sections);
+          console.log('RPC search - First result custom_sections type:', typeof data[0].custom_sections);
+          console.log('RPC search - First result custom_sections JSON:', JSON.stringify(data[0].custom_sections));
+        }
+
         if (error) {
           console.error("RPC search error:", error);
           // Fallback to direct table access
@@ -122,6 +130,14 @@ const Form = ({ formData, setFormData, onChange, user }) => {
           console.log('Executing direct search query...');
           const { data: directData, error: directError } = await query;
           console.log('Direct search result:', { data: directData, error: directError, dataLength: directData?.length });
+
+          // Add detailed debugging for direct search results
+          if (directData && directData.length > 0) {
+            console.log('Direct search - First result structure:', Object.keys(directData[0]));
+            console.log('Direct search - First result custom_sections:', directData[0].custom_sections);
+            console.log('Direct search - First result custom_sections type:', typeof directData[0].custom_sections);
+            console.log('Direct search - First result custom_sections JSON:', JSON.stringify(directData[0].custom_sections));
+          }
 
           if (directError) {
             console.error("Direct search error:", directError);
