@@ -402,7 +402,7 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
         <ul style={styles.list}>
           {itemsToShow.map((item, idx) => (
             <li key={idx} style={styles.listItem}>
-              {item.label} {item.value || '-'} (checked: {item.checked ? 'yes' : 'no'})
+              {item.label} {item.value || '-'}
             </li>
           ))}
         </ul>

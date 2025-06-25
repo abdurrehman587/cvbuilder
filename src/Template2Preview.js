@@ -106,7 +106,7 @@ const renderOtherInformation = (otherInfo) => {
       <ul style={{ paddingLeft: 18, margin: 0 }}>
         {itemsToShow.map((item, idx) => (
           <li key={idx} style={{ fontSize: '0.95rem', marginBottom: 2 }}>
-            {item.label} {item.value || '-'} (checked: {item.checked ? 'yes' : 'no'})
+            {item.label} {item.value || '-'}
           </li>
         ))}
       </ul>
