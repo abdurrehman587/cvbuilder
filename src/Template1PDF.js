@@ -369,6 +369,8 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
 
   const renderCustomSections = (customSections) => {
     console.log('Template1PDF - renderCustomSections called with:', customSections);
+    console.log('Template1PDF - customSections type:', typeof customSections);
+    console.log('Template1PDF - customSections length:', customSections?.length);
     
     if (!customSections || customSections.length === 0) {
       console.log('Template1PDF - renderCustomSections: no customSections or empty array');
@@ -377,10 +379,18 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
 
     return customSections.map((section, sectionIndex) => {
       console.log(`Template1PDF - processing section ${sectionIndex}:`, section);
+      console.log(`Template1PDF - section ${sectionIndex} keys:`, Object.keys(section));
+      console.log(`Template1PDF - section ${sectionIndex} title:`, section.title);
+      console.log(`Template1PDF - section ${sectionIndex} heading:`, section.heading);
+      console.log(`Template1PDF - section ${sectionIndex} items:`, section.items);
+      console.log(`Template1PDF - section ${sectionIndex} details:`, section.details);
       
       // Get title and items, supporting both new and old structure
       const sectionTitle = section.title || section.heading || 'Additional Information';
       const sectionItems = section.items || section.details || [];
+      
+      console.log(`Template1PDF - section ${sectionIndex} resolved title:`, sectionTitle);
+      console.log(`Template1PDF - section ${sectionIndex} resolved items:`, sectionItems);
       
       // More lenient validation: require items but title can be empty
       if (!sectionItems || sectionItems.length === 0) {
@@ -390,6 +400,8 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
 
       // Filter out empty items
       const validItems = sectionItems.filter(item => item && item.trim() !== '');
+      console.log(`Template1PDF - section ${sectionIndex} valid items:`, validItems);
+      
       if (validItems.length === 0) {
         console.log(`Template1PDF - section ${sectionIndex} invalid: no valid items`);
         return null;
