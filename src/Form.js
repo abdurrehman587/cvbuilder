@@ -378,7 +378,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
         otherInformation: defaultFormData.otherInformation
       }));
     }
-  }, [formData]);
+  }, [formData, setFormData]);
 
   const handleChange = (field) => (e) => {
     setFormData({ ...formData, [field]: e.target.value });
