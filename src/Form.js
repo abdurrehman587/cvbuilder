@@ -1091,14 +1091,12 @@ const Form = ({ formData, setFormData, onChange, user }) => {
             value={formData.name} 
             onChange={handleChange('name')} 
             placeholder="Your full name" 
-            key={`name-${formData.name}`}
           />
           <InputField 
             label="Phone" 
             value={formData.phone} 
             onChange={handleChange('phone')} 
             placeholder="Your phone number" 
-            key={`phone-${formData.phone}`}
           />
         </div>
         <div className="contact-row">
@@ -1107,14 +1105,12 @@ const Form = ({ formData, setFormData, onChange, user }) => {
             value={formData.email} 
             onChange={handleChange('email')} 
             placeholder="Your email address" 
-            key={`email-${formData.email}`}
           />
           <InputField 
             label="Address" 
             value={formData.address} 
             onChange={handleChange('address')} 
             placeholder="Your address" 
-            key={`address-${formData.address}`}
           />
         </div>
 
