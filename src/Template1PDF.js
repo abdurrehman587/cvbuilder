@@ -419,13 +419,12 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
       console.log(`Template1PDF - section ${sectionIndex} resolved title:`, sectionTitle);
       console.log(`Template1PDF - section ${sectionIndex} resolved items:`, sectionItems);
       
-      // More lenient validation: show section if it has a title, even if details are empty
+      // Simplified validation: show section if it has a resolved title
       const hasTitle = sectionTitle && sectionTitle.trim() !== '';
-      const hasValidItems = sectionItems && sectionItems.length > 0 && 
-                           sectionItems.some(item => item && item.trim() !== '');
       
-      if (!hasTitle && !hasValidItems) {
-        console.log(`Template1PDF - section ${sectionIndex} invalid: no title and no valid items`);
+      // Always show sections with a title, even if they have no items
+      if (!hasTitle) {
+        console.log(`Template1PDF - section ${sectionIndex} invalid: no title`);
         return null;
       }
 
