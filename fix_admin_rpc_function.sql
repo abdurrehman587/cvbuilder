@@ -1,28 +1,32 @@
--- Drop all existing admin_update_cv functions with different signatures
+-- Fix Admin RPC Function
+-- This script creates a proper admin_update_cv function that bypasses RLS policies
+
+-- Drop all existing admin_update_cv functions
 DROP FUNCTION IF EXISTS admin_update_cv(uuid,text,text,text,text,text,text,text,text,text,text,text,text,text,text,text);
 DROP FUNCTION IF EXISTS admin_update_cv(uuid,text,text,text,text,text,text,text,text,text,text,text,text,text,text,text,text);
-DROP FUNCTION IF EXISTS admin_update_cv(bigint, text, text, text, text, text, text, text, text, text, text, text, text, text, text, text, text, text);
+DROP FUNCTION IF EXISTS admin_update_cv(bigint,text,text,text,text,text,text,text,text,text,text,text,text,text,text,text,text,text);
+DROP FUNCTION IF EXISTS admin_update_cv(bigint,text,text,text,text,text,text,text,text,text,text,text,text,text,text,text,text);
 DROP FUNCTION IF EXISTS admin_update_cv();
 
--- Create the fixed function with proper column references
+-- Create the corrected admin_update_cv function
 CREATE OR REPLACE FUNCTION admin_update_cv(
-    p_cv_id bigint,
-    p_name text,
-    p_phone text,
-    p_email text,
-    p_address text,
-    p_objective text,
-    p_education text,
-    p_work_experience text,
-    p_skills text,
-    p_certifications text,
-    p_projects text,
-    p_languages text,
-    p_hobbies text,
-    p_references text,
-    p_custom_sections text,
-    p_other_information text,
-    p_image_url text
+    p_cv_id bigint DEFAULT NULL,
+    p_name text DEFAULT NULL,
+    p_phone text DEFAULT NULL,
+    p_email text DEFAULT NULL,
+    p_address text DEFAULT NULL,
+    p_objective text DEFAULT NULL,
+    p_education text DEFAULT NULL,
+    p_work_experience text DEFAULT NULL,
+    p_skills text DEFAULT NULL,
+    p_certifications text DEFAULT NULL,
+    p_projects text DEFAULT NULL,
+    p_languages text DEFAULT NULL,
+    p_hobbies text DEFAULT NULL,
+    p_references text DEFAULT NULL,
+    p_custom_sections text DEFAULT NULL,
+    p_other_information text DEFAULT NULL,
+    p_image_url text DEFAULT NULL
 )
 RETURNS TABLE(
     id bigint, 
@@ -43,24 +47,26 @@ RETURNS TABLE(
     other_information jsonb, 
     image_url text, 
     user_id uuid, 
-    created_at timestamp with time zone, 
-    updated_at timestamp with time zone
+    created_at timestamptz, 
+    updated_at timestamptz
 )
 LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
 AS $$
 DECLARE
     v_cv_id bigint;
     v_result RECORD;
 BEGIN
-    -- If p_cv_id is NULL, create a new CV
+    -- Handle NULL or empty JSON strings
     IF p_cv_id IS NULL THEN
+        -- Insert new CV
         INSERT INTO cvs (
-            name, phone, email, address, objective, education, 
-            work_experience, skills, certifications, projects, 
-            languages, hobbies, "references", custom_sections, 
-            other_information, image_url, user_id
+            name, phone, email, address, objective, education, work_experience,
+            skills, certifications, projects, languages, hobbies, "references",
+            custom_sections, other_information, image_url, user_id, created_at, updated_at
         ) VALUES (
-            p_name, p_phone, p_email, p_address, 
+            p_name, p_phone, p_email, p_address,
             CASE WHEN p_objective IS NULL OR p_objective = '' THEN '[]'::jsonb ELSE p_objective::jsonb END,
             CASE WHEN p_education IS NULL OR p_education = '' THEN '[]'::jsonb ELSE p_education::jsonb END,
             CASE WHEN p_work_experience IS NULL OR p_work_experience = '' THEN '[]'::jsonb ELSE p_work_experience::jsonb END,
@@ -72,9 +78,9 @@ BEGIN
             CASE WHEN p_references IS NULL OR p_references = '' THEN '[]'::jsonb ELSE p_references::jsonb END,
             CASE WHEN p_custom_sections IS NULL OR p_custom_sections = '' THEN '[]'::jsonb ELSE p_custom_sections::jsonb END,
             CASE WHEN p_other_information IS NULL OR p_other_information = '' THEN '[]'::jsonb ELSE p_other_information::jsonb END,
-            p_image_url,
-            auth.uid()
-        ) RETURNING cvs.id INTO v_cv_id;
+            p_image_url, NULL, NOW(), NOW()
+        )
+        RETURNING cvs.id INTO v_cv_id;
     ELSE
         -- Update existing CV
         UPDATE cvs SET
@@ -150,15 +156,15 @@ BEGIN
 END;
 $$;
 
--- Grant permissions
+-- Grant execute permissions
 GRANT EXECUTE ON FUNCTION admin_update_cv(bigint, text, text, text, text, text, text, text, text, text, text, text, text, text, text, text, text, text) TO authenticated;
 GRANT EXECUTE ON FUNCTION admin_update_cv(bigint, text, text, text, text, text, text, text, text, text, text, text, text, text, text, text, text, text) TO anon;
 
 -- Verify the function was created successfully
 SELECT 
-  p.proname as function_name,
-  pg_get_function_arguments(p.oid) as arguments,
-  pg_get_function_result(p.oid) as return_type
+    p.proname as function_name,
+    pg_get_function_arguments(p.oid) as arguments,
+    p.prosecdef as security_definer
 FROM pg_proc p
 JOIN pg_namespace n ON p.pronamespace = n.oid
 WHERE p.proname = 'admin_update_cv' AND n.nspname = 'public'; 

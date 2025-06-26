@@ -466,9 +466,6 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
     });
   };
 
-  // Get admin access status for use in render
-  const adminAccess = localStorage.getItem('admin_cv_access');
-
   return (
     <div ref={containerRef} style={{ ...styles.container, paddingBottom: '50px' }}>
       {/* Left Column */}
