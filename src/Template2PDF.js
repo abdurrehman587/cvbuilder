@@ -439,28 +439,27 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
       const sectionTitle = section.title || section.heading || 'Additional Information';
       const sectionItems = section.items || section.details || [];
       
-      // Simplified validation: show section if it has a resolved title
-      if (!sectionTitle || sectionTitle.trim() === '') {
-        console.log(`Template2PDF - section ${sectionIndex} invalid: no title`);
+      // Simplified validation: show section if it has a resolved title AND valid items
+      const hasTitle = sectionTitle && sectionTitle.trim() !== '';
+      
+      // Filter out empty items for display
+      const validItems = sectionItems.filter(item => item && item.trim() !== '');
+      
+      // Only show sections that have both a title AND valid items
+      if (!hasTitle || validItems.length === 0) {
+        console.log(`Template2PDF - section ${sectionIndex} hidden: no title or no valid items`);
         return null;
       }
-
-      // Filter out empty items but still show section if title exists
-      const validItems = sectionItems.filter(item => item && item.trim() !== '');
       
       console.log(`Template2PDF - rendering section ${sectionIndex}:`, sectionTitle);
       return (
         <div key={sectionIndex} style={styles.rightSection}>
           <h2 style={styles.rightSectionTitle}>{sectionTitle}</h2>
-          {validItems.length > 0 ? (
-            <ul style={{ paddingLeft: '20px', marginTop: '10px' }}>
-              {validItems.map((item, itemIndex) => (
-                <li key={itemIndex} style={{ ...styles.listItem, marginLeft: '0px' }}>{item}</li>
-              ))}
-            </ul>
-          ) : (
-            <p style={styles.paragraph}>Additional information available upon request</p>
-          )}
+          <ul style={{ paddingLeft: '20px', marginTop: '10px' }}>
+            {validItems.map((item, itemIndex) => (
+              <li key={itemIndex} style={{ ...styles.listItem, marginLeft: '0px' }}>{item}</li>
+            ))}
+          </ul>
         </div>
       );
     });
