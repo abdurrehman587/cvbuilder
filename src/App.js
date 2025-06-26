@@ -179,11 +179,32 @@ const App = () => {
           e.currentTarget.style.boxShadow = '0 4px 12px rgba(239, 68, 68, 0.3)';
         }}
         onClick={async () => {
-          // Clear download state when signing out
-          localStorage.removeItem('cv_downloaded');
-          await supabase.auth.signOut();
-          // Reload the page to clear state and show login page
-          window.location.reload();
+          console.log('Sign out button clicked');
+          try {
+            // Clear download state when signing out
+            localStorage.removeItem('cv_downloaded');
+            console.log('Cleared cv_downloaded from localStorage');
+            
+            // Sign out from Supabase
+            await supabase.auth.signOut();
+            console.log('Supabase sign out completed');
+            
+            // Clear all localStorage data
+            localStorage.clear();
+            console.log('Cleared all localStorage data');
+            
+            // Add a small delay to ensure auth state change completes
+            setTimeout(() => {
+              console.log('Reloading page...');
+              window.location.reload();
+            }, 100);
+          } catch (error) {
+            console.error('Error during sign out:', error);
+            // Force reload even if there's an error
+            setTimeout(() => {
+              window.location.reload();
+            }, 100);
+          }
         }}
       >
         <svg 
