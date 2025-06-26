@@ -565,11 +565,10 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const getDownloadButtonText = () => {
-    // Use the state instead of checking localStorage every time
     if (isAdminUser) {
-      return 'Download Now (Admin Access)';
+      return 'Download PDF (Admin)';
     }
-
+    
     if (paymentCompleted) {
       return 'Download PDF';
     }
@@ -581,9 +580,6 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     
     return 'Download PDF (PKR 200)';
   };
-
-  // Get admin access status for use in render
-  const adminAccess = localStorage.getItem('admin_cv_access');
 
   return (
     <article ref={containerRef} style={containerStyle}>

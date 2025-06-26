@@ -439,28 +439,28 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
       const sectionTitle = section.title || section.heading || 'Additional Information';
       const sectionItems = section.items || section.details || [];
       
-      // More lenient validation: require items but title can be empty
-      if (!sectionItems || sectionItems.length === 0) {
-        console.log(`Template2PDF - section ${sectionIndex} invalid: no items`);
+      // Simplified validation: show section if it has a resolved title
+      if (!sectionTitle || sectionTitle.trim() === '') {
+        console.log(`Template2PDF - section ${sectionIndex} invalid: no title`);
         return null;
       }
 
-      // Filter out empty items
+      // Filter out empty items but still show section if title exists
       const validItems = sectionItems.filter(item => item && item.trim() !== '');
-      if (validItems.length === 0) {
-        console.log(`Template2PDF - section ${sectionIndex} invalid: no valid items`);
-        return null;
-      }
       
       console.log(`Template2PDF - rendering section ${sectionIndex}:`, sectionTitle);
       return (
         <div key={sectionIndex} style={styles.rightSection}>
           <h2 style={styles.rightSectionTitle}>{sectionTitle}</h2>
-          <ul style={{ paddingLeft: '20px', marginTop: '10px' }}>
-            {validItems.map((item, itemIndex) => (
-              <li key={itemIndex} style={{ ...styles.listItem, marginLeft: '0px' }}>{item}</li>
-            ))}
-          </ul>
+          {validItems.length > 0 ? (
+            <ul style={{ paddingLeft: '20px', marginTop: '10px' }}>
+              {validItems.map((item, itemIndex) => (
+                <li key={itemIndex} style={{ ...styles.listItem, marginLeft: '0px' }}>{item}</li>
+              ))}
+            </ul>
+          ) : (
+            <p style={styles.paragraph}>Additional information available upon request</p>
+          )}
         </div>
       );
     });

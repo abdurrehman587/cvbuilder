@@ -669,76 +669,64 @@ const Form = ({ formData, setFormData, onChange, user }) => {
       if (user.isAdmin) {
         console.log('=== ADMIN SAVE PATH ===');
         
-        // First, check if a CV with the same name and phone already exists
-        if (!formData.id) {
-          console.log('Checking for existing CV with same name and phone...');
-          const { data: existingCv, error: searchError } = await supabase
-            .from('cvs')
-            .select('id')
-            .eq('name', formData.name)
-            .eq('phone', formData.phone)
-            .is('user_id', null) // Only check admin-created CVs
-            .limit(1);
-            
-          if (searchError) {
-            console.error('Error searching for existing CV:', searchError);
-          } else if (existingCv && existingCv.length > 0) {
-            console.log('Found existing CV with same name and phone:', existingCv[0]);
-            // Set the existing CV ID so it will be updated instead of created
-            setFormData(prev => ({ ...prev, id: existingCv[0].id }));
-            setCurrentCvId(existingCv[0].id);
-          }
-        }
-        
-        // Use regular table operations for admin users (avoiding RPC authentication issues)
-        const adminData = {
-          name: formData.name,
-          phone: formData.phone,
-          email: formData.email,
-          address: formData.address,
-          objective: JSON.stringify(formData.objective),
-          education: JSON.stringify(formData.education),
-          work_experience: JSON.stringify(formData.workExperience),
-          skills: JSON.stringify(formData.skills),
-          certifications: JSON.stringify(formData.certifications),
-          projects: JSON.stringify(formData.projects),
-          languages: JSON.stringify(formData.languages),
-          hobbies: JSON.stringify(formData.hobbies),
-          references: JSON.stringify(formData.references),
-          custom_sections: JSON.stringify(formData.customSections),
-          other_information: JSON.stringify(formData.otherInformation),
-          image_url: imageUrl || null,
-          user_id: null, // Admin CVs have no user_id
-        };
-        
-        console.log('Using regular table operations for admin save');
+        // Use RPC function for admin users (bypasses RLS policies)
+        console.log('Using RPC function for admin save');
         console.log('DEBUG - formData.customSections before JSON.stringify:', formData.customSections);
-        console.log('DEBUG - custom_sections after JSON.stringify:', adminData.custom_sections);
+        console.log('DEBUG - custom_sections after JSON.stringify:', JSON.stringify(formData.customSections));
         console.log('DEBUG - formData.otherInformation before JSON.stringify:', formData.otherInformation);
-        console.log('DEBUG - other_information after JSON.stringify:', adminData.other_information);
+        console.log('DEBUG - other_information after JSON.stringify:', JSON.stringify(formData.otherInformation));
         
         let data, error;
         
         if (formData.id || currentCvId) {
-          // Update existing CV
+          // Update existing CV using RPC function
           const cvId = formData.id || currentCvId;
           console.log('Updating admin CV with ID:', cvId);
-          const { data: updateData, error: updateError } = await supabase
-            .from('cvs')
-            .update(adminData)
-            .eq('id', cvId)
-            .select();
-          data = updateData;
-          error = updateError;
+          const { data: rpcData, error: rpcError } = await supabase.rpc('admin_update_cv', {
+            p_cv_id: cvId,
+            p_name: formData.name,
+            p_phone: formData.phone,
+            p_email: formData.email,
+            p_address: formData.address,
+            p_objective: JSON.stringify(formData.objective),
+            p_education: JSON.stringify(formData.education),
+            p_work_experience: JSON.stringify(formData.workExperience),
+            p_skills: JSON.stringify(formData.skills),
+            p_certifications: JSON.stringify(formData.certifications),
+            p_projects: JSON.stringify(formData.projects),
+            p_languages: JSON.stringify(formData.languages),
+            p_hobbies: JSON.stringify(formData.hobbies),
+            p_references: JSON.stringify(formData.references),
+            p_custom_sections: JSON.stringify(formData.customSections),
+            p_other_information: JSON.stringify(formData.otherInformation),
+            p_image_url: imageUrl || null
+          });
+          data = rpcData;
+          error = rpcError;
         } else {
-          // Create new CV
+          // Create new CV using RPC function
           console.log('Creating new admin CV');
-          const { data: insertData, error: insertError } = await supabase
-            .from('cvs')
-            .insert([adminData])
-            .select();
-          data = insertData;
-          error = insertError;
+          const { data: rpcData, error: rpcError } = await supabase.rpc('admin_update_cv', {
+            p_cv_id: null, // null for new CV
+            p_name: formData.name,
+            p_phone: formData.phone,
+            p_email: formData.email,
+            p_address: formData.address,
+            p_objective: JSON.stringify(formData.objective),
+            p_education: JSON.stringify(formData.education),
+            p_work_experience: JSON.stringify(formData.workExperience),
+            p_skills: JSON.stringify(formData.skills),
+            p_certifications: JSON.stringify(formData.certifications),
+            p_projects: JSON.stringify(formData.projects),
+            p_languages: JSON.stringify(formData.languages),
+            p_hobbies: JSON.stringify(formData.hobbies),
+            p_references: JSON.stringify(formData.references),
+            p_custom_sections: JSON.stringify(formData.customSections),
+            p_other_information: JSON.stringify(formData.otherInformation),
+            p_image_url: imageUrl || null
+          });
+          data = rpcData;
+          error = rpcError;
         }
         
         if (error) throw error;
@@ -847,9 +835,9 @@ const Form = ({ formData, setFormData, onChange, user }) => {
             .update(updateData)
             .eq('id', cvId);
             
-          if (error) throw error;
-          toast.success('CV updated successfully!');
-          console.log('CV updated successfully:', data);
+            if (error) throw error;
+            toast.success('CV updated successfully!');
+            console.log('CV updated successfully:', data);
         } else {
           console.log('=== CREATING NEW CV ===');
           // Insert new CV
@@ -880,17 +868,17 @@ const Form = ({ formData, setFormData, onChange, user }) => {
             .insert([insertData])
             .select();
             
-          if (error) throw error;
-          toast.success('CV created successfully!');
-          console.log('CV created successfully:', data);
-          
-          // Set the new CV ID
-          if (data && data.length > 0 && data[0].id) {
-            const newId = data[0].id;
-            console.log('Setting new CV ID:', newId);
-            setFormData(prev => ({ ...prev, id: newId }));
-            setCurrentCvId(newId);
-          }
+            if (error) throw error;
+            toast.success('CV created successfully!');
+            console.log('CV created successfully:', data);
+            
+            // Set the new CV ID
+            if (data && data.length > 0 && data[0].id) {
+              const newId = data[0].id;
+              console.log('Setting new CV ID:', newId);
+              setFormData(prev => ({ ...prev, id: newId }));
+              setCurrentCvId(newId);
+            }
         }
       }
     } catch (error) {
