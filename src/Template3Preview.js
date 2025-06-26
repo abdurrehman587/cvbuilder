@@ -10,6 +10,7 @@ const sectionList = [
   { key: 'projects', title: 'Projects' },
   { key: 'languages', title: 'Languages' },
   { key: 'hobbies', title: 'Hobbies' },
+  { key: 'customSections', title: 'Custom Sections' },
   { key: 'references', title: 'References' },
   { key: 'otherInformation', title: 'Other Information' },
 ];
@@ -36,6 +37,21 @@ const hasSectionData = (formData, sectionKey) => {
               formData.customLanguages.some(l => l.selected && l.name.trim() !== ''));
     case 'hobbies':
       return formData.hobbies && formData.hobbies.length > 0;
+    case 'customSections':
+      return formData.customSections && formData.customSections.length > 0 &&
+             formData.customSections.some(section => {
+               if (!section || typeof section !== 'object') return false;
+               
+               // Get title and items, supporting both new and old structure
+               const sectionTitle = section.title || section.heading || 'Additional Information';
+               const sectionItems = section.items || section.details || [];
+               
+               // Check if section has both a title AND valid items
+               const hasTitle = sectionTitle && sectionTitle.trim() !== '';
+               const validItems = sectionItems.filter(item => item && item.trim() !== '');
+               
+               return hasTitle && validItems.length > 0;
+             });
     case 'references':
       return true; // Always show references section
     case 'otherInformation':
