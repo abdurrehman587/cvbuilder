@@ -482,16 +482,15 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
       const sectionTitle = section.title || section.heading || 'Additional Information';
       const sectionItems = section.items || section.details || [];
       
-      // More lenient validation: require items but title can be empty
-      if (!sectionItems || sectionItems.length === 0) {
-        console.log(`Template3PDF - section ${sectionIndex} invalid: no items`);
-        return null;
-      }
-
-      // Filter out empty items
+      // Simplified validation: show section if it has a resolved title AND valid items
+      const hasTitle = sectionTitle && sectionTitle.trim() !== '';
+      
+      // Filter out empty items for display
       const validItems = sectionItems.filter(item => item && item.trim() !== '');
-      if (validItems.length === 0) {
-        console.log(`Template3PDF - section ${sectionIndex} invalid: no valid items`);
+      
+      // Only show sections that have both a title AND valid items
+      if (!hasTitle || validItems.length === 0) {
+        console.log(`Template3PDF - section ${sectionIndex} hidden: no title or no valid items`);
         return null;
       }
       
