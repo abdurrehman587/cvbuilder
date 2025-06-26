@@ -38,22 +38,11 @@ const hasSectionData = (formData, sectionKey) => {
     case 'hobbies':
       return formData.hobbies && formData.hobbies.length > 0;
     case 'customSections':
-      const hasCustomSections = formData.customSections && formData.customSections.length > 0 &&
+      return formData.customSections && formData.customSections.length > 0 &&
              formData.customSections.some(section => 
                section && typeof section === 'object' && 
                (section.title || section.heading || section.details) // Show if either title, heading, or details exist
              );
-      console.log('Template2Preview - customSections check:', {
-        customSections: formData.customSections,
-        hasCustomSections,
-        sections: formData.customSections?.map(s => ({
-          title: s.title || s.heading,
-          itemsLength: (s.items || s.details)?.length,
-          hasTitle: !!(s.title || s.heading),
-          hasItems: (s.items || s.details) && (s.items || s.details).length > 0
-        }))
-      });
-      return hasCustomSections;
     case 'references':
       return true; // Always show references section
     case 'otherInformation':

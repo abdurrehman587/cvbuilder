@@ -690,43 +690,65 @@ const Form = ({ formData, setFormData, onChange, user }) => {
           }
         }
         
-        // Use RPC function for admin users to bypass RLS
-        const rpcData = {
-          p_cv_id: formData.id || currentCvId,
-          p_name: formData.name,
-          p_phone: formData.phone,
-          p_email: formData.email,
-          p_address: formData.address,
-          p_objective: JSON.stringify(formData.objective),
-          p_education: JSON.stringify(formData.education),
-          p_work_experience: JSON.stringify(formData.workExperience),
-          p_skills: JSON.stringify(formData.skills),
-          p_certifications: JSON.stringify(formData.certifications),
-          p_projects: JSON.stringify(formData.projects),
-          p_languages: JSON.stringify(formData.languages),
-          p_hobbies: JSON.stringify(formData.hobbies),
-          p_references: JSON.stringify(formData.references),
-          p_custom_sections: JSON.stringify(formData.customSections),
-          p_other_information: JSON.stringify(formData.otherInformation),
-          p_image_url: imageUrl || null,
+        // Use regular table operations for admin users (avoiding RPC authentication issues)
+        const adminData = {
+          name: formData.name,
+          phone: formData.phone,
+          email: formData.email,
+          address: formData.address,
+          objective: JSON.stringify(formData.objective),
+          education: JSON.stringify(formData.education),
+          work_experience: JSON.stringify(formData.workExperience),
+          skills: JSON.stringify(formData.skills),
+          certifications: JSON.stringify(formData.certifications),
+          projects: JSON.stringify(formData.projects),
+          languages: JSON.stringify(formData.languages),
+          hobbies: JSON.stringify(formData.hobbies),
+          references: JSON.stringify(formData.references),
+          custom_sections: JSON.stringify(formData.customSections),
+          other_information: JSON.stringify(formData.otherInformation),
+          image_url: imageUrl || null,
+          user_id: null, // Admin CVs have no user_id
         };
         
-        console.log('Calling admin_update_cv RPC with data:', rpcData);
+        console.log('Using regular table operations for admin save');
         console.log('DEBUG - formData.customSections before JSON.stringify:', formData.customSections);
-        console.log('DEBUG - p_custom_sections after JSON.stringify:', rpcData.p_custom_sections);
+        console.log('DEBUG - custom_sections after JSON.stringify:', adminData.custom_sections);
         console.log('DEBUG - formData.otherInformation before JSON.stringify:', formData.otherInformation);
-        console.log('DEBUG - p_other_information after JSON.stringify:', rpcData.p_other_information);
+        console.log('DEBUG - other_information after JSON.stringify:', adminData.other_information);
         
-        const { data, error } = await supabase.rpc('admin_update_cv', rpcData);
+        let data, error;
+        
+        if (formData.id || currentCvId) {
+          // Update existing CV
+          const cvId = formData.id || currentCvId;
+          console.log('Updating admin CV with ID:', cvId);
+          const { data: updateData, error: updateError } = await supabase
+            .from('cvs')
+            .update(adminData)
+            .eq('id', cvId)
+            .select();
+          data = updateData;
+          error = updateError;
+        } else {
+          // Create new CV
+          console.log('Creating new admin CV');
+          const { data: insertData, error: insertError } = await supabase
+            .from('cvs')
+            .insert([adminData])
+            .select();
+          data = insertData;
+          error = insertError;
+        }
         
         if (error) throw error;
         
         if (formData.id || currentCvId) {
           toast.success('CV updated successfully! (Admin Mode)');
-          console.log('CV updated successfully via RPC:', data);
+          console.log('CV updated successfully:', data);
         } else {
           toast.success('CV created successfully! (Admin Mode)');
-          console.log('CV created successfully via RPC:', data);
+          console.log('CV created successfully:', data);
           // Update the form data with the new ID
           if (data && data.length > 0 && data[0].id) {
             const newId = data[0].id;

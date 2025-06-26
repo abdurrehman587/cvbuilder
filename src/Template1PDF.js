@@ -419,30 +419,31 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
       console.log(`Template1PDF - section ${sectionIndex} resolved title:`, sectionTitle);
       console.log(`Template1PDF - section ${sectionIndex} resolved items:`, sectionItems);
       
-      // More lenient validation: require items but title can be empty
-      if (!sectionItems || sectionItems.length === 0) {
-        console.log(`Template1PDF - section ${sectionIndex} invalid: no items`);
+      // More lenient validation: show section if it has a title, even if details are empty
+      const hasTitle = sectionTitle && sectionTitle.trim() !== '';
+      const hasValidItems = sectionItems && sectionItems.length > 0 && 
+                           sectionItems.some(item => item && item.trim() !== '');
+      
+      if (!hasTitle && !hasValidItems) {
+        console.log(`Template1PDF - section ${sectionIndex} invalid: no title and no valid items`);
         return null;
       }
 
-      // Filter out empty items
-      const validItems = sectionItems.filter(item => item && item.trim() !== '');
+      // Filter out empty items for display
+      const validItems = sectionItems ? sectionItems.filter(item => item && item.trim() !== '') : [];
       console.log(`Template1PDF - section ${sectionIndex} valid items:`, validItems);
-      
-      if (validItems.length === 0) {
-        console.log(`Template1PDF - section ${sectionIndex} invalid: no valid items`);
-        return null;
-      }
       
       console.log(`Template1PDF - rendering section ${sectionIndex}:`, sectionTitle);
       return (
         <div key={sectionIndex} style={sectionStyle} aria-label={`${sectionTitle} Section`}>
           <h2 style={sectionTitleStyle}>{sectionTitle}</h2>
-          <ul style={listStyle}>
-            {validItems.map((item, detailIndex) => (
-              <li key={detailIndex} style={listItemStyle}>{item}</li>
-            ))}
-          </ul>
+          {validItems.length > 0 && (
+            <ul style={listStyle}>
+              {validItems.map((item, detailIndex) => (
+                <li key={detailIndex} style={listItemStyle}>{item}</li>
+              ))}
+            </ul>
+          )}
         </div>
       );
     });
