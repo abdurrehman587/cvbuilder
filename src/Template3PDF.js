@@ -739,10 +739,7 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
 
           {/* Other Information */}
           {visibleSections.includes('otherInformation') && formData.otherInformation && (
-            <div style={sectionStyle}>
-              <h3 style={sectionTitleStyle}>Additional Information</h3>
-              {renderOtherInformation(formData.otherInformation)}
-            </div>
+            renderOtherInformation(formData.otherInformation)
           )}
 
           {/* Certifications */}
