@@ -178,10 +178,12 @@ const App = () => {
           e.currentTarget.style.transform = 'translateY(0)';
           e.currentTarget.style.boxShadow = '0 4px 12px rgba(239, 68, 68, 0.3)';
         }}
-        onClick={() => {
+        onClick={async () => {
           // Clear download state when signing out
           localStorage.removeItem('cv_downloaded');
-          supabase.auth.signOut();
+          await supabase.auth.signOut();
+          // Reload the page to clear state and show login page
+          window.location.reload();
         }}
       >
         <svg 
