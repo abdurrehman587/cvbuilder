@@ -225,6 +225,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
           console.log('Admin access flag set for admin-selected CV');
           
           setFormData({
+            id: cvData.id,
             image: null,
             imageUrl: cvData.image_url || '',
             name: cvData.name || '',
@@ -326,6 +327,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
           
           setCurrentCvId(data.id);
           const newFormData = {
+            id: data.id,
             image: null,
             imageUrl: data.image_url || '',
             name: data.name || '',
@@ -638,6 +640,8 @@ const Form = ({ formData, setFormData, onChange, user }) => {
     console.log('Is admin:', user?.isAdmin);
     console.log('Current CV ID:', currentCvId);
     console.log('Form data ID:', formData.id);
+    console.log('Form data name:', formData.name);
+    console.log('Form data phone:', formData.phone);
 
     // Check if user is logged in
     if (!user) {
@@ -733,7 +737,63 @@ const Form = ({ formData, setFormData, onChange, user }) => {
         }
       } else {
         // Regular user save logic
-        if (formData.id) {
+        console.log('=== REGULAR USER SAVE LOGIC ===');
+        console.log('formData.id exists:', !!formData.id);
+        console.log('currentCvId exists:', !!currentCvId);
+        
+        // For regular users, check if they have an existing CV
+        if (!formData.id && !currentCvId) {
+          console.log('No CV ID found, checking for existing CV for this user...');
+          const { data: existingCv, error: searchError } = await supabase
+            .from('cvs')
+            .select('id')
+            .eq('user_id', user.id)
+            .limit(1);
+            
+          if (searchError) {
+            console.error('Error searching for existing CV:', searchError);
+          } else if (existingCv && existingCv.length > 0) {
+            console.log('Found existing CV for user:', existingCv[0]);
+            // Set the existing CV ID so it will be updated instead of created
+            setFormData(prev => ({ ...prev, id: existingCv[0].id }));
+            setCurrentCvId(existingCv[0].id);
+            // Use the found ID for the update
+            const updateData = {
+              name: formData.name,
+              phone: formData.phone,
+              email: formData.email,
+              address: formData.address,
+              objective: JSON.stringify(formData.objective),
+              education: JSON.stringify(formData.education),
+              work_experience: JSON.stringify(formData.workExperience),
+              skills: JSON.stringify(formData.skills),
+              certifications: JSON.stringify(formData.certifications),
+              projects: JSON.stringify(formData.projects),
+              languages: JSON.stringify(formData.languages),
+              hobbies: JSON.stringify(formData.hobbies),
+              references: JSON.stringify(formData.references),
+              custom_sections: JSON.stringify(formData.customSections),
+              other_information: JSON.stringify(formData.otherInformation),
+              user_id: user.id,
+              image_url: imageUrl || null,
+            };
+            
+            console.log('Updating existing CV with ID:', existingCv[0].id);
+            console.log('Update data:', updateData);
+            
+            const { data, error } = await supabase
+              .from('cvs')
+              .update(updateData)
+              .eq('id', existingCv[0].id);
+              
+            if (error) throw error;
+            toast.success('CV updated successfully!');
+            console.log('CV updated successfully:', data);
+            return;
+          }
+        }
+        
+        if (formData.id || currentCvId) {
           console.log('=== UPDATING EXISTING CV ===');
           // Update existing CV by id
           const updateData = {
@@ -756,13 +816,14 @@ const Form = ({ formData, setFormData, onChange, user }) => {
             image_url: imageUrl || null,
           };
           
-          console.log('Updating CV with ID:', formData.id);
+          const cvId = formData.id || currentCvId;
+          console.log('Updating CV with ID:', cvId);
           console.log('Update data:', updateData);
           
           const { data, error } = await supabase
             .from('cvs')
             .update(updateData)
-            .eq('id', formData.id);
+            .eq('id', cvId);
             
           if (error) throw error;
           toast.success('CV updated successfully!');
@@ -794,11 +855,20 @@ const Form = ({ formData, setFormData, onChange, user }) => {
           
           const { data, error } = await supabase
             .from('cvs')
-            .insert([insertData]);
+            .insert([insertData])
+            .select();
             
           if (error) throw error;
           toast.success('CV created successfully!');
           console.log('CV created successfully:', data);
+          
+          // Set the new CV ID
+          if (data && data.length > 0 && data[0].id) {
+            const newId = data[0].id;
+            console.log('Setting new CV ID:', newId);
+            setFormData(prev => ({ ...prev, id: newId }));
+            setCurrentCvId(newId);
+          }
         }
       }
     } catch (error) {
@@ -846,6 +916,7 @@ const Form = ({ formData, setFormData, onChange, user }) => {
       setCurrentCvId(cv.id);
       
       const newFormData = {
+        id: cv.id,
         image: null,
         imageUrl: cv.image_url || '',
         name: cv.name || '',
