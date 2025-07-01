@@ -16,6 +16,7 @@ const loadHtml2Pdf = () => {
 const Template2PDF = ({ formData, visibleSections = [] }) => {
   const containerRef = useRef(null);
   const buttonRef = useRef(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentCompleted, setPaymentCompleted] = useState(false);
   const [downloadCompleted, setDownloadCompleted] = useState(false);
 
