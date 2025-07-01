@@ -52,17 +52,26 @@ const SignupSignIn = ({ onAuth }) => {
     setShowResend(false);
     setLoading(true);
     
+    console.log('=== AUTHENTICATION START ===');
+    console.log('SignupSignIn - Mode:', mode);
+    console.log('SignupSignIn - UserType:', userType);
+    console.log('SignupSignIn - Email:', email);
+    console.log('SignupSignIn - Password length:', password.length);
+    
     try {
       // Check if this is an admin login attempt
       if (userType === 'admin') {
+        console.log('SignupSignIn - Admin login attempt');
         // Rate limiting for admin access attempts
         if (adminAccessAttempts >= 3) {
+          console.log('SignupSignIn - Too many admin attempts');
           setError('Too many admin access attempts. Please try again later.');
           setLoading(false);
           return;
         }
 
         if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+          console.log('SignupSignIn - Admin login successful');
           // Create admin user object
           const adminUser = {
             id: 'admin-user',
@@ -75,6 +84,7 @@ const SignupSignIn = ({ onAuth }) => {
           setAdminAccessAttempts(0); // Reset attempts on successful login
           return;
         } else {
+          console.log('SignupSignIn - Admin login failed');
           setAdminAccessAttempts(prev => prev + 1);
           const remainingAttempts = 3 - adminAccessAttempts - 1;
           setError(`Invalid admin credentials. ${remainingAttempts > 0 ? `${remainingAttempts} attempts remaining.` : 'No attempts remaining.'}`);
@@ -84,19 +94,26 @@ const SignupSignIn = ({ onAuth }) => {
       }
 
       // Regular user authentication
+      console.log('SignupSignIn - Regular user authentication');
       let result;
       if (mode === 'signup') {
+        console.log('SignupSignIn - Attempting signup');
         result = await supabase.auth.signUp({ email, password });
       } else {
+        console.log('SignupSignIn - Attempting signin');
         result = await supabase.auth.signInWithPassword({ email, password });
       }
       
+      console.log('SignupSignIn - Auth result:', result);
+      
       if (result.error) {
+        console.log('SignupSignIn - Auth error:', result.error);
         setError(result.error.message);
         if (result.error.message.toLowerCase().includes('email not confirmed')) {
           setShowResend(true);
         }
       } else if (result.data?.user) {
+        console.log('SignupSignIn - Auth successful, user:', result.data.user);
         // Add user type to user object
         const userWithType = {
           ...result.data.user,
@@ -106,9 +123,11 @@ const SignupSignIn = ({ onAuth }) => {
         onAuth(userWithType);
       }
     } catch (err) {
+      console.log('SignupSignIn - Auth exception:', err);
       setError('An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
+      console.log('=== AUTHENTICATION END ===');
     }
   };
 
@@ -357,6 +376,35 @@ const SignupSignIn = ({ onAuth }) => {
             }
           </div>
         )}
+        
+        {/* Test Access Button */}
+        <button
+          type="button"
+          onClick={() => {
+            console.log('=== TEST ACCESS BUTTON CLICKED ===');
+            // Create a test user to bypass authentication
+            const testUser = {
+              id: 'test-user-123',
+              email: 'test@example.com',
+              userType: 'user',
+              isAdmin: false
+            };
+            console.log('SignupSignIn - Creating test user:', testUser);
+            onAuth(testUser);
+          }}
+          style={{
+            padding: '8px 16px',
+            backgroundColor: '#f59e0b',
+            color: 'white',
+            border: 'none',
+            borderRadius: '6px',
+            fontSize: '12px',
+            cursor: 'pointer',
+            marginTop: '10px'
+          }}
+        >
+          🧪 Test Access (Skip Auth)
+        </button>
 
         {/* Hidden admin access indicator - only shows when admin mode is active */}
         {showAdminToggle && (
