@@ -64,7 +64,7 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
     setPayments(allPayments);
     setLastChecked(new Date());
     console.log('PaymentAdmin - Payments set to state:', allPayments);
-  }, [payments]);
+  }, []);
 
   useEffect(() => {
     loadPayments();
