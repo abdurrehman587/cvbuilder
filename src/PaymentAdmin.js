@@ -5,6 +5,7 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
   const [payments, setPayments] = useState([]);
   const [filter, setFilter] = useState('all'); // all, pending, approved, rejected
   const [showCVBuilder, setShowCVBuilder] = useState(false);
+  const [lastChecked, setLastChecked] = useState(new Date());
   const [adminUser] = useState({
     id: 'admin-user',
     email: process.env.REACT_APP_ADMIN_EMAIL || 'admin@cvbuilder.com',
@@ -14,6 +15,13 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
 
   useEffect(() => {
     loadPayments();
+    
+    // Set up interval to check for new payments every 5 seconds
+    const interval = setInterval(() => {
+      loadPayments();
+    }, 5000);
+    
+    return () => clearInterval(interval);
   }, []);
 
   const loadPayments = () => {
@@ -37,6 +45,7 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
     // Sort by timestamp (newest first)
     allPayments.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
     setPayments(allPayments);
+    setLastChecked(new Date());
     console.log('PaymentAdmin - Payments set to state:', allPayments);
   };
 
@@ -249,16 +258,53 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
           <button
             onClick={loadPayments}
             style={{
-              padding: '8px 16px',
+              padding: '12px 24px',
               backgroundColor: '#22c55e',
               color: 'white',
               border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer'
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: '600',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#16a34a';
+              e.currentTarget.style.transform = 'translateY(-2px)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#22c55e';
+              e.currentTarget.style.transform = 'translateY(0)';
             }}
           >
-            🔄 Refresh
+            🔄 Refresh Payments
           </button>
+        </div>
+        
+        {/* Status Indicator */}
+        <div style={{
+          marginTop: '10px',
+          padding: '8px 12px',
+          backgroundColor: '#f0f9ff',
+          borderRadius: '6px',
+          border: '1px solid #0ea5e9',
+          fontSize: '12px',
+          color: '#0c4a6e',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}>
+          <span>⏰</span>
+          <span>Last checked: {lastChecked.toLocaleTimeString()}</span>
+          <span>•</span>
+          <span>Auto-refresh every 5 seconds</span>
+          <span>•</span>
+          <span>Total payments: {payments.length}</span>
+          <span>•</span>
+          <span>Pending: {payments.filter(p => p.status === 'pending').length}</span>
         </div>
       </div>
 
@@ -453,7 +499,26 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
             textAlign: 'center',
             color: '#6b7280'
           }}>
-            No payments found.
+            {payments.length === 0 ? (
+              <div>
+                <div style={{ fontSize: '24px', marginBottom: '10px' }}>📭</div>
+                <div style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px' }}>No payment requests found</div>
+                <div style={{ fontSize: '14px' }}>
+                  When users make payments through the CV builder, they will appear here for your approval.
+                </div>
+                <div style={{ fontSize: '12px', marginTop: '8px', color: '#9ca3af' }}>
+                  The system automatically checks for new payments every 5 seconds.
+                </div>
+              </div>
+            ) : (
+              <div>
+                <div style={{ fontSize: '24px', marginBottom: '10px' }}>🔍</div>
+                <div style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px' }}>No payments match the current filter</div>
+                <div style={{ fontSize: '14px' }}>
+                  Try changing the filter or viewing all payments.
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
