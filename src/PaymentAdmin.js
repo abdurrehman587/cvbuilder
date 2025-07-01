@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import LandingPage from './landingpage';
 
 const PaymentAdmin = ({ onAccessCVBuilder }) => {
@@ -14,18 +14,7 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
     isAdmin: true
   });
 
-  useEffect(() => {
-    loadPayments();
-    
-    // Set up interval to check for new payments every 5 seconds
-    const interval = setInterval(() => {
-      loadPayments();
-    }, 5000);
-    
-    return () => clearInterval(interval);
-  }, []);
-
-  const loadPayments = () => {
+  const loadPayments = useCallback(() => {
     console.log('PaymentAdmin - loadPayments called');
     console.log('PaymentAdmin - localStorage.length:', localStorage.length);
     
@@ -75,7 +64,18 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
     setPayments(allPayments);
     setLastChecked(new Date());
     console.log('PaymentAdmin - Payments set to state:', allPayments);
-  };
+  }, [payments]);
+
+  useEffect(() => {
+    loadPayments();
+    
+    // Set up interval to check for new payments every 5 seconds
+    const interval = setInterval(() => {
+      loadPayments();
+    }, 5000);
+    
+    return () => clearInterval(interval);
+  }, [loadPayments]);
 
   const approvePayment = (paymentId) => {
     const payment = payments.find(p => p.id === paymentId);
