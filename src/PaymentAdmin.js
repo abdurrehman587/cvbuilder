@@ -370,11 +370,15 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
             onClick={() => {
               const testPayment = {
                 id: `TEST-${Date.now()}`,
+                userId: 'test@user.com',
+                templateId: 'template1',
+                templateName: 'Template 1',
                 method: 'easypaisa',
                 amount: 100,
                 phoneNumber: '03001234567',
                 timestamp: new Date().toISOString(),
-                status: 'pending'
+                status: 'pending',
+                downloadUsed: false
               };
               localStorage.setItem(`payment_${testPayment.id}`, JSON.stringify(testPayment));
               console.log('Test payment created:', testPayment);
@@ -412,11 +416,15 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
               // Simulate a user payment submission
               const userPayment = {
                 id: `USER-${Date.now()}`,
+                userId: 'test@user.com',
+                templateId: 'template1',
+                templateName: 'Template 1',
                 method: 'easypaisa',
                 amount: 100,
                 phoneNumber: '03001234567',
                 timestamp: new Date().toISOString(),
-                status: 'pending'
+                status: 'pending',
+                downloadUsed: false
               };
               localStorage.setItem(`payment_${userPayment.id}`, JSON.stringify(userPayment));
               console.log('User payment simulation created:', userPayment);
@@ -469,11 +477,15 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
               // Step 5: Payment is stored in localStorage
               const userPayment = {
                 id: `FLOW-${Date.now()}`,
+                userId: 'test@user.com',
+                templateId: 'template2',
+                templateName: 'Template 2',
                 method: 'easypaisa',
                 amount: 100,
                 phoneNumber: '03001234567',
                 timestamp: new Date().toISOString(),
-                status: 'pending'
+                status: 'pending',
+                downloadUsed: false
               };
               localStorage.setItem(`payment_${userPayment.id}`, JSON.stringify(userPayment));
               console.log('Step 5: Payment stored in localStorage:', userPayment);
@@ -515,11 +527,15 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
               // Create a test payment directly
               const testPayment = {
                 id: `QUICK-${Date.now()}`,
+                userId: 'test@user.com',
+                templateId: 'template1',
+                templateName: 'Template 1',
                 method: 'easypaisa',
                 amount: 100,
                 phoneNumber: '03001234567',
                 timestamp: new Date().toISOString(),
-                status: 'pending'
+                status: 'pending',
+                downloadUsed: false
               };
               
               console.log('=== QUICK TEST PAYMENT ===');
@@ -639,6 +655,7 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
             <tr style={{ backgroundColor: '#f9fafb' }}>
               <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Payment ID</th>
               <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>User</th>
+              <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Template</th>
               <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Method</th>
               <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Amount</th>
               <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Phone</th>
@@ -656,6 +673,18 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
                 </td>
                 <td style={{ padding: '12px', fontSize: '0.9rem' }}>
                   {payment.userId || 'Unknown User'}
+                </td>
+                <td style={{ padding: '12px' }}>
+                  <span style={{
+                    padding: '4px 8px',
+                    backgroundColor: '#dbeafe',
+                    borderRadius: '4px',
+                    fontSize: '0.8rem',
+                    color: '#1e40af',
+                    fontWeight: '500'
+                  }}>
+                    {payment.templateName || payment.templateId || 'Unknown Template'}
+                  </span>
                 </td>
                 <td style={{ padding: '12px' }}>
                   <span style={{

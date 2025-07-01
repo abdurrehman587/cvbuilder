@@ -486,7 +486,7 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
         localStorage.setItem('cv_downloaded', 'true'); // Persist download state
         
         // Mark the user's approved payment as used
-        markPaymentAsUsed();
+        markPaymentAsUsed('template1');
       }
       
     } catch (error) {
@@ -539,7 +539,7 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     }
     
     // Check if user has an approved payment
-    const hasApprovedPayment = checkForApprovedPayment(isAdminUser);
+    const hasApprovedPayment = checkForApprovedPayment(isAdminUser, 'template1');
     console.log('Template1PDF - hasApprovedPayment:', hasApprovedPayment);
     
     if (hasApprovedPayment) {
@@ -556,7 +556,7 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const getDownloadButtonText = () => {
-    return getDownloadButtonTextUtil(isAdminUser, paymentCompleted);
+    return getDownloadButtonTextUtil(isAdminUser, paymentCompleted, 'template1');
   };
 
   return (
@@ -734,20 +734,14 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
 
       {/* Payment Modal - Outside PDF container */}
       {showPaymentModal && (
-        <>
-          {console.log('=== PAYMENT MODAL RENDERING ===')}
-          {console.log('Template1PDF - Rendering ManualPayment modal')}
-          {console.log('Template1PDF - showPaymentModal state:', showPaymentModal)}
-          <ManualPayment
-            amount={100}
-            onPaymentSuccess={handlePaymentSuccess}
-            onPaymentFailure={handlePaymentFailure}
-            onClose={() => {
-              console.log('Template1PDF - Payment modal closed');
-              setShowPaymentModal(false);
-            }}
-          />
-        </>
+        <ManualPayment
+          amount={100}
+          templateId="template1"
+          templateName="Template 1"
+          onPaymentSuccess={handlePaymentSuccess}
+          onPaymentFailure={handlePaymentFailure}
+          onClose={() => setShowPaymentModal(false)}
+        />
       )}
     </>
   );

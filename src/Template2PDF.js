@@ -234,7 +234,7 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
         localStorage.setItem('cv_downloaded', 'true'); // Persist download state
         
         // Mark the user's approved payment as used
-        markPaymentAsUsed();
+        markPaymentAsUsed('template2');
       }
       
     } catch (error) {
@@ -266,7 +266,7 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
     
-    return getDownloadButtonTextUtil(isAdmin, paymentCompleted);
+    return getDownloadButtonTextUtil(isAdmin, paymentCompleted, 'template2');
   };
 
   const handleDownloadClick = () => {
@@ -293,7 +293,7 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
     }
     
     // Check if user has an approved payment
-    const hasApprovedPayment = checkForApprovedPayment(isAdmin);
+    const hasApprovedPayment = checkForApprovedPayment(isAdmin, 'template2');
     console.log('Template2PDF - hasApprovedPayment:', hasApprovedPayment);
     
     if (hasApprovedPayment) {
@@ -649,15 +649,14 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
 
       {/* Payment Modal - Outside PDF container */}
       {showPaymentModal && (
-        <>
-          {console.log('Template2PDF - Rendering ManualPayment modal')}
-          <ManualPayment
-            amount={100}
-            onPaymentSuccess={handlePaymentSuccess}
-            onPaymentFailure={handlePaymentFailure}
-            onClose={() => setShowPaymentModal(false)}
-          />
-        </>
+        <ManualPayment
+          amount={100}
+          templateId="template2"
+          templateName="Template 2"
+          onPaymentSuccess={handlePaymentSuccess}
+          onPaymentFailure={handlePaymentFailure}
+          onClose={() => setShowPaymentModal(false)}
+        />
       )}
     </>
   );

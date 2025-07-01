@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 
-const ManualPayment = ({ amount, onPaymentSuccess, onPaymentFailure, onClose }) => {
+const ManualPayment = ({ amount, templateId, templateName, onPaymentSuccess, onPaymentFailure, onClose }) => {
   const [selectedMethod, setSelectedMethod] = useState('');
   const [proofFile, setProofFile] = useState(null);
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -84,7 +84,9 @@ const ManualPayment = ({ amount, onPaymentSuccess, onPaymentFailure, onClose }) 
         phoneNumber: phoneNumber,
         timestamp: new Date().toISOString(),
         status: 'pending',
-        downloadUsed: false // Track if download was used
+        downloadUsed: false, // Track if download was used
+        templateId: templateId, // Track which template this payment is for
+        templateName: templateName // Human-readable template name
       };
       
       localStorage.setItem(`payment_${paymentId}`, JSON.stringify(paymentInfo));
@@ -392,6 +394,8 @@ const ManualPayment = ({ amount, onPaymentSuccess, onPaymentFailure, onClose }) 
 
 ManualPayment.propTypes = {
   amount: PropTypes.number.isRequired,
+  templateId: PropTypes.string.isRequired,
+  templateName: PropTypes.string.isRequired,
   onPaymentSuccess: PropTypes.func.isRequired,
   onPaymentFailure: PropTypes.func.isRequired,
   onClose: PropTypes.func.isRequired,
