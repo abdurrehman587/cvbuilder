@@ -9,13 +9,6 @@ const ManualPayment = ({ amount, onPaymentSuccess, onPaymentFailure, onClose }) 
 
   const paymentMethods = [
     {
-      id: 'jazzcash',
-      name: 'JazzCash',
-      number: '03153338612',
-      icon: '📱',
-      color: '#00A651'
-    },
-    {
       id: 'easypaisa',
       name: 'EasyPaisa', 
       number: '03406892728',

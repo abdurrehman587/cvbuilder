@@ -3,7 +3,6 @@
 // Unique ID: CS_FIX_20241219_1545
 import React, { useRef, useState } from 'react';
 import PropTypes from 'prop-types';
-import JazzCashPayment from './JazzCashPayment';
 
 
 // Load html2pdf from CDN dynamically
@@ -501,20 +500,6 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     }
   };
 
-  const handlePaymentSuccess = (paymentData) => {
-    console.log('Payment successful:', paymentData);
-    setPaymentCompleted(true);
-    setShowPaymentModal(false);
-    // Now trigger the PDF download
-    generatePDF();
-  };
-
-  const handlePaymentFailure = (error) => {
-    console.log('Payment failed:', error);
-    setShowPaymentModal(false);
-    alert('Payment failed. Please try again.');
-  };
-
   const handleDownloadClick = () => {
     // Use the state instead of checking localStorage every time
     if (isAdminUser) {
@@ -749,15 +734,6 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
           </div>
         );
       })()}
-
-      {showPaymentModal && (
-        <JazzCashPayment
-          amount={100}
-          onPaymentSuccess={handlePaymentSuccess}
-          onPaymentFailure={handlePaymentFailure}
-          onClose={() => setShowPaymentModal(false)}
-        />
-      )}
     </article>
   );
 };

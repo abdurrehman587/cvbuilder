@@ -1,6 +1,5 @@
 import React, { useRef, useState } from 'react';
 import PropTypes from 'prop-types';
-import JazzCashPayment from './JazzCashPayment';
 
 const loadHtml2Pdf = () => {
   if (window.html2pdf) return Promise.resolve(window.html2pdf);
@@ -16,7 +15,6 @@ const loadHtml2Pdf = () => {
 const Template2PDF = ({ formData, visibleSections = [] }) => {
   const containerRef = useRef(null);
   const buttonRef = useRef(null);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentCompleted, setPaymentCompleted] = useState(false);
   const [downloadCompleted, setDownloadCompleted] = useState(false);
 
@@ -245,14 +243,12 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
   const handlePaymentSuccess = (paymentData) => {
     console.log('Payment successful:', paymentData);
     setPaymentCompleted(true);
-    setShowPaymentModal(false);
     // Now trigger the PDF download
     generatePDF();
   };
 
   const handlePaymentFailure = (error) => {
     console.log('Payment failed:', error);
-    setShowPaymentModal(false);
     alert('Payment failed. Please try again.');
   };
 
@@ -329,7 +325,7 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
       generatePDF();
     } else {
       // Show payment modal
-      setShowPaymentModal(true);
+      // setShowPaymentModal(true);
     }
   };
 
@@ -670,15 +666,6 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
           </div>
         );
       })()}
-
-      {showPaymentModal && (
-        <JazzCashPayment
-          amount={100}
-          onPaymentSuccess={handlePaymentSuccess}
-          onPaymentFailure={handlePaymentFailure}
-          onClose={() => setShowPaymentModal(false)}
-        />
-      )}
     </div>
   );
 };
