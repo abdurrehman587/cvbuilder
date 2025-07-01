@@ -63,6 +63,9 @@ const ManualPayment = ({ amount, onPaymentSuccess, onPaymentFailure, onClose }) 
     
     if (!selectedMethod || !proofFile || !phoneNumber) {
       console.log('ManualPayment - Missing required fields');
+      console.log('ManualPayment - selectedMethod missing:', !selectedMethod);
+      console.log('ManualPayment - proofFile missing:', !proofFile);
+      console.log('ManualPayment - phoneNumber missing:', !phoneNumber);
       alert('Please fill in all fields');
       return;
     }
@@ -346,6 +349,36 @@ const ManualPayment = ({ amount, onPaymentSuccess, onPaymentFailure, onClose }) 
             <li>Wait for verification (usually within 1-2 hours)</li>
           </ol>
         </div>
+        
+        {/* Form Status */}
+        <div style={{
+          backgroundColor: '#f0f9ff',
+          border: '1px solid #0ea5e9',
+          borderRadius: '6px',
+          padding: '12px',
+          marginBottom: '20px',
+          fontSize: '0.9rem'
+        }}>
+          <strong>Form Status:</strong>
+          <div style={{ marginTop: '8px' }}>
+            <div style={{ color: selectedMethod ? '#22c55e' : '#ef4444' }}>
+              {selectedMethod ? '✅' : '❌'} Payment Method: {selectedMethod || 'Not selected'}
+            </div>
+            <div style={{ color: phoneNumber ? '#22c55e' : '#ef4444' }}>
+              {phoneNumber ? '✅' : '❌'} Phone Number: {phoneNumber || 'Not entered'}
+            </div>
+            <div style={{ color: proofFile ? '#22c55e' : '#ef4444' }}>
+              {proofFile ? '✅' : '❌'} Proof File: {proofFile ? proofFile.name : 'Not uploaded'}
+            </div>
+            <div style={{ 
+              color: (selectedMethod && phoneNumber && proofFile) ? '#22c55e' : '#f59e0b',
+              fontWeight: 'bold',
+              marginTop: '8px'
+            }}>
+              {selectedMethod && phoneNumber && proofFile ? '✅ Ready to Submit' : '⚠️ Please complete all fields'}
+            </div>
+          </div>
+        </div>
 
         {/* Submit Button */}
         <button
@@ -365,6 +398,42 @@ const ManualPayment = ({ amount, onPaymentSuccess, onPaymentFailure, onClose }) 
           }}
         >
           {isSubmitting ? 'Submitting...' : 'Submit Payment Proof'}
+        </button>
+        
+        {/* Test Payment Button */}
+        <button
+          onClick={() => {
+            console.log('=== TEST PAYMENT BUTTON CLICKED ===');
+            // Auto-fill the form for testing
+            setSelectedMethod('easypaisa');
+            setPhoneNumber('03001234567');
+            
+            // Create a fake file for testing
+            const fakeFile = new File(['test'], 'test-receipt.jpg', { type: 'image/jpeg' });
+            setProofFile(fakeFile);
+            
+            console.log('ManualPayment - Test payment form auto-filled');
+            console.log('ManualPayment - selectedMethod set to:', 'easypaisa');
+            console.log('ManualPayment - phoneNumber set to:', '03001234567');
+            console.log('ManualPayment - proofFile set to:', fakeFile);
+            
+            alert('Test payment form has been auto-filled! Click "Submit Payment Proof" to test the payment flow.');
+          }}
+          style={{
+            width: '100%',
+            marginTop: '10px',
+            padding: '8px',
+            backgroundColor: '#f59e0b',
+            color: 'white',
+            border: 'none',
+            borderRadius: '6px',
+            fontSize: '0.9rem',
+            fontWeight: 'bold',
+            cursor: 'pointer',
+            transition: 'background-color 0.2s ease'
+          }}
+        >
+          🧪 Auto-Fill Test Payment
         </button>
 
         {/* Footer */}
