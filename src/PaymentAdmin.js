@@ -17,12 +17,14 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
   }, []);
 
   const loadPayments = () => {
+    console.log('PaymentAdmin - loadPayments called');
     const allPayments = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
       if (key && key.startsWith('payment_')) {
         try {
           const payment = JSON.parse(localStorage.getItem(key));
+          console.log('PaymentAdmin - Found payment:', payment);
           allPayments.push(payment);
         } catch (error) {
           console.error('Error parsing payment:', error);
@@ -30,9 +32,12 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
       }
     }
     
+    console.log('PaymentAdmin - Total payments found:', allPayments.length);
+    
     // Sort by timestamp (newest first)
     allPayments.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
     setPayments(allPayments);
+    console.log('PaymentAdmin - Payments set to state:', allPayments);
   };
 
   const approvePayment = (paymentId) => {

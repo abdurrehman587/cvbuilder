@@ -516,25 +516,34 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const handleDownloadClick = () => {
+    console.log('Template1PDF - handleDownloadClick called');
+    console.log('Template1PDF - isAdminUser:', isAdminUser);
+    console.log('Template1PDF - downloadCompleted:', downloadCompleted);
+    
     // Use the state instead of checking localStorage every time
     if (isAdminUser) {
+      console.log('Template1PDF - Admin user, generating PDF directly');
       generatePDF();
       return;
     }
 
     if (downloadCompleted) {
+      console.log('Template1PDF - Download already completed');
       alert('You have already downloaded a CV in this session. Please sign out and sign in again to download another CV.');
       return;
     }
     
     // Check if user has an approved payment
     const hasApprovedPayment = checkForApprovedPayment();
+    console.log('Template1PDF - hasApprovedPayment:', hasApprovedPayment);
     
     if (hasApprovedPayment) {
       // User has an approved payment, allow download
+      console.log('Template1PDF - Payment approved, generating PDF');
       generatePDF();
     } else {
       // Show payment modal
+      console.log('Template1PDF - No approved payment, showing modal. showPaymentModal will be set to true');
       setShowPaymentModal(true);
     }
   };
@@ -754,12 +763,15 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
 
       {/* Payment Modal - Outside PDF container */}
       {showPaymentModal && (
-        <ManualPayment
-          amount={100}
-          onPaymentSuccess={handlePaymentSuccess}
-          onPaymentFailure={handlePaymentFailure}
-          onClose={() => setShowPaymentModal(false)}
-        />
+        <>
+          {console.log('Template1PDF - Rendering ManualPayment modal')}
+          <ManualPayment
+            amount={100}
+            onPaymentSuccess={handlePaymentSuccess}
+            onPaymentFailure={handlePaymentFailure}
+            onClose={() => setShowPaymentModal(false)}
+          />
+        </>
       )}
     </>
   );

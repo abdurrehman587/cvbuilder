@@ -306,29 +306,39 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const handleDownloadClick = () => {
+    console.log('Template2PDF - handleDownloadClick called');
+    
     // Check both localStorage and user object for admin access
     const adminAccess = localStorage.getItem('admin_cv_access');
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
     
+    console.log('Template2PDF - isAdmin:', isAdmin);
+    console.log('Template2PDF - downloadCompleted:', downloadCompleted);
+    
     if (isAdmin) {
+      console.log('Template2PDF - Admin user, generating PDF directly');
       generatePDF();
       return;
     }
 
     if (downloadCompleted) {
+      console.log('Template2PDF - Download already completed');
       alert('You have already downloaded a CV in this session. Please sign out and sign in again to download another CV.');
       return;
     }
     
     // Check if user has an approved payment
     const hasApprovedPayment = checkForApprovedPayment();
+    console.log('Template2PDF - hasApprovedPayment:', hasApprovedPayment);
     
     if (hasApprovedPayment) {
       // User has an approved payment, allow download
+      console.log('Template2PDF - Payment approved, generating PDF');
       generatePDF();
     } else {
       // Show payment modal
+      console.log('Template2PDF - No approved payment, showing modal. showPaymentModal will be set to true');
       setShowPaymentModal(true);
     }
   };
@@ -675,12 +685,15 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
 
       {/* Payment Modal - Outside PDF container */}
       {showPaymentModal && (
-        <ManualPayment
-          amount={100}
-          onPaymentSuccess={handlePaymentSuccess}
-          onPaymentFailure={handlePaymentFailure}
-          onClose={() => setShowPaymentModal(false)}
-        />
+        <>
+          {console.log('Template2PDF - Rendering ManualPayment modal')}
+          <ManualPayment
+            amount={100}
+            onPaymentSuccess={handlePaymentSuccess}
+            onPaymentFailure={handlePaymentFailure}
+            onClose={() => setShowPaymentModal(false)}
+          />
+        </>
       )}
     </>
   );

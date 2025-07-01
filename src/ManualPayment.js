@@ -46,12 +46,19 @@ const ManualPayment = ({ amount, onPaymentSuccess, onPaymentFailure, onClose }) 
   };
 
   const handleSubmit = async () => {
+    console.log('ManualPayment - handleSubmit called');
+    console.log('ManualPayment - selectedMethod:', selectedMethod);
+    console.log('ManualPayment - proofFile:', proofFile);
+    console.log('ManualPayment - phoneNumber:', phoneNumber);
+    
     if (!selectedMethod || !proofFile || !phoneNumber) {
+      console.log('ManualPayment - Missing required fields');
       alert('Please fill in all fields');
       return;
     }
 
     setIsSubmitting(true);
+    console.log('ManualPayment - Starting payment submission');
 
     try {
       // Here you would typically upload the proof to your server
@@ -59,6 +66,7 @@ const ManualPayment = ({ amount, onPaymentSuccess, onPaymentFailure, onClose }) 
       
       // Create a unique payment ID
       const paymentId = `PAY-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      console.log('ManualPayment - Generated payment ID:', paymentId);
       
       // Simulate server upload delay
       await new Promise(resolve => setTimeout(resolve, 2000));
@@ -73,11 +81,13 @@ const ManualPayment = ({ amount, onPaymentSuccess, onPaymentFailure, onClose }) 
         status: 'pending'
       };
       
+      console.log('ManualPayment - Storing payment info:', paymentInfo);
       localStorage.setItem(`payment_${paymentId}`, JSON.stringify(paymentInfo));
       
       // Show success message
       alert(`Payment proof submitted successfully!\n\nPayment ID: ${paymentId}\n\nPlease wait for verification. You will receive a confirmation email/SMS once verified.`);
       
+      console.log('ManualPayment - Calling onPaymentSuccess');
       onPaymentSuccess({
         paymentId,
         method: selectedMethod,
