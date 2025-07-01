@@ -644,8 +644,7 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
     }
   };
 
-  // Get admin access status for use in render
-  const adminAccess = localStorage.getItem('admin_cv_access');
+
 
   return (
     <>
