@@ -58,7 +58,7 @@ const App = () => {
       setLoading(false);
     });
 
-    // Handle automatic sign-out when browser/tab is closed
+    // Handle automatic sign-out only when browser is actually closing (not tab switching)
     const handleBeforeUnload = () => {
       // Only clear non-admin related data, preserve admin access
       const adminAccess = localStorage.getItem('admin_cv_access');
@@ -66,7 +66,7 @@ const App = () => {
       const isAdmin = adminAccess === 'true' || (user && JSON.parse(user)?.isAdmin);
       
       if (!isAdmin) {
-        // Only clear localStorage for non-admin users
+        // Only clear localStorage for non-admin users when browser is actually closing
         localStorage.clear();
         // Sign out from Supabase
         supabase.auth.signOut();
@@ -74,50 +74,12 @@ const App = () => {
       // Admin users keep their session intact
     };
 
-    // Handle page visibility change (when tab becomes hidden)
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden') {
-        // Only clear non-admin related data, preserve admin access
-        const adminAccess = localStorage.getItem('admin_cv_access');
-        const user = localStorage.getItem('user');
-        const isAdmin = adminAccess === 'true' || (user && JSON.parse(user)?.isAdmin);
-        
-        if (!isAdmin) {
-          // Only clear localStorage for non-admin users
-          localStorage.clear();
-          // Sign out from Supabase
-          supabase.auth.signOut();
-        }
-        // Admin users keep their session intact
-      }
-    };
-
-    // Handle page unload (when page is being unloaded)
-    const handlePageHide = () => {
-      // Only clear non-admin related data, preserve admin access
-      const adminAccess = localStorage.getItem('admin_cv_access');
-      const user = localStorage.getItem('user');
-      const isAdmin = adminAccess === 'true' || (user && JSON.parse(user)?.isAdmin);
-      
-      if (!isAdmin) {
-        // Only clear localStorage for non-admin users
-        localStorage.clear();
-        // Sign out from Supabase
-        supabase.auth.signOut();
-      }
-      // Admin users keep their session intact
-    };
-
-    // Add event listeners
+    // Add event listeners - only for actual browser close, not tab switching
     window.addEventListener('beforeunload', handleBeforeUnload);
-    window.addEventListener('pagehide', handlePageHide);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
       listener?.subscription?.unsubscribe();
       window.removeEventListener('beforeunload', handleBeforeUnload);
-      window.removeEventListener('pagehide', handlePageHide);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
 

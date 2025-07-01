@@ -19,27 +19,9 @@ const SignupSignIn = ({ onAuth }) => {
   const ADMIN_PASSWORD = process.env.REACT_APP_ADMIN_PASSWORD || 'admin123456';
 
   useEffect(() => {
-    // Handle automatic sign-out when browser/tab is closed
+    // Handle automatic sign-out only when browser is actually closing (not tab switching)
     const handleBeforeUnload = () => {
-      // Clear all localStorage data
-      localStorage.clear();
-      // Sign out from Supabase
-      supabase.auth.signOut();
-    };
-
-    // Handle page visibility change (when tab becomes hidden)
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden') {
-        // Clear all localStorage data
-        localStorage.clear();
-        // Sign out from Supabase
-        supabase.auth.signOut();
-      }
-    };
-
-    // Handle page unload (when page is being unloaded)
-    const handlePageHide = () => {
-      // Clear all localStorage data
+      // Clear all localStorage data only when browser is actually closing
       localStorage.clear();
       // Sign out from Supabase
       supabase.auth.signOut();
@@ -54,16 +36,12 @@ const SignupSignIn = ({ onAuth }) => {
       }
     };
 
-    // Add event listeners
+    // Add event listeners - only for actual browser close, not tab switching
     window.addEventListener('beforeunload', handleBeforeUnload);
-    window.addEventListener('pagehide', handlePageHide);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
     document.addEventListener('keydown', handleKeyPress);
 
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
-      window.removeEventListener('pagehide', handlePageHide);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
       document.removeEventListener('keydown', handleKeyPress);
     };
   }, [showAdminToggle]);
