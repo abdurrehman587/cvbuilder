@@ -26,9 +26,17 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
 
   const loadPayments = () => {
     console.log('PaymentAdmin - loadPayments called');
+    console.log('PaymentAdmin - localStorage.length:', localStorage.length);
+    
     const allPayments = [];
+    const allKeys = [];
+    
+    // Log all localStorage keys for debugging
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
+      allKeys.push(key);
+      console.log('PaymentAdmin - Key found:', key);
+      
       if (key && key.startsWith('payment_')) {
         try {
           const payment = JSON.parse(localStorage.getItem(key));
@@ -40,6 +48,7 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
       }
     }
     
+    console.log('PaymentAdmin - All localStorage keys:', allKeys);
     console.log('PaymentAdmin - Total payments found:', allPayments.length);
     
     // Sort by timestamp (newest first)
@@ -295,7 +304,8 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
           color: '#0c4a6e',
           display: 'flex',
           alignItems: 'center',
-          gap: '8px'
+          gap: '8px',
+          flexWrap: 'wrap'
         }}>
           <span>⏰</span>
           <span>Last checked: {lastChecked.toLocaleTimeString()}</span>
@@ -305,6 +315,47 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
           <span>Total payments: {payments.length}</span>
           <span>•</span>
           <span>Pending: {payments.filter(p => p.status === 'pending').length}</span>
+        </div>
+        
+        {/* Test Payment Button */}
+        <div style={{
+          marginTop: '10px',
+          padding: '8px 12px',
+          backgroundColor: '#fef3c7',
+          borderRadius: '6px',
+          border: '1px solid #f59e0b',
+          fontSize: '12px',
+          color: '#92400e'
+        }}>
+          <button
+            onClick={() => {
+              const testPayment = {
+                id: `TEST-${Date.now()}`,
+                method: 'easypaisa',
+                amount: 100,
+                phoneNumber: '03001234567',
+                timestamp: new Date().toISOString(),
+                status: 'pending'
+              };
+              localStorage.setItem(`payment_${testPayment.id}`, JSON.stringify(testPayment));
+              console.log('Test payment created:', testPayment);
+              loadPayments();
+              alert('Test payment created! Check if it appears in the list.');
+            }}
+            style={{
+              padding: '4px 8px',
+              backgroundColor: '#f59e0b',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '11px',
+              marginRight: '8px'
+            }}
+          >
+            🧪 Create Test Payment
+          </button>
+          <span>Use this to test if the admin panel is working correctly</span>
         </div>
       </div>
 
