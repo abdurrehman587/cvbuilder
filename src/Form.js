@@ -53,6 +53,17 @@ const Form = ({ formData, setFormData, onChange, user }) => {
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
 
+  // Clear search state for non-admin users
+  useEffect(() => {
+    if (user && !user.isAdmin) {
+      setSearchName('');
+      setSearchPhone('');
+      setSearchResults([]);
+      setShowSearchResults(false);
+      setIsSearching(false);
+    }
+  }, [user]);
+
   // Debounced live search effect
   useEffect(() => {
     if (!user || !user.isAdmin) return;
@@ -994,160 +1005,165 @@ const Form = ({ formData, setFormData, onChange, user }) => {
   return (
     <>
       {/* Search Container Above Form */}
-      <div style={{
-        width: '100%',
-        padding: '2rem',
-        boxSizing: 'border-box',
-        backgroundColor: '#f9fafb',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '16px',
-        flexWrap: 'wrap',
-        borderBottom: '1px solid #e5e7eb'
-      }}>
-        <div style={{ flex: '1', minWidth: '220px', position: 'relative' }}>
-          <input
-            type="text"
-            placeholder={user?.isAdmin ? "Search any CV by name" : "Search CV by name"}
-            value={searchName}
-            onChange={(e) => setSearchName(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '0.75rem 1rem',
-              fontSize: '1rem',
-              borderRadius: '0.75rem',
-              border: '1px solid #d1d5db',
-              fontFamily: 'Inter, sans-serif',
-              outline: 'none',
-              paddingRight: isSearching ? '2.5rem' : '1rem'
-            }}
-          />
-          {isSearching && (
-            <div style={{
-              position: 'absolute',
-              right: '0.75rem',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              color: '#6b7280'
-            }}>
-              🔍
-            </div>
-          )}
-        </div>
-        <div style={{ flex: '1', minWidth: '220px', position: 'relative' }}>
-          <input
-            type="text"
-            placeholder={user?.isAdmin ? "Search any CV by Phone Number" : "Search CV by Phone Number"}
-            value={searchPhone}
-            onChange={(e) => setSearchPhone(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '0.75rem 1rem',
-              fontSize: '1rem',
-              borderRadius: '0.75rem',
-              border: '1px solid #d1d5db',
-              fontFamily: 'Inter, sans-serif',
-              outline: 'none',
-              paddingRight: isSearching ? '2.5rem' : '1rem'
-            }}
-          />
-          {isSearching && (
-            <div style={{
-              position: 'absolute',
-              right: '0.75rem',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              color: '#6b7280'
-            }}>
-              🔍
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Search Results Display */}
-      {showSearchResults && searchResults.length > 0 && (
-        <div style={{
-          width: '100%',
-          padding: '1rem',
-          backgroundColor: '#f3f4f6',
-          border: '1px solid #d1d5db',
-          borderRadius: '0.75rem',
-          marginBottom: '1rem'
-        }}>
+      {/* Admin-only Search Section */}
+      {user?.isAdmin && (
+        <>
           <div style={{
+            width: '100%',
+            padding: '2rem',
+            boxSizing: 'border-box',
+            backgroundColor: '#f9fafb',
             display: 'flex',
-            justifyContent: 'space-between',
             alignItems: 'center',
-            marginBottom: '1rem'
+            gap: '16px',
+            flexWrap: 'wrap',
+            borderBottom: '1px solid #e5e7eb'
           }}>
-            <h3 style={{ margin: 0, color: '#374151' }}>
-              Search Results ({searchResults.length} CV{searchResults.length === 1 ? '' : 's'})
-            </h3>
-            <button
-              onClick={() => {
-                setShowSearchResults(false);
-                setSearchResults([]);
-              }}
-              style={{
-                padding: '0.5rem 1rem',
-                backgroundColor: '#6b7280',
-                color: 'white',
-                border: 'none',
-                borderRadius: '0.5rem',
-                cursor: 'pointer',
-                fontSize: '0.875rem'
-              }}
-            >
-              ✕ Close
-            </button>
-          </div>
-          
-          <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
-            {searchResults.map((cv, index) => (
-              <div
-                key={cv.id}
+            <div style={{ flex: '1', minWidth: '220px', position: 'relative' }}>
+              <input
+                type="text"
+                placeholder="Search any CV by name"
+                value={searchName}
+                onChange={(e) => setSearchName(e.target.value)}
                 style={{
-                  padding: '1rem',
-                  backgroundColor: 'white',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '0.5rem',
-                  marginBottom: '0.5rem',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center'
+                  width: '100%',
+                  padding: '0.75rem 1rem',
+                  fontSize: '1rem',
+                  borderRadius: '0.75rem',
+                  border: '1px solid #d1d5db',
+                  fontFamily: 'Inter, sans-serif',
+                  outline: 'none',
+                  paddingRight: isSearching ? '2.5rem' : '1rem'
                 }}
-              >
-                <div>
-                  <div style={{ fontWeight: '600', color: '#111827', marginBottom: '0.25rem' }}>
-                    {cv.name || 'No Name'}
-                  </div>
-                  <div style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.25rem' }}>
-                    📞 {cv.phone || 'No Phone'} | 📧 {cv.email || 'No Email'}
-                  </div>
-                  <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>
-                    ID: {cv.id} | Created: {new Date(cv.created_at).toLocaleDateString()}
-                  </div>
+              />
+              {isSearching && (
+                <div style={{
+                  position: 'absolute',
+                  right: '0.75rem',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  color: '#6b7280'
+                }}>
+                  🔍
                 </div>
+              )}
+            </div>
+            <div style={{ flex: '1', minWidth: '220px', position: 'relative' }}>
+              <input
+                type="text"
+                placeholder="Search any CV by Phone Number"
+                value={searchPhone}
+                onChange={(e) => setSearchPhone(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '0.75rem 1rem',
+                  fontSize: '1rem',
+                  borderRadius: '0.75rem',
+                  border: '1px solid #d1d5db',
+                  fontFamily: 'Inter, sans-serif',
+                  outline: 'none',
+                  paddingRight: isSearching ? '2.5rem' : '1rem'
+                }}
+              />
+              {isSearching && (
+                <div style={{
+                  position: 'absolute',
+                  right: '0.75rem',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  color: '#6b7280'
+                }}>
+                  🔍
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Search Results Display */}
+          {showSearchResults && searchResults.length > 0 && (
+            <div style={{
+              width: '100%',
+              padding: '1rem',
+              backgroundColor: '#f3f4f6',
+              border: '1px solid #d1d5db',
+              borderRadius: '0.75rem',
+              marginBottom: '1rem'
+            }}>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '1rem'
+              }}>
+                <h3 style={{ margin: 0, color: '#374151' }}>
+                  Search Results ({searchResults.length} CV{searchResults.length === 1 ? '' : 's'})
+                </h3>
                 <button
-                  onClick={() => loadCVFromSearch(cv)}
+                  onClick={() => {
+                    setShowSearchResults(false);
+                    setSearchResults([]);
+                  }}
                   style={{
                     padding: '0.5rem 1rem',
-                    backgroundColor: '#22c55e',
+                    backgroundColor: '#6b7280',
                     color: 'white',
                     border: 'none',
                     borderRadius: '0.5rem',
                     cursor: 'pointer',
-                    fontSize: '0.875rem',
-                    fontWeight: '600'
+                    fontSize: '0.875rem'
                   }}
                 >
-                  📝 Load CV
+                  ✕ Close
                 </button>
               </div>
-            ))}
-          </div>
-        </div>
+              
+              <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                {searchResults.map((cv, index) => (
+                  <div
+                    key={cv.id}
+                    style={{
+                      padding: '1rem',
+                      backgroundColor: 'white',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '0.5rem',
+                      marginBottom: '0.5rem',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontWeight: '600', color: '#111827', marginBottom: '0.25rem' }}>
+                        {cv.name || 'No Name'}
+                      </div>
+                      <div style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.25rem' }}>
+                        📞 {cv.phone || 'No Phone'} | 📧 {cv.email || 'No Email'}
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>
+                        ID: {cv.id} | Created: {new Date(cv.created_at).toLocaleDateString()}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => loadCVFromSearch(cv)}
+                      style={{
+                        padding: '0.5rem 1rem',
+                        backgroundColor: '#22c55e',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '0.5rem',
+                        cursor: 'pointer',
+                        fontSize: '0.875rem',
+                        fontWeight: '600'
+                      }}
+                    >
+                      📝 Load CV
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       <div className="form-container">
