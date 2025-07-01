@@ -3,6 +3,7 @@
 // Unique ID: CS_FIX_20241219_1545
 import React, { useRef, useState } from 'react';
 import PropTypes from 'prop-types';
+import ManualPayment from './ManualPayment';
 
 
 // Load html2pdf from CDN dynamically
@@ -500,6 +501,20 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     }
   };
 
+  const handlePaymentSuccess = (paymentData) => {
+    console.log('Payment successful:', paymentData);
+    setPaymentCompleted(true);
+    setShowPaymentModal(false);
+    // Now trigger the PDF download
+    generatePDF();
+  };
+
+  const handlePaymentFailure = (error) => {
+    console.log('Payment failed:', error);
+    setShowPaymentModal(false);
+    alert('Payment failed. Please try again.');
+  };
+
   const handleDownloadClick = () => {
     // Use the state instead of checking localStorage every time
     if (isAdminUser) {
@@ -565,176 +580,188 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
   };
 
   return (
-    <article ref={containerRef} style={containerStyle}>
-      <header style={headerStyle}>
-        {formData.image ? (
-          <img
-            src={URL.createObjectURL(formData.image)}
-            alt="Profile"
-            style={photoStyle}
-          />
-        ) : formData.imageUrl ? (
-          <img
-            src={formData.imageUrl}
-            alt="Profile"
-            style={photoStyle}
-          />
-        ) : (
-          <div style={noPhotoPlaceholderStyle}>No Photo</div>
-        )}
-        <div style={personalInfoStyle}>
-          {formData.name && <h1 style={nameStyle}>{formData.name}</h1>}
-          {formData.phone && <p style={contactRowStyle}>📞 {formData.phone}</p>}
-          {formData.email && <p style={contactRowStyle}>✉️ {formData.email}</p>}
-          {formData.address && <p style={contactRowStyle}>📍 {formData.address}</p>}
-        </div>
-      </header>
-
-      {visibleSections.includes('objective') && formData.objective && (
-        <section style={sectionStyle} aria-label="Objective Section">
-          <h2 style={sectionTitleStyle}>Objective</h2>
-          {formData.objective.map((obj, idx) => (
-            <p key={idx} style={paragraphStyle}>{obj}</p>
-          ))}
-        </section>
-      )}
-
-      {visibleSections.includes('education') && formData.education?.length > 0 && (
-        <section style={sectionStyle} aria-label="Education Section">
-          <h2 style={sectionTitleStyle}>Education</h2>
-          {renderEducation(formData.education)}
-        </section>
-      )}
-
-      {visibleSections.includes('workExperience') && formData.workExperience?.length > 0 && (
-        <section style={sectionStyle} aria-label="Work Experience Section">
-          <h2 style={sectionTitleStyle}>Work Experience</h2>
-          {renderWorkExperience(formData.workExperience)}
-        </section>
-      )}
-
-      {/* Insert Other Information section here after Work Experience */}
-      {visibleSections.includes('otherInformation') && renderOtherInformation(formData.otherInformation)}
-
-      {visibleSections.includes('skills') && formData.skills?.length > 0 && (
-        <section style={sectionStyle} aria-label="Skills Section">
-          <h2 style={sectionTitleStyle}>Skills</h2>
-          {renderSkills(formData.skills)}
-        </section>
-      )}
-
-      {visibleSections.includes('certifications') && formData.certifications && formData.certifications.length > 0 && (() => {
-        const certificationsList = renderSimpleList(formData.certifications);
-        return certificationsList ? (
-          <section style={sectionStyle} aria-label="Certifications Section">
-            <h2 style={sectionTitleStyle}>Certifications</h2>
-            {certificationsList}
-          </section>
-        ) : null;
-      })()}
-
-      {visibleSections.includes('projects') && formData.projects && formData.projects.length > 0 && (() => {
-        const projectsList = renderSimpleList(formData.projects);
-        return projectsList ? (
-          <section style={sectionStyle} aria-label="Projects Section">
-            <h2 style={sectionTitleStyle}>Projects</h2>
-            {projectsList}
-          </section>
-        ) : null;
-      })()}
-
-      {visibleSections.includes('languages') && combinedLanguages.length > 0 && (
-        <section style={sectionStyle} aria-label="Languages Section">
-          <h2 style={sectionTitleStyle}>Languages</h2>
-          {renderLanguages(combinedLanguages)}
-        </section>
-      )}
-
-      {visibleSections.includes('hobbies') && formData.hobbies && formData.hobbies.length > 0 && (() => {
-        const hobbiesList = renderSimpleList(formData.hobbies);
-        return hobbiesList ? (
-          <section style={sectionStyle} aria-label="Hobbies Section">
-            <h2 style={sectionTitleStyle}>Hobbies</h2>
-            {hobbiesList}
-          </section>
-        ) : null;
-      })()}
-
-      {/* Custom Sections - rendered before references */}
-      {(() => {
-        console.log('Template1PDF - customSections check:', {
-          visibleSections,
-          hasCustomSections: visibleSections.includes('customSections'),
-          formDataCustomSections: formData.customSections,
-          customSectionsLength: formData.customSections?.length
-        });
-        
-        // Force custom sections to be visible if they exist
-        const shouldShowCustomSections = (visibleSections.includes('customSections') || formData.customSections?.length > 0) && 
-                                        formData.customSections && 
-                                        formData.customSections.length > 0;
-        
-        console.log('Template1PDF - shouldShowCustomSections:', shouldShowCustomSections);
-        
-        return shouldShowCustomSections && (
-          renderCustomSections(formData.customSections)
-        );
-      })()}
-
-      {visibleSections.includes('references') && (
-        <section style={sectionStyle} aria-label="References Section">
-          <h2 style={sectionTitleStyle}>References</h2>
-          {formData.references && formData.references.length > 0 ? (
-            renderSimpleList(formData.references)
+    <>
+      <article ref={containerRef} style={containerStyle}>
+        <header style={headerStyle}>
+          {formData.image ? (
+            <img
+              src={URL.createObjectURL(formData.image)}
+              alt="Profile"
+              style={photoStyle}
+            />
+          ) : formData.imageUrl ? (
+            <img
+              src={formData.imageUrl}
+              alt="Profile"
+              style={photoStyle}
+            />
           ) : (
-            <p style={paragraphStyle}>References would be furnished on demand</p>
+            <div style={noPhotoPlaceholderStyle}>No Photo</div>
           )}
-        </section>
-      )}
-
-      {/* Download Button - Same logic as Template3 */}
-      {(() => {
-        // Use the state instead of checking localStorage every time
-        return (isAdminUser || !downloadCompleted) ? (
-          <button
-            ref={buttonRef}
-            type="button"
-            onClick={handleDownloadClick}
-            style={{
-              marginTop: 16,
-              cursor: 'pointer',
-              padding: '6px 18px',
-              fontSize: '0.95rem',
-              borderRadius: 6,
-              border: 'none',
-              backgroundColor: '#3f51b5',
-              color: 'white',
-              transition: 'background-color 0.3s ease',
-              alignSelf: 'flex-start',
-              userSelect: 'none',
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#303f9f')}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3f51b5')}
-          >
-            {getDownloadButtonText()}
-          </button>
-        ) : (
-          <div style={{
-            marginTop: 16,
-            padding: '12px 16px',
-            backgroundColor: '#f0f9ff',
-            border: '1px solid #0ea5e9',
-            borderRadius: 6,
-            color: '#0369a1',
-            fontSize: '0.9rem',
-            textAlign: 'center',
-          }}>
-            ✅ CV Downloaded Successfully!<br />
-            <small>Sign out and sign in again to download another CV.</small>
+          <div style={personalInfoStyle}>
+            {formData.name && <h1 style={nameStyle}>{formData.name}</h1>}
+            {formData.phone && <p style={contactRowStyle}>📞 {formData.phone}</p>}
+            {formData.email && <p style={contactRowStyle}>✉️ {formData.email}</p>}
+            {formData.address && <p style={contactRowStyle}>📍 {formData.address}</p>}
           </div>
-        );
-      })()}
-    </article>
+        </header>
+
+        {visibleSections.includes('objective') && formData.objective && (
+          <section style={sectionStyle} aria-label="Objective Section">
+            <h2 style={sectionTitleStyle}>Objective</h2>
+            {formData.objective.map((obj, idx) => (
+              <p key={idx} style={paragraphStyle}>{obj}</p>
+            ))}
+          </section>
+        )}
+
+        {visibleSections.includes('education') && formData.education?.length > 0 && (
+          <section style={sectionStyle} aria-label="Education Section">
+            <h2 style={sectionTitleStyle}>Education</h2>
+            {renderEducation(formData.education)}
+          </section>
+        )}
+
+        {visibleSections.includes('workExperience') && formData.workExperience?.length > 0 && (
+          <section style={sectionStyle} aria-label="Work Experience Section">
+            <h2 style={sectionTitleStyle}>Work Experience</h2>
+            {renderWorkExperience(formData.workExperience)}
+          </section>
+        )}
+
+        {/* Insert Other Information section here after Work Experience */}
+        {visibleSections.includes('otherInformation') && renderOtherInformation(formData.otherInformation)}
+
+        {visibleSections.includes('skills') && formData.skills?.length > 0 && (
+          <section style={sectionStyle} aria-label="Skills Section">
+            <h2 style={sectionTitleStyle}>Skills</h2>
+            {renderSkills(formData.skills)}
+          </section>
+        )}
+
+        {visibleSections.includes('certifications') && formData.certifications && formData.certifications.length > 0 && (() => {
+          const certificationsList = renderSimpleList(formData.certifications);
+          return certificationsList ? (
+            <section style={sectionStyle} aria-label="Certifications Section">
+              <h2 style={sectionTitleStyle}>Certifications</h2>
+              {certificationsList}
+            </section>
+          ) : null;
+        })()}
+
+        {visibleSections.includes('projects') && formData.projects && formData.projects.length > 0 && (() => {
+          const projectsList = renderSimpleList(formData.projects);
+          return projectsList ? (
+            <section style={sectionStyle} aria-label="Projects Section">
+              <h2 style={sectionTitleStyle}>Projects</h2>
+              {projectsList}
+            </section>
+          ) : null;
+        })()}
+
+        {visibleSections.includes('languages') && combinedLanguages.length > 0 && (
+          <section style={sectionStyle} aria-label="Languages Section">
+            <h2 style={sectionTitleStyle}>Languages</h2>
+            {renderLanguages(combinedLanguages)}
+          </section>
+        )}
+
+        {visibleSections.includes('hobbies') && formData.hobbies && formData.hobbies.length > 0 && (() => {
+          const hobbiesList = renderSimpleList(formData.hobbies);
+          return hobbiesList ? (
+            <section style={sectionStyle} aria-label="Hobbies Section">
+              <h2 style={sectionTitleStyle}>Hobbies</h2>
+              {hobbiesList}
+            </section>
+          ) : null;
+        })()}
+
+        {/* Custom Sections - rendered before references */}
+        {(() => {
+          console.log('Template1PDF - customSections check:', {
+            visibleSections,
+            hasCustomSections: visibleSections.includes('customSections'),
+            formDataCustomSections: formData.customSections,
+            customSectionsLength: formData.customSections?.length
+          });
+          
+          // Force custom sections to be visible if they exist
+          const shouldShowCustomSections = (visibleSections.includes('customSections') || formData.customSections?.length > 0) && 
+                                          formData.customSections && 
+                                          formData.customSections.length > 0;
+          
+          console.log('Template1PDF - shouldShowCustomSections:', shouldShowCustomSections);
+          
+          return shouldShowCustomSections && (
+            renderCustomSections(formData.customSections)
+          );
+        })()}
+
+        {visibleSections.includes('references') && (
+          <section style={sectionStyle} aria-label="References Section">
+            <h2 style={sectionTitleStyle}>References</h2>
+            {formData.references && formData.references.length > 0 ? (
+              renderSimpleList(formData.references)
+            ) : (
+              <p style={paragraphStyle}>References would be furnished on demand</p>
+            )}
+          </section>
+        )}
+
+        {/* Download Button - Same logic as Template3 */}
+        {(() => {
+          // Use the state instead of checking localStorage every time
+          return (isAdminUser || !downloadCompleted) ? (
+            <button
+              ref={buttonRef}
+              type="button"
+              onClick={handleDownloadClick}
+              style={{
+                marginTop: 16,
+                cursor: 'pointer',
+                padding: '6px 18px',
+                fontSize: '0.95rem',
+                borderRadius: 6,
+                border: 'none',
+                backgroundColor: '#3f51b5',
+                color: 'white',
+                transition: 'background-color 0.3s ease',
+                alignSelf: 'flex-start',
+                userSelect: 'none',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#303f9f')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3f51b5')}
+            >
+              {getDownloadButtonText()}
+            </button>
+          ) : (
+            <div style={{
+              marginTop: 16,
+              padding: '12px 16px',
+              backgroundColor: '#f0f9ff',
+              border: '1px solid #0ea5e9',
+              borderRadius: 6,
+              color: '#0369a1',
+              fontSize: '0.9rem',
+              textAlign: 'center',
+            }}>
+              ✅ CV Downloaded Successfully!<br />
+              <small>Sign out and sign in again to download another CV.</small>
+            </div>
+          );
+        })()}
+      </article>
+
+      {/* Payment Modal - Outside PDF container */}
+      {showPaymentModal && (
+        <ManualPayment
+          amount={100}
+          onPaymentSuccess={handlePaymentSuccess}
+          onPaymentFailure={handlePaymentFailure}
+          onClose={() => setShowPaymentModal(false)}
+        />
+      )}
+    </>
   );
 };
 

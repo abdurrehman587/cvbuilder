@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import PropTypes from 'prop-types';
+import ManualPayment from './ManualPayment';
 
 const loadHtml2Pdf = () => {
   if (window.html2pdf) return Promise.resolve(window.html2pdf);
@@ -243,12 +244,14 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
   const handlePaymentSuccess = (paymentData) => {
     console.log('Payment successful:', paymentData);
     setPaymentCompleted(true);
+    setShowPaymentModal(false);
     // Now trigger the PDF download
     generatePDF();
   };
 
   const handlePaymentFailure = (error) => {
     console.log('Payment failed:', error);
+    setShowPaymentModal(false);
     alert('Payment failed. Please try again.');
   };
 
@@ -325,7 +328,7 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
       generatePDF();
     } else {
       // Show payment modal
-      // setShowPaymentModal(true);
+      setShowPaymentModal(true);
     }
   };
 
@@ -462,211 +465,223 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
   };
 
   return (
-    <div ref={containerRef} style={{ ...styles.container, paddingBottom: '50px' }}>
-      {/* Left Column */}
-      <div style={styles.leftColumn}>
-        {/* Photo */}
-        {formData.image ? (
-          <img src={URL.createObjectURL(formData.image)} alt="Profile" style={styles.photo} />
-        ) : formData.imageUrl ? (
-          <img src={formData.imageUrl} alt="Profile" style={styles.photo} />
-        ) : (
-          <div style={styles.noPhoto}>Photo</div>
-        )}
-        
-        {/* Contact Information */}
-        <div style={styles.leftSection}>
-          <h2 style={styles.leftSectionTitle}>Contact</h2>
-          {formData.phone && <p style={styles.contactInfo}><span style={styles.contactIcon}>📞</span>{formData.phone}</p>}
-          {formData.email && <p style={styles.contactInfo}><span style={styles.contactIcon}>✉️</span>{formData.email}</p>}
-          {formData.address && <p style={styles.contactInfo}><span style={styles.contactIcon}>📍</span>{formData.address}</p>}
+    <>
+      <div ref={containerRef} style={{ ...styles.container, paddingBottom: '50px' }}>
+        {/* Left Column */}
+        <div style={styles.leftColumn}>
+          {/* Photo */}
+          {formData.image ? (
+            <img src={URL.createObjectURL(formData.image)} alt="Profile" style={styles.photo} />
+          ) : formData.imageUrl ? (
+            <img src={formData.imageUrl} alt="Profile" style={styles.photo} />
+          ) : (
+            <div style={styles.noPhoto}>Photo</div>
+          )}
+          
+          {/* Contact Information */}
+          <div style={styles.leftSection}>
+            <h2 style={styles.leftSectionTitle}>Contact</h2>
+            {formData.phone && <p style={styles.contactInfo}><span style={styles.contactIcon}>📞</span>{formData.phone}</p>}
+            {formData.email && <p style={styles.contactInfo}><span style={styles.contactIcon}>✉️</span>{formData.email}</p>}
+            {formData.address && <p style={styles.contactInfo}><span style={styles.contactIcon}>📍</span>{formData.address}</p>}
+          </div>
+
+          {/* Skills in left column */}
+          {visibleSections.includes('skills') && formData.skills?.length > 0 && (
+            <div style={styles.leftSection}>
+              <h2 style={styles.leftSectionTitle}>Skills</h2>
+              {renderSkills(formData.skills)}
+            </div>
+          )}
+
+          {/* Languages in left column */}
+          {visibleSections.includes('languages') && formData.languages?.length > 0 && (
+            <div style={styles.leftSection}>
+              <h2 style={styles.leftSectionTitle}>Languages</h2>
+              {renderLanguages(formData.languages || [], formData.customLanguages || [])}
+            </div>
+          )}
+
+          {/* Other Information section in left column */}
+          {(() => {
+            console.log('Template2PDF - otherInformation check:', {
+              visibleSections,
+              hasOtherInformation: visibleSections.includes('otherInformation'),
+              formDataOtherInformation: formData.otherInformation,
+              otherInformationLength: formData.otherInformation?.length
+            });
+            return visibleSections.includes('otherInformation') && renderOtherInformation(formData.otherInformation);
+          })()}
         </div>
 
-        {/* Skills in left column */}
-        {visibleSections.includes('skills') && formData.skills?.length > 0 && (
-          <div style={styles.leftSection}>
-            <h2 style={styles.leftSectionTitle}>Skills</h2>
-            {renderSkills(formData.skills)}
+        {/* Right Column */}
+        <div style={styles.rightColumn}>
+          <div style={styles.rightHeader}>
+            <h1 style={styles.name}>{formData.name || 'Your Name'}</h1>
           </div>
-        )}
 
-        {/* Languages in left column */}
-        {visibleSections.includes('languages') && formData.languages?.length > 0 && (
-          <div style={styles.leftSection}>
-            <h2 style={styles.leftSectionTitle}>Languages</h2>
-            {renderLanguages(formData.languages || [], formData.customLanguages || [])}
-          </div>
-        )}
+          {visibleSections.includes('objective') && formData.objective && (
+            <div style={styles.rightSection}>
+              <h2 style={styles.rightSectionTitle}>Objective</h2>
+              <p style={styles.paragraph}>{formData.objective}</p>
+            </div>
+          )}
 
-        {/* Other Information section in left column */}
-        {(() => {
-          console.log('Template2PDF - otherInformation check:', {
-            visibleSections,
-            hasOtherInformation: visibleSections.includes('otherInformation'),
-            formDataOtherInformation: formData.otherInformation,
-            otherInformationLength: formData.otherInformation?.length
-          });
-          return visibleSections.includes('otherInformation') && renderOtherInformation(formData.otherInformation);
-        })()}
-      </div>
+          {visibleSections.includes('workExperience') && formData.workExperience?.length > 0 && (
+            <div style={styles.rightSection}>
+              <h2 style={styles.rightSectionTitle}>Work Experience</h2>
+              {formData.workExperience.map((exp, idx) => (
+                <div key={idx} style={styles.experienceItem}>
+                  <div style={styles.itemHeader}>
+                    <h3 style={styles.itemTitle}>{exp.designation}</h3>
+                    <span style={styles.itemDate}>{exp.duration}</span>
+                  </div>
+                  <h4 style={styles.itemSubtitle}>{exp.company}</h4>
 
-      {/* Right Column */}
-      <div style={styles.rightColumn}>
-        <div style={styles.rightHeader}>
-          <h1 style={styles.name}>{formData.name || 'Your Name'}</h1>
+                  {/* Existing description rendering */}
+                  {exp.description && <p style={styles.paragraph}>{exp.description}</p>}
+
+                  {/* ✅ NEW: Additional Details rendering below description, if any */}
+                  {exp.details?.trim() && (
+                    <p style={{ ...styles.paragraph, marginTop: '0px' }}>{exp.details}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {visibleSections.includes('education') && formData.education?.length > 0 && (
+            <div style={styles.rightSection}>
+              <h2 style={styles.rightSectionTitle}>Education</h2>
+              {formData.education.map((edu, idx) => (
+                <div key={idx} style={styles.experienceItem}>
+                  <div style={styles.itemHeader}>
+                    <h3 style={styles.itemTitle}>{edu.degree}</h3>
+                    <span style={styles.itemDate}>{edu.year}</span>
+                  </div>
+                  <h4 style={styles.itemSubtitle}>{edu.institute}</h4>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {visibleSections.includes('hobbies') && formData.hobbies && formData.hobbies.length > 0 && (() => {
+            const hobbiesList = renderSimpleList(formData.hobbies);
+            return hobbiesList ? (
+              <div style={styles.rightSection}>
+                <h2 style={styles.rightSectionTitle}>Hobbies</h2>
+                {hobbiesList}
+              </div>
+            ) : null;
+          })()}
+
+          {visibleSections.includes('projects') && formData.projects && formData.projects.length > 0 && (() => {
+            const projectsList = renderSimpleList(formData.projects);
+            return projectsList ? (
+              <div style={styles.rightSection}>
+                <h2 style={styles.rightSectionTitle}>Projects</h2>
+                {projectsList}
+              </div>
+            ) : null;
+          })()}
+
+          {visibleSections.includes('certifications') && formData.certifications && formData.certifications.length > 0 && (() => {
+            const certificationsList = renderSimpleList(formData.certifications);
+            return certificationsList ? (
+              <div style={styles.rightSection}>
+                <h2 style={styles.rightSectionTitle}>Certifications</h2>
+                {certificationsList}
+              </div>
+            ) : null;
+          })()}
+
+          {/* Custom Sections - rendered before references */}
+          {(() => {
+            console.log('Template2PDF - customSections check:', {
+              visibleSections,
+              hasCustomSections: visibleSections.includes('customSections'),
+              formDataCustomSections: formData.customSections,
+              customSectionsLength: formData.customSections?.length
+            });
+            return visibleSections.includes('customSections') && formData.customSections && formData.customSections.length > 0 && (
+              renderCustomSections(formData.customSections)
+            );
+          })()}
+
+          {visibleSections.includes('references') && (
+            <div style={styles.rightSection}>
+              <h2 style={styles.rightSectionTitle}>References</h2>
+              {formData.references && formData.references.length > 0 ? (
+                renderSimpleList(formData.references)
+              ) : (
+                <p style={styles.paragraph}>References would be furnished on demand</p>
+              )}
+            </div>
+          )}
         </div>
-
-        {visibleSections.includes('objective') && formData.objective && (
-          <div style={styles.rightSection}>
-            <h2 style={styles.rightSectionTitle}>Objective</h2>
-            <p style={styles.paragraph}>{formData.objective}</p>
-          </div>
-        )}
-
-        {visibleSections.includes('workExperience') && formData.workExperience?.length > 0 && (
-          <div style={styles.rightSection}>
-            <h2 style={styles.rightSectionTitle}>Work Experience</h2>
-            {formData.workExperience.map((exp, idx) => (
-              <div key={idx} style={styles.experienceItem}>
-                <div style={styles.itemHeader}>
-                  <h3 style={styles.itemTitle}>{exp.designation}</h3>
-                  <span style={styles.itemDate}>{exp.duration}</span>
-                </div>
-                <h4 style={styles.itemSubtitle}>{exp.company}</h4>
-
-                {/* Existing description rendering */}
-                {exp.description && <p style={styles.paragraph}>{exp.description}</p>}
-
-                {/* ✅ NEW: Additional Details rendering below description, if any */}
-                {exp.details?.trim() && (
-                  <p style={{ ...styles.paragraph, marginTop: '0px' }}>{exp.details}</p>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-
-        {visibleSections.includes('education') && formData.education?.length > 0 && (
-          <div style={styles.rightSection}>
-            <h2 style={styles.rightSectionTitle}>Education</h2>
-            {formData.education.map((edu, idx) => (
-              <div key={idx} style={styles.experienceItem}>
-                <div style={styles.itemHeader}>
-                  <h3 style={styles.itemTitle}>{edu.degree}</h3>
-                  <span style={styles.itemDate}>{edu.year}</span>
-                </div>
-                <h4 style={styles.itemSubtitle}>{edu.institute}</h4>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {visibleSections.includes('hobbies') && formData.hobbies && formData.hobbies.length > 0 && (() => {
-          const hobbiesList = renderSimpleList(formData.hobbies);
-          return hobbiesList ? (
-            <div style={styles.rightSection}>
-              <h2 style={styles.rightSectionTitle}>Hobbies</h2>
-              {hobbiesList}
-            </div>
-          ) : null;
-        })()}
-
-        {visibleSections.includes('projects') && formData.projects && formData.projects.length > 0 && (() => {
-          const projectsList = renderSimpleList(formData.projects);
-          return projectsList ? (
-            <div style={styles.rightSection}>
-              <h2 style={styles.rightSectionTitle}>Projects</h2>
-              {projectsList}
-            </div>
-          ) : null;
-        })()}
-
-        {visibleSections.includes('certifications') && formData.certifications && formData.certifications.length > 0 && (() => {
-          const certificationsList = renderSimpleList(formData.certifications);
-          return certificationsList ? (
-            <div style={styles.rightSection}>
-              <h2 style={styles.rightSectionTitle}>Certifications</h2>
-              {certificationsList}
-            </div>
-          ) : null;
-        })()}
-
-        {/* Custom Sections - rendered before references */}
+        {/* Download Button - Same logic as Template3 */}
         {(() => {
-          console.log('Template2PDF - customSections check:', {
-            visibleSections,
-            hasCustomSections: visibleSections.includes('customSections'),
-            formDataCustomSections: formData.customSections,
-            customSectionsLength: formData.customSections?.length
-          });
-          return visibleSections.includes('customSections') && formData.customSections && formData.customSections.length > 0 && (
-            renderCustomSections(formData.customSections)
-          );
-        })()}
-
-        {visibleSections.includes('references') && (
-          <div style={styles.rightSection}>
-            <h2 style={styles.rightSectionTitle}>References</h2>
-            {formData.references && formData.references.length > 0 ? (
-              renderSimpleList(formData.references)
-            ) : (
-              <p style={styles.paragraph}>References would be furnished on demand</p>
-            )}
-          </div>
-        )}
-      </div>
-      {/* Download Button - Same logic as Template3 */}
-      {(() => {
-        // Check both localStorage and user object for admin access
-        const adminAccess = localStorage.getItem('admin_cv_access');
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
-        
-        return (isAdmin || !downloadCompleted) ? (
-          <button
-            ref={buttonRef}
-            type="button"
-            onClick={handleDownloadClick}
-            style={{
+          // Check both localStorage and user object for admin access
+          const adminAccess = localStorage.getItem('admin_cv_access');
+          const user = JSON.parse(localStorage.getItem('user') || '{}');
+          const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
+          
+          return (isAdmin || !downloadCompleted) ? (
+            <button
+              ref={buttonRef}
+              type="button"
+              onClick={handleDownloadClick}
+              style={{
+                position: 'absolute',
+                bottom: '20px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                padding: '10px 20px',
+                fontSize: '1rem',
+                borderRadius: '5px',
+                border: 'none',
+                backgroundColor: '#2ecc71',
+                color: 'white',
+                cursor: 'pointer',
+                transition: 'background-color 0.3s ease',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#27ae60')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#2ecc71')}
+            >
+              {getDownloadButtonText()}
+            </button>
+          ) : (
+            <div style={{
               position: 'absolute',
               bottom: '20px',
               left: '50%',
               transform: 'translateX(-50%)',
-              padding: '10px 20px',
-              fontSize: '1rem',
+              padding: '12px 16px',
+              backgroundColor: '#f0f9ff',
+              border: '1px solid #0ea5e9',
               borderRadius: '5px',
-              border: 'none',
-              backgroundColor: '#2ecc71',
-              color: 'white',
-              cursor: 'pointer',
-              transition: 'background-color 0.3s ease',
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#27ae60')}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#2ecc71')}
-          >
-            {getDownloadButtonText()}
-          </button>
-        ) : (
-          <div style={{
-            position: 'absolute',
-            bottom: '20px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            padding: '12px 16px',
-            backgroundColor: '#f0f9ff',
-            border: '1px solid #0ea5e9',
-            borderRadius: '5px',
-            color: '#0369a1',
-            fontSize: '0.9rem',
-            textAlign: 'center',
-            maxWidth: '300px',
-          }}>
-            ✅ CV Downloaded Successfully!<br />
-            <small>Sign out and sign in again to download another CV.</small>
-          </div>
-        );
-      })()}
-    </div>
+              color: '#0369a1',
+              fontSize: '0.9rem',
+              textAlign: 'center',
+              maxWidth: '300px',
+            }}>
+              ✅ CV Downloaded Successfully!<br />
+              <small>Sign out and sign in again to download another CV.</small>
+            </div>
+          );
+        })()}
+      </div>
+
+      {/* Payment Modal - Outside PDF container */}
+      {showPaymentModal && (
+        <ManualPayment
+          amount={100}
+          onPaymentSuccess={handlePaymentSuccess}
+          onPaymentFailure={handlePaymentFailure}
+          onClose={() => setShowPaymentModal(false)}
+        />
+      )}
+    </>
   );
 };
 
