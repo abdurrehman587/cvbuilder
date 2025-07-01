@@ -438,6 +438,67 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
           </button>
           <span>Simulates a real user payment submission</span>
         </div>
+        
+        {/* Complete User Flow Simulation */}
+        <div style={{
+          marginTop: '10px',
+          padding: '8px 12px',
+          backgroundColor: '#e0e7ff',
+          borderRadius: '6px',
+          border: '1px solid #6366f1',
+          fontSize: '12px',
+          color: '#3730a3'
+        }}>
+          <button
+            onClick={() => {
+              // Simulate the complete user payment flow
+              console.log('=== COMPLETE USER FLOW SIMULATION ===');
+              
+              // Step 1: User clicks download button
+              console.log('Step 1: User clicks download button');
+              
+              // Step 2: Payment modal shows
+              console.log('Step 2: Payment modal shows');
+              
+              // Step 3: User fills payment form
+              console.log('Step 3: User fills payment form');
+              
+              // Step 4: User submits payment
+              console.log('Step 4: User submits payment');
+              
+              // Step 5: Payment is stored in localStorage
+              const userPayment = {
+                id: `FLOW-${Date.now()}`,
+                method: 'easypaisa',
+                amount: 100,
+                phoneNumber: '03001234567',
+                timestamp: new Date().toISOString(),
+                status: 'pending'
+              };
+              localStorage.setItem(`payment_${userPayment.id}`, JSON.stringify(userPayment));
+              console.log('Step 5: Payment stored in localStorage:', userPayment);
+              
+              // Step 6: Admin panel detects new payment
+              console.log('Step 6: Admin panel should detect new payment');
+              loadPayments();
+              
+              alert('Complete user flow simulation created! This simulates the entire process from user clicking download to payment appearing in admin panel.');
+            }}
+            style={{
+              padding: '4px 8px',
+              backgroundColor: '#6366f1',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '11px',
+              marginRight: '8px'
+            }}
+          >
+            🔄 Simulate Complete User Flow
+          </button>
+          <span>Simulates the entire user payment journey</span>
+        </div>
       </div>
 
       {/* Admin Access Info */}

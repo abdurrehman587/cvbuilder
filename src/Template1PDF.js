@@ -502,11 +502,16 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const handlePaymentSuccess = (paymentData) => {
-    console.log('Payment successful:', paymentData);
+    console.log('=== PAYMENT SUCCESS HANDLER ===');
+    console.log('Template1PDF - Payment successful:', paymentData);
+    console.log('Template1PDF - paymentCompleted before:', paymentCompleted);
     setPaymentCompleted(true);
     setShowPaymentModal(false);
+    console.log('Template1PDF - paymentCompleted after setState:', true);
+    console.log('Template1PDF - showPaymentModal after setState:', false);
     // Don't auto-download - wait for admin approval
     // generatePDF();
+    console.log('=== PAYMENT SUCCESS HANDLER COMPLETE ===');
   };
 
   const handlePaymentFailure = (error) => {
@@ -516,9 +521,11 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const handleDownloadClick = () => {
+    console.log('=== DOWNLOAD CLICK START ===');
     console.log('Template1PDF - handleDownloadClick called');
     console.log('Template1PDF - isAdminUser:', isAdminUser);
     console.log('Template1PDF - downloadCompleted:', downloadCompleted);
+    console.log('Template1PDF - showPaymentModal before:', showPaymentModal);
     
     // Use the state instead of checking localStorage every time
     if (isAdminUser) {
@@ -545,6 +552,8 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
       // Show payment modal
       console.log('Template1PDF - No approved payment, showing modal. showPaymentModal will be set to true');
       setShowPaymentModal(true);
+      console.log('Template1PDF - showPaymentModal after setState:', true);
+      console.log('=== DOWNLOAD CLICK END - PAYMENT MODAL SHOULD SHOW ===');
     }
   };
 
@@ -764,12 +773,17 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
       {/* Payment Modal - Outside PDF container */}
       {showPaymentModal && (
         <>
+          {console.log('=== PAYMENT MODAL RENDERING ===')}
           {console.log('Template1PDF - Rendering ManualPayment modal')}
+          {console.log('Template1PDF - showPaymentModal state:', showPaymentModal)}
           <ManualPayment
             amount={100}
             onPaymentSuccess={handlePaymentSuccess}
             onPaymentFailure={handlePaymentFailure}
-            onClose={() => setShowPaymentModal(false)}
+            onClose={() => {
+              console.log('Template1PDF - Payment modal closed');
+              setShowPaymentModal(false);
+            }}
           />
         </>
       )}

@@ -53,10 +53,13 @@ const ManualPayment = ({ amount, onPaymentSuccess, onPaymentFailure, onClose }) 
   };
 
   const handleSubmit = async () => {
+    console.log('=== PAYMENT SUBMISSION START ===');
     console.log('ManualPayment - handleSubmit called');
     console.log('ManualPayment - selectedMethod:', selectedMethod);
     console.log('ManualPayment - proofFile:', proofFile);
     console.log('ManualPayment - phoneNumber:', phoneNumber);
+    console.log('ManualPayment - amount:', amount);
+    console.log('ManualPayment - isSubmitting:', isSubmitting);
     
     if (!selectedMethod || !proofFile || !phoneNumber) {
       console.log('ManualPayment - Missing required fields');
@@ -106,11 +109,17 @@ const ManualPayment = ({ amount, onPaymentSuccess, onPaymentFailure, onClose }) 
       alert(`Payment proof submitted successfully!\n\nPayment ID: ${paymentId}\n\nPlease wait for manual verification. You will be able to download your CV once approved by admin.`);
       
       console.log('ManualPayment - Calling onPaymentSuccess');
+      console.log('ManualPayment - Payment data being passed:', {
+        paymentId,
+        method: selectedMethod,
+        amount: amount
+      });
       onPaymentSuccess({
         paymentId,
         method: selectedMethod,
         amount: amount
       });
+      console.log('=== PAYMENT SUBMISSION COMPLETE ===');
       
     } catch (error) {
       console.error('Payment submission failed:', error);
