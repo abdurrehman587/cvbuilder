@@ -499,6 +499,58 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
           </button>
           <span>Simulates the entire user payment journey</span>
         </div>
+        
+        {/* Quick Test Payment */}
+        <div style={{
+          marginTop: '10px',
+          padding: '8px 12px',
+          backgroundColor: '#dcfce7',
+          borderRadius: '6px',
+          border: '1px solid #22c55e',
+          fontSize: '12px',
+          color: '#15803d'
+        }}>
+          <button
+            onClick={() => {
+              // Create a test payment directly
+              const testPayment = {
+                id: `QUICK-${Date.now()}`,
+                method: 'easypaisa',
+                amount: 100,
+                phoneNumber: '03001234567',
+                timestamp: new Date().toISOString(),
+                status: 'pending'
+              };
+              
+              console.log('=== QUICK TEST PAYMENT ===');
+              console.log('Creating test payment:', testPayment);
+              
+              localStorage.setItem(`payment_${testPayment.id}`, JSON.stringify(testPayment));
+              
+              // Verify it was stored
+              const stored = localStorage.getItem(`payment_${testPayment.id}`);
+              console.log('Payment stored successfully:', stored);
+              
+              // Trigger immediate refresh
+              loadPayments();
+              
+              alert(`Quick test payment created!\n\nPayment ID: ${testPayment.id}\n\nCheck if it appears in the list above.`);
+            }}
+            style={{
+              padding: '4px 8px',
+              backgroundColor: '#22c55e',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '11px',
+              marginRight: '8px'
+            }}
+          >
+            ⚡ Quick Test Payment
+          </button>
+          <span>Creates a test payment immediately to verify the system</span>
+        </div>
       </div>
 
       {/* Admin Access Info */}
@@ -692,18 +744,35 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
             textAlign: 'center',
             color: '#6b7280'
           }}>
-            {payments.length === 0 ? (
-              <div>
-                <div style={{ fontSize: '24px', marginBottom: '10px' }}>📭</div>
-                <div style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px' }}>No payment requests found</div>
-                <div style={{ fontSize: '14px' }}>
-                  When users make payments through the CV builder, they will appear here for your approval.
-                </div>
-                <div style={{ fontSize: '12px', marginTop: '8px', color: '#9ca3af' }}>
-                  The system automatically checks for new payments every 5 seconds.
-                </div>
-              </div>
-            ) : (
+                    {payments.length === 0 ? (
+          <div>
+            <div style={{ fontSize: '24px', marginBottom: '10px' }}>📭</div>
+            <div style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px' }}>No payment requests found</div>
+            <div style={{ fontSize: '14px' }}>
+              When users make payments through the CV builder, they will appear here for your approval.
+            </div>
+            <div style={{ fontSize: '12px', marginTop: '8px', color: '#9ca3af' }}>
+              The system automatically checks for new payments every 5 seconds.
+            </div>
+            
+            {/* Testing Instructions */}
+            <div style={{
+              marginTop: '20px',
+              padding: '15px',
+              backgroundColor: '#fef3c7',
+              borderRadius: '8px',
+              border: '1px solid #f59e0b'
+            }}>
+              <h4 style={{ margin: '0 0 10px 0', color: '#92400e' }}>🧪 Testing Instructions:</h4>
+              <ol style={{ margin: '0', paddingLeft: '20px', fontSize: '13px', color: '#92400e' }}>
+                <li><strong>Quick Test:</strong> Click "⚡ Quick Test Payment" above to verify the system works</li>
+                <li><strong>User Flow Test:</strong> Open CV builder in a new tab, fill a CV, and try to download</li>
+                <li><strong>Payment Form Test:</strong> Use "🧪 Auto-Fill Test Payment" in the payment modal</li>
+                <li><strong>Check Console:</strong> Open browser console (F12) to see detailed logs</li>
+              </ol>
+            </div>
+          </div>
+        ) : (
               <div>
                 <div style={{ fontSize: '24px', marginBottom: '10px' }}>🔍</div>
                 <div style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px' }}>No payments match the current filter</div>
