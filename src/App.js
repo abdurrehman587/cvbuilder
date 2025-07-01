@@ -60,14 +60,26 @@ const App = () => {
 
     // Handle automatic sign-out only when browser is actually closing (not tab switching)
     const handleBeforeUnload = () => {
-      // Only clear non-admin related data, preserve admin access
+      // Only clear non-admin related data, preserve admin access and payment records
       const adminAccess = localStorage.getItem('admin_cv_access');
       const user = localStorage.getItem('user');
       const isAdmin = adminAccess === 'true' || (user && JSON.parse(user)?.isAdmin);
       
       if (!isAdmin) {
-        // Only clear localStorage for non-admin users when browser is actually closing
-        localStorage.clear();
+        // Clear user-specific localStorage data but preserve payment records
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && !key.startsWith('payment_')) {
+            keysToRemove.push(key);
+          }
+        }
+        
+        // Remove only user-specific data, preserve payment records
+        keysToRemove.forEach(key => {
+          localStorage.removeItem(key);
+        });
+        
         // Sign out from Supabase
         supabase.auth.signOut();
       }
@@ -151,9 +163,20 @@ const App = () => {
             await supabase.auth.signOut();
             console.log('Supabase sign out completed');
             
-            // Clear all localStorage data
-            localStorage.clear();
-            console.log('Cleared all localStorage data');
+            // Clear user-specific localStorage data but preserve payment records
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+              const key = localStorage.key(i);
+              if (key && !key.startsWith('payment_')) {
+                keysToRemove.push(key);
+              }
+            }
+            
+            // Remove only user-specific data, preserve payment records
+            keysToRemove.forEach(key => {
+              localStorage.removeItem(key);
+            });
+            console.log('Cleared user-specific data, preserved payment records');
             
             // Add a small delay to ensure auth state change completes
             setTimeout(() => {

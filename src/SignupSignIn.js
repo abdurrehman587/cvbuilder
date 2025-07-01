@@ -21,8 +21,20 @@ const SignupSignIn = ({ onAuth }) => {
   useEffect(() => {
     // Handle automatic sign-out only when browser is actually closing (not tab switching)
     const handleBeforeUnload = () => {
-      // Clear all localStorage data only when browser is actually closing
-      localStorage.clear();
+      // Clear user-specific localStorage data but preserve payment records
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && !key.startsWith('payment_')) {
+          keysToRemove.push(key);
+        }
+      }
+      
+      // Remove only user-specific data, preserve payment records
+      keysToRemove.forEach(key => {
+        localStorage.removeItem(key);
+      });
+      
       // Sign out from Supabase
       supabase.auth.signOut();
     };
