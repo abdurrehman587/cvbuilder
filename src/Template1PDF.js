@@ -393,16 +393,10 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const renderCustomSections = (customSections) => {
-    console.log('=== TEMPLATE1PDF VERSION 2.1 CACHE BUSTED RUNNING ===');
-    console.log('=== CS_FIX_20241219_1545 ===');
-    console.log('Template1PDF - renderCustomSections called with:', customSections);
-    console.log('Template1PDF - customSections type:', typeof customSections);
-    console.log('Template1PDF - customSections length:', customSections?.length);
     
-    if (!customSections || customSections.length === 0) {
-      console.log('Template1PDF - renderCustomSections: no customSections or empty array');
-      return null;
-    }
+          if (!customSections || customSections.length === 0) {
+        return null;
+      }
 
     return customSections.map((section, sectionIndex) => {
       console.log(`Template1PDF - processing section ${sectionIndex}:`, section);

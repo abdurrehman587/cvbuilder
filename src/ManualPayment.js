@@ -53,25 +53,13 @@ const ManualPayment = ({ amount, onPaymentSuccess, onPaymentFailure, onClose }) 
   };
 
   const handleSubmit = async () => {
-    console.log('=== PAYMENT SUBMISSION START ===');
-    console.log('ManualPayment - handleSubmit called');
-    console.log('ManualPayment - selectedMethod:', selectedMethod);
-    console.log('ManualPayment - proofFile:', proofFile);
-    console.log('ManualPayment - phoneNumber:', phoneNumber);
-    console.log('ManualPayment - amount:', amount);
-    console.log('ManualPayment - isSubmitting:', isSubmitting);
     
     if (!selectedMethod || !proofFile || !phoneNumber) {
-      console.log('ManualPayment - Missing required fields');
-      console.log('ManualPayment - selectedMethod missing:', !selectedMethod);
-      console.log('ManualPayment - proofFile missing:', !proofFile);
-      console.log('ManualPayment - phoneNumber missing:', !phoneNumber);
       alert('Please fill in all fields');
       return;
     }
 
     setIsSubmitting(true);
-    console.log('ManualPayment - Starting payment submission');
 
     try {
       // Here you would typically upload the proof to your server
@@ -79,7 +67,6 @@ const ManualPayment = ({ amount, onPaymentSuccess, onPaymentFailure, onClose }) 
       
       // Create a unique payment ID
       const paymentId = `PAY-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      console.log('ManualPayment - Generated payment ID:', paymentId);
       
       // Simulate server upload delay
       await new Promise(resolve => setTimeout(resolve, 2000));
@@ -94,35 +81,16 @@ const ManualPayment = ({ amount, onPaymentSuccess, onPaymentFailure, onClose }) 
         status: 'pending'
       };
       
-      console.log('ManualPayment - Storing payment info:', paymentInfo);
       localStorage.setItem(`payment_${paymentId}`, JSON.stringify(paymentInfo));
-      
-      // Verify the payment was stored correctly
-      const storedPayment = localStorage.getItem(`payment_${paymentId}`);
-      console.log('ManualPayment - Verification - stored payment:', storedPayment);
-      console.log('ManualPayment - Verification - localStorage keys after storage:');
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && key.startsWith('payment_')) {
-          console.log('ManualPayment - Found payment key:', key);
-        }
-      }
       
       // Show success message
       alert(`Payment proof submitted successfully!\n\nPayment ID: ${paymentId}\n\nPlease wait for manual verification. You will be able to download your CV once approved by admin.`);
       
-      console.log('ManualPayment - Calling onPaymentSuccess');
-      console.log('ManualPayment - Payment data being passed:', {
-        paymentId,
-        method: selectedMethod,
-        amount: amount
-      });
       onPaymentSuccess({
         paymentId,
         method: selectedMethod,
         amount: amount
       });
-      console.log('=== PAYMENT SUBMISSION COMPLETE ===');
       
     } catch (error) {
       console.error('Payment submission failed:', error);
@@ -400,41 +368,7 @@ const ManualPayment = ({ amount, onPaymentSuccess, onPaymentFailure, onClose }) 
           {isSubmitting ? 'Submitting...' : 'Submit Payment Proof'}
         </button>
         
-        {/* Test Payment Button */}
-        <button
-          onClick={() => {
-            console.log('=== TEST PAYMENT BUTTON CLICKED ===');
-            // Auto-fill the form for testing
-            setSelectedMethod('easypaisa');
-            setPhoneNumber('03001234567');
-            
-            // Create a fake file for testing
-            const fakeFile = new File(['test'], 'test-receipt.jpg', { type: 'image/jpeg' });
-            setProofFile(fakeFile);
-            
-            console.log('ManualPayment - Test payment form auto-filled');
-            console.log('ManualPayment - selectedMethod set to:', 'easypaisa');
-            console.log('ManualPayment - phoneNumber set to:', '03001234567');
-            console.log('ManualPayment - proofFile set to:', fakeFile);
-            
-            alert('Test payment form has been auto-filled! Click "Submit Payment Proof" to test the payment flow.');
-          }}
-          style={{
-            width: '100%',
-            marginTop: '10px',
-            padding: '8px',
-            backgroundColor: '#f59e0b',
-            color: 'white',
-            border: 'none',
-            borderRadius: '6px',
-            fontSize: '0.9rem',
-            fontWeight: 'bold',
-            cursor: 'pointer',
-            transition: 'background-color 0.2s ease'
-          }}
-        >
-          🧪 Auto-Fill Test Payment
-        </button>
+
 
         {/* Footer */}
         <div style={{
