@@ -1,9 +1,10 @@
 // Template1PDF.js - Version 2.1 - Custom Sections Fix - CACHE BUSTED
 // Last updated: 2024-12-19 15:45:00
 // Unique ID: CS_FIX_20241219_1545
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import ManualPayment from './ManualPayment';
+import { checkForApprovedPayment, markPaymentAsUsed, getDownloadButtonText as getDownloadButtonTextUtil } from './paymentUtils';
 
 
 // Load html2pdf from CDN dynamically
@@ -483,6 +484,9 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
       if (adminAccess !== 'true') {
         setDownloadCompleted(true);
         localStorage.setItem('cv_downloaded', 'true'); // Persist download state
+        
+        // Mark the user's approved payment as used
+        markPaymentAsUsed();
       }
       
     } catch (error) {
@@ -535,7 +539,7 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     }
     
     // Check if user has an approved payment
-    const hasApprovedPayment = checkForApprovedPayment();
+    const hasApprovedPayment = checkForApprovedPayment(isAdminUser);
     console.log('Template1PDF - hasApprovedPayment:', hasApprovedPayment);
     
     if (hasApprovedPayment) {
@@ -551,44 +555,8 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     }
   };
 
-  const checkForApprovedPayment = () => {
-    // Use the state instead of checking localStorage every time
-    if (isAdminUser) {
-      return true;
-    }
-
-    // Check localStorage for approved payments
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith('payment_')) {
-        try {
-          const payment = JSON.parse(localStorage.getItem(key));
-          if (payment.status === 'approved') {
-            return true;
-          }
-        } catch (error) {
-          console.error('Error parsing payment:', error);
-        }
-      }
-    }
-    return false;
-  };
-
   const getDownloadButtonText = () => {
-    if (isAdminUser) {
-      return 'Download PDF (Admin)';
-    }
-    
-    const hasApprovedPayment = checkForApprovedPayment();
-    if (hasApprovedPayment) {
-      return 'Payment Approved (Download Now)';
-    }
-    
-    if (paymentCompleted) {
-      return 'Payment Submitted (Waiting for Approval)';
-    }
-    
-    return 'Download PDF (PKR 100)';
+    return getDownloadButtonTextUtil(isAdminUser, paymentCompleted);
   };
 
   return (

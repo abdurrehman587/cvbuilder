@@ -638,10 +638,12 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
           <thead>
             <tr style={{ backgroundColor: '#f9fafb' }}>
               <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Payment ID</th>
+              <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>User</th>
               <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Method</th>
               <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Amount</th>
               <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Phone</th>
               <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Status</th>
+              <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Download</th>
               <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Date</th>
               <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Actions</th>
             </tr>
@@ -651,6 +653,9 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
               <tr key={payment.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
                 <td style={{ padding: '12px', fontFamily: 'monospace', fontSize: '0.9rem' }}>
                   {payment.id}
+                </td>
+                <td style={{ padding: '12px', fontSize: '0.9rem' }}>
+                  {payment.userId || 'Unknown User'}
                 </td>
                 <td style={{ padding: '12px' }}>
                   <span style={{
@@ -680,6 +685,29 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
                   }}>
                     {payment.status}
                   </span>
+                </td>
+                <td style={{ padding: '12px' }}>
+                  {payment.status === 'approved' ? (
+                    <span style={{
+                      padding: '4px 8px',
+                      backgroundColor: payment.downloadUsed ? '#ef4444' : '#22c55e',
+                      color: 'white',
+                      borderRadius: '4px',
+                      fontSize: '0.8rem'
+                    }}>
+                      {payment.downloadUsed ? '✅ Used' : '⏳ Available'}
+                    </span>
+                  ) : (
+                    <span style={{
+                      padding: '4px 8px',
+                      backgroundColor: '#6b7280',
+                      color: 'white',
+                      borderRadius: '4px',
+                      fontSize: '0.8rem'
+                    }}>
+                      N/A
+                    </span>
+                  )}
                 </td>
                 <td style={{ padding: '12px', fontSize: '0.9rem' }}>
                   {new Date(payment.timestamp).toLocaleString()}
@@ -803,6 +831,12 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
           </div>
           <div>
             <strong>Approved:</strong> {payments.filter(p => p.status === 'approved').length}
+          </div>
+          <div>
+            <strong>Downloads Used:</strong> {payments.filter(p => p.status === 'approved' && p.downloadUsed).length}
+          </div>
+          <div>
+            <strong>Downloads Available:</strong> {payments.filter(p => p.status === 'approved' && !p.downloadUsed).length}
           </div>
           <div>
             <strong>Total Revenue:</strong> PKR {payments.filter(p => p.status === 'approved').reduce((sum, p) => sum + p.amount, 0)}

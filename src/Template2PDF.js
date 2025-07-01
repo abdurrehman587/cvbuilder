@@ -1,6 +1,7 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import ManualPayment from './ManualPayment';
+import { checkForApprovedPayment, markPaymentAsUsed, getDownloadButtonText as getDownloadButtonTextUtil } from './paymentUtils';
 
 const loadHtml2Pdf = () => {
   if (window.html2pdf) return Promise.resolve(window.html2pdf);
@@ -21,7 +22,7 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
   const [downloadCompleted, setDownloadCompleted] = useState(false);
 
   // Check if download was already completed for this session
-  React.useEffect(() => {
+  useEffect(() => {
     // Check both localStorage and user object for admin access
     const adminAccess = localStorage.getItem('admin_cv_access');
     const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -231,6 +232,9 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
       if (adminAccess !== 'true') {
         setDownloadCompleted(true);
         localStorage.setItem('cv_downloaded', 'true'); // Persist download state
+        
+        // Mark the user's approved payment as used
+        markPaymentAsUsed();
       }
       
     } catch (error) {
@@ -256,53 +260,13 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
     alert('Payment failed. Please try again.');
   };
 
-  const checkForApprovedPayment = () => {
-    // Check if user is admin (bypass payment)
-    const adminAccess = localStorage.getItem('admin_cv_access');
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
-    
-    if (isAdmin) {
-      return true;
-    }
-
-    // Check localStorage for approved payments
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith('payment_')) {
-        try {
-          const payment = JSON.parse(localStorage.getItem(key));
-          if (payment.status === 'approved') {
-            return true;
-          }
-        } catch (error) {
-          console.error('Error parsing payment:', error);
-        }
-      }
-    }
-    return false;
-  };
-
   const getDownloadButtonText = () => {
     // Check both localStorage and user object for admin access
     const adminAccess = localStorage.getItem('admin_cv_access');
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
     
-    if (isAdmin) {
-      return 'Download Now (Admin Access)';
-    }
-    
-    const hasApprovedPayment = checkForApprovedPayment();
-    if (hasApprovedPayment) {
-      return 'Payment Approved (Download Now)';
-    }
-    
-    if (paymentCompleted) {
-      return 'Payment Submitted (Waiting for Approval)';
-    }
-    
-    return 'Download PDF (PKR 100)';
+    return getDownloadButtonTextUtil(isAdmin, paymentCompleted);
   };
 
   const handleDownloadClick = () => {
@@ -329,7 +293,7 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
     }
     
     // Check if user has an approved payment
-    const hasApprovedPayment = checkForApprovedPayment();
+    const hasApprovedPayment = checkForApprovedPayment(isAdmin);
     console.log('Template2PDF - hasApprovedPayment:', hasApprovedPayment);
     
     if (hasApprovedPayment) {

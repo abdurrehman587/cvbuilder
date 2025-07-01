@@ -68,17 +68,23 @@ const ManualPayment = ({ amount, onPaymentSuccess, onPaymentFailure, onClose }) 
       // Create a unique payment ID
       const paymentId = `PAY-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       
+      // Get current user info
+      const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+      const userEmail = currentUser.email || 'unknown@user.com';
+      
       // Simulate server upload delay
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       // Store payment info in localStorage for tracking
       const paymentInfo = {
         id: paymentId,
+        userId: userEmail, // Add user ID to track payments per user
         method: selectedMethod,
         amount: amount,
         phoneNumber: phoneNumber,
         timestamp: new Date().toISOString(),
-        status: 'pending'
+        status: 'pending',
+        downloadUsed: false // Track if download was used
       };
       
       localStorage.setItem(`payment_${paymentId}`, JSON.stringify(paymentInfo));
