@@ -246,8 +246,8 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
     console.log('Payment successful:', paymentData);
     setPaymentCompleted(true);
     setShowPaymentModal(false);
-    // Now trigger the PDF download
-    generatePDF();
+    // Don't auto-download - wait for admin approval
+    // generatePDF();
   };
 
   const handlePaymentFailure = (error) => {
@@ -292,14 +292,14 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
     if (isAdmin) {
       return 'Download Now (Admin Access)';
     }
-
-    if (paymentCompleted) {
-      return 'Download PDF';
-    }
     
     const hasApprovedPayment = checkForApprovedPayment();
     if (hasApprovedPayment) {
       return 'Payment Approved (Download Now)';
+    }
+    
+    if (paymentCompleted) {
+      return 'Payment Submitted (Waiting for Approval)';
     }
     
     return 'Download PDF (PKR 100)';

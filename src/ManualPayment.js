@@ -16,6 +16,13 @@ const ManualPayment = ({ amount, onPaymentSuccess, onPaymentFailure, onClose }) 
       color: '#00A651'
     },
     {
+      id: 'jazzcash',
+      name: 'JazzCash',
+      number: '03153338612',
+      icon: '📱',
+      color: '#00A651'
+    },
+    {
       id: 'sadapay',
       name: 'SadaPay',
       number: '03153338612',
@@ -85,7 +92,7 @@ const ManualPayment = ({ amount, onPaymentSuccess, onPaymentFailure, onClose }) 
       localStorage.setItem(`payment_${paymentId}`, JSON.stringify(paymentInfo));
       
       // Show success message
-      alert(`Payment proof submitted successfully!\n\nPayment ID: ${paymentId}\n\nPlease wait for verification. You will receive a confirmation email/SMS once verified.`);
+      alert(`Payment proof submitted successfully!\n\nPayment ID: ${paymentId}\n\nPlease wait for manual verification. You will be able to download your CV once approved by admin.`);
       
       console.log('ManualPayment - Calling onPaymentSuccess');
       onPaymentSuccess({
