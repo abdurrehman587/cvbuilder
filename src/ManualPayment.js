@@ -91,6 +91,17 @@ const ManualPayment = ({ amount, onPaymentSuccess, onPaymentFailure, onClose }) 
       console.log('ManualPayment - Storing payment info:', paymentInfo);
       localStorage.setItem(`payment_${paymentId}`, JSON.stringify(paymentInfo));
       
+      // Verify the payment was stored correctly
+      const storedPayment = localStorage.getItem(`payment_${paymentId}`);
+      console.log('ManualPayment - Verification - stored payment:', storedPayment);
+      console.log('ManualPayment - Verification - localStorage keys after storage:');
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('payment_')) {
+          console.log('ManualPayment - Found payment key:', key);
+        }
+      }
+      
       // Show success message
       alert(`Payment proof submitted successfully!\n\nPayment ID: ${paymentId}\n\nPlease wait for manual verification. You will be able to download your CV once approved by admin.`);
       

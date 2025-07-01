@@ -6,6 +6,7 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
   const [filter, setFilter] = useState('all'); // all, pending, approved, rejected
   const [showCVBuilder, setShowCVBuilder] = useState(false);
   const [lastChecked, setLastChecked] = useState(new Date());
+  const [newPaymentNotification, setNewPaymentNotification] = useState(null);
   const [adminUser] = useState({
     id: 'admin-user',
     email: process.env.REACT_APP_ADMIN_EMAIL || 'admin@cvbuilder.com',
@@ -50,6 +51,24 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
     
     console.log('PaymentAdmin - All localStorage keys:', allKeys);
     console.log('PaymentAdmin - Total payments found:', allPayments.length);
+    
+    // Check for new payments
+    const previousCount = payments.length;
+    const newCount = allPayments.length;
+    
+    if (newCount > previousCount) {
+      const newPayments = allPayments.slice(0, newCount - previousCount);
+      console.log('PaymentAdmin - New payments detected:', newPayments);
+      setNewPaymentNotification({
+        message: `New payment request received! Payment ID: ${newPayments[0].id}`,
+        timestamp: new Date()
+      });
+      
+      // Clear notification after 5 seconds
+      setTimeout(() => {
+        setNewPaymentNotification(null);
+      }, 5000);
+    }
     
     // Sort by timestamp (newest first)
     allPayments.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
@@ -227,6 +246,26 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
       padding: '20px',
       fontFamily: "'Inter', sans-serif"
     }}>
+      
+      {/* New Payment Notification */}
+      {newPaymentNotification && (
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          backgroundColor: '#22c55e',
+          color: 'white',
+          padding: '12px 20px',
+          borderRadius: '8px',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+          zIndex: 1000,
+          animation: 'slideIn 0.3s ease-out',
+          fontSize: '14px',
+          fontWeight: '600'
+        }}>
+          🎉 {newPaymentNotification.message}
+        </div>
+      )}
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
@@ -356,6 +395,48 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
             🧪 Create Test Payment
           </button>
           <span>Use this to test if the admin panel is working correctly</span>
+        </div>
+        
+        {/* Manual Payment Simulation */}
+        <div style={{
+          marginTop: '10px',
+          padding: '8px 12px',
+          backgroundColor: '#fce7f3',
+          borderRadius: '6px',
+          border: '1px solid #ec4899',
+          fontSize: '12px',
+          color: '#be185d'
+        }}>
+          <button
+            onClick={() => {
+              // Simulate a user payment submission
+              const userPayment = {
+                id: `USER-${Date.now()}`,
+                method: 'easypaisa',
+                amount: 100,
+                phoneNumber: '03001234567',
+                timestamp: new Date().toISOString(),
+                status: 'pending'
+              };
+              localStorage.setItem(`payment_${userPayment.id}`, JSON.stringify(userPayment));
+              console.log('User payment simulation created:', userPayment);
+              loadPayments();
+              alert('User payment simulation created! This simulates what happens when a real user submits a payment.');
+            }}
+            style={{
+              padding: '4px 8px',
+              backgroundColor: '#ec4899',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '11px',
+              marginRight: '8px'
+            }}
+          >
+            👤 Simulate User Payment
+          </button>
+          <span>Simulates a real user payment submission</span>
         </div>
       </div>
 
