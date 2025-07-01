@@ -613,7 +613,7 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
       return 'Payment Approved (Download Now)';
     }
     
-    return 'Download PDF (PKR 200)';
+    return 'Download PDF (PKR 100)';
   };
 
   const handleDownloadClick = () => {
@@ -803,7 +803,7 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
               <div style={sectionStyle}>
                 <h3 style={sectionTitleStyle}>References</h3>
                 {referencesList ? referencesList : (
-                  <p style={paragraphStyle}>Reference would be furnished on demand</p>
+                  <p style={paragraphStyle}>References would be furnished on demand</p>
                 )}
               </div>
             );
@@ -860,7 +860,7 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
       {/* Payment Modal - Outside PDF container */}
       {showPaymentModal && (
         <ManualPayment
-          amount={200}
+          amount={100}
           onPaymentSuccess={handlePaymentSuccess}
           onPaymentFailure={handlePaymentFailure}
           onClose={() => setShowPaymentModal(false)}

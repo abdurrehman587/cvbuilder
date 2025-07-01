@@ -604,8 +604,9 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
 
       {showPaymentModal && (
         <ManualPayment
-          onSuccess={handlePaymentSuccess}
-          onFailure={handlePaymentFailure}
+          amount={100}
+          onPaymentSuccess={handlePaymentSuccess}
+          onPaymentFailure={handlePaymentFailure}
           onClose={() => setShowPaymentModal(false)}
         />
       )}

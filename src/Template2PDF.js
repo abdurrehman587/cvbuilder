@@ -302,7 +302,7 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
       return 'Payment Approved (Download Now)';
     }
     
-    return 'Download PDF (PKR 200)';
+    return 'Download PDF (PKR 100)';
   };
 
   const handleDownloadClick = () => {
@@ -614,7 +614,7 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
             {formData.references && formData.references.length > 0 ? (
               renderSimpleList(formData.references)
             ) : (
-              <p style={styles.paragraph}>Reference would be furnished on demand</p>
+              <p style={styles.paragraph}>References would be furnished on demand</p>
             )}
           </div>
         )}
@@ -673,7 +673,7 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
 
       {showPaymentModal && (
         <JazzCashPayment
-          amount={200}
+          amount={100}
           onPaymentSuccess={handlePaymentSuccess}
           onPaymentFailure={handlePaymentFailure}
           onClose={() => setShowPaymentModal(false)}

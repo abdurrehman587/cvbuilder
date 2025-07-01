@@ -407,7 +407,7 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
     
-    if (isAdmin {
+    if (isAdmin) {
       return true;
     }
 
@@ -434,7 +434,7 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
     
-    if (isAdmin {
+    if (isAdmin) {
       return 'Download Now (Admin Access)';
     }
 
@@ -447,7 +447,7 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
       return 'Payment Approved (Download Now)';
     }
     
-    return 'Download PDF (PKR 200)';
+    return 'Download PDF (PKR 100)';
   };
 
   const handleDownloadClick = () => {
@@ -456,7 +456,7 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
     
-    if (isAdmin {
+    if (isAdmin) {
       generatePDF();
       return;
     }
@@ -580,7 +580,7 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
           {formData.references && formData.references.length > 0 ? (
             renderSimpleList(formData.references)
           ) : (
-            <p style={paragraphStyle}>Reference would be furnished on demand</p>
+            <p style={paragraphStyle}>References would be furnished on demand</p>
           )}
         </section>
       )}
@@ -628,6 +628,7 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
           ✅ CV Downloaded Successfully!<br />
           <small>Sign out and sign in again to download another CV.</small>
         </div>
+      )}
       )}
     </article>
   );

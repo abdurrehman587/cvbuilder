@@ -450,7 +450,7 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
           {formData.references && formData.references.length > 0 ? (
             renderSimpleList(formData.references)
           ) : (
-            <p style={paragraphStyle}>Reference would be furnished on demand</p>
+            <p style={paragraphStyle}>References would be furnished on demand</p>
           )}
         </section>
       )}

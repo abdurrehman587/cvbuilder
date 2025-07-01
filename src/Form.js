@@ -30,7 +30,7 @@ const defaultFormData = {
   languages: ['English', 'Urdu', 'Punjabi'],
   customLanguages: [],
   hobbies: [''],
-  references: ['Reference would be furnished on demand'],
+  references: ['References would be furnished on demand'],
   customSections: [],
   otherInformation: [
     { id: 1, labelType: 'radio', label: "Father's Name:", checked: true, value: '', name: 'parentSpouse', radioValue: 'father' },
