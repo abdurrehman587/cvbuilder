@@ -6,14 +6,12 @@ export class PaymentService {
   // Check if database is ready
   static async checkDatabaseReady() {
     try {
-      // First check if user is authenticated
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        console.log('Database check - no authenticated user');
-        return false;
-      }
-
-      // Try to query the payments table
+      console.log('PaymentService - checkDatabaseReady called');
+      
+      // For admin access, we don't need to check user authentication
+      // Just try to query the payments table directly
+      console.log('PaymentService - Testing database connection...');
+      
       const { error } = await supabase
         .from('payments')
         .select('id')
@@ -22,19 +20,19 @@ export class PaymentService {
       // If there's an error, check if it's a table not found error
       if (error) {
         if (error.message && error.message.includes('relation "payments" does not exist')) {
-          console.error('Database not ready - payments table does not exist');
+          console.error('PaymentService - Database not ready - payments table does not exist');
           return false;
         }
         // For other errors (like RLS), we'll assume the table exists
-        console.log('Database check - table exists but query failed (likely RLS):', error.message);
+        console.log('PaymentService - Database check - table exists but query failed (likely RLS):', error.message);
         return true;
       }
       
       // If we get here, the table exists (even if empty)
-      console.log('Database is ready - payments table exists and accessible');
+      console.log('PaymentService - Database is ready - payments table exists and accessible');
       return true;
     } catch (error) {
-      console.error('Database not ready - exception:', error);
+      console.error('PaymentService - Database not ready - exception:', error);
       return false;
     }
   }
@@ -246,34 +244,49 @@ export class PaymentService {
   // Get all payments for admin
   static async getAllPayments() {
     try {
+      console.log('PaymentService - getAllPayments called');
+      
       // Check admin access from localStorage instead of Supabase auth
       const adminAccess = localStorage.getItem('admin_cv_access');
       const adminUser = JSON.parse(localStorage.getItem('admin_user') || '{}');
       const isAdmin = adminAccess === 'true' || adminUser?.isAdmin === true;
       
+      console.log('PaymentService - Admin check:', {
+        adminAccess,
+        adminUser,
+        isAdmin
+      });
+      
       if (!isAdmin) {
+        console.error('PaymentService - Admin access denied');
         throw new Error('Admin access required');
       }
 
+      console.log('PaymentService - Admin access granted, checking database...');
+
       // Check if database is ready
       const dbReady = await this.checkDatabaseReady();
+      console.log('PaymentService - Database ready:', dbReady);
+      
       if (!dbReady) {
         throw new Error('Database not ready');
       }
 
+      console.log('PaymentService - Fetching payments from Supabase...');
       const { data, error } = await supabase
         .from('payments')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Error fetching payments:', error);
+        console.error('PaymentService - Error fetching payments:', error);
         throw error;
       }
 
+      console.log('PaymentService - Payments fetched successfully:', data);
       return data;
     } catch (error) {
-      console.error('Error getting all payments:', error);
+      console.error('PaymentService - Error getting all payments:', error);
       throw error;
     }
   }

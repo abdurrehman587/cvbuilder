@@ -49,6 +49,14 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
     }
   }, [payments.length]);
 
+  // Set up admin access when component mounts
+  useEffect(() => {
+    // Set admin access flag in localStorage
+    localStorage.setItem('admin_cv_access', 'true');
+    localStorage.setItem('admin_user', JSON.stringify(adminUser));
+    console.log('PaymentAdmin - Admin access set up:', adminUser);
+  }, [adminUser]);
+
   useEffect(() => {
     loadPayments();
     
