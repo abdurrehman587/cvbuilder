@@ -246,8 +246,12 @@ export class PaymentService {
   // Get all payments for admin
   static async getAllPayments() {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user || user.email !== 'admin@cvbuilder.com') {
+      // Check admin access from localStorage instead of Supabase auth
+      const adminAccess = localStorage.getItem('admin_cv_access');
+      const adminUser = JSON.parse(localStorage.getItem('admin_user') || '{}');
+      const isAdmin = adminAccess === 'true' || adminUser?.isAdmin === true;
+      
+      if (!isAdmin) {
         throw new Error('Admin access required');
       }
 
@@ -277,8 +281,12 @@ export class PaymentService {
   // Update payment status (admin only)
   static async updatePaymentStatus(paymentId, status) {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user || user.email !== 'admin@cvbuilder.com') {
+      // Check admin access from localStorage instead of Supabase auth
+      const adminAccess = localStorage.getItem('admin_cv_access');
+      const adminUser = JSON.parse(localStorage.getItem('admin_user') || '{}');
+      const isAdmin = adminAccess === 'true' || adminUser?.isAdmin === true;
+      
+      if (!isAdmin) {
         throw new Error('Admin access required');
       }
 
@@ -311,8 +319,12 @@ export class PaymentService {
   // Delete payment (admin only)
   static async deletePayment(paymentId) {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user || user.email !== 'admin@cvbuilder.com') {
+      // Check admin access from localStorage instead of Supabase auth
+      const adminAccess = localStorage.getItem('admin_cv_access');
+      const adminUser = JSON.parse(localStorage.getItem('admin_user') || '{}');
+      const isAdmin = adminAccess === 'true' || adminUser?.isAdmin === true;
+      
+      if (!isAdmin) {
         throw new Error('Admin access required');
       }
 
