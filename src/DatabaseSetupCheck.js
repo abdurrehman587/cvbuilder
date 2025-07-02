@@ -88,7 +88,7 @@ const DatabaseSetupCheck = () => {
         <li>Select your CV Builder project</li>
         <li>Go to <strong>SQL Editor</strong></li>
         <li>Click <strong>New Query</strong></li>
-        <li>Copy and paste the content from <code>supabase_schema.sql</code></li>
+        <li>Copy and paste the content from <code>database_setup.sql</code></li>
         <li>Click <strong>Run</strong> to execute the SQL</li>
         <li>Verify that <code>payments</code> and <code>cv_downloads</code> tables are created</li>
       </ol>

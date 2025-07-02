@@ -87,7 +87,21 @@ const ManualPayment = ({ amount, templateId, templateName, onPaymentSuccess, onP
       
     } catch (error) {
       console.error('Payment submission failed:', error);
-      alert('Failed to submit payment proof. Please try again.');
+      
+      // Show more specific error messages
+      let errorMessage = 'Failed to submit payment proof. Please try again.';
+      
+      if (error.message === 'User not authenticated') {
+        errorMessage = 'Please sign in to submit payment proof.';
+      } else if (error.message === 'Database not ready. Please contact support.') {
+        errorMessage = 'Database not ready. Please contact support or check database setup.';
+      } else if (error.message && error.message.includes('relation "payments" does not exist')) {
+        errorMessage = 'Database tables not found. Please run the SQL schema in Supabase first.';
+      } else if (error.message) {
+        errorMessage = `Error: ${error.message}`;
+      }
+      
+      alert(errorMessage);
       onPaymentFailure(error);
     } finally {
       setIsSubmitting(false);
