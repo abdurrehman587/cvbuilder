@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import supabase from './supabase';
 import SignupSignIn from './SignupSignIn';
 import LandingPage from './landingpage';
+import DatabaseSetupCheck from './DatabaseSetupCheck';
 
 const App = () => {
   const [user, setUser] = useState(null);
@@ -131,6 +132,8 @@ const App = () => {
 
   return (
     <div>
+      <DatabaseSetupCheck />
+      
       <button
         style={{ 
           position: 'absolute', 

@@ -3,12 +3,33 @@ import supabase from './supabase';
 // Payment Service using Supabase
 export class PaymentService {
   
+  // Check if database is ready
+  static async checkDatabaseReady() {
+    try {
+      const { data, error } = await supabase
+        .from('payments')
+        .select('count')
+        .limit(1);
+      
+      return !error;
+    } catch (error) {
+      console.error('Database not ready:', error);
+      return false;
+    }
+  }
+
   // Submit a new payment
   static async submitPayment(paymentData) {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         throw new Error('User not authenticated');
+      }
+
+      // Check if database is ready
+      const dbReady = await this.checkDatabaseReady();
+      if (!dbReady) {
+        throw new Error('Database not ready. Please contact support.');
       }
 
       const { data, error } = await supabase
@@ -45,6 +66,14 @@ export class PaymentService {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
+        console.log('No authenticated user for approved payment check');
+        return null;
+      }
+
+      // Check if database is ready
+      const dbReady = await this.checkDatabaseReady();
+      if (!dbReady) {
+        console.log('Database not ready, returning null for approved payment');
         return null;
       }
 
@@ -64,6 +93,7 @@ export class PaymentService {
         throw error;
       }
 
+      console.log('Approved payment check result:', data);
       return data || null;
     } catch (error) {
       console.error('Error checking approved payment:', error);
@@ -76,6 +106,14 @@ export class PaymentService {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
+        console.log('No authenticated user for pending payment check');
+        return null;
+      }
+
+      // Check if database is ready
+      const dbReady = await this.checkDatabaseReady();
+      if (!dbReady) {
+        console.log('Database not ready, returning null for pending payment');
         return null;
       }
 
@@ -94,6 +132,7 @@ export class PaymentService {
         throw error;
       }
 
+      console.log('Pending payment check result:', data);
       return data || null;
     } catch (error) {
       console.error('Error checking pending payment:', error);
@@ -107,6 +146,12 @@ export class PaymentService {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         throw new Error('User not authenticated');
+      }
+
+      // Check if database is ready
+      const dbReady = await this.checkDatabaseReady();
+      if (!dbReady) {
+        throw new Error('Database not ready');
       }
 
       // Start a transaction
@@ -181,6 +226,12 @@ export class PaymentService {
         throw new Error('Admin access required');
       }
 
+      // Check if database is ready
+      const dbReady = await this.checkDatabaseReady();
+      if (!dbReady) {
+        throw new Error('Database not ready');
+      }
+
       const { data, error } = await supabase
         .from('payments')
         .select('*')
@@ -204,6 +255,12 @@ export class PaymentService {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user || user.email !== 'admin@cvbuilder.com') {
         throw new Error('Admin access required');
+      }
+
+      // Check if database is ready
+      const dbReady = await this.checkDatabaseReady();
+      if (!dbReady) {
+        throw new Error('Database not ready');
       }
 
       const { data, error } = await supabase
@@ -232,6 +289,12 @@ export class PaymentService {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user || user.email !== 'admin@cvbuilder.com') {
         throw new Error('Admin access required');
+      }
+
+      // Check if database is ready
+      const dbReady = await this.checkDatabaseReady();
+      if (!dbReady) {
+        throw new Error('Database not ready');
       }
 
       const { error } = await supabase
@@ -264,6 +327,21 @@ export class PaymentService {
       console.log('=== SUPABASE PAYMENT STATUS DEBUG ===');
       console.log('Current user:', user.email);
 
+      // Check if database is ready
+      const dbReady = await this.checkDatabaseReady();
+      console.log('Database ready:', dbReady);
+
+      if (!dbReady) {
+        console.log('Database not ready - cannot fetch payments');
+        return {
+          user: user.email,
+          databaseReady: false,
+          payments: [],
+          approvedPayment: null,
+          pendingPayment: null
+        };
+      }
+
       // Get all payments for this user and template
       const { data: payments, error } = await supabase
         .from('payments')
@@ -288,6 +366,7 @@ export class PaymentService {
 
       return {
         user: user.email,
+        databaseReady: true,
         payments: payments,
         approvedPayment: approvedPayment,
         pendingPayment: pendingPayment
