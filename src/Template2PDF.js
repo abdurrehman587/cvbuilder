@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import ManualPayment from './ManualPayment';
 import { PaymentService } from './paymentService';
@@ -180,7 +180,7 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
   };
 
   // Check admin status and payment status on component mount
-  React.useEffect(() => {
+  useEffect(() => {
     // Check both localStorage and user object for admin access
     const adminAccess = localStorage.getItem('admin_cv_access');
     const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -190,7 +190,7 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
   }, []);
 
   // Add a periodic check to maintain admin status
-  React.useEffect(() => {
+  useEffect(() => {
     const checkAdminStatus = () => {
       const adminAccess = localStorage.getItem('admin_cv_access');
       const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -209,7 +209,7 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
   }, [isAdminUser]);
 
   // Update button text based on payment status
-  React.useEffect(() => {
+  useEffect(() => {
     const updateButtonText = async () => {
       if (isAdminUser) {
         setButtonText('Download PDF (Admin)');

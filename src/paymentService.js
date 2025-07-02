@@ -14,7 +14,7 @@ export class PaymentService {
       }
 
       // Try to query the payments table
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('payments')
         .select('id')
         .limit(1);

@@ -320,27 +320,7 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
     fontWeight: 500,
   };
 
-  const downloadButtonStyle = {
-    background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
-    color: '#ffffff',
-    border: 'none',
-    padding: '12px 24px',
-    borderRadius: '8px',
-    fontSize: '1rem',
-    fontWeight: 600,
-    cursor: 'pointer',
-    boxShadow: '0 4px 12px rgba(34, 197, 94, 0.3)',
-    transition: 'all 0.3s ease',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-  };
-
-  const downloadButtonDisabledStyle = {
-    background: '#cbd5e0',
-    cursor: 'not-allowed',
-    boxShadow: 'none',
-  };
+  // Button styles are defined inline where used to avoid unused variable warnings
 
   const renderEducation = (education) => (
     <div style={educationItemStyle}>

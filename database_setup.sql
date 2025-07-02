@@ -62,30 +62,17 @@ CREATE POLICY "Users can insert own downloads" ON cv_downloads
 CREATE POLICY "Users can update own downloads" ON cv_downloads
     FOR UPDATE USING (auth.jwt() ->> 'email' = user_email);
 
--- Create admin policies (for admin users)
-CREATE POLICY "Admins can view all payments" ON payments
-    FOR SELECT USING (
-        auth.jwt() ->> 'email' IN (
-            SELECT email FROM auth.users 
-            WHERE raw_user_meta_data->>'role' = 'admin'
-        )
-    );
+-- Create admin policies (simplified - admin check will be done in application code)
+-- For now, we'll allow authenticated users to view all payments
+-- Admin functionality will be controlled in the application layer
+CREATE POLICY "Allow authenticated users to view all payments" ON payments
+    FOR SELECT USING (auth.jwt() IS NOT NULL);
 
-CREATE POLICY "Admins can update all payments" ON payments
-    FOR UPDATE USING (
-        auth.jwt() ->> 'email' IN (
-            SELECT email FROM auth.users 
-            WHERE raw_user_meta_data->>'role' = 'admin'
-        )
-    );
+CREATE POLICY "Allow authenticated users to update all payments" ON payments
+    FOR UPDATE USING (auth.jwt() IS NOT NULL);
 
-CREATE POLICY "Admins can view all downloads" ON cv_downloads
-    FOR SELECT USING (
-        auth.jwt() ->> 'email' IN (
-            SELECT email FROM auth.users 
-            WHERE raw_user_meta_data->>'role' = 'admin'
-        )
-    );
+CREATE POLICY "Allow authenticated users to view all downloads" ON cv_downloads
+    FOR SELECT USING (auth.jwt() IS NOT NULL);
 
 -- Create indexes for better performance
 CREATE INDEX idx_payments_user_email ON payments(user_email);

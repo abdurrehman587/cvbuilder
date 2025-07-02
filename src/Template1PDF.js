@@ -1,7 +1,7 @@
 // Template1PDF.js - Version 2.1 - Custom Sections Fix - CACHE BUSTED
 // Last updated: 2024-12-19 15:45:00
 // Unique ID: CS_FIX_20241219_1545
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import ManualPayment from './ManualPayment';
 import { PaymentService } from './paymentService';
@@ -26,7 +26,7 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
   const [isAdminUser, setIsAdminUser] = useState(false);
 
   // Check admin status and payment status on component mount
-  React.useEffect(() => {
+  useEffect(() => {
     // Check both localStorage and user object for admin access
     const adminAccess = localStorage.getItem('admin_cv_access');
     const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -36,7 +36,7 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
   }, []);
 
   // Add a periodic check to maintain admin status
-  React.useEffect(() => {
+  useEffect(() => {
     const checkAdminStatus = () => {
       const adminAccess = localStorage.getItem('admin_cv_access');
       const user = JSON.parse(localStorage.getItem('user') || '{}');
