@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import LandingPage from './landingpage';
+import { PaymentService } from './paymentService';
 
 const PaymentAdmin = ({ onAccessCVBuilder }) => {
   const [payments, setPayments] = useState([]);
@@ -14,57 +15,39 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
     isAdmin: true
   });
 
-  const loadPayments = useCallback(() => {
+  const loadPayments = useCallback(async () => {
     console.log('PaymentAdmin - loadPayments called');
-    console.log('PaymentAdmin - localStorage.length:', localStorage.length);
     
-    const allPayments = [];
-    const allKeys = [];
-    
-    // Log all localStorage keys for debugging
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      allKeys.push(key);
-      console.log('PaymentAdmin - Key found:', key);
+    try {
+      const allPayments = await PaymentService.getAllPayments();
+      console.log('PaymentAdmin - Payments loaded from Supabase:', allPayments);
       
-      if (key && key.startsWith('payment_')) {
-        try {
-          const payment = JSON.parse(localStorage.getItem(key));
-          console.log('PaymentAdmin - Found payment:', payment);
-          allPayments.push(payment);
-        } catch (error) {
-          console.error('Error parsing payment:', error);
-        }
+      // Check for new payments
+      const previousCount = payments.length;
+      const newCount = allPayments.length;
+      
+      if (newCount > previousCount) {
+        const newPayments = allPayments.slice(0, newCount - previousCount);
+        console.log('PaymentAdmin - New payments detected:', newPayments);
+        setNewPaymentNotification({
+          message: `New payment request received! Payment ID: ${newPayments[0].id}`,
+          timestamp: new Date()
+        });
+        
+        // Clear notification after 5 seconds
+        setTimeout(() => {
+          setNewPaymentNotification(null);
+        }, 5000);
       }
-    }
-    
-    console.log('PaymentAdmin - All localStorage keys:', allKeys);
-    console.log('PaymentAdmin - Total payments found:', allPayments.length);
-    
-    // Check for new payments
-    const previousCount = payments.length;
-    const newCount = allPayments.length;
-    
-    if (newCount > previousCount) {
-      const newPayments = allPayments.slice(0, newCount - previousCount);
-      console.log('PaymentAdmin - New payments detected:', newPayments);
-      setNewPaymentNotification({
-        message: `New payment request received! Payment ID: ${newPayments[0].id}`,
-        timestamp: new Date()
-      });
       
-      // Clear notification after 5 seconds
-      setTimeout(() => {
-        setNewPaymentNotification(null);
-      }, 5000);
+      setPayments(allPayments);
+      setLastChecked(new Date());
+      console.log('PaymentAdmin - Payments set to state:', allPayments);
+    } catch (error) {
+      console.error('Error loading payments:', error);
+      alert('Failed to load payments. Please try again.');
     }
-    
-    // Sort by timestamp (newest first)
-    allPayments.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-    setPayments(allPayments);
-    setLastChecked(new Date());
-    console.log('PaymentAdmin - Payments set to state:', allPayments);
-  }, []);
+  }, [payments.length]);
 
   useEffect(() => {
     loadPayments();
@@ -77,36 +60,38 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
     return () => clearInterval(interval);
   }, [loadPayments]);
 
-  const approvePayment = (paymentId) => {
-    const payment = payments.find(p => p.id === paymentId);
-    if (payment) {
-      payment.status = 'approved';
-      payment.approvedAt = new Date().toISOString();
-      localStorage.setItem(`payment_${paymentId}`, JSON.stringify(payment));
+  const approvePayment = async (paymentId) => {
+    try {
+      await PaymentService.updatePaymentStatus(paymentId, 'approved');
       loadPayments();
-      
-      // Here you would typically send SMS/email to user
       alert(`Payment ${paymentId} approved! User can now download CV.`);
+    } catch (error) {
+      console.error('Error approving payment:', error);
+      alert('Failed to approve payment. Please try again.');
     }
   };
 
-  const rejectPayment = (paymentId) => {
-    const payment = payments.find(p => p.id === paymentId);
-    if (payment) {
-      payment.status = 'rejected';
-      payment.rejectedAt = new Date().toISOString();
-      localStorage.setItem(`payment_${paymentId}`, JSON.stringify(payment));
+  const rejectPayment = async (paymentId) => {
+    try {
+      await PaymentService.updatePaymentStatus(paymentId, 'rejected');
       loadPayments();
-      
-      // Here you would typically send SMS/email to user
       alert(`Payment ${paymentId} rejected! User will be notified.`);
+    } catch (error) {
+      console.error('Error rejecting payment:', error);
+      alert('Failed to reject payment. Please try again.');
     }
   };
 
-  const deletePayment = (paymentId) => {
+  const deletePayment = async (paymentId) => {
     if (window.confirm('Are you sure you want to delete this payment record?')) {
-      localStorage.removeItem(`payment_${paymentId}`);
-      loadPayments();
+      try {
+        await PaymentService.deletePayment(paymentId);
+        loadPayments();
+        alert('Payment deleted successfully.');
+      } catch (error) {
+        console.error('Error deleting payment:', error);
+        alert('Failed to delete payment. Please try again.');
+      }
     }
   };
 

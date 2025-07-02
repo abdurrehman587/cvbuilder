@@ -4,7 +4,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import ManualPayment from './ManualPayment';
-import { checkForApprovedPayment, markPaymentAsUsed, getDownloadButtonText as getDownloadButtonTextUtil, checkForPendingPayment, debugPaymentStatus, testPaymentPersistence } from './paymentUtils';
+import { PaymentService } from './paymentService';
 
 
 // Load html2pdf from CDN dynamically
@@ -467,10 +467,16 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
         .save();
 
       // Mark the user's approved payment as used (only for non-admin users)
-      const adminAccess = localStorage.getItem('admin_cv_access');
-      if (adminAccess !== 'true') {
-        // Mark the user's approved payment as used
-        markPaymentAsUsed('template1');
+      if (!isAdminUser) {
+        try {
+          const approvedPayment = await PaymentService.checkApprovedPayment('template1');
+          if (approvedPayment) {
+            await PaymentService.markPaymentAsUsed(approvedPayment.id, 'template1');
+            console.log('Payment marked as used in Supabase');
+          }
+        } catch (error) {
+          console.error('Error marking payment as used:', error);
+        }
       }
       
     } catch (error) {
@@ -498,39 +504,58 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     alert('Payment failed. Please try again.');
   };
 
-  const handleDownloadClick = () => {
+  const handleDownloadClick = async () => {
     console.log('=== DOWNLOAD CLICK START ===');
     console.log('Template1PDF - handleDownloadClick called');
     console.log('Template1PDF - isAdminUser:', isAdminUser);
-    console.log('Template1PDF - showPaymentModal before:', showPaymentModal);
     
-    // Use the state instead of checking localStorage every time
     if (isAdminUser) {
       console.log('Template1PDF - Admin user, generating PDF directly');
       generatePDF();
       return;
     }
     
-    // Check if user has an approved payment
-    const hasApprovedPayment = checkForApprovedPayment(isAdminUser, 'template1');
-    console.log('Template1PDF - hasApprovedPayment:', hasApprovedPayment);
-    
-    if (hasApprovedPayment) {
-      // User has an approved payment, allow download
-      console.log('Template1PDF - Payment approved, generating PDF');
-      generatePDF();
-    } else {
-      // Show payment modal
-      console.log('Template1PDF - No approved payment, showing modal. showPaymentModal will be set to true');
+    try {
+      // Check if user has an approved payment
+      const approvedPayment = await PaymentService.checkApprovedPayment('template1');
+      console.log('Template1PDF - approvedPayment:', approvedPayment);
+      
+      if (approvedPayment) {
+        // User has an approved payment, allow download
+        console.log('Template1PDF - Payment approved, generating PDF');
+        generatePDF();
+      } else {
+        // Show payment modal
+        console.log('Template1PDF - No approved payment, showing modal');
+        setShowPaymentModal(true);
+      }
+    } catch (error) {
+      console.error('Error checking payment status:', error);
       setShowPaymentModal(true);
-      console.log('Template1PDF - showPaymentModal after setState:', true);
-      console.log('=== DOWNLOAD CLICK END - PAYMENT MODAL SHOULD SHOW ===');
     }
   };
 
-  const getDownloadButtonText = () => {
-    return getDownloadButtonTextUtil(isAdminUser, 'template1');
-  };
+  const [buttonText, setButtonText] = useState('Download PDF (PKR 100)');
+
+  // Update button text based on payment status
+  React.useEffect(() => {
+    const updateButtonText = async () => {
+      if (isAdminUser) {
+        setButtonText('Download PDF (Admin)');
+        return;
+      }
+
+      try {
+        const text = await PaymentService.getDownloadButtonText('template1', isAdminUser);
+        setButtonText(text);
+      } catch (error) {
+        console.error('Error getting button text:', error);
+        setButtonText('Download PDF (PKR 100)');
+      }
+    };
+
+    updateButtonText();
+  }, [isAdminUser]);
 
   return (
     <>
@@ -684,13 +709,13 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
                 onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#303f9f')}
                 onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3f51b5')}
               >
-                {getDownloadButtonText()}
+                {buttonText}
               </button>
 
               {/* Debug button for testing payment status persistence */}
               <button
                 type="button"
-                onClick={() => debugPaymentStatus('template1')}
+                onClick={() => PaymentService.debugPaymentStatus('template1')}
                 style={{
                   cursor: 'pointer',
                   padding: '4px 8px',
@@ -704,10 +729,13 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
                 🐛 Debug
               </button>
 
-              {/* Test payment persistence button */}
+              {/* Refresh button text */}
               <button
                 type="button"
-                onClick={() => testPaymentPersistence()}
+                onClick={async () => {
+                  const text = await PaymentService.getDownloadButtonText('template1', isAdminUser);
+                  setButtonText(text);
+                }}
                 style={{
                   cursor: 'pointer',
                   padding: '4px 8px',
@@ -718,7 +746,7 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
                   color: '#333',
                 }}
               >
-                🧪 Test
+                🔄 Refresh
               </button>
             </div>
           ) : (

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { PaymentService } from './paymentService';
 import PropTypes from 'prop-types';
 
 const ManualPayment = ({ amount, templateId, templateName, onPaymentSuccess, onPaymentFailure, onClose }) => {
@@ -62,40 +63,27 @@ const ManualPayment = ({ amount, templateId, templateName, onPaymentSuccess, onP
     setIsSubmitting(true);
 
     try {
-      // Here you would typically upload the proof to your server
-      // For now, we'll simulate the process
+      // Upload proof file to Supabase storage (simplified for now)
+      // In a real implementation, you would upload the file to Supabase storage
+      const proofUrl = 'proof_uploaded'; // Placeholder for actual file upload
       
-      // Create a unique payment ID
-      const paymentId = `PAY-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      
-      // Get current user info
-      const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-      const userEmail = currentUser.email || 'unknown@user.com';
-      
-      // Simulate server upload delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Store payment info in localStorage for tracking
-      const paymentInfo = {
-        id: paymentId,
-        userId: userEmail, // Add user ID to track payments per user
+      // Submit payment to Supabase
+      const paymentData = {
+        templateId: templateId,
+        templateName: templateName,
         method: selectedMethod,
         amount: amount,
         phoneNumber: phoneNumber,
-        timestamp: new Date().toISOString(),
-        status: 'pending',
-        downloadUsed: false, // Track if download was used
-        templateId: templateId, // Track which template this payment is for
-        templateName: templateName // Human-readable template name
+        proofUrl: proofUrl
       };
       
-      localStorage.setItem(`payment_${paymentId}`, JSON.stringify(paymentInfo));
+      const payment = await PaymentService.submitPayment(paymentData);
       
       // Show success message
-      alert(`Payment proof submitted successfully!\n\nPayment ID: ${paymentId}\n\nPlease wait for manual verification. You will be able to download your CV once approved by admin.`);
+      alert(`Payment proof submitted successfully!\n\nPayment ID: ${payment.id}\n\nPlease wait for manual verification. You will be able to download your CV once approved by admin.`);
       
       onPaymentSuccess({
-        paymentId,
+        paymentId: payment.id,
         method: selectedMethod,
         amount: amount
       });
