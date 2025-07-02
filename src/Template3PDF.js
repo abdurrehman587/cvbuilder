@@ -578,6 +578,9 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
   const handlePaymentSuccess = (paymentData) => {
     setShowPaymentModal(false);
     
+    // Update button text to reflect pending payment status
+    setButtonText('Payment Submitted (Waiting for Approval)');
+    
     // Show message about waiting for approval
     alert(`Payment proof submitted successfully!\n\nPayment ID: ${paymentData.paymentId}\n\nPlease wait for manual verification. You will be able to download once approved.`);
   };

@@ -493,6 +493,10 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     console.log('=== PAYMENT SUCCESS HANDLER ===');
     console.log('Template1PDF - Payment successful:', paymentData);
     setShowPaymentModal(false);
+    
+    // Update button text to reflect pending payment status
+    setButtonText('Payment Submitted (Waiting for Approval)');
+    
     // Don't auto-download - wait for admin approval
     // generatePDF();
     console.log('=== PAYMENT SUCCESS HANDLER COMPLETE ===');

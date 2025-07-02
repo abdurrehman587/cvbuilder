@@ -467,7 +467,12 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
   const handlePaymentSuccess = (paymentData) => {
     setShowPaymentModal(false);
     console.log('Payment successful:', paymentData);
-    generatePDF();
+    
+    // Update button text to reflect pending payment status
+    setButtonText('Payment Submitted (Waiting for Approval)');
+    
+    // Don't auto-download - wait for admin approval
+    // generatePDF();
   };
 
   const handlePaymentFailure = (error) => {

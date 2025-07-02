@@ -282,6 +282,10 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
   const handlePaymentSuccess = (paymentData) => {
     console.log('Payment successful:', paymentData);
     setShowPaymentModal(false);
+    
+    // Update button text to reflect pending payment status
+    setButtonText('Payment Submitted (Waiting for Approval)');
+    
     // Don't auto-download - wait for admin approval
     // generatePDF();
   };
