@@ -1,7 +1,7 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import ManualPayment from './ManualPayment';
-import { checkForApprovedPayment, markPaymentAsUsed, getDownloadButtonText as getDownloadButtonTextUtil, checkForPendingPayment } from './paymentUtils';
+import { PaymentService } from './paymentService';
 
 const loadHtml2Pdf = () => {
   if (window.html2pdf) return Promise.resolve(window.html2pdf);
@@ -17,7 +17,9 @@ const loadHtml2Pdf = () => {
 const Template2PDF = ({ formData, visibleSections = [] }) => {
   const containerRef = useRef(null);
   const buttonRef = useRef(null);
-  const [showPaymentModal, setShowPaymentModal] = useState(false); // eslint-disable-line react-hooks/exhaustive-deps
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [isAdminUser, setIsAdminUser] = useState(false);
+  const [buttonText, setButtonText] = useState('Download PDF (PKR 100)');
 
   const styles = {
     container: {
@@ -177,6 +179,55 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
     },
   };
 
+  // Check admin status and payment status on component mount
+  React.useEffect(() => {
+    // Check both localStorage and user object for admin access
+    const adminAccess = localStorage.getItem('admin_cv_access');
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
+    
+    setIsAdminUser(isAdmin);
+  }, []);
+
+  // Add a periodic check to maintain admin status
+  React.useEffect(() => {
+    const checkAdminStatus = () => {
+      const adminAccess = localStorage.getItem('admin_cv_access');
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
+      
+      if (isAdmin !== isAdminUser) {
+        setIsAdminUser(isAdmin);
+        console.log('Admin status updated:', isAdmin);
+      }
+    };
+
+    // Check every 5 seconds
+    const interval = setInterval(checkAdminStatus, 5000);
+    
+    return () => clearInterval(interval);
+  }, [isAdminUser]);
+
+  // Update button text based on payment status
+  React.useEffect(() => {
+    const updateButtonText = async () => {
+      if (isAdminUser) {
+        setButtonText('Download PDF (Admin)');
+        return;
+      }
+
+      try {
+        const text = await PaymentService.getDownloadButtonText('template2', isAdminUser);
+        setButtonText(text);
+      } catch (error) {
+        console.error('Error getting button text:', error);
+        setButtonText('Download PDF (PKR 100)');
+      }
+    };
+
+    updateButtonText();
+  }, [isAdminUser]);
+
   const generatePDF = async () => {
     if (!containerRef.current || !buttonRef.current) {
       alert('Preview content is not available for PDF generation');
@@ -207,10 +258,16 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
         .save();
 
       // Mark the user's approved payment as used (only for non-admin users)
-      const adminAccess = localStorage.getItem('admin_cv_access');
-      if (adminAccess !== 'true') {
-        // Mark the user's approved payment as used
-        markPaymentAsUsed('template2');
+      if (!isAdminUser) {
+        try {
+          const approvedPayment = await PaymentService.checkApprovedPayment('template2');
+          if (approvedPayment) {
+            await PaymentService.markPaymentAsUsed(approvedPayment.id, 'template2');
+            console.log('Payment marked as used after download');
+          }
+        } catch (error) {
+          console.error('Error marking payment as used:', error);
+        }
       }
       
     } catch (error) {
@@ -235,42 +292,35 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
     alert('Payment failed. Please try again.');
   };
 
-  const getDownloadButtonText = () => {
-    // Check both localStorage and user object for admin access
-    const adminAccess = localStorage.getItem('admin_cv_access');
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
-    
-    return getDownloadButtonTextUtil(isAdmin, 'template2');
-  };
 
-  const handleDownloadClick = () => {
+
+  const handleDownloadClick = async () => {
+    console.log('=== DOWNLOAD CLICK START ===');
     console.log('Template2PDF - handleDownloadClick called');
+    console.log('Template2PDF - isAdminUser:', isAdminUser);
     
-    // Check both localStorage and user object for admin access
-    const adminAccess = localStorage.getItem('admin_cv_access');
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
-    
-    console.log('Template2PDF - isAdmin:', isAdmin);
-    
-    if (isAdmin) {
+    if (isAdminUser) {
       console.log('Template2PDF - Admin user, generating PDF directly');
       generatePDF();
       return;
     }
     
-    // Check if user has an approved payment
-    const hasApprovedPayment = checkForApprovedPayment(isAdmin, 'template2');
-    console.log('Template2PDF - hasApprovedPayment:', hasApprovedPayment);
-    
-    if (hasApprovedPayment) {
-      // User has an approved payment, allow download
-      console.log('Template2PDF - Payment approved, generating PDF');
-      generatePDF();
-    } else {
-      // Show payment modal
-      console.log('Template2PDF - No approved payment, showing modal. showPaymentModal will be set to true');
+    try {
+      // Check if user has an approved payment
+      const approvedPayment = await PaymentService.checkApprovedPayment('template2');
+      console.log('Template2PDF - approvedPayment:', approvedPayment);
+      
+      if (approvedPayment) {
+        // User has an approved payment, allow download
+        console.log('Template2PDF - Payment approved, generating PDF');
+        generatePDF();
+      } else {
+        // Show payment modal
+        console.log('Template2PDF - No approved payment, showing modal');
+        setShowPaymentModal(true);
+      }
+    } catch (error) {
+      console.error('Error checking payment status:', error);
       setShowPaymentModal(true);
     }
   };
@@ -562,57 +612,73 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
             </div>
           )}
         </div>
-        {/* Download Button - Same logic as Template3 */}
-        {(() => {
-          // Check both localStorage and user object for admin access
-          const adminAccess = localStorage.getItem('admin_cv_access');
-          const user = JSON.parse(localStorage.getItem('user') || '{}');
-          const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
-          
-          return (isAdmin || !downloadCompleted) ? (
-            <button
-              ref={buttonRef}
-              type="button"
-              onClick={handleDownloadClick}
-              style={{
-                position: 'absolute',
-                bottom: '20px',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                padding: '10px 20px',
-                fontSize: '1rem',
-                borderRadius: '5px',
-                border: 'none',
-                backgroundColor: '#2ecc71',
-                color: 'white',
-                cursor: 'pointer',
-                transition: 'background-color 0.3s ease',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#27ae60')}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#2ecc71')}
-            >
-              {getDownloadButtonText()}
-            </button>
-          ) : (
-            <div style={{
-              position: 'absolute',
-              bottom: '20px',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              padding: '12px 16px',
-              backgroundColor: '#f0f9ff',
-              border: '1px solid #0ea5e9',
+        {/* Download Button */}
+        <div style={{
+          position: 'absolute',
+          bottom: '20px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}>
+          <button
+            ref={buttonRef}
+            type="button"
+            onClick={handleDownloadClick}
+            style={{
+              padding: '10px 20px',
+              fontSize: '1rem',
               borderRadius: '5px',
-              color: '#0369a1',
-              fontSize: '0.9rem',
-              textAlign: 'center',
-              maxWidth: '300px',
-            }}>
-              ✅ CV Downloaded Successfully!<br />
-              <small>Sign out and sign in again to download another CV.</small>
-            </div>
-          );
-        })()}
+              border: 'none',
+              backgroundColor: '#2ecc71',
+              color: 'white',
+              cursor: 'pointer',
+              transition: 'background-color 0.3s ease',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#27ae60')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#2ecc71')}
+          >
+            {buttonText}
+          </button>
+
+          {/* Debug button for testing payment status persistence */}
+          <button
+            type="button"
+            onClick={() => PaymentService.debugPaymentStatus('template2')}
+            style={{
+              cursor: 'pointer',
+              padding: '4px 8px',
+              fontSize: '0.8rem',
+              borderRadius: 4,
+              border: '1px solid #ccc',
+              backgroundColor: '#f0f0f0',
+              color: '#333',
+            }}
+          >
+            🐛 Debug
+          </button>
+
+          {/* Refresh button text */}
+          <button
+            type="button"
+            onClick={async () => {
+              const text = await PaymentService.getDownloadButtonText('template2', isAdminUser);
+              setButtonText(text);
+            }}
+            style={{
+              cursor: 'pointer',
+              padding: '4px 8px',
+              fontSize: '0.8rem',
+              borderRadius: 4,
+              border: '1px solid #ccc',
+              backgroundColor: '#e0f2fe',
+              color: '#333',
+            }}
+          >
+            🔄 Refresh
+          </button>
+        </div>
       </div>
 
       {/* Payment Modal - Outside PDF container */}

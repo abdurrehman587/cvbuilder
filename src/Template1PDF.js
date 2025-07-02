@@ -1,7 +1,7 @@
 // Template1PDF.js - Version 2.1 - Custom Sections Fix - CACHE BUSTED
 // Last updated: 2024-12-19 15:45:00
 // Unique ID: CS_FIX_20241219_1545
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import ManualPayment from './ManualPayment';
 import { PaymentService } from './paymentService';
@@ -686,85 +686,66 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
           </section>
         )}
 
-        {/* Download Button - Same logic as Template3 */}
-        {(() => {
-          // Use the state instead of checking localStorage every time
-          return (isAdminUser || !downloadCompleted) ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: 16 }}>
-              <button
-                ref={buttonRef}
-                type="button"
-                onClick={handleDownloadClick}
-                style={{
-                  cursor: 'pointer',
-                  padding: '6px 18px',
-                  fontSize: '0.95rem',
-                  borderRadius: 6,
-                  border: 'none',
-                  backgroundColor: '#3f51b5',
-                  color: 'white',
-                  transition: 'background-color 0.3s ease',
-                  userSelect: 'none',
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#303f9f')}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3f51b5')}
-              >
-                {buttonText}
-              </button>
-
-              {/* Debug button for testing payment status persistence */}
-              <button
-                type="button"
-                onClick={() => PaymentService.debugPaymentStatus('template1')}
-                style={{
-                  cursor: 'pointer',
-                  padding: '4px 8px',
-                  fontSize: '0.8rem',
-                  borderRadius: 4,
-                  border: '1px solid #ccc',
-                  backgroundColor: '#f0f0f0',
-                  color: '#333',
-                }}
-              >
-                🐛 Debug
-              </button>
-
-              {/* Refresh button text */}
-              <button
-                type="button"
-                onClick={async () => {
-                  const text = await PaymentService.getDownloadButtonText('template1', isAdminUser);
-                  setButtonText(text);
-                }}
-                style={{
-                  cursor: 'pointer',
-                  padding: '4px 8px',
-                  fontSize: '0.8rem',
-                  borderRadius: 4,
-                  border: '1px solid #ccc',
-                  backgroundColor: '#e0f2fe',
-                  color: '#333',
-                }}
-              >
-                🔄 Refresh
-              </button>
-            </div>
-          ) : (
-            <div style={{
-              marginTop: 16,
-              padding: '12px 16px',
-              backgroundColor: '#f0f9ff',
-              border: '1px solid #0ea5e9',
+        {/* Download Button */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: 16 }}>
+          <button
+            ref={buttonRef}
+            type="button"
+            onClick={handleDownloadClick}
+            style={{
+              cursor: 'pointer',
+              padding: '6px 18px',
+              fontSize: '0.95rem',
               borderRadius: 6,
-              color: '#0369a1',
-              fontSize: '0.9rem',
-              textAlign: 'center',
-            }}>
-              ✅ CV Downloaded Successfully!<br />
-              <small>Sign out and sign in again to download another CV.</small>
-            </div>
-          );
-        })()}
+              border: 'none',
+              backgroundColor: '#3f51b5',
+              color: 'white',
+              transition: 'background-color 0.3s ease',
+              userSelect: 'none',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#303f9f')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3f51b5')}
+          >
+            {buttonText}
+          </button>
+
+          {/* Debug button for testing payment status persistence */}
+          <button
+            type="button"
+            onClick={() => PaymentService.debugPaymentStatus('template1')}
+            style={{
+              cursor: 'pointer',
+              padding: '4px 8px',
+              fontSize: '0.8rem',
+              borderRadius: 4,
+              border: '1px solid #ccc',
+              backgroundColor: '#f0f0f0',
+              color: '#333',
+            }}
+          >
+            🐛 Debug
+          </button>
+
+          {/* Refresh button text */}
+          <button
+            type="button"
+            onClick={async () => {
+              const text = await PaymentService.getDownloadButtonText('template1', isAdminUser);
+              setButtonText(text);
+            }}
+            style={{
+              cursor: 'pointer',
+              padding: '4px 8px',
+              fontSize: '0.8rem',
+              borderRadius: 4,
+              border: '1px solid #ccc',
+              backgroundColor: '#e0f2fe',
+              color: '#333',
+            }}
+          >
+            🔄 Refresh
+          </button>
+        </div>
       </article>
 
       {/* Payment Modal - Outside PDF container */}

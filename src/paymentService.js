@@ -6,7 +6,7 @@ export class PaymentService {
   // Check if database is ready
   static async checkDatabaseReady() {
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('payments')
         .select('count')
         .limit(1);
@@ -35,14 +35,10 @@ export class PaymentService {
       const { data, error } = await supabase
         .from('payments')
         .insert({
-          user_id: user.id,
           user_email: user.email,
           template_id: paymentData.templateId,
-          template_name: paymentData.templateName,
-          payment_method: paymentData.method,
           amount: paymentData.amount,
-          phone_number: paymentData.phoneNumber,
-          payment_proof_url: paymentData.proofUrl,
+          payment_method: paymentData.method,
           status: 'pending'
         })
         .select()
@@ -77,24 +73,48 @@ export class PaymentService {
         return null;
       }
 
-      const { data, error } = await supabase
+      // First check if there's an approved payment
+      const { data: approvedPayment, error: approvedError } = await supabase
         .from('payments')
         .select('*')
         .eq('user_email', user.email)
         .eq('template_id', templateId)
         .eq('status', 'approved')
-        .eq('download_used', false)
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
 
-      if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows returned"
-        console.error('Error checking approved payment:', error);
-        throw error;
+      if (approvedError && approvedError.code !== 'PGRST116') {
+        console.error('Error checking approved payment:', approvedError);
+        throw approvedError;
       }
 
-      console.log('Approved payment check result:', data);
-      return data || null;
+      if (!approvedPayment) {
+        console.log('No approved payment found');
+        return null;
+      }
+
+      // Check if this payment has been used for download
+      const { data: download, error: downloadError } = await supabase
+        .from('cv_downloads')
+        .select('*')
+        .eq('payment_id', approvedPayment.id)
+        .limit(1)
+        .single();
+
+      if (downloadError && downloadError.code !== 'PGRST116') {
+        console.error('Error checking download:', downloadError);
+        throw downloadError;
+      }
+
+      // If no download record exists, payment is still available
+      if (!download) {
+        console.log('Approved payment found and not used:', approvedPayment);
+        return approvedPayment;
+      }
+
+      console.log('Approved payment found but already used');
+      return null;
     } catch (error) {
       console.error('Error checking approved payment:', error);
       return null;
@@ -154,40 +174,24 @@ export class PaymentService {
         throw new Error('Database not ready');
       }
 
-      // Start a transaction
-      const { data: payment, error: paymentError } = await supabase
-        .from('payments')
-        .update({
-          download_used: true,
-          downloaded_at: new Date().toISOString()
-        })
-        .eq('id', paymentId)
-        .eq('user_email', user.email)
-        .select()
-        .single();
-
-      if (paymentError) {
-        console.error('Error updating payment:', paymentError);
-        throw paymentError;
-      }
-
       // Record the download
-      const { error: downloadError } = await supabase
+      const { data: download, error: downloadError } = await supabase
         .from('cv_downloads')
         .insert({
-          user_id: user.id,
           user_email: user.email,
           template_id: templateId,
           payment_id: paymentId
-        });
+        })
+        .select()
+        .single();
 
       if (downloadError) {
         console.error('Error recording download:', downloadError);
         throw downloadError;
       }
 
-      console.log('Payment marked as used and download recorded:', payment);
-      return payment;
+      console.log('Download recorded successfully:', download);
+      return download;
     } catch (error) {
       console.error('Error marking payment as used:', error);
       throw error;

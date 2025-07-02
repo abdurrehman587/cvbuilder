@@ -65,16 +65,13 @@ const ManualPayment = ({ amount, templateId, templateName, onPaymentSuccess, onP
     try {
       // Upload proof file to Supabase storage (simplified for now)
       // In a real implementation, you would upload the file to Supabase storage
-      const proofUrl = 'proof_uploaded'; // Placeholder for actual file upload
+      // const proofUrl = 'proof_uploaded'; // Placeholder for actual file upload
       
       // Submit payment to Supabase
       const paymentData = {
         templateId: templateId,
-        templateName: templateName,
         method: selectedMethod,
-        amount: amount,
-        phoneNumber: phoneNumber,
-        proofUrl: proofUrl
+        amount: amount
       };
       
       const payment = await PaymentService.submitPayment(paymentData);
