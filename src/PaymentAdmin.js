@@ -103,6 +103,18 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
     }
   };
 
+  const testDatabaseConnection = async () => {
+    try {
+      console.log('PaymentAdmin - Testing database connection...');
+      const allPayments = await PaymentService.testGetAllPayments();
+      console.log('PaymentAdmin - Test result:', allPayments);
+      alert(`Database test completed. Found ${allPayments?.length || 0} payments. Check console for details.`);
+    } catch (error) {
+      console.error('PaymentAdmin - Database test failed:', error);
+      alert('Database test failed. Check console for details.');
+    }
+  };
+
   const getStatusColor = (status) => {
     switch (status) {
       case 'pending': return '#f59e0b';
@@ -815,11 +827,28 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
             }}>
               <h4 style={{ margin: '0 0 10px 0', color: '#92400e' }}>🧪 Testing Instructions:</h4>
               <ol style={{ margin: '0', paddingLeft: '20px', fontSize: '13px', color: '#92400e' }}>
-                <li><strong>Quick Test:</strong> Click "⚡ Quick Test Payment" above to verify the system works</li>
+                <li><strong>Database Test:</strong> Click "🔍 Test Database" below to check if payments exist</li>
                 <li><strong>User Flow Test:</strong> Open CV builder in a new tab, fill a CV, and try to download</li>
                 <li><strong>Payment Form Test:</strong> Use "🧪 Auto-Fill Test Payment" in the payment modal</li>
                 <li><strong>Check Console:</strong> Open browser console (F12) to see detailed logs</li>
               </ol>
+              
+              <button
+                onClick={testDatabaseConnection}
+                style={{
+                  marginTop: '10px',
+                  padding: '8px 16px',
+                  backgroundColor: '#3b82f6',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '13px',
+                  fontWeight: '600'
+                }}
+              >
+                🔍 Test Database Connection
+              </button>
             </div>
           </div>
         ) : (

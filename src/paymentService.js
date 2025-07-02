@@ -40,38 +40,49 @@ export class PaymentService {
   // Submit a new payment
   static async submitPayment(paymentData) {
     try {
+      console.log('PaymentService - submitPayment called with:', paymentData);
+      
       const { data: { user } } = await supabase.auth.getUser();
+      console.log('PaymentService - Current user:', user);
+      
       if (!user) {
+        console.error('PaymentService - No authenticated user');
         throw new Error('User not authenticated');
       }
 
       // Check if database is ready
       const dbReady = await this.checkDatabaseReady();
+      console.log('PaymentService - Database ready for submission:', dbReady);
+      
       if (!dbReady) {
         throw new Error('Database not ready. Please contact support.');
       }
 
+      const paymentRecord = {
+        user_email: user.email,
+        template_id: paymentData.templateId,
+        amount: paymentData.amount,
+        payment_method: paymentData.method,
+        status: 'pending'
+      };
+      
+      console.log('PaymentService - Inserting payment record:', paymentRecord);
+
       const { data, error } = await supabase
         .from('payments')
-        .insert({
-          user_email: user.email,
-          template_id: paymentData.templateId,
-          amount: paymentData.amount,
-          payment_method: paymentData.method,
-          status: 'pending'
-        })
+        .insert(paymentRecord)
         .select()
         .single();
 
       if (error) {
-        console.error('Error submitting payment:', error);
+        console.error('PaymentService - Error submitting payment:', error);
         throw error;
       }
 
-      console.log('Payment submitted successfully:', data);
+      console.log('PaymentService - Payment submitted successfully:', data);
       return data;
     } catch (error) {
-      console.error('Payment submission failed:', error);
+      console.error('PaymentService - Payment submission failed:', error);
       throw error;
     }
   }
@@ -362,6 +373,28 @@ export class PaymentService {
     } catch (error) {
       console.error('Error deleting payment:', error);
       throw error;
+    }
+  }
+
+  // Test function to check all payments in database
+  static async testGetAllPayments() {
+    try {
+      console.log('PaymentService - testGetAllPayments called');
+      
+      const { data, error } = await supabase
+        .from('payments')
+        .select('*');
+
+      if (error) {
+        console.error('PaymentService - Error in testGetAllPayments:', error);
+        return null;
+      }
+
+      console.log('PaymentService - All payments in database:', data);
+      return data;
+    } catch (error) {
+      console.error('PaymentService - Error in testGetAllPayments:', error);
+      return null;
     }
   }
 
