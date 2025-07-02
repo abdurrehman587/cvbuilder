@@ -10,7 +10,7 @@
 
 1. In your Supabase dashboard, go to **SQL Editor**
 2. Click **New Query**
-3. Copy and paste the entire content from `supabase_schema.sql`
+3. Copy and paste the entire content from `database_setup.sql`
 4. Click **Run** to execute the SQL
 
 ## Step 3: Verify Tables Created
