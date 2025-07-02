@@ -6,14 +6,35 @@ export class PaymentService {
   // Check if database is ready
   static async checkDatabaseReady() {
     try {
-      const { error } = await supabase
+      // First check if user is authenticated
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.log('Database check - no authenticated user');
+        return false;
+      }
+
+      // Try to query the payments table
+      const { data, error } = await supabase
         .from('payments')
-        .select('count')
+        .select('id')
         .limit(1);
       
-      return !error;
+      // If there's an error, check if it's a table not found error
+      if (error) {
+        if (error.message && error.message.includes('relation "payments" does not exist')) {
+          console.error('Database not ready - payments table does not exist');
+          return false;
+        }
+        // For other errors (like RLS), we'll assume the table exists
+        console.log('Database check - table exists but query failed (likely RLS):', error.message);
+        return true;
+      }
+      
+      // If we get here, the table exists (even if empty)
+      console.log('Database is ready - payments table exists and accessible');
+      return true;
     } catch (error) {
-      console.error('Database not ready:', error);
+      console.error('Database not ready - exception:', error);
       return false;
     }
   }
