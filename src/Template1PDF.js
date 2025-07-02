@@ -4,7 +4,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import ManualPayment from './ManualPayment';
-import { checkForApprovedPayment, markPaymentAsUsed, getDownloadButtonText as getDownloadButtonTextUtil, checkForPendingPayment, debugPaymentStatus } from './paymentUtils';
+import { checkForApprovedPayment, markPaymentAsUsed, getDownloadButtonText as getDownloadButtonTextUtil, checkForPendingPayment, debugPaymentStatus, testPaymentPersistence } from './paymentUtils';
 
 
 // Load html2pdf from CDN dynamically
@@ -702,6 +702,23 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
                 }}
               >
                 🐛 Debug
+              </button>
+
+              {/* Test payment persistence button */}
+              <button
+                type="button"
+                onClick={() => testPaymentPersistence()}
+                style={{
+                  cursor: 'pointer',
+                  padding: '4px 8px',
+                  fontSize: '0.8rem',
+                  borderRadius: 4,
+                  border: '1px solid #ccc',
+                  backgroundColor: '#e0f2fe',
+                  color: '#333',
+                }}
+              >
+                🧪 Test
               </button>
             </div>
           ) : (

@@ -58,9 +58,11 @@ const App = () => {
         setUser(userWithType);
         // Store user object in localStorage for payment utilities
         localStorage.setItem('user', JSON.stringify(userWithType));
+        console.log('Auth state change - User signed in, stored user object:', userWithType.email);
       } else {
         setUser(null);
-        // Don't remove user from localStorage here - let the sign-out process handle it
+        // Don't remove user from localStorage here - preserve it for payment status
+        console.log('Auth state change - User signed out, preserving user object in localStorage');
       }
       setLoading(false);
     });
@@ -87,8 +89,9 @@ const App = () => {
           localStorage.removeItem(key);
         });
         
-        // Sign out from Supabase
+        // Sign out from Supabase but don't clear user object
         supabase.auth.signOut();
+        console.log('BeforeUnload - Preserved user object and payment records');
       }
       // Admin users keep their session intact
     };
@@ -185,17 +188,11 @@ const App = () => {
             });
             console.log('Cleared user-specific data, preserved payment records');
             
-            // Add a small delay to ensure auth state change completes
-            setTimeout(() => {
-              console.log('Reloading page...');
-              window.location.reload();
-            }, 100);
+            // Don't reload the page - let the auth state change handle the UI update
+            console.log('Sign out completed - auth state change will handle UI update');
           } catch (error) {
             console.error('Error during sign out:', error);
-            // Force reload even if there's an error
-            setTimeout(() => {
-              window.location.reload();
-            }, 100);
+            // Don't reload even if there's an error - let auth state handle it
           }
         }}
       >

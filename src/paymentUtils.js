@@ -190,10 +190,47 @@ export const debugPaymentStatus = (templateId) => {
   console.log('- Has approved payment:', hasApproved);
   console.log('- Has pending payment:', hasPending);
   
+  // Additional debugging - check if any payments match the current user
+  if (currentUser.email) {
+    const userPayments = payments.filter(p => p.userId === currentUser.email);
+    console.log('Payments for current user:', userPayments);
+    
+    const templatePayments = userPayments.filter(p => p.templateId === templateId);
+    console.log('Payments for current template:', templatePayments);
+  }
+  
   return {
     user: currentUser,
     payments: payments,
     hasApproved: hasApproved,
     hasPending: hasPending
   };
+};
+
+// Function to manually test payment persistence
+export const testPaymentPersistence = () => {
+  console.log('=== TESTING PAYMENT PERSISTENCE ===');
+  
+  // Create a test payment
+  const testPayment = {
+    id: `TEST-${Date.now()}`,
+    userId: 'test@example.com',
+    templateId: 'template1',
+    templateName: 'Template 1',
+    method: 'easypaisa',
+    amount: 100,
+    phoneNumber: '03001234567',
+    timestamp: new Date().toISOString(),
+    status: 'pending',
+    downloadUsed: false
+  };
+  
+  localStorage.setItem(`payment_${testPayment.id}`, JSON.stringify(testPayment));
+  console.log('Test payment created:', testPayment);
+  
+  // Test the payment utilities
+  const hasPending = checkForPendingPayment('template1');
+  console.log('Has pending payment after creation:', hasPending);
+  
+  return testPayment;
 }; 
