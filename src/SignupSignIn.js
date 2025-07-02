@@ -21,16 +21,16 @@ const SignupSignIn = ({ onAuth }) => {
   useEffect(() => {
     // Handle automatic sign-out only when browser is actually closing (not tab switching)
     const handleBeforeUnload = () => {
-      // Clear user-specific localStorage data but preserve payment records
+      // Clear user-specific localStorage data but preserve payment records and user object
       const keysToRemove = [];
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key && !key.startsWith('payment_')) {
+        if (key && !key.startsWith('payment_') && key !== 'user') {
           keysToRemove.push(key);
         }
       }
       
-      // Remove only user-specific data, preserve payment records
+      // Remove only user-specific data, preserve payment records and user object
       keysToRemove.forEach(key => {
         localStorage.removeItem(key);
       });
@@ -92,6 +92,8 @@ const SignupSignIn = ({ onAuth }) => {
             isAdmin: true
           };
           onAuth(adminUser);
+          // Store admin user object in localStorage for payment utilities
+          localStorage.setItem('user', JSON.stringify(adminUser));
           setShowAdminPanel(true);
           setAdminAccessAttempts(0); // Reset attempts on successful login
           return;
@@ -133,6 +135,8 @@ const SignupSignIn = ({ onAuth }) => {
           isAdmin: false
         };
         onAuth(userWithType);
+        // Store user object in localStorage for payment utilities
+        localStorage.setItem('user', JSON.stringify(userWithType));
       }
     } catch (err) {
       console.log('SignupSignIn - Auth exception:', err);
@@ -403,6 +407,8 @@ const SignupSignIn = ({ onAuth }) => {
             };
             console.log('SignupSignIn - Creating test user:', testUser);
             onAuth(testUser);
+            // Store test user object in localStorage for payment utilities
+            localStorage.setItem('user', JSON.stringify(testUser));
           }}
           style={{
             padding: '8px 16px',

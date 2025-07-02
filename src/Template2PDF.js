@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import ManualPayment from './ManualPayment';
-import { checkForApprovedPayment, markPaymentAsUsed, getDownloadButtonText as getDownloadButtonTextUtil } from './paymentUtils';
+import { checkForApprovedPayment, markPaymentAsUsed, getDownloadButtonText as getDownloadButtonTextUtil, checkForPendingPayment } from './paymentUtils';
 
 const loadHtml2Pdf = () => {
   if (window.html2pdf) return Promise.resolve(window.html2pdf);
@@ -17,28 +17,7 @@ const loadHtml2Pdf = () => {
 const Template2PDF = ({ formData, visibleSections = [] }) => {
   const containerRef = useRef(null);
   const buttonRef = useRef(null);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [paymentCompleted, setPaymentCompleted] = useState(false);
-  const [downloadCompleted, setDownloadCompleted] = useState(false);
-
-  // Check if download was already completed for this session
-  useEffect(() => {
-    // Check both localStorage and user object for admin access
-    const adminAccess = localStorage.getItem('admin_cv_access');
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
-    
-    if (isAdmin) {
-      // Admin users can download unlimited times
-      setDownloadCompleted(false);
-      return;
-    }
-    
-    const hasDownloaded = localStorage.getItem('cv_downloaded');
-    if (hasDownloaded) {
-      setDownloadCompleted(true);
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const [showPaymentModal, setShowPaymentModal] = useState(false); // eslint-disable-line react-hooks/exhaustive-deps
 
   const styles = {
     container: {
@@ -227,12 +206,9 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
         .from(containerRef.current)
         .save();
 
-      // Mark download as completed (only for non-admin users)
+      // Mark the user's approved payment as used (only for non-admin users)
       const adminAccess = localStorage.getItem('admin_cv_access');
       if (adminAccess !== 'true') {
-        setDownloadCompleted(true);
-        localStorage.setItem('cv_downloaded', 'true'); // Persist download state
-        
         // Mark the user's approved payment as used
         markPaymentAsUsed('template2');
       }
@@ -248,7 +224,6 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
 
   const handlePaymentSuccess = (paymentData) => {
     console.log('Payment successful:', paymentData);
-    setPaymentCompleted(true);
     setShowPaymentModal(false);
     // Don't auto-download - wait for admin approval
     // generatePDF();
@@ -266,7 +241,7 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
     
-    return getDownloadButtonTextUtil(isAdmin, paymentCompleted, 'template2');
+    return getDownloadButtonTextUtil(isAdmin, 'template2');
   };
 
   const handleDownloadClick = () => {
@@ -278,17 +253,10 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
     const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
     
     console.log('Template2PDF - isAdmin:', isAdmin);
-    console.log('Template2PDF - downloadCompleted:', downloadCompleted);
     
     if (isAdmin) {
       console.log('Template2PDF - Admin user, generating PDF directly');
       generatePDF();
-      return;
-    }
-
-    if (downloadCompleted) {
-      console.log('Template2PDF - Download already completed');
-      alert('You have already downloaded a CV in this session. Please sign out and sign in again to download another CV.');
       return;
     }
     

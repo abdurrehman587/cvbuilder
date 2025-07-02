@@ -4,7 +4,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import ManualPayment from './ManualPayment';
-import { checkForApprovedPayment, markPaymentAsUsed, getDownloadButtonText as getDownloadButtonTextUtil } from './paymentUtils';
+import { checkForApprovedPayment, markPaymentAsUsed, getDownloadButtonText as getDownloadButtonTextUtil, checkForPendingPayment, debugPaymentStatus } from './paymentUtils';
 
 
 // Load html2pdf from CDN dynamically
@@ -23,11 +23,9 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
   const containerRef = useRef(null);
   const buttonRef = useRef(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [paymentCompleted, setPaymentCompleted] = useState(false);
-  const [downloadCompleted, setDownloadCompleted] = useState(false);
   const [isAdminUser, setIsAdminUser] = useState(false);
 
-  // Check if download was already completed for this session
+  // Check admin status and payment status on component mount
   React.useEffect(() => {
     // Check both localStorage and user object for admin access
     const adminAccess = localStorage.getItem('admin_cv_access');
@@ -35,17 +33,6 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
     
     setIsAdminUser(isAdmin);
-    
-    if (isAdmin) {
-      // Admin users can download unlimited times
-      setDownloadCompleted(false);
-      return;
-    }
-    
-    const hasDownloaded = localStorage.getItem('cv_downloaded');
-    if (hasDownloaded) {
-      setDownloadCompleted(true);
-    }
   }, []);
 
   // Add a periodic check to maintain admin status
@@ -479,12 +466,9 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
         .from(containerRef.current)
         .save();
 
-      // Mark download as completed (only for non-admin users)
+      // Mark the user's approved payment as used (only for non-admin users)
       const adminAccess = localStorage.getItem('admin_cv_access');
       if (adminAccess !== 'true') {
-        setDownloadCompleted(true);
-        localStorage.setItem('cv_downloaded', 'true'); // Persist download state
-        
         // Mark the user's approved payment as used
         markPaymentAsUsed('template1');
       }
@@ -502,11 +486,7 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
   const handlePaymentSuccess = (paymentData) => {
     console.log('=== PAYMENT SUCCESS HANDLER ===');
     console.log('Template1PDF - Payment successful:', paymentData);
-    console.log('Template1PDF - paymentCompleted before:', paymentCompleted);
-    setPaymentCompleted(true);
     setShowPaymentModal(false);
-    console.log('Template1PDF - paymentCompleted after setState:', true);
-    console.log('Template1PDF - showPaymentModal after setState:', false);
     // Don't auto-download - wait for admin approval
     // generatePDF();
     console.log('=== PAYMENT SUCCESS HANDLER COMPLETE ===');
@@ -522,19 +502,12 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     console.log('=== DOWNLOAD CLICK START ===');
     console.log('Template1PDF - handleDownloadClick called');
     console.log('Template1PDF - isAdminUser:', isAdminUser);
-    console.log('Template1PDF - downloadCompleted:', downloadCompleted);
     console.log('Template1PDF - showPaymentModal before:', showPaymentModal);
     
     // Use the state instead of checking localStorage every time
     if (isAdminUser) {
       console.log('Template1PDF - Admin user, generating PDF directly');
       generatePDF();
-      return;
-    }
-
-    if (downloadCompleted) {
-      console.log('Template1PDF - Download already completed');
-      alert('You have already downloaded a CV in this session. Please sign out and sign in again to download another CV.');
       return;
     }
     
@@ -556,7 +529,7 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const getDownloadButtonText = () => {
-    return getDownloadButtonTextUtil(isAdminUser, paymentCompleted, 'template1');
+    return getDownloadButtonTextUtil(isAdminUser, 'template1');
   };
 
   return (
@@ -692,28 +665,45 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
         {(() => {
           // Use the state instead of checking localStorage every time
           return (isAdminUser || !downloadCompleted) ? (
-            <button
-              ref={buttonRef}
-              type="button"
-              onClick={handleDownloadClick}
-              style={{
-                marginTop: 16,
-                cursor: 'pointer',
-                padding: '6px 18px',
-                fontSize: '0.95rem',
-                borderRadius: 6,
-                border: 'none',
-                backgroundColor: '#3f51b5',
-                color: 'white',
-                transition: 'background-color 0.3s ease',
-                alignSelf: 'flex-start',
-                userSelect: 'none',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#303f9f')}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3f51b5')}
-            >
-              {getDownloadButtonText()}
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: 16 }}>
+              <button
+                ref={buttonRef}
+                type="button"
+                onClick={handleDownloadClick}
+                style={{
+                  cursor: 'pointer',
+                  padding: '6px 18px',
+                  fontSize: '0.95rem',
+                  borderRadius: 6,
+                  border: 'none',
+                  backgroundColor: '#3f51b5',
+                  color: 'white',
+                  transition: 'background-color 0.3s ease',
+                  userSelect: 'none',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#303f9f')}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3f51b5')}
+              >
+                {getDownloadButtonText()}
+              </button>
+
+              {/* Debug button for testing payment status persistence */}
+              <button
+                type="button"
+                onClick={() => debugPaymentStatus('template1')}
+                style={{
+                  cursor: 'pointer',
+                  padding: '4px 8px',
+                  fontSize: '0.8rem',
+                  borderRadius: 4,
+                  border: '1px solid #ccc',
+                  backgroundColor: '#f0f0f0',
+                  color: '#333',
+                }}
+              >
+                🐛 Debug
+              </button>
+            </div>
           ) : (
             <div style={{
               marginTop: 16,

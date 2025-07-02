@@ -1,5 +1,7 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import PropTypes from 'prop-types';
+import ManualPayment from './ManualPayment';
+import { checkForApprovedPayment, markPaymentAsUsed, getDownloadButtonText as getDownloadButtonTextUtil, checkForPendingPayment } from './paymentUtils';
 
 const sectionList = [
   { key: 'objective', title: 'Objective' },
@@ -29,6 +31,7 @@ const loadHtml2Pdf = () => {
 const Template1PDF = ({ formData, visibleSections = [] }) => {
   const containerRef = useRef(null);
   const buttonRef = useRef(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   const containerStyle = {
     width: '700px',
@@ -356,6 +359,14 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
         })
         .from(containerRef.current)
         .save();
+
+      // Mark the user's approved payment as used (only for non-admin users)
+      const adminAccess = localStorage.getItem('admin_cv_access');
+      if (adminAccess !== 'true') {
+        // Mark the user's approved payment as used
+        markPaymentAsUsed('template7');
+      }
+      
     } catch (error) {
       alert('Error generating PDF: ' + error.message);
     } finally {
@@ -363,31 +374,25 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     }
   };
 
-  const checkForApprovedPayment = () => {
+  const handlePaymentSuccess = (paymentData) => {
+    setShowPaymentModal(false);
+    // Don't auto-download - wait for admin approval
+    alert(`Payment proof submitted successfully!\n\nPayment ID: ${paymentData.paymentId}\n\nPlease wait for manual verification. You will be able to download once approved.`);
+  };
+
+  const handlePaymentFailure = (error) => {
+    setShowPaymentModal(false);
+    console.error('Payment failed:', error);
+    alert('Payment failed. Please try again.');
+  };
+
+  const checkForApprovedPaymentLocal = () => {
     // Check if user is admin (bypass payment)
     const adminAccess = localStorage.getItem('admin_cv_access');
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
     
-    if (isAdmin {
-      return true;
-    }
-
-    // Check localStorage for approved payments
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith('payment_')) {
-        try {
-          const payment = JSON.parse(localStorage.getItem(key));
-          if (payment.status === 'approved') {
-            return true;
-          }
-        } catch (error) {
-          console.error('Error parsing payment:', error);
-        }
-      }
-    }
-    return false;
+    return checkForApprovedPayment(isAdmin, 'template7');
   };
 
   const getDownloadButtonText = () => {
@@ -396,20 +401,7 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
     
-    if (isAdmin {
-      return 'Download Now (Admin Access)';
-    }
-
-    if (paymentCompleted) {
-      return 'Download PDF';
-    }
-    
-    const hasApprovedPayment = checkForApprovedPayment();
-    if (hasApprovedPayment) {
-      return 'Payment Approved (Download Now)';
-    }
-    
-    return 'Download PDF (PKR 100)';
+    return getDownloadButtonTextUtil(isAdmin, 'template7');
   };
 
   const handleDownloadClick = () => {
@@ -418,16 +410,19 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
     
-    if (isAdmin {
+    if (isAdmin) {
       generatePDF();
       return;
     }
-
-    if (paymentCompleted) {
-      // If payment is already completed, download directly
+    
+    // Check if user has an approved payment
+    const hasApprovedPayment = checkForApprovedPaymentLocal();
+    
+    if (hasApprovedPayment) {
+      // User has an approved payment, allow download
       generatePDF();
     } else {
-      // Show payment modal first
+      // Show payment modal
       setShowPaymentModal(true);
     }
   };
@@ -546,6 +541,17 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
       >
         {getDownloadButtonText()}
       </button>
+
+      {showPaymentModal && (
+        <ManualPayment
+          amount={100}
+          onPaymentSuccess={handlePaymentSuccess}
+          onPaymentFailure={handlePaymentFailure}
+          onClose={() => setShowPaymentModal(false)}
+          templateId="template7"
+          templateName="Template 7"
+        />
+      )}
     </article>
   );
 };

@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import ManualPayment from './ManualPayment';
+import { checkForApprovedPayment, markPaymentAsUsed, getDownloadButtonText as getDownloadButtonTextUtil, checkForPendingPayment } from './paymentUtils';
 
 // Load html2pdf from CDN dynamically
 const loadHtml2Pdf = () => {
@@ -18,23 +19,6 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
   const containerRef = useRef(null);
   const buttonRef = useRef(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [paymentCompleted, setPaymentCompleted] = useState(false);
-  const [downloadCompleted, setDownloadCompleted] = useState(false);
-
-  // Check if download was already completed for this session
-  useEffect(() => {
-    const adminAccess = localStorage.getItem('admin_cv_access');
-    if (adminAccess === 'true') {
-      // Admin users can download unlimited times
-      setDownloadCompleted(false);
-      return;
-    }
-    
-    const hasDownloaded = localStorage.getItem('cv_downloaded');
-    if (hasDownloaded) {
-      setDownloadCompleted(true);
-    }
-  }, []);
 
   const containerStyle = {
     width: '100%',
@@ -537,11 +521,11 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
         .from(containerRef.current)
         .save();
 
-      // Mark download as completed (only for non-admin users)
+      // Mark the user's approved payment as used (only for non-admin users)
       const adminAccess = localStorage.getItem('admin_cv_access');
       if (adminAccess !== 'true') {
-        setDownloadCompleted(true);
-        localStorage.setItem('cv_downloaded', 'true'); // Persist download state
+        // Mark the user's approved payment as used
+        markPaymentAsUsed('template3');
       }
 
     } catch (error) {
@@ -555,7 +539,6 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const handlePaymentSuccess = (paymentData) => {
-    setPaymentCompleted(false); // Don't auto-complete, wait for admin approval
     setShowPaymentModal(false);
     
     // Show message about waiting for approval
@@ -567,31 +550,13 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
     alert('Payment failed. Please try again.');
   };
 
-  const checkForApprovedPayment = () => {
+  const checkForApprovedPaymentLocal = () => {
     // Check if user is admin (bypass payment)
     const adminAccess = localStorage.getItem('admin_cv_access');
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
     
-    if (isAdmin) {
-      return true;
-    }
-
-    // Check localStorage for approved payments
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith('payment_')) {
-        try {
-          const payment = JSON.parse(localStorage.getItem(key));
-          if (payment.status === 'approved') {
-            return true;
-          }
-        } catch (error) {
-          console.error('Error parsing payment:', error);
-        }
-      }
-    }
-    return false;
+    return checkForApprovedPayment(isAdmin, 'template3');
   };
 
   const getDownloadButtonText = () => {
@@ -600,20 +565,7 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
     
-    if (isAdmin) {
-      return 'Download Now (Admin Access)';
-    }
-
-    if (paymentCompleted) {
-      return 'Download PDF';
-    }
-    
-    const hasApprovedPayment = checkForApprovedPayment();
-    if (hasApprovedPayment) {
-      return 'Payment Approved (Download Now)';
-    }
-    
-    return 'Download PDF (PKR 100)';
+    return getDownloadButtonTextUtil(isAdmin, 'template3');
   };
 
   const handleDownloadClick = () => {
@@ -626,14 +578,9 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
       generatePDF();
       return;
     }
-
-    if (downloadCompleted) {
-      alert('You have already downloaded a CV in this session. Please sign out and sign in again to download another CV.');
-      return;
-    }
     
     // Check if user has an approved payment
-    const hasApprovedPayment = checkForApprovedPayment();
+    const hasApprovedPayment = checkForApprovedPaymentLocal();
     
     if (hasApprovedPayment) {
       // User has an approved payment, allow download

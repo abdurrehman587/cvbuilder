@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import ManualPayment from './ManualPayment';
+import { checkForApprovedPayment, markPaymentAsUsed, getDownloadButtonText as getDownloadButtonTextUtil, checkForPendingPayment } from './paymentUtils';
 
 const sectionList = [
   { key: 'objective', title: 'Objective' },
@@ -31,24 +32,7 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
   const containerRef = useRef(null);
   const buttonRef = useRef(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [paymentCompleted, setPaymentCompleted] = useState(false);
   const [paymentState, setPaymentState] = useState('idle');
-  const [downloadCompleted, setDownloadCompleted] = useState(false);
-
-  // Check if download was already completed for this session
-  useEffect(() => {
-    const adminAccess = localStorage.getItem('admin_cv_access');
-    if (adminAccess === 'true') {
-      // Admin users can download unlimited times
-      setDownloadCompleted(false);
-      return;
-    }
-    
-    const hasDownloaded = localStorage.getItem('cv_downloaded');
-    if (hasDownloaded) {
-      setDownloadCompleted(true);
-    }
-  }, []);
 
   const containerStyle = {
     width: '100%',
@@ -404,12 +388,12 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
         buttonElement.style.display = 'flex';
       }
   
-      // Mark download as completed (only for non-admin users)
+      // Mark the user's approved payment as used (only for non-admin users)
       const adminAccess = localStorage.getItem('admin_cv_access');
       if (adminAccess !== 'true') {
         setPaymentState('success');
-        setDownloadCompleted(true);
-        localStorage.setItem('cv_downloaded', 'true'); // Persist download state
+        // Mark the user's approved payment as used
+        markPaymentAsUsed('template4');
       }
   
     } catch (error) {
@@ -425,7 +409,6 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
   
 
   const handlePaymentSuccess = (paymentData) => {
-    setPaymentCompleted(true);
     setShowPaymentModal(false);
     console.log('Payment successful:', paymentData);
     generatePDF();
@@ -437,24 +420,13 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
     alert('Payment failed. Please try again.');
   };
 
-  const checkForApprovedPayment = () => {
+  const checkForApprovedPaymentLocal = () => {
     // Check if user is admin (bypass payment)
     const adminAccess = localStorage.getItem('admin_cv_access');
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
     
-    if (isAdmin) {
-      return true;
-    }
-    
-    // This is a mock check. Replace with actual Supabase logic if needed.
-    const approved = localStorage.getItem('payment_approved') === 'true';
-    if (approved) {
-      setPaymentCompleted(true);
-      setDownloadCompleted(true);
-      localStorage.setItem('cv_downloaded', 'true');
-    }
-    return approved;
+    return checkForApprovedPayment(isAdmin, 'template4');
   };
 
   // Periodically check for payment approval if not completed
@@ -475,13 +447,10 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
     
-    if (isAdmin) {
-      return 'Download Now (Admin Access)';
-    }
     if (paymentState === 'processing') return 'Processing...';
     if (paymentState === 'error') return 'Error! Retry';
-    if (downloadCompleted) return 'Download Again';
-    return paymentCompleted ? 'Download CV' : 'Unlock & Download';
+    
+    return getDownloadButtonTextUtil(isAdmin, 'template4');
   };
 
   const {
@@ -508,8 +477,8 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
       generatePDF();
       return;
     }
-    const isApproved = checkForApprovedPayment();
-    if (downloadCompleted || isApproved) {
+    const isApproved = checkForApprovedPaymentLocal();
+    if (isApproved) {
       generatePDF();
     } else {
       setShowPaymentModal(true);

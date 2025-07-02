@@ -18,6 +18,8 @@ const App = () => {
           isAdmin: false
         };
         setUser(userWithType);
+        // Store user object in localStorage for payment utilities
+        localStorage.setItem('user', JSON.stringify(userWithType));
       }
       setLoading(false);
     };
@@ -32,6 +34,8 @@ const App = () => {
           isAdmin: false
         };
         setUser(userWithType);
+        // Store user object in localStorage for payment utilities
+        localStorage.setItem('user', JSON.stringify(userWithType));
       }
       setLoading(false);
     };
@@ -52,8 +56,11 @@ const App = () => {
           isAdmin: false
         };
         setUser(userWithType);
+        // Store user object in localStorage for payment utilities
+        localStorage.setItem('user', JSON.stringify(userWithType));
       } else {
         setUser(null);
+        // Don't remove user from localStorage here - let the sign-out process handle it
       }
       setLoading(false);
     });
@@ -66,16 +73,16 @@ const App = () => {
       const isAdmin = adminAccess === 'true' || (user && JSON.parse(user)?.isAdmin);
       
       if (!isAdmin) {
-        // Clear user-specific localStorage data but preserve payment records
+        // Clear user-specific localStorage data but preserve payment records and user object
         const keysToRemove = [];
         for (let i = 0; i < localStorage.length; i++) {
           const key = localStorage.key(i);
-          if (key && !key.startsWith('payment_')) {
+          if (key && !key.startsWith('payment_') && key !== 'user') {
             keysToRemove.push(key);
           }
         }
         
-        // Remove only user-specific data, preserve payment records
+        // Remove only user-specific data, preserve payment records and user object
         keysToRemove.forEach(key => {
           localStorage.removeItem(key);
         });
@@ -163,16 +170,16 @@ const App = () => {
             await supabase.auth.signOut();
             console.log('Supabase sign out completed');
             
-            // Clear user-specific localStorage data but preserve payment records
+            // Clear user-specific localStorage data but preserve payment records and user object
             const keysToRemove = [];
             for (let i = 0; i < localStorage.length; i++) {
               const key = localStorage.key(i);
-              if (key && !key.startsWith('payment_')) {
+              if (key && !key.startsWith('payment_') && key !== 'user') {
                 keysToRemove.push(key);
               }
             }
             
-            // Remove only user-specific data, preserve payment records
+            // Remove only user-specific data, preserve payment records and user object
             keysToRemove.forEach(key => {
               localStorage.removeItem(key);
             });

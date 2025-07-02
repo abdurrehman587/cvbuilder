@@ -1,5 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
+import ManualPayment from './ManualPayment';
+import { checkForApprovedPayment, markPaymentAsUsed, getDownloadButtonText as getDownloadButtonTextUtil, checkForPendingPayment } from './paymentUtils';
 
 const sectionList = [
   { key: 'objective', title: 'Objective' },
@@ -29,7 +31,7 @@ const loadHtml2Pdf = () => {
 const Template1PDF = ({ formData, visibleSections = [] }) => {
   const containerRef = useRef(null);
   const buttonRef = useRef(null);
-  const [downloadCompleted, setDownloadCompleted] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   const containerStyle = {
     width: '700px',
@@ -385,14 +387,12 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
         .from(containerRef.current)
         .save();
 
-      // Mark download as completed (only for non-admin users)
+      // Mark the user's approved payment as used (only for non-admin users)
       const adminAccess = localStorage.getItem('admin_cv_access');
       if (adminAccess !== 'true') {
-        setDownloadCompleted(true);
-        localStorage.setItem('cv_downloaded', 'true'); // Persist download state
-        // Success message removed - no alert needed
+        // Mark the user's approved payment as used
+        markPaymentAsUsed('template5');
       }
-      // Admin users don't need any state changes or alerts
       
     } catch (error) {
       alert('Error generating PDF: ' + error.message);
@@ -401,31 +401,13 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     }
   };
 
-  const checkForApprovedPayment = () => {
+  const checkForApprovedPaymentLocal = () => {
     // Check if user is admin (bypass payment)
     const adminAccess = localStorage.getItem('admin_cv_access');
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
     
-    if (isAdmin) {
-      return true;
-    }
-
-    // Check localStorage for approved payments
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith('payment_')) {
-        try {
-          const payment = JSON.parse(localStorage.getItem(key));
-          if (payment.status === 'approved') {
-            return true;
-          }
-        } catch (error) {
-          console.error('Error parsing payment:', error);
-        }
-      }
-    }
-    return false;
+    return checkForApprovedPayment(isAdmin, 'template5');
   };
 
   const getDownloadButtonText = () => {
@@ -434,20 +416,7 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
     
-    if (isAdmin) {
-      return 'Download Now (Admin Access)';
-    }
-
-    if (downloadCompleted) {
-      return 'Download PDF';
-    }
-    
-    const hasApprovedPayment = checkForApprovedPayment();
-    if (hasApprovedPayment) {
-      return 'Payment Approved (Download Now)';
-    }
-    
-    return 'Download PDF (PKR 100)';
+    return getDownloadButtonTextUtil(isAdmin, 'template5');
   };
 
   const handleDownloadClick = () => {
@@ -461,29 +430,29 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
       return;
     }
 
-    if (downloadCompleted) {
-      // If download was already completed for this session, download directly
+    // Check if user has an approved payment
+    const hasApprovedPayment = checkForApprovedPaymentLocal();
+    
+    if (hasApprovedPayment) {
+      // User has an approved payment, allow download
       generatePDF();
     } else {
-      // Show payment modal first
-      setDownloadCompleted(false);
+      // Show payment modal
+      setShowPaymentModal(true);
     }
   };
 
-  // Check if download was already completed for this session
-  useEffect(() => {
-    const adminAccess = localStorage.getItem('admin_cv_access');
-    if (adminAccess === 'true') {
-      // Admin users can download unlimited times
-      setDownloadCompleted(false);
-      return;
-    }
-    
-    const hasDownloaded = localStorage.getItem('cv_downloaded');
-    if (hasDownloaded) {
-      setDownloadCompleted(true);
-    }
-  }, []);
+  const handlePaymentSuccess = (paymentData) => {
+    setShowPaymentModal(false);
+    // Don't auto-download - wait for admin approval
+    alert(`Payment proof submitted successfully!\n\nPayment ID: ${paymentData.paymentId}\n\nPlease wait for manual verification. You will be able to download once approved.`);
+  };
+
+  const handlePaymentFailure = (error) => {
+    setShowPaymentModal(false);
+    console.error('Payment failed:', error);
+    alert('Payment failed. Please try again.');
+  };
 
   // Get admin access status for use in render
   const adminAccess = localStorage.getItem('admin_cv_access');
@@ -585,50 +554,38 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
         </section>
       )}
 
-      {(() => {
-        // Check both localStorage and user object for admin access
-        const adminAccess = localStorage.getItem('admin_cv_access');
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
-        
-        return (isAdmin || !downloadCompleted) ? (
-        <button
-          ref={buttonRef}
-          type="button"
-          onClick={handleDownloadClick}
-          style={{
-            marginTop: 16,
-            cursor: 'pointer',
-            padding: '6px 18px',
-            fontSize: '0.95rem',
-            borderRadius: 6,
-            border: 'none',
-            backgroundColor: '#3f51b5',
-            color: 'white',
-            transition: 'background-color 0.3s ease',
-            alignSelf: 'flex-start',
-            userSelect: 'none',
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#303f9f')}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3f51b5')}
-        >
-          {getDownloadButtonText()}
-        </button>
-      ) : (
-        <div style={{
+      <button
+        ref={buttonRef}
+        type="button"
+        onClick={handleDownloadClick}
+        style={{
           marginTop: 16,
-          padding: '12px 16px',
-          backgroundColor: '#f0f9ff',
-          border: '1px solid #0ea5e9',
+          cursor: 'pointer',
+          padding: '6px 18px',
+          fontSize: '0.95rem',
           borderRadius: 6,
-          color: '#0369a1',
-          fontSize: '0.9rem',
-          textAlign: 'center',
-        }}>
-          ✅ CV Downloaded Successfully!<br />
-          <small>Sign out and sign in again to download another CV.</small>
-        </div>
-      )}
+          border: 'none',
+          backgroundColor: '#3f51b5',
+          color: 'white',
+          transition: 'background-color 0.3s ease',
+          alignSelf: 'flex-start',
+          userSelect: 'none',
+        }}
+        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#303f9f')}
+        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3f51b5')}
+      >
+        {getDownloadButtonText()}
+      </button>
+
+      {showPaymentModal && (
+        <ManualPayment
+          amount={100}
+          onPaymentSuccess={handlePaymentSuccess}
+          onPaymentFailure={handlePaymentFailure}
+          onClose={() => setShowPaymentModal(false)}
+          templateId="template5"
+          templateName="Template 5"
+        />
       )}
     </article>
   );
