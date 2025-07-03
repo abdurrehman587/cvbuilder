@@ -454,21 +454,7 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
                       
       </div>
 
-      {/* Admin Access Info */}
-      <div style={{
-        marginBottom: '20px',
-        padding: '15px',
-        backgroundColor: '#dbeafe',
-        borderRadius: '8px',
-        border: '1px solid #3b82f6'
-      }}>
-        <h3 style={{ margin: '0 0 10px 0', color: '#1e40af' }}>🔓 Admin CV Builder Access</h3>
-        <p style={{ margin: '0', color: '#1e40af', fontSize: '14px' }}>
-          Click "Access CV Builder" to use the CV builder app without any payment restrictions. 
-          You can create, edit, and download CVs freely as an admin user.
-        </p>
-      </div>
-
+      
       {/* Filter Buttons */}
       <div style={{ marginBottom: '20px' }}>
         <button
