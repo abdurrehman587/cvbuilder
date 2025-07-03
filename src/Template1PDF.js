@@ -473,6 +473,11 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
           if (approvedPayment) {
             await PaymentService.markPaymentAsUsed(approvedPayment.id, 'template1');
             console.log('Payment marked as used in Supabase');
+            
+            // Refresh button text after marking payment as used
+            const newButtonText = await PaymentService.getDownloadButtonText('template1', isAdminUser);
+            setButtonText(newButtonText);
+            console.log('Button text refreshed after download:', newButtonText);
           }
         } catch (error) {
           console.error('Error marking payment as used:', error);
@@ -712,31 +717,31 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
           >
             {buttonText}
           </button>
+          {/* Debug and Refresh buttons removed for template2 */}
+        </div>
+      </article>
 
-          {/* Debug button for testing payment status persistence */}
-          <button
-            type="button"
-            onClick={() => PaymentService.debugPaymentStatus('template1')}
-            style={{
-              cursor: 'pointer',
-              padding: '4px 8px',
-              fontSize: '0.8rem',
-              borderRadius: 4,
-              border: '1px solid #ccc',
-              backgroundColor: '#f0f0f0',
-              color: '#333',
-            }}
-          >
-            🐛 Debug
-          </button>
+      {/* Payment Modal - Outside PDF container */}
+      {showPaymentModal && (
+        <ManualPayment
+          amount={100}
+          templateId="template1"
+          templateName="Template 1"
+          onPaymentSuccess={handlePaymentSuccess}
+          onPaymentFailure={handlePaymentFailure}
+          onClose={() => setShowPaymentModal(false)}
+        />
+      )}
+    </>
+  );
+};
 
-          {/* Refresh button text */}
-          <button
-            type="button"
-            onClick={async () => {
-              const text = await PaymentService.getDownloadButtonText('template1', isAdminUser);
-              setButtonText(text);
-            }}
+Template1PDF.propTypes = {
+  formData: PropTypes.object.isRequired,
+  visibleSections: PropTypes.array,
+};
+
+export default Template1PDF;
             style={{
               cursor: 'pointer',
               padding: '4px 8px',
