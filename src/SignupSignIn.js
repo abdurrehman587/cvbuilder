@@ -147,36 +147,7 @@ const SignupSignIn = ({ onAuth }) => {
     }
   };
 
-  const handleGoogle = async () => {
-    if (userType === 'admin') {
-      setError('Google sign-in is not available for admin accounts. Please use email/password.');
-      return;
-    }
 
-    setError('');
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.auth.signInWithOAuth({ 
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`
-        }
-      });
-      
-      if (error) {
-        console.error('Google OAuth error:', error);
-        setError(error.message || 'Google sign-in failed. Please try again.');
-      } else if (data) {
-        console.log('Google OAuth initiated successfully');
-        // The redirect will happen automatically
-      }
-    } catch (err) {
-      console.error('Google OAuth exception:', err);
-      setError('Google sign-in failed. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleResend = async () => {
     setError('');
@@ -368,21 +339,7 @@ const SignupSignIn = ({ onAuth }) => {
           {loading ? 'Loading...' : (userType === 'admin' ? 'Admin Login' : (mode === 'signup' ? 'Sign Up' : 'Sign In'))}
         </button>
         
-        {userType === 'user' && (
-          <button 
-            type="button" 
-            onClick={handleGoogle} 
-            disabled={loading}
-            style={{
-              padding: 10, borderRadius: 6, border: 'none', 
-              background: loading ? '#ccc' : '#ea4335', 
-              color: '#fff', fontWeight: 600,
-              cursor: loading ? 'not-allowed' : 'pointer'
-            }}
-          >
-            {loading ? 'Loading...' : 'Continue with Google'}
-          </button>
-        )}
+
         
         {userType === 'user' && (
           <div style={{ textAlign: 'center', fontSize: 14 }}>
@@ -393,36 +350,7 @@ const SignupSignIn = ({ onAuth }) => {
           </div>
         )}
         
-        {/* Test Access Button */}
-        <button
-          type="button"
-          onClick={() => {
-            console.log('=== TEST ACCESS BUTTON CLICKED ===');
-            // Create a test user to bypass authentication
-            const testUser = {
-              id: 'test-user-123',
-              email: 'test@example.com',
-              userType: 'user',
-              isAdmin: false
-            };
-            console.log('SignupSignIn - Creating test user:', testUser);
-            onAuth(testUser);
-            // Store test user object in localStorage for payment utilities
-            localStorage.setItem('user', JSON.stringify(testUser));
-          }}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: '#f59e0b',
-            color: 'white',
-            border: 'none',
-            borderRadius: '6px',
-            fontSize: '12px',
-            cursor: 'pointer',
-            marginTop: '10px'
-          }}
-        >
-          🧪 Test Access (Skip Auth)
-        </button>
+
 
         {/* Hidden admin access indicator - only shows when admin mode is active */}
         {showAdminToggle && (
