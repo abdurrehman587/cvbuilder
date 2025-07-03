@@ -223,23 +223,7 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
           </button>
         </div>
         
-        <div style={{
-          position: 'absolute',
-          top: 20,
-          right: 20,
-          zIndex: 1000,
-          padding: '8px 16px',
-          backgroundColor: '#22c55e',
-          color: 'white',
-          borderRadius: '8px',
-          fontSize: '14px',
-          fontWeight: '600',
-          fontFamily: "'Inter', sans-serif"
-        }}>
-          🔓 Admin CV Builder Access
-        </div>
-
-        <LandingPage user={adminUser} />
+                <LandingPage user={adminUser} />
       </div>
     );
   }
