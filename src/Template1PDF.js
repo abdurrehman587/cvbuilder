@@ -717,7 +717,7 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
           >
             {buttonText}
           </button>
-          {/* Debug and Refresh buttons removed for template2 */}
+          {/* Debug and Refresh buttons removed for template1 */}
         </div>
       </article>
 
