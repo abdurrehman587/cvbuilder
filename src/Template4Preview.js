@@ -318,9 +318,10 @@ const Template4Preview = ({ formData, formHeight }) => {
                 {formData.linkedin && <span>{formData.linkedin}</span>}
               </div>
             </div>
-            <div style={{ width: 90, height: 90, borderRadius: '50%', overflow: 'hidden', border: `3px solid ${blue}`, marginLeft: 24, background: '#fff' }}>
+            {/* Rectangular profile photo container with rounded corners */}
+            <div style={{ width: 110, height: 140, borderRadius: 16, overflow: 'hidden', border: `3px solid ${blue}`, marginLeft: 24, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               {formData.imageUrl ? (
-                <img src={formData.imageUrl} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img src={formData.imageUrl} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 12 }} />
               ) : (
                 <div style={{ width: '100%', height: '100%', background: lightBlue, display: 'flex', alignItems: 'center', justifyContent: 'center', color: blue, fontSize: 32 }}>
                   <span>?</span>
