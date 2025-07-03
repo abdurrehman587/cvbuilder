@@ -400,4 +400,4 @@ ManualPayment.propTypes = {
   onClose: PropTypes.func.isRequired,
 };
 
-export default ManualPayment; 
+export default ManualPayment;

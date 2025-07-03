@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import supabase from './supabase';
-import { toast, ToastContainer } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './Form.css';
 
@@ -30,8 +30,7 @@ const defaultFormData = {
   languages: ['English', 'Urdu', 'Punjabi'],
   customLanguages: [],
   hobbies: [''],
-  references: ['References would be furnished on demand'],
-  customSections: [],
+  references: [''],
   otherInformation: [
     { id: 1, labelType: 'radio', label: "Father's Name:", checked: true, value: '', name: 'parentSpouse', radioValue: 'father' },
     { id: 2, labelType: 'radio', label: "Husband's Name:", checked: false, value: '', name: 'parentSpouse', radioValue: 'husband' },
@@ -48,333 +47,62 @@ const Form = ({ formData, setFormData, onChange, user }) => {
 
   const [searchName, setSearchName] = useState('');
   const [searchPhone, setSearchPhone] = useState('');
-  const [currentCvId, setCurrentCvId] = useState(null);
-  const [searchResults, setSearchResults] = useState([]);
-  const [showSearchResults, setShowSearchResults] = useState(false);
-  const [isSearching, setIsSearching] = useState(false);
 
-  // Clear search state for non-admin users
   useEffect(() => {
-    if (user && !user.isAdmin) {
-      setSearchName('');
-      setSearchPhone('');
-      setSearchResults([]);
-      setShowSearchResults(false);
-      setIsSearching(false);
+    if (!formData) {
+      setFormData(defaultFormData);
     }
-  }, [user]);
+  }, [formData, setFormData]);
 
-  // Debounced live search effect
+
   useEffect(() => {
-    if (!user || !user.isAdmin) return;
-
-    // Live search function defined inside useEffect
-    const performLiveSearch = async () => {
-      if (!user || !user.isAdmin) return;
-      if (!searchName && !searchPhone) {
-        setSearchResults([]);
-        setShowSearchResults(false);
-        return;
-      }
-
-      setIsSearching(true);
-      try {
-        if (!supabase || !supabase.from) {
-          console.error('Supabase client not available');
-          return;
-        }
-
-        // Try using RPC function for search
-        let searchParams = {};
-        if (searchName) searchParams.p_name = searchName;
-        if (searchPhone) searchParams.p_phone = searchPhone.replace(/[^0-9]/g, '');
-        
-        const { data, error } = await supabase.rpc('admin_search_cvs', searchParams);
-
-        if (error) {
-          console.error("RPC search error:", error);
-          // Fallback to direct table access
-          let query = supabase.from('cvs').select('*');
-
-          if (searchName) {
-            query = query.ilike('name', `%${searchName}%`);
-          }
-
-          if (searchPhone) {
-            const cleanPhone = searchPhone.replace(/[^0-9]/g, '');
-            query = query.ilike('phone', `%${cleanPhone}%`);
-          }
-
-          if (user && !user.isAdmin) {
-            query = query.eq('user_id', user.id);
-          }
-
-          const { data: directData, error: directError } = await query;
-
-          if (directError) {
-            console.error("Direct search error:", directError);
-            return;
-          }
-
-          setSearchResults(directData || []);
-          setShowSearchResults(directData && directData.length > 0);
-          return;
-        }
-
-        setSearchResults(data || []);
-        setShowSearchResults(data && data.length > 0);
-      } catch (error) {
-        console.error("Live search exception:", error);
-      } finally {
-        setIsSearching(false);
-      }
-    };
-
-    const searchTimeout = setTimeout(() => {
-      if (searchName || searchPhone) {
-        performLiveSearch();
-      } else {
-        setSearchResults([]);
-        setShowSearchResults(false);
-      }
-    }, 300); // 300ms delay
-
-    return () => clearTimeout(searchTimeout);
-  }, [searchName, searchPhone, user]);
-
-  // Maintain admin access flag for admin users
-  useEffect(() => {
-    if (user?.isAdmin) {
-      // Set admin access flag immediately
-      localStorage.setItem('admin_cv_access', 'true');
-      // Also store user object for resilient admin access check
-      localStorage.setItem('user', JSON.stringify(user));
-      console.log('Admin access flag and user object set for admin user');
-      
-      // Set up interval to maintain admin access flag more frequently
-      const adminAccessInterval = setInterval(() => {
-        const currentAdminAccess = localStorage.getItem('admin_cv_access');
-        if (currentAdminAccess !== 'true') {
-          localStorage.setItem('admin_cv_access', 'true');
-          console.log('Admin access flag restored');
-        }
-        // Also maintain user object
-        const currentUser = localStorage.getItem('user');
-        if (!currentUser || !JSON.parse(currentUser)?.isAdmin) {
-          localStorage.setItem('user', JSON.stringify(user));
-          console.log('User object restored');
-        }
-      }, 2000); // Check every 2 seconds instead of 5 seconds
-      
-      // Also set up a more frequent check for critical operations
-      const criticalCheckInterval = setInterval(() => {
-        const currentAdminAccess = localStorage.getItem('admin_cv_access');
-        if (currentAdminAccess !== 'true') {
-          localStorage.setItem('admin_cv_access', 'true');
-          console.log('Admin access flag critical restore');
-        }
-        // Also maintain user object
-        const currentUser = localStorage.getItem('user');
-        if (!currentUser || !JSON.parse(currentUser)?.isAdmin) {
-          localStorage.setItem('user', JSON.stringify(user));
-          console.log('User object critical restore');
-        }
-      }, 1000); // Check every 1 second for critical operations
-      
-      return () => {
-        clearInterval(adminAccessInterval);
-        clearInterval(criticalCheckInterval);
-      };
+    if (formData && onChange) {
+      onChange(formData);
     }
-  }, [user]);
+  }, [formData, onChange]);
 
   // Fetch user's CV on mount or when user changes
   useEffect(() => {
     const fetchUserCV = async () => {
-      if (!user) return;
-      
-      // Ensure admin access flag is maintained for admin users
-      if (user.isAdmin) {
-        localStorage.setItem('admin_cv_access', 'true');
-        console.log('Admin access flag maintained for admin user');
-      }
-      
-      // Check if admin has selected a CV to load
-      const adminSelectedCV = localStorage.getItem('admin_selected_cv');
-      if (user.isAdmin && adminSelectedCV) {
-        try {
-          const cvData = JSON.parse(adminSelectedCV);
-          console.log('Loading admin-selected CV:', cvData);
-          
-          setCurrentCvId(cvData.id);
-          
-          console.log('Admin CV - Raw custom_sections:', cvData.custom_sections);
-          console.log('Admin CV - Type of custom_sections:', typeof cvData.custom_sections);
-          
-          const parsedCustomSections = safeJsonParse(cvData.custom_sections, []);
-          console.log('Admin CV - Parsed custom sections:', parsedCustomSections);
-          
-          // Validate custom sections data - be more lenient to preserve sections for editing
-          const validatedCustomSections = Array.isArray(parsedCustomSections) 
-            ? parsedCustomSections.filter(section => 
-                section && 
-                typeof section === 'object' && 
-                (section.title !== undefined || section.heading !== undefined) && 
-                (section.items !== undefined || section.details !== undefined)
-              ).map(section => ({
-                id: section.id || Date.now() + Math.random(),
-                title: section.title || section.heading || '',
-                details: Array.isArray(section.details) ? section.details : 
-                        Array.isArray(section.items) ? section.items : ['']
-              }))
-            : [];
-          
-          console.log('Admin CV - Validated custom sections:', validatedCustomSections);
-          
-          // Ensure admin access flag is set for admin-selected CV
-          localStorage.setItem('admin_cv_access', 'true');
-          console.log('Admin access flag set for admin-selected CV');
-          
-          setFormData({
-            id: cvData.id,
-            image: null,
-            imageUrl: cvData.image_url || '',
-            name: cvData.name || '',
-            phone: cvData.phone || '',
-            email: cvData.email || '',
-            address: cvData.address || '',
-            objective: safeJsonParse(cvData.objective, []),
-            education: safeJsonParse(cvData.education, []),
-            workExperience: safeJsonParse(cvData.work_experience, []),
-            skills: safeJsonParse(cvData.skills, []),
-            certifications: safeJsonParse(cvData.certifications, []),
-            projects: safeJsonParse(cvData.projects, []),
-            languages: safeJsonParse(cvData.languages, []),
-            customLanguages: [],
-            hobbies: safeJsonParse(cvData.hobbies, []),
-            references: safeJsonParse(cvData.references, []),
-            customSections: validatedCustomSections,
-            otherInformation: safeJsonParse(cvData.other_information, []),
-          });
-          
-          // Clear the admin selected CV from localStorage after loading
-          localStorage.removeItem('admin_selected_cv');
-          toast.success('CV loaded successfully from admin search!');
-          return;
-        } catch (error) {
-          console.error('Error parsing admin-selected CV:', error);
-          localStorage.removeItem('admin_selected_cv');
-        }
-      }
-      
-      // Skip auto-loading for admin users - they should use search instead
-      if (user.isAdmin) {
-        console.log('Admin user detected - skipping auto CV load. Use search to find CVs.');
-        return;
-      }
-      
-      try {
-        console.log('Fetching CV for user:', user.id);
-        const { data, error } = await supabase
-          .from('cvs')
-          .select('*')
-          .eq('user_id', user.id)
-          .maybeSingle();
+      // Remove user param if not needed
+      // if (!user) return;
+      // Remove .eq('user_id', user.id) if your table does NOT have a user_id column
+      const { data, error } = await supabase
+        .from('cvs')
+        .select('*')
+        // .eq('user_id', user.id) // <-- keep commented out this line
+        .maybeSingle(); // <-- use maybeSingle instead of single
 
-        if (error) {
-          console.error('Error fetching CV:', error);
-          
-          // Check if table doesn't exist
-          if (error.message && error.message.includes('relation "cvs" does not exist')) {
-            console.warn('CV table does not exist. Please run the database setup script.');
-            return;
-          }
-          
-          // Check if no data found (this is normal for new users)
-          if (error.code === 'PGRST116') {
-            console.log('No existing CV found for user - this is normal for new users');
-            return;
-          }
-          
-          // Check for RLS policy issues
-          if (error.message && error.message.includes('new row violates row-level security policy')) {
-            console.error('RLS policy issue - user may not have proper permissions');
-            return;
-          }
-          
-          console.error('Unexpected error fetching CV:', error);
-          return;
-        }
-
-        if (data) {
-          console.log('CV data loaded successfully:', data);
-          console.log('Raw custom_sections from database:', data.custom_sections);
-          console.log('Type of custom_sections:', typeof data.custom_sections);
-          
-          // Parse custom sections with new structure
-          const parsedCustomSections = safeJsonParse(data.custom_sections, []);
-          console.log('Parsed custom sections:', parsedCustomSections);
-          
-          // Validate and normalize custom sections data
-          const validatedCustomSections = Array.isArray(parsedCustomSections) 
-            ? parsedCustomSections.filter(section => 
-                section && 
-                typeof section === 'object' && 
-                (section.title !== undefined || section.heading !== undefined) && 
-                (section.items !== undefined || section.details !== undefined)
-              ).map(section => ({
-                id: section.id || Date.now() + Math.random(),
-                title: section.title || section.heading || '',
-                details: Array.isArray(section.details) ? section.details : 
-                        Array.isArray(section.items) ? section.items : ['']
-              }))
-            : [];
-          
-          console.log('Validated custom sections:', validatedCustomSections);
-          
-          // Parse other information
-          const parsedOtherInformation = safeJsonParse(data.other_information, []);
-          console.log('Parsed other information:', parsedOtherInformation);
-          
-          setCurrentCvId(data.id);
-          const newFormData = {
-            id: data.id,
-            image: null,
-            imageUrl: data.image_url || '',
-            name: data.name || '',
-            phone: data.phone || '',
-            email: data.email || '',
-            address: data.address || '',
-            objective: safeJsonParse(data.objective, []),
-            education: safeJsonParse(data.education, []),
-            workExperience: safeJsonParse(data.work_experience, []),
-            skills: safeJsonParse(data.skills, []),
-            certifications: safeJsonParse(data.certifications, []),
-            projects: safeJsonParse(data.projects, []),
-            languages: safeJsonParse(data.languages, []),
-            customLanguages: [],
-            hobbies: safeJsonParse(data.hobbies, []),
-            references: safeJsonParse(data.references, []),
-            customSections: validatedCustomSections,
-            otherInformation: parsedOtherInformation && parsedOtherInformation.length > 0 ? parsedOtherInformation : defaultFormData.otherInformation,
-          };
-          
-          setFormData(newFormData);
-        }
-      } catch (err) {
-        console.error('Exception while fetching CV:', err);
+      if (data) {
+        setFormData({
+          image: null,
+          imageUrl: data.image_url || '',
+          name: data.name || '',
+          phone: data.phone || '',
+          email: data.email || '',
+          address: data.address || '',
+          objective: JSON.parse(data.objective || '[]'),
+          education: JSON.parse(data.education || '[]'),
+          workExperience: JSON.parse(data.work_experience || '[]'),
+          skills: JSON.parse(data.skills || '[]'),
+          certifications: JSON.parse(data.certifications || '[]'),
+          projects: JSON.parse(data.projects || '[]'),
+          languages: JSON.parse(data.languages || '[]'),
+          customLanguages: [],
+          hobbies: JSON.parse(data.hobbies || '[]'),
+          references: JSON.parse(data.references || '[]'),
+          otherInformation: JSON.parse(data.other_information || '[]'),
+        });
       }
     };
-    
     fetchUserCV();
     // eslint-disable-next-line
   }, [user]);
 
+
+
   const handleChange = (field) => (e) => {
-    const newFormData = { ...formData, [field]: e.target.value };
-    setFormData(newFormData);
-    // Remove the onChange call to prevent input fields from losing focus
-    // The setFormData call above already updates the parent component
+    setFormData({ ...formData, [field]: e.target.value });
   };
 
   const handleWorkExperienceChange = (index, field, value) => {
@@ -490,76 +218,8 @@ const Form = ({ formData, setFormData, onChange, user }) => {
 
   const handleCustomLanguageChange = (index, value) => {
     const updated = [...formData.customLanguages];
-    updated[index] = { ...updated[index], name: value };
+    updated[index].name = value;
     setFormData({ ...formData, customLanguages: updated });
-  };
-
-  // Custom Sections Handlers - NEW IMPLEMENTATION
-  const handleAddCustomSection = () => {
-    const newSection = {
-      id: Date.now(),
-      title: '',
-      details: ['']
-    };
-    setFormData(prev => ({
-      ...prev,
-      customSections: [...prev.customSections, newSection]
-    }));
-  };
-
-  const handleRemoveCustomSection = (sectionIndex) => {
-    setFormData(prev => ({
-      ...prev,
-      customSections: prev.customSections.filter((_, index) => index !== sectionIndex)
-    }));
-  };
-
-  const handleCustomSectionTitleChange = (sectionIndex, value) => {
-    setFormData(prev => ({
-      ...prev,
-      customSections: prev.customSections.map((section, index) => 
-        index === sectionIndex ? { ...section, title: value } : section
-      )
-    }));
-  };
-
-  const handleCustomSectionItemChange = (sectionIndex, itemIndex, value) => {
-    setFormData(prev => ({
-      ...prev,
-      customSections: prev.customSections.map((section, index) => 
-        index === sectionIndex 
-          ? { 
-              ...section, 
-              details: (section.details || []).map((item, i) => i === itemIndex ? value : item)
-            }
-          : section
-      )
-    }));
-  };
-
-  const handleAddCustomSectionItem = (sectionIndex) => {
-    setFormData(prev => ({
-      ...prev,
-      customSections: prev.customSections.map((section, index) => 
-        index === sectionIndex 
-          ? { ...section, details: [...(section.details || []), ''] }
-          : section
-      )
-    }));
-  };
-
-  const handleRemoveCustomSectionItem = (sectionIndex, itemIndex) => {
-    setFormData(prev => ({
-      ...prev,
-      customSections: prev.customSections.map((section, index) => 
-        index === sectionIndex 
-          ? { 
-              ...section, 
-              details: (section.details || []).filter((_, i) => i !== itemIndex)
-            }
-          : section
-      )
-    }));
   };
 
   const handleImageChange = (e) => {
@@ -610,394 +270,154 @@ const Form = ({ formData, setFormData, onChange, user }) => {
     }
   };
 
-  // Safe JSON parsing function
-  const safeJsonParse = (value, defaultValue = []) => {
-    if (!value) return defaultValue;
-    if (typeof value === 'object') return value; // Already parsed
-    if (typeof value === 'string') {
-      try {
-        const parsed = JSON.parse(value);
-        
-        // Special handling for custom sections to ensure proper structure
-        if (Array.isArray(parsed)) {
-          // Check if this looks like custom sections data (array of objects with heading and details)
-          if (parsed.length > 0 && parsed[0] && typeof parsed[0] === 'object' && 
-              (parsed[0].heading !== undefined || parsed[0].details !== undefined)) {
-            console.log('Parsing custom sections data:', parsed);
-            return parsed;
-          }
-          // Regular array data
-          return parsed;
-        }
-        
-        // If parsed is an object but not an array, return as is
-        if (typeof parsed === 'object') {
-          return parsed;
-        }
-        
-        return parsed;
-      } catch (error) {
-        console.warn('Failed to parse JSON:', value, error);
-        // If it's a simple string, wrap it in an array
-        return [value];
-      }
-    }
-    return defaultValue;
-  };
+
+
 
   const handleSave = async () => {
-    console.log('=== SAVE FUNCTION STARTED ===');
-    console.log('User:', user);
-    console.log('Is admin:', user?.isAdmin);
-    console.log('Current CV ID:', currentCvId);
-    console.log('Form data ID:', formData.id);
-    console.log('Form data name:', formData.name);
-    console.log('Form data phone:', formData.phone);
-
-    // Check if user is logged in
-    if (!user) {
-      console.log('=== NO USER ERROR ===');
-      toast.error('You must be logged in to save a CV.');
-      return;
-    }
-
-    console.log('=== REGULAR SAVE PATH ===');
-    
-    // Handle image upload first
-    let imageUrl = formData.imageUrl;
-    if (formData.image) {
-      console.log('Uploading image...');
-      const uploadedUrl = await uploadImage(formData.image);
-      if (!uploadedUrl) {
-        toast.error('Image upload failed. Please try again.');
+    try {
+      // Ensure user is present
+      if (!user) {
+        toast.error('You must be signed in to save your CV.');
         return;
       }
-      imageUrl = uploadedUrl;
-      console.log('Image uploaded successfully:', imageUrl);
-    }
 
-    try {
-      if (user.isAdmin) {
-        console.log('=== ADMIN SAVE PATH ===');
-        
-        // Use direct table operations for admin users
-        console.log('Using direct table operations for admin save');
-        console.log('DEBUG - formData.customSections before JSON.stringify:', formData.customSections);
-        console.log('DEBUG - custom_sections after JSON.stringify:', JSON.stringify(formData.customSections));
-        console.log('DEBUG - formData.otherInformation before JSON.stringify:', formData.otherInformation);
-        console.log('DEBUG - other_information after JSON.stringify:', JSON.stringify(formData.otherInformation));
-        
-        let data, error;
-        
-        // Prepare the data for admin CV (user_id will be NULL for admin CVs)
-        const adminCvData = {
-          name: formData.name,
-          phone: formData.phone,
-          email: formData.email,
-          address: formData.address,
-          objective: JSON.stringify(formData.objective),
-          education: JSON.stringify(formData.education),
-          work_experience: JSON.stringify(formData.workExperience),
-          skills: JSON.stringify(formData.skills),
-          certifications: JSON.stringify(formData.certifications),
-          projects: JSON.stringify(formData.projects),
-          languages: JSON.stringify(formData.languages),
-          hobbies: JSON.stringify(formData.hobbies),
-          references: JSON.stringify(formData.references),
-          custom_sections: JSON.stringify(formData.customSections),
-          other_information: JSON.stringify(formData.otherInformation),
-          image_url: imageUrl || null,
-          user_id: null, // Admin CVs have NULL user_id
-          updated_at: new Date().toISOString()
-        };
-        
-        if (formData.id || currentCvId) {
-          // Update existing admin CV
-          const cvId = formData.id || currentCvId;
-          console.log('Updating admin CV with ID:', cvId);
-          
-          const { data: updateData, error: updateError } = await supabase
-            .from('cvs')
-            .update(adminCvData)
-            .eq('id', cvId)
-            .select();
-            
-          data = updateData;
-          error = updateError;
-        } else {
-          // Create new admin CV
-          console.log('Creating new admin CV');
-          
-          // Add created_at for new CVs
-          adminCvData.created_at = new Date().toISOString();
-          
-          const { data: insertData, error: insertError } = await supabase
-            .from('cvs')
-            .insert([adminCvData])
-            .select();
-            
-          data = insertData;
-          error = insertError;
+      let imageUrl = formData.imageUrl;
+
+      // Upload image if present
+      if (formData.image) {
+        const uploadedUrl = await uploadImage(formData.image);
+        if (!uploadedUrl) {
+          toast.error('Image upload failed. Please try again.');
+          return;
         }
-        
-        if (error) {
-          console.error('Admin save error:', error);
-          throw error;
-        }
-        
-        if (formData.id || currentCvId) {
-          toast.success('CV updated successfully! (Admin Mode)');
-          console.log('CV updated successfully:', data);
-        } else {
-          toast.success('CV created successfully! (Admin Mode)');
-          console.log('CV created successfully:', data);
-          // Update the form data with the new ID
-          if (data && data.length > 0 && data[0].id) {
-            const newId = data[0].id;
-            console.log('Setting new CV ID:', newId);
-            setFormData(prev => ({ ...prev, id: newId }));
-            setCurrentCvId(newId);
-          }
-        }
-      } else {
-        // Regular user save logic
-        console.log('=== REGULAR USER SAVE LOGIC ===');
-        console.log('formData.id exists:', !!formData.id);
-        console.log('currentCvId exists:', !!currentCvId);
-        
-        // For regular users, check if they have an existing CV
-        if (!formData.id && !currentCvId) {
-          console.log('No CV ID found, checking for existing CV for this user...');
-          const { data: existingCv, error: searchError } = await supabase
-            .from('cvs')
-            .select('id')
-            .eq('user_id', user.id)
-            .limit(1);
-            
-          if (searchError) {
-            console.error('Error searching for existing CV:', searchError);
-          } else if (existingCv && existingCv.length > 0) {
-            console.log('Found existing CV for user:', existingCv[0]);
-            // Set the existing CV ID so it will be updated instead of created
-            setFormData(prev => ({ ...prev, id: existingCv[0].id }));
-            setCurrentCvId(existingCv[0].id);
-            // Use the found ID for the update
-            const updateData = {
-              name: formData.name,
-              phone: formData.phone,
-              email: formData.email,
-              address: formData.address,
-              objective: JSON.stringify(formData.objective),
-              education: JSON.stringify(formData.education),
-              work_experience: JSON.stringify(formData.workExperience),
-              skills: JSON.stringify(formData.skills),
-              certifications: JSON.stringify(formData.certifications),
-              projects: JSON.stringify(formData.projects),
-              languages: JSON.stringify(formData.languages),
-              hobbies: JSON.stringify(formData.hobbies),
-              references: JSON.stringify(formData.references),
-              custom_sections: JSON.stringify(formData.customSections),
-              other_information: JSON.stringify(formData.otherInformation),
-              user_id: user.id,
-              image_url: imageUrl || null,
-            };
-            
-            console.log('Updating existing CV with ID:', existingCv[0].id);
-            console.log('Update data:', updateData);
-            
-            const { data, error } = await supabase
-              .from('cvs')
-              .update(updateData)
-              .eq('id', existingCv[0].id);
-              
-            if (error) throw error;
-            toast.success('CV updated successfully!');
-            console.log('CV updated successfully:', data);
-            return;
-          }
-        }
-        
-        if (formData.id || currentCvId) {
-          console.log('=== UPDATING EXISTING CV ===');
-          // Update existing CV by id
-          const updateData = {
-            name: formData.name,
-            phone: formData.phone,
-            email: formData.email,
-            address: formData.address,
-            objective: JSON.stringify(formData.objective),
-            education: JSON.stringify(formData.education),
-            work_experience: JSON.stringify(formData.workExperience),
-            skills: JSON.stringify(formData.skills),
-            certifications: JSON.stringify(formData.certifications),
-            projects: JSON.stringify(formData.projects),
-            languages: JSON.stringify(formData.languages),
-            hobbies: JSON.stringify(formData.hobbies),
-            references: JSON.stringify(formData.references),
-            custom_sections: JSON.stringify(formData.customSections),
-            other_information: JSON.stringify(formData.otherInformation),
-            user_id: user.id,
-            image_url: imageUrl || null,
-          };
-          
-          const cvId = formData.id || currentCvId;
-          console.log('Updating CV with ID:', cvId);
-          console.log('Update data:', updateData);
-          
-          const { data, error } = await supabase
-            .from('cvs')
-            .update(updateData)
-            .eq('id', cvId);
-            
-            if (error) throw error;
-            toast.success('CV updated successfully!');
-            console.log('CV updated successfully:', data);
-        } else {
-          console.log('=== CREATING NEW CV ===');
-          // Insert new CV
-          const insertData = {
-            name: formData.name,
-            phone: formData.phone,
-            email: formData.email,
-            address: formData.address,
-            objective: JSON.stringify(formData.objective),
-            education: JSON.stringify(formData.education),
-            work_experience: JSON.stringify(formData.workExperience),
-            skills: JSON.stringify(formData.skills),
-            certifications: JSON.stringify(formData.certifications),
-            projects: JSON.stringify(formData.projects),
-            languages: JSON.stringify(formData.languages),
-            hobbies: JSON.stringify(formData.hobbies),
-            references: JSON.stringify(formData.references),
-            custom_sections: JSON.stringify(formData.customSections),
-            other_information: JSON.stringify(formData.otherInformation),
-            user_id: user.id,
-            image_url: imageUrl || null,
-          };
-          
-          console.log('Creating new CV with data:', insertData);
-          
-          const { data, error } = await supabase
-            .from('cvs')
-            .insert([insertData])
-            .select();
-            
-            if (error) throw error;
-            toast.success('CV created successfully!');
-            console.log('CV created successfully:', data);
-            
-            // Set the new CV ID
-            if (data && data.length > 0 && data[0].id) {
-              const newId = data[0].id;
-              console.log('Setting new CV ID:', newId);
-              setFormData(prev => ({ ...prev, id: newId }));
-              setCurrentCvId(newId);
-            }
-        }
+        imageUrl = uploadedUrl;
+      }
+
+      // Prepare payload for Supabase
+      const payload = {
+        // user_id: user.id, // <-- REMOVE this line if your table does not have a user_id column
+        image_url: imageUrl && imageUrl.startsWith('http') ? imageUrl : null,
+        name: formData.name || '',
+        phone: formData.phone || '',
+        email: formData.email || '',
+        address: formData.address || '',
+        objective: JSON.stringify((formData.objective || []).map(entry => entry || '')),
+        education: JSON.stringify((formData.education || []).map(e => ({
+          degree: e.degree || '',
+          institute: e.institute || '',
+          year: e.year || ''
+        }))),
+        work_experience: JSON.stringify((formData.workExperience || []).map(w => ({
+          company: w.company || '',
+          designation: w.designation || '',
+          duration: w.duration || '',
+          details: w.details || ''
+        }))),
+        skills: JSON.stringify((formData.skills || []).map(s => ({
+          name: s.name || '',
+          percentage: s.percentage || ''
+        }))),
+        certifications: JSON.stringify((formData.certifications || []).map(c => c || '')),
+        projects: JSON.stringify((formData.projects || []).map(p => p || '')),
+        languages: JSON.stringify([
+          ...(formData.languages || []),
+          ...(formData.customLanguages || [])
+            .filter(lang => lang.selected && lang.name?.trim())
+            .map(lang => lang.name.trim())
+        ]),
+        hobbies: JSON.stringify((formData.hobbies || []).map(h => h || '')),
+        references: JSON.stringify((formData.references || []).map(r => r || '')),
+        other_information: JSON.stringify((formData.otherInformation || []).map(info => ({
+          id: info.id,
+          labelType: info.labelType || '',
+          label: info.label || '',
+          checked: info.checked === true,
+          value: info.value || '',
+          name: info.name || '',
+          radioValue: info.radioValue || '',
+          isCustom: info.isCustom === true
+        })))
+      };
+
+      // Save (insert) to Supabase
+      const { error } = await supabase
+        .from('cvs')
+        .insert([payload]); // Use insert if you do not have a user_id column
+
+      if (error) {
+        toast.error(`Save failed: ${error.message}`);
+        return;
+      }
+
+      toast.success('CV Saved Successfully!');
+      // Optionally update formData with new imageUrl if uploaded
+      if (formData.image && imageUrl) {
+        setFormData(prev => ({ ...prev, image: null, imageUrl }));
       }
     } catch (error) {
-      console.error('=== SAVE ERROR ===');
-      console.error('Error details:', error);
-      toast.error('Error saving CV: ' + error.message);
+      toast.error('An unexpected error occurred while saving.');
     }
-    
-    console.log('=== SAVE FUNCTION ENDED ===');
   };
 
-  // Function to load CV from search results
-  const loadCVFromSearch = (cv) => {
-    console.log('=== LOADING CV FROM SEARCH ===');
-    console.log('CV data received:', cv);
-    
+
+  const handleSearch = async () => {
     try {
-      // Parse other_information data
-      const parsedOtherInformation = safeJsonParse(cv.other_information, defaultFormData.otherInformation);
-      console.log('Parsed other information:', parsedOtherInformation);
-      
-      // Ensure admin access flag is maintained for admin users
-      if (user?.isAdmin) {
-        localStorage.setItem('admin_cv_access', 'true');
+      if (!searchName && !searchPhone) {
+        toast.error("Please enter name or phone number to search.");
+        return;
       }
-      
-      const parsedCustomSections = safeJsonParse(cv.custom_sections, []);
-      console.log('Parsed custom sections:', parsedCustomSections);
-      
-      // Validate custom sections data - be more lenient to preserve sections for editing
-      const validatedCustomSections = Array.isArray(parsedCustomSections) 
-        ? parsedCustomSections.filter(section => 
-            section && 
-            typeof section === 'object' && 
-            (section.title !== undefined || section.heading !== undefined) && 
-            (section.items !== undefined || section.details !== undefined)
-          ).map(section => ({
-            id: section.id || Date.now() + Math.random(),
-            title: section.title || section.heading || '',
-            details: Array.isArray(section.details) ? section.details : 
-                    Array.isArray(section.items) ? section.items : ['']
-          }))
-        : [];
-      
-      setCurrentCvId(cv.id);
-      
-      const newFormData = {
-        id: cv.id,
+
+      let query = supabase.from('cvs').select('*').limit(1); // <-- updated table name
+
+      if (searchName) {
+        query = query.ilike('name', `%${searchName}%`);
+      }
+
+      if (searchPhone) {
+        query = query.ilike('phone', `%${searchPhone}%`);
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error("Search error:", error);
+        toast.error("Failed to search CV.");
+        return;
+      }
+
+      if (data.length === 0) {
+        toast.info("No matching CV found.");
+        return;
+      }
+
+      const cv = data[0];
+
+      setFormData({
         image: null,
         imageUrl: cv.image_url || '',
         name: cv.name || '',
         phone: cv.phone || '',
         email: cv.email || '',
         address: cv.address || '',
-        objective: safeJsonParse(cv.objective, []),
-        education: safeJsonParse(cv.education, []),
-        workExperience: safeJsonParse(cv.work_experience, []),
-        skills: safeJsonParse(cv.skills, []),
-        certifications: safeJsonParse(cv.certifications, []),
-        projects: safeJsonParse(cv.projects, []),
-        languages: safeJsonParse(cv.languages, []),
-        customLanguages: safeJsonParse(cv.custom_languages, []),
-        hobbies: safeJsonParse(cv.hobbies, []),
-        references: safeJsonParse(cv.references, []),
-        customSections: validatedCustomSections,
-        otherInformation: parsedOtherInformation && parsedOtherInformation.length > 0 ? parsedOtherInformation : defaultFormData.otherInformation,
-      };
-      
-      console.log('New form data to be set:', newFormData);
-      console.log('Name field:', newFormData.name);
-      console.log('Phone field:', newFormData.phone);
-      console.log('Email field:', newFormData.email);
-      
-      setFormData(newFormData);
-      setCurrentCvId(cv.id);
+        objective: JSON.parse(cv.objective || '[]'),
+        education: JSON.parse(cv.education || '[]'),
+        workExperience: JSON.parse(cv.work_experience || '[]'),
+        skills: JSON.parse(cv.skills || '[]'),
+        certifications: JSON.parse(cv.certifications || '[]'),
+        projects: JSON.parse(cv.projects || '[]'),
+        languages: JSON.parse(cv.languages || '[]'),
+        customLanguages: [], // no longer used
+        hobbies: JSON.parse(cv.hobbies || '[]'),
+        references: JSON.parse(cv.references || '[]'),
+        otherInformation: JSON.parse(cv.other_information || '[]'),
+      });
 
-      setShowSearchResults(false);
-      setSearchName('');
-      setSearchPhone('');
-      toast.success(`CV loaded successfully for ${cv.name || 'Unknown User'}`);
-      
-      // Add a delay to check if form data was actually updated
-      setTimeout(() => {
-        console.log('=== CHECKING FORM DATA AFTER SET ===');
-        console.log('Current formData state:', formData);
-        console.log('Current formData.name:', formData.name);
-        console.log('Current formData.phone:', formData.phone);
-        console.log('Current formData.email:', formData.email);
-      }, 100);
-    } catch (error) {
-      console.error('Error loading CV:', error);
-      toast.error('Error loading CV: ' + error.message);
+      toast.success("CV loaded successfully.");
+    } catch (err) {
+      console.error("Unexpected error:", err);
+      toast.error("Unexpected error during search.");
     }
   };
-
-  // Add debugging useEffect to monitor form data changes
-  useEffect(() => {
-    console.log('=== FORM DATA CHANGED ===');
-    console.log('formData.name:', formData.name);
-    console.log('formData.phone:', formData.phone);
-    console.log('formData.email:', formData.email);
-    console.log('formData.address:', formData.address);
-    console.log('formData.customSections:', formData.customSections);
-    console.log('formData.otherInformation:', formData.otherInformation);
-  }, [formData]);
 
   // Guard: Don't render until formData is initialized
   if (!formData) return null;
@@ -1005,166 +425,67 @@ const Form = ({ formData, setFormData, onChange, user }) => {
   return (
     <>
       {/* Search Container Above Form */}
-      {/* Admin-only Search Section */}
-      {user?.isAdmin && (
-        <>
-          <div style={{
-            width: '100%',
-            padding: '2rem',
-            boxSizing: 'border-box',
-            backgroundColor: '#f9fafb',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '16px',
-            flexWrap: 'wrap',
-            borderBottom: '1px solid #e5e7eb'
-          }}>
-            <div style={{ flex: '1', minWidth: '220px', position: 'relative' }}>
-              <input
-                type="text"
-                placeholder="Search any CV by name"
-                value={searchName}
-                onChange={(e) => setSearchName(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem 1rem',
-                  fontSize: '1rem',
-                  borderRadius: '0.75rem',
-                  border: '1px solid #d1d5db',
-                  fontFamily: 'Inter, sans-serif',
-                  outline: 'none',
-                  paddingRight: isSearching ? '2.5rem' : '1rem'
-                }}
-              />
-              {isSearching && (
-                <div style={{
-                  position: 'absolute',
-                  right: '0.75rem',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  color: '#6b7280'
-                }}>
-                  🔍
-                </div>
-              )}
-            </div>
-            <div style={{ flex: '1', minWidth: '220px', position: 'relative' }}>
-              <input
-                type="text"
-                placeholder="Search any CV by Phone Number"
-                value={searchPhone}
-                onChange={(e) => setSearchPhone(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem 1rem',
-                  fontSize: '1rem',
-                  borderRadius: '0.75rem',
-                  border: '1px solid #d1d5db',
-                  fontFamily: 'Inter, sans-serif',
-                  outline: 'none',
-                  paddingRight: isSearching ? '2.5rem' : '1rem'
-                }}
-              />
-              {isSearching && (
-                <div style={{
-                  position: 'absolute',
-                  right: '0.75rem',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  color: '#6b7280'
-                }}>
-                  🔍
-                </div>
-              )}
-            </div>
-          </div>
+      <div style={{
+        width: '100%',
+        padding: '2rem',
+        boxSizing: 'border-box',
+        backgroundColor: '#f9fafb',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '16px',
+        flexWrap: 'wrap',
+        borderBottom: '1px solid #e5e7eb'
+      }}>
+        <input
+          type="text"
+          placeholder="Search CV by name"
+          value={searchName}
+          onChange={(e) => setSearchName(e.target.value)}
+          style={{
+            flex: '1',
+            padding: '0.75rem 1rem',
+            fontSize: '1rem',
+            borderRadius: '0.75rem',
+            border: '1px solid #d1d5db',
+            fontFamily: 'Inter, sans-serif',
+            outline: 'none',
+            minWidth: '220px'
+          }}
+        />
+        <input
+          type="text"
+          placeholder="Search CV by Phone Number"
+          value={searchPhone}
+          onChange={(e) => setSearchPhone(e.target.value)}
+          style={{
+            flex: '1',
+            padding: '0.75rem 1rem',
+            fontSize: '1rem',
+            borderRadius: '0.75rem',
+            border: '1px solid #d1d5db',
+            fontFamily: 'Inter, sans-serif',
+            outline: 'none',
+            minWidth: '220px'
+          }}
+        />
+        <button
+          onClick={handleSearch}
+          style={{
+            padding: '0.75rem 1.5rem',
+            backgroundColor: '#2563eb',
+            color: 'white',
+            border: 'none',
+            borderRadius: '0.75rem',
+            fontSize: '1rem',
+            fontWeight: '600',
+            cursor: 'pointer',
+            whiteSpace: 'nowrap'
+          }}
+        >
+          Search
+        </button>
+      </div>
 
-          {/* Search Results Display */}
-          {showSearchResults && searchResults.length > 0 && (
-            <div style={{
-              width: '100%',
-              padding: '1rem',
-              backgroundColor: '#f3f4f6',
-              border: '1px solid #d1d5db',
-              borderRadius: '0.75rem',
-              marginBottom: '1rem'
-            }}>
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '1rem'
-              }}>
-                <h3 style={{ margin: 0, color: '#374151' }}>
-                  Search Results ({searchResults.length} CV{searchResults.length === 1 ? '' : 's'})
-                </h3>
-                <button
-                  onClick={() => {
-                    setShowSearchResults(false);
-                    setSearchResults([]);
-                  }}
-                  style={{
-                    padding: '0.5rem 1rem',
-                    backgroundColor: '#6b7280',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '0.5rem',
-                    cursor: 'pointer',
-                    fontSize: '0.875rem'
-                  }}
-                >
-                  ✕ Close
-                </button>
-              </div>
-              
-              <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                {searchResults.map((cv, index) => (
-                  <div
-                    key={cv.id}
-                    style={{
-                      padding: '1rem',
-                      backgroundColor: 'white',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '0.5rem',
-                      marginBottom: '0.5rem',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center'
-                    }}
-                  >
-                    <div>
-                      <div style={{ fontWeight: '600', color: '#111827', marginBottom: '0.25rem' }}>
-                        {cv.name || 'No Name'}
-                      </div>
-                      <div style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.25rem' }}>
-                        📞 {cv.phone || 'No Phone'} | 📧 {cv.email || 'No Email'}
-                      </div>
-                      <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>
-                        ID: {cv.id} | Created: {new Date(cv.created_at).toLocaleDateString()}
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => loadCVFromSearch(cv)}
-                      style={{
-                        padding: '0.5rem 1rem',
-                        backgroundColor: '#22c55e',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '0.5rem',
-                        cursor: 'pointer',
-                        fontSize: '0.875rem',
-                        fontWeight: '600'
-                      }}
-                    >
-                      📝 Load CV
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </>
-      )}
 
       <div className="form-container">
         {/* Profile Image */}
@@ -1186,32 +507,12 @@ const Form = ({ formData, setFormData, onChange, user }) => {
 
         {/* Contact Info Row */}
         <div className="contact-row">
-          <InputField 
-            label="Name" 
-            value={formData.name} 
-            onChange={handleChange('name')} 
-            placeholder="Your full name" 
-          />
-          <InputField 
-            label="Phone" 
-            value={formData.phone} 
-            onChange={handleChange('phone')} 
-            placeholder="Your phone number" 
-          />
+          <InputField label="Name" value={formData.name} onChange={handleChange('name')} placeholder="Your full name" />
+          <InputField label="Phone" value={formData.phone} onChange={handleChange('phone')} placeholder="Your phone number" />
         </div>
         <div className="contact-row">
-          <InputField 
-            label="Email" 
-            value={formData.email} 
-            onChange={handleChange('email')} 
-            placeholder="Your email address" 
-          />
-          <InputField 
-            label="Address" 
-            value={formData.address} 
-            onChange={handleChange('address')} 
-            placeholder="Your address" 
-          />
+          <InputField label="Email" value={formData.email} onChange={handleChange('email')} placeholder="Your email address" />
+          <InputField label="Address" value={formData.address} onChange={handleChange('address')} placeholder="Your address" />
         </div>
 
         {/* Other sections unchanged for brevity, same as previous cleaned-up version */}
@@ -1332,52 +633,21 @@ const Form = ({ formData, setFormData, onChange, user }) => {
           rows={1}
         />
 
-        <CustomSectionsSection
-          customSections={formData.customSections}
-          onHeadingChange={handleCustomSectionTitleChange}
-          onDetailChange={handleCustomSectionItemChange}
-          onAddDetail={handleAddCustomSectionItem}
-          onRemoveDetail={handleRemoveCustomSectionItem}
-          onAddSection={handleAddCustomSection}
-          onRemoveSection={handleRemoveCustomSection}
-        />
-        
         <button onClick={handleSave} type="button" className="save-btn">
-          {user?.isAdmin ? '💾 Save CV (Admin)' : 'Save'}
+          Save
         </button>
 
       </div>
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
     </>
   );
 };
 
-const InputField = ({ label, value, onChange, placeholder }) => {
-  console.log(`InputField ${label} rendering with value:`, value);
-  return (
-    <div className="input-field">
-      <label>{label}</label>
-      <input 
-        type="text" 
-        value={value || ''} 
-        onChange={onChange} 
-        placeholder={placeholder}
-        style={{ border: value ? '2px solid green' : '1px solid #ccc' }}
-      />
-    </div>
-  );
-};
+const InputField = ({ label, value, onChange, placeholder }) => (
+  <div className="input-field">
+    <label>{label}</label>
+    <input type="text" value={value} onChange={onChange} placeholder={placeholder} />
+  </div>
+);
 
 const EducationSection = ({ education, onChange, onAdd, onRemove }) => (
   <div style={{ marginBottom: '1.5rem' }}>
@@ -1672,161 +942,6 @@ const DynamicSection = ({ title, entries, onChange, onAdd, onRemove, placeholder
     )}
   </div>
 );
-
-const CustomSectionsSection = ({
-  customSections = [],
-  onHeadingChange,
-  onDetailChange,
-  onAddDetail,
-  onRemoveDetail,
-  onAddSection,
-  onRemoveSection,
-}) => {
-  return (
-    <div style={{ marginBottom: '1.5rem' }}>
-      <h3 style={{ fontWeight: 700, fontSize: '1.25rem', marginBottom: 8, color: '#374151' }}>
-        Custom Sections
-      </h3>
-      
-      {customSections.length === 0 ? (
-        <div style={{ 
-          textAlign: 'center', 
-          padding: '2rem', 
-          border: '2px dashed #d1d5db', 
-          borderRadius: '8px',
-          color: '#6b7280'
-        }}>
-          <p>No custom sections added yet.</p>
-          <p>Click "Add New Section" to create your first custom section.</p>
-        </div>
-      ) : (
-        customSections.map((section, sectionIndex) => (
-          <div key={section.id || sectionIndex} style={{ 
-            border: '1px solid #e5e7eb', 
-            borderRadius: '8px', 
-            padding: '1rem', 
-            marginBottom: '1rem',
-            backgroundColor: '#f9fafb'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <input
-                type="text"
-                value={section.title || ''}
-                onChange={(e) => onHeadingChange(sectionIndex, e.target.value)}
-                placeholder="Section Title"
-                style={{
-                  flex: 1,
-                  padding: '0.5rem',
-                  fontSize: '1rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '4px',
-                  marginRight: '1rem'
-                }}
-              />
-              <button
-                onClick={() => onRemoveSection(sectionIndex)}
-                className="remove-btn"
-                type="button"
-                title="Remove section"
-                style={{
-                  padding: '0.5rem 1rem',
-                  backgroundColor: '#ef4444',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer'
-                }}
-              >
-                Remove Section
-              </button>
-            </div>
-            
-            <div style={{ marginBottom: '1rem' }}>
-              <h4 style={{ margin: '0 0 0.5rem 0', color: '#374151', fontSize: '1rem' }}>Section Items:</h4>
-              {(section.details || []).map((item, itemIndex) => (
-                <div key={itemIndex} style={{ 
-                  display: 'flex', 
-                  alignItems: 'flex-start', 
-                  gap: '0.5rem', 
-                  marginBottom: '0.5rem' 
-                }}>
-                  <textarea
-                    value={item || ''}
-                    onChange={(e) => onDetailChange(sectionIndex, itemIndex, e.target.value)}
-                    placeholder="Enter section item..."
-                    rows={2}
-                    style={{
-                      flex: 1,
-                      padding: '0.5rem',
-                      fontSize: '0.875rem',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '4px',
-                      resize: 'vertical'
-                    }}
-                  />
-                  <button
-                    onClick={() => onRemoveDetail(sectionIndex, itemIndex)}
-                    disabled={(section.details || []).length <= 1}
-                    className="remove-btn"
-                    type="button"
-                    title={(section.details || []).length <= 1 ? 'At least one item required' : 'Remove item'}
-                    style={{
-                      padding: '0.5rem',
-                      backgroundColor: '#6b7280',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '4px',
-                      cursor: (section.details || []).length <= 1 ? 'not-allowed' : 'pointer',
-                      opacity: (section.details || []).length <= 1 ? 0.5 : 1,
-                      fontSize: '0.75rem'
-                    }}
-                  >
-                    Remove
-                  </button>
-                </div>
-              ))}
-              <button
-                onClick={() => onAddDetail(sectionIndex)}
-                className="add-btn"
-                type="button"
-                style={{
-                  padding: '0.5rem 1rem',
-                  backgroundColor: '#22c55e',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontSize: '0.875rem',
-                  marginTop: '0.5rem'
-                }}
-              >
-                Add Item
-              </button>
-            </div>
-          </div>
-        ))
-      )}
-      
-      <button
-        onClick={onAddSection}
-        className="add-btn"
-        type="button"
-        style={{
-          padding: '0.75rem 1.5rem',
-          backgroundColor: '#3b82f6',
-          color: 'white',
-          border: 'none',
-          borderRadius: '6px',
-          cursor: 'pointer',
-          fontSize: '1rem',
-          fontWeight: '600'
-        }}
-      >
-        Add New Section
-      </button>
-    </div>
-  );
-};
 
 export default Form;
 

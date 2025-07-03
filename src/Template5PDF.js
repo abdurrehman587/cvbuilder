@@ -445,6 +445,11 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
           if (approvedPayment) {
             await PaymentService.markPaymentAsUsed(approvedPayment.id, 'template5');
             console.log('Payment marked as used after download');
+            
+            // Refresh button text after marking payment as used
+            const newButtonText = await PaymentService.getDownloadButtonText('template5', isAdminUser);
+            setButtonText(newButtonText);
+            console.log('Button text refreshed after download:', newButtonText);
           }
         } catch (error) {
           console.error('Error marking payment as used:', error);
