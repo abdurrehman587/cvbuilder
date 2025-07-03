@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Template4PDF from './Template4PDF';
 
 const sectionList = [
   { key: 'objective', title: 'Objective' },
@@ -70,6 +71,26 @@ const Template4Preview = ({ formData, formHeight }) => {
   }, [formData]);
 
   const previewHeight = formHeight || 'auto';
+
+  // Download PDF handler
+  const handleDownload = () => {
+    // Use the same logic as Template4PDF's handleDownloadClick
+    if (typeof window !== 'undefined') {
+      import('html2pdf.js').then(html2pdf => {
+        const element = document.getElementById('template4-preview-pdf-area');
+        if (!element) return;
+        html2pdf.default()
+          .from(element)
+          .set({
+            margin: 0,
+            filename: `${formData.name || 'cv'}-template4.pdf`,
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+          })
+          .save();
+      });
+    }
+  };
 
   // Helper renderers for each section
   const renderObjective = () => (
@@ -230,8 +251,30 @@ const Template4Preview = ({ formData, formHeight }) => {
       maxWidth: 830,
       margin: '0 auto',
       display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
       justifyContent: 'center',
     }}>
+      {/* Download Button */}
+      <button
+        onClick={handleDownload}
+        style={{
+          margin: '16px 0',
+          padding: '10px 28px',
+          background: blue,
+          color: '#fff',
+          border: 'none',
+          borderRadius: 8,
+          fontWeight: 600,
+          fontSize: 16,
+          cursor: 'pointer',
+          boxShadow: '0 2px 8px rgba(59,130,246,0.08)',
+          letterSpacing: 0.5,
+        }}
+        type="button"
+      >
+        Download PDF
+      </button>
       <div style={{ width: 794 }}>
         {/* Section toggles */}
         <div
@@ -275,6 +318,7 @@ const Template4Preview = ({ formData, formHeight }) => {
 
         {/* CV Layout */}
         <article
+          id="template4-preview-pdf-area"
           style={{
             width: '794px',
             height: previewHeight,
