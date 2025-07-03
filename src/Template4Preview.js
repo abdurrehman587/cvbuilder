@@ -73,26 +73,6 @@ const Template4Preview = ({ formData, formHeight }) => {
 
   const previewHeight = formHeight || 'auto';
 
-  // Download PDF handler
-  const handleDownload = () => {
-    // Use the same logic as Template4PDF's handleDownloadClick
-    if (typeof window !== 'undefined') {
-      import('html2pdf.js').then(html2pdf => {
-        const element = document.getElementById('template4-preview-pdf-area');
-        if (!element) return;
-        html2pdf.default()
-          .from(element)
-          .set({
-            margin: 0,
-            filename: `${formData.name || 'cv'}-template4.pdf`,
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-          })
-          .save();
-      });
-    }
-  };
-
   // Helper renderers for each section
   const renderObjective = () => (
     <section style={{ marginBottom: 24 }}>
@@ -296,7 +276,6 @@ const Template4Preview = ({ formData, formHeight }) => {
             );
           })}
         </div>
-
         {/* CV Layout */}
         <article
           id="template4-preview-pdf-area"
@@ -361,6 +340,27 @@ const Template4Preview = ({ formData, formHeight }) => {
             <div style={{ flex: 2, minWidth: 0 }}>
               {visibleSections.includes('objective') && renderObjective()}
               {visibleSections.includes('workExperience') && renderWorkExperience()}
+              {visibleSections.includes('projects') && renderProjects()}
+              {visibleSections.includes('certifications') && renderCertifications()}
+              {visibleSections.includes('customSections') && renderCustomSections()}
+              {visibleSections.includes('references') && renderReferences()}
+              {visibleSections.includes('otherInformation') && renderOtherInformation()}
+            </div>
+            {/* Right/Sidebar column */}
+            <div style={{ flex: 1, minWidth: 180 }}>
+              {visibleSections.includes('education') && renderEducation()}
+              {visibleSections.includes('skills') && renderSkills()}
+              {visibleSections.includes('languages') && renderLanguages()}
+              {visibleSections.includes('hobbies') && renderHobbies()}
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  );
+};
+
+export default Template4Preview;
               {visibleSections.includes('projects') && renderProjects()}
               {visibleSections.includes('certifications') && renderCertifications()}
               {visibleSections.includes('customSections') && renderCustomSections()}
