@@ -361,48 +361,4 @@ const Template4Preview = ({ formData, formHeight }) => {
 };
 
 export default Template4Preview;
-              {visibleSections.includes('projects') && renderProjects()}
-              {visibleSections.includes('certifications') && renderCertifications()}
-              {visibleSections.includes('customSections') && renderCustomSections()}
-              {visibleSections.includes('references') && renderReferences()}
-              {visibleSections.includes('otherInformation') && renderOtherInformation()}
-            </div>
-            {/* Right/Sidebar column */}
-            <div style={{ flex: 1, minWidth: 180 }}>
-              {visibleSections.includes('education') && renderEducation()}
-              {visibleSections.includes('skills') && renderSkills()}
-              {visibleSections.includes('languages') && renderLanguages()}
-              {visibleSections.includes('hobbies') && renderHobbies()}
-            </div>
-          </div>
-        </article>
-      </div>
-    </div>
-  );
-};
-
-export default Template4Preview;
-              {visibleSections.includes('objective') && renderObjective()}
-              {visibleSections.includes('workExperience') && renderWorkExperience()}
-              {visibleSections.includes('projects') && renderProjects()}
-              {visibleSections.includes('certifications') && renderCertifications()}
-              {visibleSections.includes('customSections') && renderCustomSections()}
-              {visibleSections.includes('references') && renderReferences()}
-              {visibleSections.includes('otherInformation') && renderOtherInformation()}
-            </div>
-            {/* Right/Sidebar column */}
-            <div style={{ flex: 1, minWidth: 180 }}>
-              {visibleSections.includes('education') && renderEducation()}
-              {visibleSections.includes('skills') && renderSkills()}
-              {visibleSections.includes('languages') && renderLanguages()}
-              {visibleSections.includes('hobbies') && renderHobbies()}
-            </div>
-          </div>
-        </article>
-      </div>
-    </div>
-  );
-};
-
-export default Template4Preview;
 
