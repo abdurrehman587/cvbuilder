@@ -256,29 +256,6 @@ const Template4Preview = ({ formData, formHeight }) => {
       alignItems: 'center',
       justifyContent: 'center',
     }}>
-      {/* DEBUG MESSAGE AND BUTTON */}
-      <div style={{ background: '#ffdddd', color: '#b91c1c', padding: 12, borderRadius: 8, margin: '12px 0', fontWeight: 700, fontSize: 18 }}>
-        DEBUG: If you see this, Template4Preview is rendering!
-      </div>
-      <button
-        onClick={handleDownload}
-        style={{
-          margin: '16px 0',
-          padding: '14px 32px',
-          background: '#dc2626',
-          color: '#fff',
-          border: 'none',
-          borderRadius: 8,
-          fontWeight: 700,
-          fontSize: 20,
-          cursor: 'pointer',
-          boxShadow: '0 2px 8px rgba(220,38,38,0.18)',
-          letterSpacing: 1,
-        }}
-        type="button"
-      >
-        DEBUG: Download PDF
-      </button>
       <div style={{ width: 794 }}>
         {/* Section toggles */}
         <div
@@ -382,6 +359,29 @@ const Template4Preview = ({ formData, formHeight }) => {
           <div style={{ display: 'flex', flexDirection: 'row', padding: 32, gap: 32 }}>
             {/* Left/Main column */}
             <div style={{ flex: 2, minWidth: 0 }}>
+              {visibleSections.includes('objective') && renderObjective()}
+              {visibleSections.includes('workExperience') && renderWorkExperience()}
+              {visibleSections.includes('projects') && renderProjects()}
+              {visibleSections.includes('certifications') && renderCertifications()}
+              {visibleSections.includes('customSections') && renderCustomSections()}
+              {visibleSections.includes('references') && renderReferences()}
+              {visibleSections.includes('otherInformation') && renderOtherInformation()}
+            </div>
+            {/* Right/Sidebar column */}
+            <div style={{ flex: 1, minWidth: 180 }}>
+              {visibleSections.includes('education') && renderEducation()}
+              {visibleSections.includes('skills') && renderSkills()}
+              {visibleSections.includes('languages') && renderLanguages()}
+              {visibleSections.includes('hobbies') && renderHobbies()}
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  );
+};
+
+export default Template4Preview;
               {visibleSections.includes('objective') && renderObjective()}
               {visibleSections.includes('workExperience') && renderWorkExperience()}
               {visibleSections.includes('projects') && renderProjects()}
