@@ -516,62 +516,7 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
           </button>
           <span>Simulates the entire user payment journey</span>
         </div>
-        
-        {/* Quick Test Payment */}
-        <div style={{
-          marginTop: '10px',
-          padding: '8px 12px',
-          backgroundColor: '#dcfce7',
-          borderRadius: '6px',
-          border: '1px solid #22c55e',
-          fontSize: '12px',
-          color: '#15803d'
-        }}>
-          <button
-            onClick={() => {
-              // Create a test payment directly
-              const testPayment = {
-                id: `QUICK-${Date.now()}`,
-                userId: 'test@user.com',
-                templateId: 'template1',
-                templateName: 'Template 1',
-                method: 'easypaisa',
-                amount: 100,
-                phoneNumber: '03001234567',
-                timestamp: new Date().toISOString(),
-                status: 'pending',
-                downloadUsed: false
-              };
-              
-              console.log('=== QUICK TEST PAYMENT ===');
-              console.log('Creating test payment:', testPayment);
-              
-              localStorage.setItem(`payment_${testPayment.id}`, JSON.stringify(testPayment));
-              
-              // Verify it was stored
-              const stored = localStorage.getItem(`payment_${testPayment.id}`);
-              console.log('Payment stored successfully:', stored);
-              
-              // Trigger immediate refresh
-              loadPayments();
-              
-              alert(`Quick test payment created!\n\nPayment ID: ${testPayment.id}\n\nCheck if it appears in the list above.`);
-            }}
-            style={{
-              padding: '4px 8px',
-              backgroundColor: '#22c55e',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '11px',
-              marginRight: '8px'
-            }}
-          >
-            ⚡ Quick Test Payment
-          </button>
-          <span>Creates a test payment immediately to verify the system</span>
-        </div>
+                
       </div>
 
       {/* Admin Access Info */}
