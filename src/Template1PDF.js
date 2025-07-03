@@ -742,39 +742,3 @@ Template1PDF.propTypes = {
 };
 
 export default Template1PDF;
-            style={{
-              cursor: 'pointer',
-              padding: '4px 8px',
-              fontSize: '0.8rem',
-              borderRadius: 4,
-              border: '1px solid #ccc',
-              backgroundColor: '#e0f2fe',
-              color: '#333',
-            }}
-          >
-            🔄 Refresh
-          </button>
-        </div>
-      </article>
-
-      {/* Payment Modal - Outside PDF container */}
-      {showPaymentModal && (
-        <ManualPayment
-          amount={100}
-          templateId="template1"
-          templateName="Template 1"
-          onPaymentSuccess={handlePaymentSuccess}
-          onPaymentFailure={handlePaymentFailure}
-          onClose={() => setShowPaymentModal(false)}
-        />
-      )}
-    </>
-  );
-};
-
-Template1PDF.propTypes = {
-  formData: PropTypes.object.isRequired,
-  visibleSections: PropTypes.array,
-};
-
-export default Template1PDF;
