@@ -444,6 +444,11 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
           if (approvedPayment) {
             await PaymentService.markPaymentAsUsed(approvedPayment.id, 'template4');
             console.log('Payment marked as used after download');
+            
+            // Refresh button text after marking payment as used
+            const newButtonText = await PaymentService.getDownloadButtonText('template4', isAdminUser);
+            setButtonText(newButtonText);
+            console.log('Button text refreshed after download:', newButtonText);
           }
         } catch (error) {
           console.error('Error marking payment as used:', error);
@@ -587,26 +592,27 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
         </div>
       </div>
 
+      {/* Always-visible Download Button */}
       <button
         ref={buttonRef}
-        onClick={handleDownloadClick}
-        onMouseEnter={e => {
-          e.currentTarget.style.transform = downloadButtonHoverStyle.transform;
-          e.currentTarget.style.boxShadow = downloadButtonHoverStyle.boxShadow;
+        onClick={generatePDF}
+        style={{
+          margin: '24px auto',
+          display: 'block',
+          padding: '12px 32px',
+          background: '#2563eb',
+          color: '#fff',
+          border: 'none',
+          borderRadius: 8,
+          fontWeight: 700,
+          fontSize: 18,
+          cursor: 'pointer',
+          boxShadow: '0 2px 8px rgba(59,130,246,0.18)',
+          letterSpacing: 1,
         }}
-        onMouseLeave={e => {
-          e.currentTarget.style.transform = 'translateY(0)';
-          e.currentTarget.style.boxShadow = downloadButtonStyle.boxShadow;
-        }}
-        style={{...downloadButtonStyle, 
-          ...(paymentState === 'processing' ? { cursor: 'not-allowed', background: '#a5b4fc' } : {}),
-          ...(paymentState === 'error' ? { background: 'linear-gradient(135deg, #fb923c, #f97316)' } : {}),
-        }}
-        disabled={paymentState === 'processing'}
-        aria-label={buttonText}
+        type="button"
       >
-        {paymentState === 'processing' ? '...' : '⬇'}
-        <span>{buttonText}</span>
+        Download PDF
       </button>
 
       {showPaymentModal && (
