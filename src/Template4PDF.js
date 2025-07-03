@@ -31,6 +31,8 @@ const loadHtml2Pdf = () => {
 const Template4PDF = ({ formData, visibleSections = [] }) => {
   const containerRef = useRef(null);
   const buttonRef = useRef(null);
+  const downloadButtonRef = useRef(null);
+  const debugButtonRef = useRef(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentState, setPaymentState] = useState('idle');
   const [isAdminUser, setIsAdminUser] = useState(false);
@@ -404,9 +406,7 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
 
   const generatePDF = async () => {
     if (paymentState === 'processing') return;
-  
     setPaymentState('processing');
-    
     try {
       const cvElement = containerRef.current;
       if (!cvElement) {
@@ -414,57 +414,27 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
         setPaymentState('error');
         return;
       }
-  
-      // Temporarily remove the download button from the capture
-      const buttonElement = buttonRef.current;
-      if (buttonElement) {
-        buttonElement.style.display = 'none';
-      }
-      
+      // Hide download and debug buttons
+      if (downloadButtonRef.current) downloadButtonRef.current.style.display = 'none';
+      if (debugButtonRef.current) debugButtonRef.current.style.display = 'none';
       const html2pdf = await loadHtml2Pdf();
       const pdfOptions = {
         margin: [0, 0, 0, 0],
-        filename: `${formData.personalInfo.fullName || 'CV'}_template3.pdf`,
+        filename: `${formData.personalInfo?.fullName || 'CV'}_template4.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true, logging: true },
         jsPDF: { unit: 'px', format: [794, 1123], orientation: 'portrait' },
       };
-      
       await html2pdf().set(pdfOptions).from(cvElement).save();
-  
-      // Restore the button after capture
-      if (buttonElement) {
-        buttonElement.style.display = 'flex';
-      }
-  
-      // Mark the user's approved payment as used (only for non-admin users)
-      if (!isAdminUser) {
-        try {
-          const approvedPayment = await PaymentService.checkApprovedPayment('template4');
-          if (approvedPayment) {
-            await PaymentService.markPaymentAsUsed(approvedPayment.id, 'template4');
-            console.log('Payment marked as used after download');
-            
-            // Refresh button text after marking payment as used
-            const newButtonText = await PaymentService.getDownloadButtonText('template4', isAdminUser);
-            setButtonText(newButtonText);
-            console.log('Button text refreshed after download:', newButtonText);
-          }
-        } catch (error) {
-          console.error('Error marking payment as used:', error);
-        }
-      }
-      
+      // Restore buttons
+      if (downloadButtonRef.current) downloadButtonRef.current.style.display = 'block';
+      if (debugButtonRef.current) debugButtonRef.current.style.display = 'block';
       setPaymentState('success');
-  
     } catch (error) {
       console.error("Error generating PDF:", error);
       setPaymentState('error');
-  
-      const buttonElement = buttonRef.current;
-      if (buttonElement) {
-        buttonElement.style.display = 'flex';
-      }
+      if (downloadButtonRef.current) downloadButtonRef.current.style.display = 'block';
+      if (debugButtonRef.current) debugButtonRef.current.style.display = 'block';
     }
   };
   
@@ -591,29 +561,6 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
             )}
         </div>
       </div>
-
-      {/* Always-visible Download Button */}
-      <button
-        ref={buttonRef}
-        onClick={generatePDF}
-        style={{
-          margin: '24px auto',
-          display: 'block',
-          padding: '12px 32px',
-          background: '#2563eb',
-          color: '#fff',
-          border: 'none',
-          borderRadius: 8,
-          fontWeight: 700,
-          fontSize: 18,
-          cursor: 'pointer',
-          boxShadow: '0 2px 8px rgba(59,130,246,0.18)',
-          letterSpacing: 1,
-        }}
-        type="button"
-      >
-        Download PDF
-      </button>
 
       {showPaymentModal && (
         <ManualPayment
