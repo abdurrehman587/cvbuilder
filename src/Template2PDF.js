@@ -264,6 +264,11 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
           if (approvedPayment) {
             await PaymentService.markPaymentAsUsed(approvedPayment.id, 'template2');
             console.log('Payment marked as used after download');
+            
+            // Refresh button text after marking payment as used
+            const newButtonText = await PaymentService.getDownloadButtonText('template2', isAdminUser);
+            setButtonText(newButtonText);
+            console.log('Button text refreshed after download:', newButtonText);
           }
         } catch (error) {
           console.error('Error marking payment as used:', error);
@@ -295,8 +300,6 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
     setShowPaymentModal(false);
     alert('Payment failed. Please try again.');
   };
-
-
 
   const handleDownloadClick = async () => {
     console.log('=== DOWNLOAD CLICK START ===');
@@ -615,73 +618,6 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
               )}
             </div>
           )}
-        </div>
-        {/* Download Button */}
-        <div style={{
-          position: 'absolute',
-          bottom: '20px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px'
-        }}>
-          <button
-            ref={buttonRef}
-            type="button"
-            onClick={handleDownloadClick}
-            style={{
-              padding: '10px 20px',
-              fontSize: '1rem',
-              borderRadius: '5px',
-              border: 'none',
-              backgroundColor: '#2ecc71',
-              color: 'white',
-              cursor: 'pointer',
-              transition: 'background-color 0.3s ease',
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#27ae60')}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#2ecc71')}
-          >
-            {buttonText}
-          </button>
-
-          {/* Debug button for testing payment status persistence */}
-          <button
-            type="button"
-            onClick={() => PaymentService.debugPaymentStatus('template2')}
-            style={{
-              cursor: 'pointer',
-              padding: '4px 8px',
-              fontSize: '0.8rem',
-              borderRadius: 4,
-              border: '1px solid #ccc',
-              backgroundColor: '#f0f0f0',
-              color: '#333',
-            }}
-          >
-            🐛 Debug
-          </button>
-
-          {/* Refresh button text */}
-          <button
-            type="button"
-            onClick={async () => {
-              const text = await PaymentService.getDownloadButtonText('template2', isAdminUser);
-              setButtonText(text);
-            }}
-            style={{
-              cursor: 'pointer',
-              padding: '4px 8px',
-              fontSize: '0.8rem',
-              borderRadius: 4,
-              border: '1px solid #ccc',
-              backgroundColor: '#e0f2fe',
-              color: '#333',
-            }}
-          >
-            🔄 Refresh
-          </button>
         </div>
       </div>
 
