@@ -60,6 +60,7 @@ const blue = '#2563eb';
 const lightBlue = '#e0e7ff';
 
 const Template4Preview = ({ formData, formHeight }) => {
+  console.log('Template4Preview rendered');
   const [visibleSections, setVisibleSections] = useState([]);
 
   // Update visible sections when formData changes
@@ -255,25 +256,28 @@ const Template4Preview = ({ formData, formHeight }) => {
       alignItems: 'center',
       justifyContent: 'center',
     }}>
-      {/* Download Button */}
+      {/* DEBUG MESSAGE AND BUTTON */}
+      <div style={{ background: '#ffdddd', color: '#b91c1c', padding: 12, borderRadius: 8, margin: '12px 0', fontWeight: 700, fontSize: 18 }}>
+        DEBUG: If you see this, Template4Preview is rendering!
+      </div>
       <button
         onClick={handleDownload}
         style={{
           margin: '16px 0',
-          padding: '10px 28px',
-          background: blue,
+          padding: '14px 32px',
+          background: '#dc2626',
           color: '#fff',
           border: 'none',
           borderRadius: 8,
-          fontWeight: 600,
-          fontSize: 16,
+          fontWeight: 700,
+          fontSize: 20,
           cursor: 'pointer',
-          boxShadow: '0 2px 8px rgba(59,130,246,0.08)',
-          letterSpacing: 0.5,
+          boxShadow: '0 2px 8px rgba(220,38,38,0.18)',
+          letterSpacing: 1,
         }}
         type="button"
       >
-        Download PDF
+        DEBUG: Download PDF
       </button>
       <div style={{ width: 794 }}>
         {/* Section toggles */}
