@@ -1,5 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+
+// Force cache refresh
+console.log('App version: 1.0.1 - Cache busted at:', new Date().toISOString());
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';

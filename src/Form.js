@@ -344,6 +344,7 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
   const handleSave = async () => {
     try {
       console.log('=== SAVE CV START ===');
+      console.log('App version check - Form.js loaded at:', new Date().toISOString());
       console.log('User:', user);
       console.log('Form data:', formData);
       
