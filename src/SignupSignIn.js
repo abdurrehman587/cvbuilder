@@ -205,21 +205,7 @@ const SignupSignIn = ({ onAuth }) => {
           ← Back to Login
         </button>
         
-        <div style={{
-          position: 'absolute',
-          top: 20,
-          right: 20,
-          zIndex: 1000,
-          padding: '8px 16px',
-          backgroundColor: '#dc2626',
-          color: 'white',
-          borderRadius: '8px',
-          fontSize: '14px',
-          fontWeight: '600',
-          fontFamily: "'Inter', sans-serif"
-        }}>
-          🔐 Admin Mode
-        </div>
+
 
         <PaymentAdmin />
       </div>
