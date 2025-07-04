@@ -292,6 +292,43 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
           >
             🎨 Access CV Builder
           </button>
+          
+          <button
+            onClick={() => {
+              const pendingPayments = payments.filter(p => p.status === 'pending');
+              if (pendingPayments.length === 0) {
+                alert('No pending payments to approve.');
+                return;
+              }
+              if (window.confirm(`Approve all ${pendingPayments.length} pending payments?`)) {
+                pendingPayments.forEach(payment => approvePayment(payment.id));
+              }
+            }}
+            style={{
+              padding: '12px 24px',
+              backgroundColor: '#22c55e',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: '600',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#16a34a';
+              e.currentTarget.style.transform = 'translateY(-2px)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#22c55e';
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}
+          >
+            ✅ Approve All Pending
+          </button>
         </div>
       </div>
 
@@ -314,6 +351,7 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
               <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Status</th>
               <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Download</th>
               <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Date</th>
+              <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -391,6 +429,55 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
                 </td>
                 <td style={{ padding: '12px', fontSize: '0.9rem' }}>
                   {new Date(payment.timestamp).toLocaleString()}
+                </td>
+                <td style={{ padding: '12px' }}>
+                  {payment.status === 'pending' && (
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button
+                        onClick={() => approvePayment(payment.id)}
+                        style={{
+                          padding: '4px 8px',
+                          backgroundColor: '#22c55e',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          fontSize: '0.8rem'
+                        }}
+                      >
+                        ✅ Approve
+                      </button>
+                      <button
+                        onClick={() => rejectPayment(payment.id)}
+                        style={{
+                          padding: '4px 8px',
+                          backgroundColor: '#ef4444',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          fontSize: '0.8rem'
+                        }}
+                      >
+                        ❌ Reject
+                      </button>
+                    </div>
+                  )}
+                  <button
+                    onClick={() => deletePayment(payment.id)}
+                    style={{
+                      padding: '4px 8px',
+                      backgroundColor: '#6b7280',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '0.8rem',
+                      marginTop: '4px'
+                    }}
+                  >
+                    🗑️ Delete
+                  </button>
                 </td>
               </tr>
             ))}
