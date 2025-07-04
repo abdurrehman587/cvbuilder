@@ -150,12 +150,15 @@ const LandingPage = ({ user }) => {
       setIsLoadingCV(true);
       setSelectedTemplate('Template 1');
       
-      // Show a brief loading message
+      // The Form component will handle the actual CV loading
+      // We just need to show the loading state briefly
       setTimeout(() => {
-        setIsLoadingCV(false);
-      }, 2000);
+        if (isLoadingCV) {
+          setIsLoadingCV(false);
+        }
+      }, 3000);
     }
-  }, [user]);
+  }, [user, isLoadingCV]);
 
   // Listen for back to templates event from admin panel
   useEffect(() => {

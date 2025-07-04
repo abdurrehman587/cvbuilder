@@ -67,49 +67,100 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
       if (!user || !user.email) return;
       
       console.log('Fetching CV for user:', user.email);
+      console.log('User object:', user);
+      console.log('Admin access:', localStorage.getItem('admin_cv_access'));
       
-      const { data, error } = await supabase
-        .from('cvs')
-        .select('*')
-        .eq('user_email', user.email)
-        .maybeSingle();
+      // Check if user is admin or regular user
+      const isAdmin = user.isAdmin || localStorage.getItem('admin_cv_access') === 'true';
+      console.log('Is admin user:', isAdmin);
+      
+      if (isAdmin) {
+        // For admin users, fetch from admin_cvs table
+        const { data, error } = await supabase
+          .from('admin_cvs')
+          .select('*')
+          .eq('admin_email', user.email)
+          .maybeSingle();
 
-      if (error) {
-        console.error('Error fetching CV:', error);
-        return;
-      }
+        if (error) {
+          console.error('Error fetching admin CV:', error);
+          return;
+        }
 
-      if (data) {
-        console.log('CV data loaded:', data);
-        setFormData({
-          image: null,
-          imageUrl: data.image_url || '',
-          name: data.name || '',
-          phone: data.phone || '',
-          email: data.email || '',
-          address: data.address || '',
-          objective: JSON.parse(data.objective || '[]'),
-          education: JSON.parse(data.education || '[]'),
-          workExperience: JSON.parse(data.work_experience || '[]'),
-          skills: JSON.parse(data.skills || '[]'),
-          certifications: JSON.parse(data.certifications || '[]'),
-          projects: JSON.parse(data.projects || '[]'),
-          languages: JSON.parse(data.languages || '[]'),
-          customLanguages: [],
-          hobbies: JSON.parse(data.hobbies || '[]'),
-          references: JSON.parse(data.references || '[]'),
-          otherInformation: JSON.parse(data.other_information || '[]'),
-        });
-        
-        // Notify parent component that CV was loaded
-        if (onCVLoaded) {
-          onCVLoaded(true);
+        if (data) {
+          console.log('Admin CV data loaded:', data);
+          setFormData({
+            image: null,
+            imageUrl: data.image_url || '',
+            name: data.name || '',
+            phone: data.phone || '',
+            email: data.email || '',
+            address: data.address || '',
+            objective: data.objective || [],
+            education: data.education || [],
+            workExperience: data.work_experience || [],
+            skills: data.skills || [],
+            certifications: data.certifications || [],
+            projects: data.projects || [],
+            languages: data.languages || [],
+            customLanguages: [],
+            hobbies: data.hobbies || [],
+            references: data.references || [],
+            otherInformation: data.other_information || [],
+          });
+          
+          if (onCVLoaded) {
+            onCVLoaded(true);
+          }
+        } else {
+          console.log('No existing admin CV found for user:', user.email);
+          if (onCVLoaded) {
+            onCVLoaded(false);
+          }
         }
       } else {
-        console.log('No existing CV found for user:', user.email);
-        // Notify parent component that no CV was found
-        if (onCVLoaded) {
-          onCVLoaded(false);
+        // For regular users, fetch from user_cvs table
+        const { data, error } = await supabase
+          .from('user_cvs')
+          .select('*')
+          .eq('user_email', user.email)
+          .maybeSingle();
+
+        if (error) {
+          console.error('Error fetching user CV:', error);
+          return;
+        }
+
+        if (data) {
+          console.log('User CV data loaded:', data);
+          setFormData({
+            image: null,
+            imageUrl: data.image_url || '',
+            name: data.name || '',
+            phone: data.phone || '',
+            email: data.email || '',
+            address: data.address || '',
+            objective: data.objective || [],
+            education: data.education || [],
+            workExperience: data.work_experience || [],
+            skills: data.skills || [],
+            certifications: data.certifications || [],
+            projects: data.projects || [],
+            languages: data.languages || [],
+            customLanguages: [],
+            hobbies: data.hobbies || [],
+            references: data.references || [],
+            otherInformation: data.other_information || [],
+          });
+          
+          if (onCVLoaded) {
+            onCVLoaded(true);
+          }
+        } else {
+          console.log('No existing user CV found for user:', user.email);
+          if (onCVLoaded) {
+            onCVLoaded(false);
+          }
         }
       }
     };
@@ -310,71 +361,113 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
         imageUrl = uploadedUrl;
       }
 
-      // Prepare payload for Supabase
-      const payload = {
-        user_email: user.email,
-        image_url: imageUrl && imageUrl.startsWith('http') ? imageUrl : null,
-        name: formData.name || '',
-        phone: formData.phone || '',
-        email: formData.email || '',
-        address: formData.address || '',
-        objective: JSON.stringify((formData.objective || []).map(entry => entry || '')),
-        education: JSON.stringify((formData.education || []).map(e => ({
-          degree: e.degree || '',
-          institute: e.institute || '',
-          year: e.year || ''
-        }))),
-        work_experience: JSON.stringify((formData.workExperience || []).map(w => ({
-          company: w.company || '',
-          designation: w.designation || '',
-          duration: w.duration || '',
-          details: w.details || ''
-        }))),
-        skills: JSON.stringify((formData.skills || []).map(s => ({
-          name: s.name || '',
-          percentage: s.percentage || ''
-        }))),
-        certifications: JSON.stringify((formData.certifications || []).map(c => c || '')),
-        projects: JSON.stringify((formData.projects || []).map(p => p || '')),
-        languages: JSON.stringify([
-          ...(formData.languages || []),
-          ...(formData.customLanguages || [])
-            .filter(lang => lang.selected && lang.name?.trim())
-            .map(lang => lang.name.trim())
-        ]),
-        hobbies: JSON.stringify((formData.hobbies || []).map(h => h || '')),
-        references: JSON.stringify((formData.references || []).map(r => r || '')),
-        other_information: JSON.stringify((formData.otherInformation || []).map(info => ({
-          id: info.id,
-          labelType: info.labelType || '',
-          label: info.label || '',
-          checked: info.checked === true,
-          value: info.value || '',
-          name: info.name || '',
-          radioValue: info.radioValue || '',
-          isCustom: info.isCustom === true
-        })))
-      };
+      // Check if user is admin or regular user
+      const isAdmin = user.isAdmin || localStorage.getItem('admin_cv_access') === 'true';
+      
+      if (isAdmin) {
+        // For admin users, save to admin_cvs table
+        const payload = {
+          admin_email: user.email,
+          cv_name: formData.name || 'Admin CV',
+          image_url: imageUrl && imageUrl.startsWith('http') ? imageUrl : null,
+          name: formData.name || '',
+          phone: formData.phone || '',
+          email: formData.email || '',
+          address: formData.address || '',
+          objective: (formData.objective || []).map(entry => entry || ''),
+          education: (formData.education || []).map(e => ({
+            degree: e.degree || '',
+            institute: e.institute || '',
+            year: e.year || ''
+          })),
+          work_experience: (formData.workExperience || []).map(w => ({
+            company: w.company || '',
+            designation: w.designation || '',
+            duration: w.duration || '',
+            details: w.details || ''
+          })),
+          skills: (formData.skills || []).map(s => ({
+            name: s.name || '',
+            percentage: s.percentage || ''
+          })),
+          certifications: (formData.certifications || []).map(c => c || ''),
+          projects: (formData.projects || []).map(p => p || ''),
+          languages: [
+            ...(formData.languages || []),
+            ...(formData.customLanguages || [])
+              .filter(lang => lang.selected && lang.name?.trim())
+              .map(lang => lang.name.trim())
+          ],
+          hobbies: (formData.hobbies || []).map(h => h || ''),
+          references: (formData.references || []).map(r => r || ''),
+          other_information: (formData.otherInformation || []).map(info => ({
+            id: info.id,
+            labelType: info.labelType || '',
+            label: info.label || '',
+            checked: info.checked === true,
+            value: info.value || '',
+            name: info.name || '',
+            radioValue: info.radioValue || '',
+            isCustom: info.isCustom === true
+          }))
+        };
 
-      // Check if CV already exists for this user
-      const { data: existingCV } = await supabase
-        .from('cvs')
-        .select('id')
-        .eq('user_email', user.email)
-        .maybeSingle();
-
-      let result;
-      if (existingCV) {
-        // Update existing CV
+        // For admin, always insert new CV (multiple CVs allowed)
         result = await supabase
-          .from('cvs')
-          .update(payload)
-          .eq('user_email', user.email);
-      } else {
-        // Insert new CV
-        result = await supabase
-          .from('cvs')
+          .from('admin_cvs')
           .insert([payload]);
+      } else {
+        // For regular users, use the upsert function to save to user_cvs table
+        const { data: cvId, error } = await supabase.rpc('upsert_user_cv', {
+          p_user_email: user.email,
+          p_image_url: imageUrl && imageUrl.startsWith('http') ? imageUrl : null,
+          p_name: formData.name || '',
+          p_phone: formData.phone || '',
+          p_email: formData.email || '',
+          p_address: formData.address || '',
+          p_objective: (formData.objective || []).map(entry => entry || ''),
+          p_education: (formData.education || []).map(e => ({
+            degree: e.degree || '',
+            institute: e.institute || '',
+            year: e.year || ''
+          })),
+          p_work_experience: (formData.workExperience || []).map(w => ({
+            company: w.company || '',
+            designation: w.designation || '',
+            duration: w.duration || '',
+            details: w.details || ''
+          })),
+          p_skills: (formData.skills || []).map(s => ({
+            name: s.name || '',
+            percentage: s.percentage || ''
+          })),
+          p_certifications: (formData.certifications || []).map(c => c || ''),
+          p_projects: (formData.projects || []).map(p => p || ''),
+          p_languages: [
+            ...(formData.languages || []),
+            ...(formData.customLanguages || [])
+              .filter(lang => lang.selected && lang.name?.trim())
+              .map(lang => lang.name.trim())
+          ],
+          p_hobbies: (formData.hobbies || []).map(h => h || ''),
+          p_references: (formData.references || []).map(r => r || ''),
+          p_other_information: (formData.otherInformation || []).map(info => ({
+            id: info.id,
+            labelType: info.labelType || '',
+            label: info.label || '',
+            checked: info.checked === true,
+            value: info.value || '',
+            name: info.name || '',
+            radioValue: info.radioValue || '',
+            isCustom: info.isCustom === true
+          }))
+        });
+
+        if (error) {
+          result = { error };
+        } else {
+          result = { data: { id: cvId } };
+        }
       }
 
       if (result.error) {
@@ -382,7 +475,7 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
         return;
       }
 
-      toast.success(existingCV ? 'CV Updated Successfully!' : 'CV Saved Successfully!');
+      toast.success(isAdmin ? 'Admin CV Saved Successfully!' : 'CV Saved Successfully!');
       // Optionally update formData with new imageUrl if uploaded
       if (formData.image && imageUrl) {
         setFormData(prev => ({ ...prev, image: null, imageUrl }));
@@ -400,30 +493,46 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
         return;
       }
 
-      let query = supabase.from('cvs').select('*').limit(1); // <-- updated table name
+      // Search in both user_cvs and admin_cvs tables
+      let userQuery = supabase.from('user_cvs').select('*').limit(1);
+      let adminQuery = supabase.from('admin_cvs').select('*').limit(1);
 
       if (searchName) {
-        query = query.ilike('name', `%${searchName}%`);
+        userQuery = userQuery.ilike('name', `%${searchName}%`);
+        adminQuery = adminQuery.ilike('name', `%${searchName}%`);
       }
 
       if (searchPhone) {
-        query = query.ilike('phone', `%${searchPhone}%`);
+        userQuery = userQuery.ilike('phone', `%${searchPhone}%`);
+        adminQuery = adminQuery.ilike('phone', `%${searchPhone}%`);
       }
 
-      const { data, error } = await query;
+      // Execute both queries
+      const [userResult, adminResult] = await Promise.all([
+        userQuery,
+        adminQuery
+      ]);
 
-      if (error) {
-        console.error("Search error:", error);
-        toast.error("Failed to search CV.");
-        return;
+      if (userResult.error) {
+        console.error("User CV search error:", userResult.error);
       }
 
-      if (data.length === 0) {
+      if (adminResult.error) {
+        console.error("Admin CV search error:", adminResult.error);
+      }
+
+      // Combine results
+      const allResults = [
+        ...(userResult.data || []),
+        ...(adminResult.data || [])
+      ];
+
+      if (allResults.length === 0) {
         toast.info("No matching CV found.");
         return;
       }
 
-      const cv = data[0];
+      const cv = allResults[0]; // Take the first match
 
       setFormData({
         image: null,
@@ -432,17 +541,17 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
         phone: cv.phone || '',
         email: cv.email || '',
         address: cv.address || '',
-        objective: JSON.parse(cv.objective || '[]'),
-        education: JSON.parse(cv.education || '[]'),
-        workExperience: JSON.parse(cv.work_experience || '[]'),
-        skills: JSON.parse(cv.skills || '[]'),
-        certifications: JSON.parse(cv.certifications || '[]'),
-        projects: JSON.parse(cv.projects || '[]'),
-        languages: JSON.parse(cv.languages || '[]'),
-        customLanguages: [], // no longer used
-        hobbies: JSON.parse(cv.hobbies || '[]'),
-        references: JSON.parse(cv.references || '[]'),
-        otherInformation: JSON.parse(cv.other_information || '[]'),
+        objective: cv.objective || [],
+        education: cv.education || [],
+        workExperience: cv.work_experience || [],
+        skills: cv.skills || [],
+        certifications: cv.certifications || [],
+        projects: cv.projects || [],
+        languages: cv.languages || [],
+        customLanguages: [],
+        hobbies: cv.hobbies || [],
+        references: cv.references || [],
+        otherInformation: cv.other_information || [],
       });
 
       toast.success("CV loaded successfully.");
