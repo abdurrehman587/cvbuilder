@@ -292,64 +292,7 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
           >
             🎨 Access CV Builder
           </button>
-                
-      {/* Filter Buttons */}
-      <div style={{ marginBottom: '20px' }}>
-        <button
-          onClick={() => setFilter('all')}
-          style={{
-            padding: '6px 12px',
-            marginRight: '10px',
-            backgroundColor: filter === 'all' ? '#22c55e' : '#e5e7eb',
-            color: filter === 'all' ? 'white' : '#374151',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer'
-          }}
-        >
-          All ({payments.length})
-        </button>
-        <button
-          onClick={() => setFilter('pending')}
-          style={{
-            padding: '6px 12px',
-            marginRight: '10px',
-            backgroundColor: filter === 'pending' ? '#f59e0b' : '#e5e7eb',
-            color: filter === 'pending' ? 'white' : '#374151',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer'
-          }}
-        >
-          Pending ({payments.filter(p => p.status === 'pending').length})
-        </button>
-        <button
-          onClick={() => setFilter('approved')}
-          style={{
-            padding: '6px 12px',
-            marginRight: '10px',
-            backgroundColor: filter === 'approved' ? '#22c55e' : '#e5e7eb',
-            color: filter === 'approved' ? 'white' : '#374151',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer'
-          }}
-        >
-          Approved ({payments.filter(p => p.status === 'approved').length})
-        </button>
-        <button
-          onClick={() => setFilter('rejected')}
-          style={{
-            padding: '6px 12px',
-            backgroundColor: filter === 'rejected' ? '#ef4444' : '#e5e7eb',
-            color: filter === 'rejected' ? 'white' : '#374151',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer'
-          }}
-        >
-          Rejected ({payments.filter(p => p.status === 'rejected').length})
-        </button>
+        </div>
       </div>
 
       {/* Payments Table */}
@@ -371,7 +314,6 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
               <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Status</th>
               <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Download</th>
               <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Date</th>
-              <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -450,55 +392,6 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
                 <td style={{ padding: '12px', fontSize: '0.9rem' }}>
                   {new Date(payment.timestamp).toLocaleString()}
                 </td>
-                <td style={{ padding: '12px' }}>
-                  {payment.status === 'pending' && (
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <button
-                        onClick={() => approvePayment(payment.id)}
-                        style={{
-                          padding: '4px 8px',
-                          backgroundColor: '#22c55e',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          fontSize: '0.8rem'
-                        }}
-                      >
-                        ✅ Approve
-                      </button>
-                      <button
-                        onClick={() => rejectPayment(payment.id)}
-                        style={{
-                          padding: '4px 8px',
-                          backgroundColor: '#ef4444',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          fontSize: '0.8rem'
-                        }}
-                      >
-                        ❌ Reject
-                      </button>
-                    </div>
-                  )}
-                  <button
-                    onClick={() => deletePayment(payment.id)}
-                    style={{
-                      padding: '4px 8px',
-                      backgroundColor: '#6b7280',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      fontSize: '0.8rem',
-                      marginTop: '4px'
-                    }}
-                  >
-                    🗑️ Delete
-                  </button>
-                </td>
               </tr>
             ))}
           </tbody>
@@ -521,39 +414,7 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
               The system automatically checks for new payments every 5 seconds.
             </div>
             
-            {/* Testing Instructions */}
-            <div style={{
-              marginTop: '20px',
-              padding: '15px',
-              backgroundColor: '#fef3c7',
-              borderRadius: '8px',
-              border: '1px solid #f59e0b'
-            }}>
-              <h4 style={{ margin: '0 0 10px 0', color: '#92400e' }}>🧪 Testing Instructions:</h4>
-              <ol style={{ margin: '0', paddingLeft: '20px', fontSize: '13px', color: '#92400e' }}>
-                <li><strong>Database Test:</strong> Click "🔍 Test Database" below to check if payments exist</li>
-                <li><strong>User Flow Test:</strong> Open CV builder in a new tab, fill a CV, and try to download</li>
-                <li><strong>Payment Form Test:</strong> Use "🧪 Auto-Fill Test Payment" in the payment modal</li>
-                <li><strong>Check Console:</strong> Open browser console (F12) to see detailed logs</li>
-              </ol>
-              
-              <button
-                onClick={testDatabaseConnection}
-                style={{
-                  marginTop: '10px',
-                  padding: '8px 16px',
-                  backgroundColor: '#3b82f6',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  fontSize: '13px',
-                  fontWeight: '600'
-                }}
-              >
-                🔍 Test Database Connection
-              </button>
-            </div>
+
           </div>
         ) : (
               <div>
