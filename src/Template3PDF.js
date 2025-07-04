@@ -809,7 +809,7 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
 
           {/* References */}
           {visibleSections.includes('references') && (() => {
-            const referencesList = renderSimpleList(formData.references);
+            const referencesList = renderSimpleList(formData.cv_references);
             return (
               <div style={sectionStyle}>
                 <h3 style={sectionTitleStyle}>References</h3>

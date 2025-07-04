@@ -210,7 +210,7 @@ const Template4Preview = ({ formData, formHeight }) => {
     <section style={{ marginBottom: 24 }}>
       <h3 style={{ color: blue, fontSize: 16, marginBottom: 8, letterSpacing: 0.5 }}>References</h3>
       <ul style={{ margin: 0, paddingLeft: 18, fontSize: 14 }}>
-        {formData.references && formData.references.map((ref, i) => ref && <li key={i}>{ref}</li>)}
+        {formData.cv_references && formData.cv_references.map((ref, i) => ref && <li key={i}>{ref}</li>)}
       </ul>
     </section>
   );

@@ -496,7 +496,7 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
     projects = [],
     languages: languageData = {},
     hobbies = [],
-    references = {},
+    cv_references = {},
     otherInformation = [],
   } = formData;
 
@@ -552,7 +552,7 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
     languages: renderLanguages(allLanguages),
     hobbies: renderSimpleList(hobbies),
     customSections: renderCustomSections(formData.customSections),
-    references: renderReferences(references),
+    references: renderReferences(cv_references),
     otherInformation: renderOtherInformation(otherInformation),
   };
 

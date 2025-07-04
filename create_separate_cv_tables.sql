@@ -23,7 +23,7 @@ CREATE TABLE user_cvs (
     projects JSONB DEFAULT '[]',
     languages JSONB DEFAULT '[]',
     hobbies JSONB DEFAULT '[]',
-    references JSONB DEFAULT '[]',
+    cv_references JSONB DEFAULT '[]',
     other_information JSONB DEFAULT '[]',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -50,7 +50,7 @@ CREATE TABLE admin_cvs (
     projects JSONB DEFAULT '[]',
     languages JSONB DEFAULT '[]',
     hobbies JSONB DEFAULT '[]',
-    references JSONB DEFAULT '[]',
+    cv_references JSONB DEFAULT '[]',
     other_information JSONB DEFAULT '[]',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -128,7 +128,7 @@ CREATE OR REPLACE FUNCTION upsert_user_cv(
     p_projects JSONB,
     p_languages JSONB,
     p_hobbies JSONB,
-    p_references JSONB,
+    p_cv_references JSONB,
     p_other_information JSONB
 ) RETURNS UUID AS $$
 DECLARE
@@ -149,7 +149,7 @@ BEGIN
         projects = p_projects,
         languages = p_languages,
         hobbies = p_hobbies,
-        references = p_references,
+        cv_references = p_cv_references,
         other_information = p_other_information,
         updated_at = NOW()
     WHERE user_email = p_user_email
@@ -160,11 +160,11 @@ BEGIN
         INSERT INTO user_cvs (
             user_email, image_url, name, phone, email, address,
             objective, education, work_experience, skills, certifications,
-            projects, languages, hobbies, references, other_information
+            projects, languages, hobbies, cv_references, other_information
         ) VALUES (
             p_user_email, p_image_url, p_name, p_phone, p_email, p_address,
             p_objective, p_education, p_work_experience, p_skills, p_certifications,
-            p_projects, p_languages, p_hobbies, p_references, p_other_information
+            p_projects, p_languages, p_hobbies, p_cv_references, p_other_information
         ) RETURNING id INTO cv_id;
     END IF;
     

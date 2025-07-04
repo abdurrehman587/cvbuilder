@@ -30,7 +30,7 @@ const defaultFormData = {
   languages: ['English', 'Urdu', 'Punjabi'],
   customLanguages: [],
   hobbies: [''],
-  references: [''],
+  cv_references: [''],
   otherInformation: [
     { id: 1, labelType: 'radio', label: "Father's Name:", checked: true, value: '', name: 'parentSpouse', radioValue: 'father' },
     { id: 2, labelType: 'radio', label: "Husband's Name:", checked: false, value: '', name: 'parentSpouse', radioValue: 'husband' },
@@ -105,7 +105,7 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
             languages: data.languages || [],
             customLanguages: [],
             hobbies: data.hobbies || [],
-            references: data.references || [],
+            cv_references: data.references || [],
             otherInformation: data.other_information || [],
           });
           
@@ -149,7 +149,7 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
             languages: data.languages || [],
             customLanguages: [],
             hobbies: data.hobbies || [],
-            references: data.references || [],
+            cv_references: data.references || [],
             otherInformation: data.other_information || [],
           });
           
@@ -399,7 +399,7 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
               .map(lang => lang.name.trim())
           ],
           hobbies: (formData.hobbies || []).map(h => h || ''),
-          references: (formData.references || []).map(r => r || ''),
+          cv_references: (formData.cv_references || []).map(r => r || ''),
           other_information: (formData.otherInformation || []).map(info => ({
             id: info.id,
             labelType: info.labelType || '',
@@ -450,7 +450,7 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
               .map(lang => lang.name.trim())
           ],
           p_hobbies: (formData.hobbies || []).map(h => h || ''),
-          p_references: (formData.references || []).map(r => r || ''),
+          p_cv_references: (formData.cv_references || []).map(r => r || ''),
           p_other_information: (formData.otherInformation || []).map(info => ({
             id: info.id,
             labelType: info.labelType || '',
@@ -550,7 +550,7 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
         languages: cv.languages || [],
         customLanguages: [],
         hobbies: cv.hobbies || [],
-        references: cv.references || [],
+        cv_references: cv.cv_references || [],
         otherInformation: cv.other_information || [],
       });
 
@@ -769,10 +769,10 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
         />
         <DynamicSection
           title="References"
-          entries={formData.references}
-          onChange={(index, val) => handleArrayChange('references', index, val)}
-          onAdd={() => handleAddEntry('references')}
-          onRemove={(index) => handleRemoveEntry('references', index)}
+          entries={formData.cv_references}
+          onChange={(index, val) => handleArrayChange('cv_references', index, val)}
+          onAdd={() => handleAddEntry('cv_references')}
+          onRemove={(index) => handleRemoveEntry('cv_references', index)}
           placeholder="Provide your references..."
           rows={1}
         />
