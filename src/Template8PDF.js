@@ -342,7 +342,7 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
       await html2pdf()
         .set({
           margin: 10,
-          filename: 'cv.pdf',
+          filename: `${formData.name || 'CV'}_template8.pdf`,
           image: { type: 'png', quality: 0.98 },
           html2canvas: {
             scale: 3,
@@ -369,7 +369,7 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
     
-    if (isAdmin {
+    if (isAdmin) {
       return true;
     }
 
@@ -396,7 +396,7 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
     
-    if (isAdmin {
+    if (isAdmin) {
       return 'Download Now (Admin Access)';
     }
 
@@ -418,7 +418,7 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
     
-    if (isAdmin {
+    if (isAdmin) {
       generatePDF();
       return;
     }

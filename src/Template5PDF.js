@@ -451,7 +451,7 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
       await html2pdf()
         .set({
           margin: 10,
-          filename: 'cv.pdf',
+          filename: `${formData.name || 'CV'}_template5.pdf`,
           image: { type: 'png', quality: 0.98 },
           html2canvas: {
             scale: 3,
