@@ -49,18 +49,7 @@ const DatabaseSetupCheck = () => {
   }
 
   if (isReady) {
-    return (
-      <div style={{
-        padding: '20px',
-        backgroundColor: '#f0fdf4',
-        border: '1px solid #22c55e',
-        borderRadius: '8px',
-        margin: '20px 0',
-        textAlign: 'center'
-      }}>
-        ✅ Database is ready! Payment system is working.
-      </div>
-    );
+    return null;
   }
 
   return (
