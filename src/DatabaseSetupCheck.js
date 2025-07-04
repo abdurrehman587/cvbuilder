@@ -1,27 +1,55 @@
 import React, { useState, useEffect } from 'react';
-import { PaymentService } from './paymentService';
+import supabase from './supabase';
 
 const DatabaseSetupCheck = () => {
-  const [isChecking, setIsChecking] = useState(false);
-  const [isReady, setIsReady] = useState(null);
+  const [isSetup, setIsSetup] = useState(false);
   const [error, setError] = useState(null);
+  const [cvTablesStatus, setCvTablesStatus] = useState(null);
 
   const checkDatabase = async () => {
-    setIsChecking(true);
-    setError(null);
-    
     try {
-      const ready = await PaymentService.checkDatabaseReady();
-      setIsReady(ready);
+      setError(null);
       
-      if (!ready) {
-        setError('Database tables not found. Please run the SQL schema in Supabase.');
+      // Check if payments table exists
+      const { data: paymentsData, error: paymentsError } = await supabase
+        .from('payments')
+        .select('count')
+        .limit(1);
+
+      if (paymentsError) {
+        setError(`Payments table error: ${paymentsError.message}`);
+        setIsSetup(false);
+        return;
       }
+
+      // Check if user_cvs table exists
+      const { data: userCvsData, error: userCvsError } = await supabase
+        .from('user_cvs')
+        .select('count')
+        .limit(1);
+
+      if (userCvsError) {
+        setCvTablesStatus(`User CVs table error: ${userCvsError.message}`);
+      } else {
+        setCvTablesStatus('User CVs table exists and is accessible');
+      }
+
+      // Check if admin_cvs table exists
+      const { data: adminCvsData, error: adminCvsError } = await supabase
+        .from('admin_cvs')
+        .select('count')
+        .limit(1);
+
+      if (adminCvsError) {
+        setCvTablesStatus(prev => prev ? `${prev}. Admin CVs table error: ${adminCvsError.message}` : `Admin CVs table error: ${adminCvsError.message}`);
+      } else {
+        setCvTablesStatus(prev => prev ? `${prev}. Admin CVs table exists and is accessible` : 'Admin CVs table exists and is accessible');
+      }
+
+      setIsSetup(true);
     } catch (err) {
-      setIsReady(false);
-      setError(err.message);
-    } finally {
-      setIsChecking(false);
+      setError(`Database check failed: ${err.message}`);
+      setIsSetup(false);
     }
   };
 
@@ -29,27 +57,8 @@ const DatabaseSetupCheck = () => {
     checkDatabase();
   }, []);
 
-  if (isChecking) {
-    return (
-      <div style={{
-        padding: '20px',
-        backgroundColor: '#f0f9ff',
-        border: '1px solid #0ea5e9',
-        borderRadius: '8px',
-        margin: '20px 0',
-        textAlign: 'center'
-      }}>
-        🔍 Checking database setup...
-      </div>
-    );
-  }
-
-  if (isReady === null) {
-    return null;
-  }
-
-  if (isReady) {
-    return null;
+  if (isSetup && !cvTablesStatus?.includes('error')) {
+    return null; // Don't show anything if everything is set up correctly
   }
 
   return (
@@ -67,6 +76,12 @@ const DatabaseSetupCheck = () => {
           <strong>Error:</strong> {error}
         </p>
       )}
+
+      {cvTablesStatus && (
+        <p style={{ color: '#dc2626', marginBottom: '15px' }}>
+          <strong>CV Tables Status:</strong> {cvTablesStatus}
+        </p>
+      )}
       
       <p style={{ marginBottom: '15px' }}>
         The payment system requires database tables to be created in Supabase. Please follow these steps:
@@ -77,9 +92,9 @@ const DatabaseSetupCheck = () => {
         <li>Select your CV Builder project</li>
         <li>Go to <strong>SQL Editor</strong></li>
         <li>Click <strong>New Query</strong></li>
-        <li>Copy and paste the content from <code>database_setup.sql</code></li>
+        <li>Copy and paste the content from <code>create_simple_cv_tables.sql</code></li>
         <li>Click <strong>Run</strong> to execute the SQL</li>
-        <li>Verify that <code>payments</code> and <code>cv_downloads</code> tables are created</li>
+        <li>Verify that <code>user_cvs</code> and <code>admin_cvs</code> tables are created</li>
       </ol>
       
       <button
