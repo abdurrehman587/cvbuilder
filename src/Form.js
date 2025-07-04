@@ -1027,7 +1027,7 @@ const OtherInformationSection = ({
     <h3 style={{ fontWeight: 700, fontSize: '1.25rem', marginBottom: 8, color: '#374151' }}>Other Information</h3>
     <div className="other-info-container">
       <div className="other-info-radios">
-        {otherInformation.filter(item => item.labelType === 'radio').map((item, index) => (
+        {(otherInformation || []).filter(item => item.labelType === 'radio').map((item, index) => (
           <label key={item.id}>
             <input
               type="radio"
@@ -1046,7 +1046,7 @@ const OtherInformationSection = ({
         ))}
       </div>
 
-      {otherInformation.filter(item => item.labelType === 'checkbox' && !item.isCustom).map((item) => (
+      {(otherInformation || []).filter(item => item.labelType === 'checkbox' && !item.isCustom).map((item) => (
         <div key={item.id} className="other-info-checkbox-item">
           <input
             type="checkbox"
@@ -1063,7 +1063,7 @@ const OtherInformationSection = ({
         </div>
       ))}
 
-      {otherInformation.filter(item => item.isCustom).map((item) => (
+      {(otherInformation || []).filter(item => item.isCustom).map((item) => (
         <div key={item.id} className="other-info-checkbox-item">
           <input
             type="checkbox"
@@ -1109,7 +1109,7 @@ const LanguagesSection = ({
   <div style={{ marginBottom: '1.5rem' }}>
     <h3 style={{ fontWeight: 700, fontSize: '1.25rem', marginBottom: 8, color: '#374151' }}>Languages</h3>
     <div className="languages-list">
-      {fixedLanguages.map(language => (
+      {(fixedLanguages || []).map(language => (
         <label key={language}>
           <input
             type="checkbox"
@@ -1120,7 +1120,7 @@ const LanguagesSection = ({
         </label>
       ))}
     </div>
-    {customLanguages.length > 0 && customLanguages.map((lang, idx) => (
+    {(customLanguages || []).length > 0 && (customLanguages || []).map((lang, idx) => (
       <div key={idx} className="custom-language-entry">
         <input
           type="checkbox"
@@ -1147,7 +1147,7 @@ const LanguagesSection = ({
 const DynamicSection = ({ title, entries, onChange, onAdd, onRemove, placeholder, rows, renderEntry }) => (
   <div className="dynamic-section">
     <h3>{title}</h3>
-    {entries.map((entry, index) => (
+    {(entries || []).map((entry, index) => (
       <div key={index} className="dynamic-entry">
         {renderEntry ? renderEntry(entry, index) : (
           <>
