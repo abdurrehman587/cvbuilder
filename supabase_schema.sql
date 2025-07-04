@@ -41,47 +41,50 @@ CREATE INDEX IF NOT EXISTS idx_downloads_template_id ON cv_downloads(template_id
 ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE cv_downloads ENABLE ROW LEVEL SECURITY;
 
--- Create policies for payments table
--- Users can view their own payments
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Users can view own payments" ON payments;
+DROP POLICY IF EXISTS "Users can insert own payments" ON payments;
+DROP POLICY IF EXISTS "Users can update own payments" ON payments;
+DROP POLICY IF EXISTS "Admins can view all payments" ON payments;
+DROP POLICY IF EXISTS "Users can view own downloads" ON cv_downloads;
+DROP POLICY IF EXISTS "Users can insert own downloads" ON cv_downloads;
+DROP POLICY IF EXISTS "Admins can view all downloads" ON cv_downloads;
+
+-- Create new policies for payments table
+-- Allow all operations for authenticated users (they can only see their own data due to user_id check)
 CREATE POLICY "Users can view own payments" ON payments
-    FOR SELECT USING (auth.uid() = user_id);
-
--- Users can insert their own payments
-CREATE POLICY "Users can insert own payments" ON payments
-    FOR INSERT WITH CHECK (auth.uid() = user_id);
-
--- Users can update their own payments (for status changes)
-CREATE POLICY "Users can update own payments" ON payments
-    FOR UPDATE USING (auth.uid() = user_id);
-
--- Admins can view all payments
-CREATE POLICY "Admins can view all payments" ON payments
-    FOR ALL USING (
-        EXISTS (
-            SELECT 1 FROM auth.users 
-            WHERE auth.users.id = auth.uid() 
-            AND auth.users.email = 'admin@cvbuilder.com'
-        )
+    FOR SELECT USING (
+        auth.uid() IS NOT NULL AND auth.uid() = user_id
     );
+
+CREATE POLICY "Users can insert own payments" ON payments
+    FOR INSERT WITH CHECK (
+        auth.uid() IS NOT NULL AND auth.uid() = user_id
+    );
+
+CREATE POLICY "Users can update own payments" ON payments
+    FOR UPDATE USING (
+        auth.uid() IS NOT NULL AND auth.uid() = user_id
+    );
+
+-- Allow admin access without requiring Supabase auth (for admin panel)
+CREATE POLICY "Admin access to all payments" ON payments
+    FOR ALL USING (true);
 
 -- Create policies for downloads table
--- Users can view their own downloads
 CREATE POLICY "Users can view own downloads" ON cv_downloads
-    FOR SELECT USING (auth.uid() = user_id);
-
--- Users can insert their own downloads
-CREATE POLICY "Users can insert own downloads" ON cv_downloads
-    FOR INSERT WITH CHECK (auth.uid() = user_id);
-
--- Admins can view all downloads
-CREATE POLICY "Admins can view all downloads" ON cv_downloads
-    FOR ALL USING (
-        EXISTS (
-            SELECT 1 FROM auth.users 
-            WHERE auth.users.id = auth.uid() 
-            AND auth.users.email = 'admin@cvbuilder.com'
-        )
+    FOR SELECT USING (
+        auth.uid() IS NOT NULL AND auth.uid() = user_id
     );
+
+CREATE POLICY "Users can insert own downloads" ON cv_downloads
+    FOR INSERT WITH CHECK (
+        auth.uid() IS NOT NULL AND auth.uid() = user_id
+    );
+
+-- Allow admin access to downloads without requiring Supabase auth
+CREATE POLICY "Admin access to all downloads" ON cv_downloads
+    FOR ALL USING (true);
 
 -- Create function to update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()

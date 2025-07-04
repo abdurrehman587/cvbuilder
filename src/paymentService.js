@@ -284,6 +284,7 @@ export class PaymentService {
       }
 
       console.log('PaymentService - Fetching payments from Supabase...');
+      
       const { data, error } = await supabase
         .from('payments')
         .select('*')

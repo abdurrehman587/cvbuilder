@@ -45,7 +45,24 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
       console.log('PaymentAdmin - Payments set to state:', allPayments);
     } catch (error) {
       console.error('Error loading payments:', error);
-      alert('Failed to load payments. Please try again.');
+      
+      // Provide more specific error messages
+      let errorMessage = 'Failed to load payments. ';
+      
+      if (error.message.includes('Admin access required')) {
+        errorMessage += 'Admin access is required. Please log in as admin.';
+      } else if (error.message.includes('Database not ready')) {
+        errorMessage += 'Database is not ready. Please check your Supabase setup.';
+      } else if (error.message.includes('relation "payments" does not exist')) {
+        errorMessage += 'Payments table does not exist. Please run the database setup script.';
+      } else if (error.message.includes('RLS')) {
+        errorMessage += 'Row Level Security is blocking access. Please run the RLS fix script.';
+      } else {
+        errorMessage += 'Please check the console for more details.';
+      }
+      
+      console.error('Detailed error:', error);
+      alert(errorMessage);
     }
   }, [payments.length]);
 
