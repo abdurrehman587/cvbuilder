@@ -471,6 +471,7 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
 
         // Check if CV already exists for this user
         console.log('Checking for existing CV for user:', user.email);
+        console.log('Using table: user_cvs');
         const { data: existingCV, error: checkError } = await supabase
           .from('user_cvs')
           .select('id')
@@ -484,6 +485,7 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
         if (existingCV) {
           // Update existing CV
           console.log('Updating existing CV for user:', user.email);
+          console.log('Update payload:', payload);
           result = await supabase
             .from('user_cvs')
             .update(payload)
@@ -491,6 +493,7 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
         } else {
           // Insert new CV
           console.log('Inserting new CV for user:', user.email);
+          console.log('Insert payload:', payload);
           result = await supabase
             .from('user_cvs')
             .insert([payload]);
