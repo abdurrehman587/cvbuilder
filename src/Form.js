@@ -43,7 +43,7 @@ const defaultFormData = {
 
 
 
-const Form = ({ formData, setFormData, onChange, user }) => {
+const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false }) => {
 
   const [searchName, setSearchName] = useState('');
   const [searchPhone, setSearchPhone] = useState('');
@@ -424,67 +424,69 @@ const Form = ({ formData, setFormData, onChange, user }) => {
 
   return (
     <>
-      {/* Search Container Above Form */}
-      <div style={{
-        width: '100%',
-        padding: '2rem',
-        boxSizing: 'border-box',
-        backgroundColor: '#f9fafb',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '16px',
-        flexWrap: 'wrap',
-        borderBottom: '1px solid #e5e7eb'
-      }}>
-        <input
-          type="text"
-          placeholder="Search CV by name"
-          value={searchName}
-          onChange={(e) => setSearchName(e.target.value)}
-          style={{
-            flex: '1',
-            padding: '0.75rem 1rem',
-            fontSize: '1rem',
-            borderRadius: '0.75rem',
-            border: '1px solid #d1d5db',
-            fontFamily: 'Inter, sans-serif',
-            outline: 'none',
-            minWidth: '220px'
-          }}
-        />
-        <input
-          type="text"
-          placeholder="Search CV by Phone Number"
-          value={searchPhone}
-          onChange={(e) => setSearchPhone(e.target.value)}
-          style={{
-            flex: '1',
-            padding: '0.75rem 1rem',
-            fontSize: '1rem',
-            borderRadius: '0.75rem',
-            border: '1px solid #d1d5db',
-            fontFamily: 'Inter, sans-serif',
-            outline: 'none',
-            minWidth: '220px'
-          }}
-        />
-        <button
-          onClick={handleSearch}
-          style={{
-            padding: '0.75rem 1.5rem',
-            backgroundColor: '#2563eb',
-            color: 'white',
-            border: 'none',
-            borderRadius: '0.75rem',
-            fontSize: '1rem',
-            fontWeight: '600',
-            cursor: 'pointer',
-            whiteSpace: 'nowrap'
-          }}
-        >
-          Search
-        </button>
-      </div>
+      {/* Search Container Above Form - Only for Admin Users */}
+      {isAdminAccess && (
+        <div style={{
+          width: '100%',
+          padding: '2rem',
+          boxSizing: 'border-box',
+          backgroundColor: '#f9fafb',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '16px',
+          flexWrap: 'wrap',
+          borderBottom: '1px solid #e5e7eb'
+        }}>
+          <input
+            type="text"
+            placeholder="Search CV by name"
+            value={searchName}
+            onChange={(e) => setSearchName(e.target.value)}
+            style={{
+              flex: '1',
+              padding: '0.75rem 1rem',
+              fontSize: '1rem',
+              borderRadius: '0.75rem',
+              border: '1px solid #d1d5db',
+              fontFamily: 'Inter, sans-serif',
+              outline: 'none',
+              minWidth: '220px'
+            }}
+          />
+          <input
+            type="text"
+            placeholder="Search CV by Phone Number"
+            value={searchPhone}
+            onChange={(e) => setSearchPhone(e.target.value)}
+            style={{
+              flex: '1',
+              padding: '0.75rem 1rem',
+              fontSize: '1rem',
+              borderRadius: '0.75rem',
+              border: '1px solid #d1d5db',
+              fontFamily: 'Inter, sans-serif',
+              outline: 'none',
+              minWidth: '220px'
+            }}
+          />
+          <button
+            onClick={handleSearch}
+            style={{
+              padding: '0.75rem 1.5rem',
+              backgroundColor: '#2563eb',
+              color: 'white',
+              border: 'none',
+              borderRadius: '0.75rem',
+              fontSize: '1rem',
+              fontWeight: '600',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            Search
+          </button>
+        </div>
+      )}
 
 
       <div className="form-container">

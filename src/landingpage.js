@@ -197,6 +197,7 @@ const LandingPage = ({ user }) => {
               setFormData={setFormData}
               onChange={handleFormDataChange}
               user={user}
+              isAdminAccess={isAdminAccess}
             />
           </div>
           <div
