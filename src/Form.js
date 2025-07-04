@@ -43,7 +43,7 @@ const defaultFormData = {
 
 
 
-const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false }) => {
+const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, onCVLoaded }) => {
 
   const [searchName, setSearchName] = useState('');
   const [searchPhone, setSearchPhone] = useState('');
@@ -64,16 +64,23 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false }) 
   // Fetch user's CV on mount or when user changes
   useEffect(() => {
     const fetchUserCV = async () => {
-      // Remove user param if not needed
-      // if (!user) return;
-      // Remove .eq('user_id', user.id) if your table does NOT have a user_id column
+      if (!user || !user.email) return;
+      
+      console.log('Fetching CV for user:', user.email);
+      
       const { data, error } = await supabase
         .from('cvs')
         .select('*')
-        // .eq('user_id', user.id) // <-- keep commented out this line
-        .maybeSingle(); // <-- use maybeSingle instead of single
+        .eq('user_email', user.email)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error fetching CV:', error);
+        return;
+      }
 
       if (data) {
+        console.log('CV data loaded:', data);
         setFormData({
           image: null,
           imageUrl: data.image_url || '',
@@ -93,10 +100,20 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false }) 
           references: JSON.parse(data.references || '[]'),
           otherInformation: JSON.parse(data.other_information || '[]'),
         });
+        
+        // Notify parent component that CV was loaded
+        if (onCVLoaded) {
+          onCVLoaded(true);
+        }
+      } else {
+        console.log('No existing CV found for user:', user.email);
+        // Notify parent component that no CV was found
+        if (onCVLoaded) {
+          onCVLoaded(false);
+        }
       }
     };
     fetchUserCV();
-    // eslint-disable-next-line
   }, [user]);
 
 
@@ -295,7 +312,7 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false }) 
 
       // Prepare payload for Supabase
       const payload = {
-        // user_id: user.id, // <-- REMOVE this line if your table does not have a user_id column
+        user_email: user.email,
         image_url: imageUrl && imageUrl.startsWith('http') ? imageUrl : null,
         name: formData.name || '',
         phone: formData.phone || '',
@@ -339,17 +356,33 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false }) 
         })))
       };
 
-      // Save (insert) to Supabase
-      const { error } = await supabase
+      // Check if CV already exists for this user
+      const { data: existingCV } = await supabase
         .from('cvs')
-        .insert([payload]); // Use insert if you do not have a user_id column
+        .select('id')
+        .eq('user_email', user.email)
+        .maybeSingle();
 
-      if (error) {
-        toast.error(`Save failed: ${error.message}`);
+      let result;
+      if (existingCV) {
+        // Update existing CV
+        result = await supabase
+          .from('cvs')
+          .update(payload)
+          .eq('user_email', user.email);
+      } else {
+        // Insert new CV
+        result = await supabase
+          .from('cvs')
+          .insert([payload]);
+      }
+
+      if (result.error) {
+        toast.error(`Save failed: ${result.error.message}`);
         return;
       }
 
-      toast.success('CV Saved Successfully!');
+      toast.success(existingCV ? 'CV Updated Successfully!' : 'CV Saved Successfully!');
       // Optionally update formData with new imageUrl if uploaded
       if (formData.image && imageUrl) {
         setFormData(prev => ({ ...prev, image: null, imageUrl }));

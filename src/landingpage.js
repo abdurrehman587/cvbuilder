@@ -11,6 +11,8 @@ import Template7Preview from './Template7Preview';
 const LandingPage = ({ user }) => {
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [isAdminAccess, setIsAdminAccess] = useState(false);
+  const [isLoadingCV, setIsLoadingCV] = useState(false);
+  const [cvLoadedStatus, setCvLoadedStatus] = useState(null); // null, true (loaded), false (not found)
   const [formData, setFormData] = useState({
     image: null,
     imageUrl: '',
@@ -81,6 +83,24 @@ const LandingPage = ({ user }) => {
     setFormData(data);
   };
 
+  const handleCVLoaded = (wasLoaded) => {
+    setCvLoadedStatus(wasLoaded);
+    setIsLoadingCV(false);
+    
+    // Show notification based on result
+    if (wasLoaded) {
+      // CV was loaded successfully
+      setTimeout(() => {
+        setCvLoadedStatus(null);
+      }, 3000);
+    } else {
+      // No CV found
+      setTimeout(() => {
+        setCvLoadedStatus(null);
+      }, 2000);
+    }
+  };
+
   const renderBackButton = () => {
     // Don't show the original back button when accessed from admin panel
     if (isAdminAccess) {
@@ -113,7 +133,7 @@ const LandingPage = ({ user }) => {
     );
   };
 
-  // Check if this is admin access
+  // Check if this is admin access and handle automatic CV loading for regular users
   useEffect(() => {
     const adminAccess = localStorage.getItem('admin_cv_access');
     setIsAdminAccess(adminAccess === 'true');
@@ -124,8 +144,18 @@ const LandingPage = ({ user }) => {
       if (adminSelectedCV) {
         setSelectedTemplate('Template 1');
       }
+    } else if (user && user.email && !user.isAdmin) {
+      // For regular users, automatically load their CV and select Template 1
+      console.log('Regular user signed in, loading CV automatically...');
+      setIsLoadingCV(true);
+      setSelectedTemplate('Template 1');
+      
+      // Show a brief loading message
+      setTimeout(() => {
+        setIsLoadingCV(false);
+      }, 2000);
     }
-  }, []);
+  }, [user]);
 
   // Listen for back to templates event from admin panel
   useEffect(() => {
@@ -198,6 +228,7 @@ const LandingPage = ({ user }) => {
               onChange={handleFormDataChange}
               user={user}
               isAdminAccess={isAdminAccess}
+              onCVLoaded={handleCVLoaded}
             />
           </div>
           <div
@@ -247,6 +278,89 @@ const LandingPage = ({ user }) => {
         maxWidth: '100%',
       }}
     >
+      <style>
+        {`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}
+      </style>
+      {/* Loading notification for regular users */}
+      {isLoadingCV && user && !user.isAdmin && (
+        <div
+          style={{
+            backgroundColor: '#dbeafe',
+            border: '1px solid #3b82f6',
+            borderRadius: '8px',
+            padding: '16px',
+            marginBottom: '24px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            color: '#1e40af',
+            fontSize: '16px',
+            fontWeight: '500'
+          }}
+        >
+          <div
+            style={{
+              width: '20px',
+              height: '20px',
+              border: '2px solid #3b82f6',
+              borderTop: '2px solid transparent',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite'
+            }}
+          />
+          Loading your saved CV data...
+        </div>
+      )}
+
+      {/* Success notification when CV is loaded */}
+      {cvLoadedStatus === true && user && !user.isAdmin && (
+        <div
+          style={{
+            backgroundColor: '#dcfce7',
+            border: '1px solid #22c55e',
+            borderRadius: '8px',
+            padding: '16px',
+            marginBottom: '24px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            color: '#166534',
+            fontSize: '16px',
+            fontWeight: '500'
+          }}
+        >
+          <span style={{ fontSize: '20px' }}>✅</span>
+          Your saved CV data has been loaded successfully!
+        </div>
+      )}
+
+      {/* Info notification when no CV is found */}
+      {cvLoadedStatus === false && user && !user.isAdmin && (
+        <div
+          style={{
+            backgroundColor: '#fef3c7',
+            border: '1px solid #f59e0b',
+            borderRadius: '8px',
+            padding: '16px',
+            marginBottom: '24px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            color: '#92400e',
+            fontSize: '16px',
+            fontWeight: '500'
+          }}
+        >
+          <span style={{ fontSize: '20px' }}>ℹ️</span>
+          No saved CV found. Start building your CV by selecting a template!
+        </div>
+      )}
+
       <h1
         style={{
           fontWeight: 700,
