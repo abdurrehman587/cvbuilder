@@ -190,6 +190,45 @@ export class PaymentService {
     }
   }
 
+  // Check if user has a downloaded payment for a template
+  static async checkDownloadedPayment(templateId) {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.log('No authenticated user for downloaded payment check');
+        return null;
+      }
+
+      // Check if database is ready
+      const dbReady = await this.checkDatabaseReady();
+      if (!dbReady) {
+        console.log('Database not ready, returning null for downloaded payment');
+        return null;
+      }
+
+      const { data, error } = await supabase
+        .from('payments')
+        .select('*')
+        .eq('user_email', user.email)
+        .eq('template_id', templateId)
+        .eq('status', 'downloaded')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error checking downloaded payment:', error);
+        throw error;
+      }
+
+      console.log('Downloaded payment check result:', data);
+      return data || null;
+    } catch (error) {
+      console.error('Error checking downloaded payment:', error);
+      return null;
+    }
+  }
+
   // Mark payment as used and record download
   static async markPaymentAsUsed(paymentId, templateId) {
     try {
@@ -203,6 +242,21 @@ export class PaymentService {
       if (!dbReady) {
         throw new Error('Database not ready');
       }
+
+      // Update payment status to "Downloaded"
+      const { data: updatedPayment, error: updateError } = await supabase
+        .from('payments')
+        .update({ status: 'downloaded' })
+        .eq('id', paymentId)
+        .select()
+        .single();
+
+      if (updateError) {
+        console.error('Error updating payment status to downloaded:', updateError);
+        throw updateError;
+      }
+
+      console.log('Payment status updated to downloaded:', updatedPayment);
 
       // Record the download
       const { data: download, error: downloadError } = await supabase
@@ -243,6 +297,12 @@ export class PaymentService {
       const pendingPayment = await this.checkPendingPayment(templateId);
       if (pendingPayment) {
         return 'Payment Submitted (Waiting for Approval)';
+      }
+
+      // Check for downloaded payment
+      const downloadedPayment = await this.checkDownloadedPayment(templateId);
+      if (downloadedPayment) {
+        return 'CV Downloaded (Download Again)';
       }
 
       return 'Download PDF (PKR 100)';

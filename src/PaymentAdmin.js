@@ -125,6 +125,7 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
     switch (status) {
       case 'pending': return '#f59e0b';
       case 'approved': return '#22c55e';
+      case 'downloaded': return '#3b82f6';
       case 'rejected': return '#ef4444';
       default: return '#6b7280';
     }
@@ -252,7 +253,25 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
         paddingBottom: '15px'
       }}>
         <h1 style={{ margin: 0, color: '#22c55e' }}>💰 Payment Admin Panel</h1>
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <select
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            style={{
+              padding: '8px 12px',
+              border: '1px solid #d1d5db',
+              borderRadius: '6px',
+              fontSize: '14px',
+              backgroundColor: 'white',
+              cursor: 'pointer'
+            }}
+          >
+            <option value="all">All Payments</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="downloaded">Downloaded</option>
+            <option value="rejected">Rejected</option>
+          </select>
           <button
             onClick={handleAccessCVBuilder}
             style={{
@@ -280,9 +299,6 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
           >
             🎨 Access CV Builder
           </button>
-          
-
-
         </div>
       </div>
 
@@ -362,12 +378,22 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
                   {payment.status === 'approved' ? (
                     <span style={{
                       padding: '4px 8px',
-                      backgroundColor: payment.downloadUsed ? '#ef4444' : '#22c55e',
+                      backgroundColor: '#22c55e',
                       color: 'white',
                       borderRadius: '4px',
                       fontSize: '0.8rem'
                     }}>
-                      {payment.downloadUsed ? '✅ Used' : '⏳ Available'}
+                      ⏳ Available
+                    </span>
+                  ) : payment.status === 'downloaded' ? (
+                    <span style={{
+                      padding: '4px 8px',
+                      backgroundColor: '#3b82f6',
+                      color: 'white',
+                      borderRadius: '4px',
+                      fontSize: '0.8rem'
+                    }}>
+                      ✅ Downloaded
                     </span>
                   ) : (
                     <span style={{
@@ -490,13 +516,13 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
             <strong>Approved:</strong> {payments.filter(p => p.status === 'approved').length}
           </div>
           <div>
-            <strong>Downloads Used:</strong> {payments.filter(p => p.status === 'approved' && p.downloadUsed).length}
+            <strong>Downloaded:</strong> {payments.filter(p => p.status === 'downloaded').length}
           </div>
           <div>
-            <strong>Downloads Available:</strong> {payments.filter(p => p.status === 'approved' && !p.downloadUsed).length}
+            <strong>Rejected:</strong> {payments.filter(p => p.status === 'rejected').length}
           </div>
           <div>
-            <strong>Total Revenue:</strong> PKR {payments.filter(p => p.status === 'approved').reduce((sum, p) => sum + p.amount, 0)}
+            <strong>Total Revenue:</strong> PKR {payments.filter(p => p.status === 'approved' || p.status === 'downloaded').reduce((sum, p) => sum + p.amount, 0)}
           </div>
         </div>
       </div>
