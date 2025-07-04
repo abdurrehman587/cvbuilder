@@ -7,7 +7,7 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
   const [filter, setFilter] = useState('all'); // all, pending, approved, rejected
   const [showCVBuilder, setShowCVBuilder] = useState(false);
   const [lastChecked, setLastChecked] = useState(new Date());
-  const [newPaymentNotification, setNewPaymentNotification] = useState(null);
+
   const [adminUser] = useState({
     id: 'admin-user',
     email: process.env.REACT_APP_ADMIN_EMAIL || 'admin@cvbuilder.com',
@@ -29,15 +29,6 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
       if (newCount > previousCount) {
         const newPayments = allPayments.slice(0, newCount - previousCount);
         console.log('PaymentAdmin - New payments detected:', newPayments);
-        setNewPaymentNotification({
-          message: `New payment request received! Payment ID: ${newPayments[0].id}`,
-          timestamp: new Date()
-        });
-        
-        // Clear notification after 5 seconds
-        setTimeout(() => {
-          setNewPaymentNotification(null);
-        }, 5000);
       }
       
       setPayments(allPayments);
@@ -253,25 +244,7 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
       fontFamily: "'Inter', sans-serif"
     }}>
       
-      {/* New Payment Notification */}
-      {newPaymentNotification && (
-        <div style={{
-          position: 'fixed',
-          top: '20px',
-          right: '20px',
-          backgroundColor: '#22c55e',
-          color: 'white',
-          padding: '12px 20px',
-          borderRadius: '8px',
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-          zIndex: 1000,
-          animation: 'slideIn 0.3s ease-out',
-          fontSize: '14px',
-          fontWeight: '600'
-        }}>
-          🎉 {newPaymentNotification.message}
-        </div>
-      )}
+
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
