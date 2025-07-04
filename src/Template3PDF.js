@@ -814,43 +814,6 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
           >
             {buttonText}
           </button>
-
-          {/* Debug button for testing payment status persistence */}
-          <button
-            type="button"
-            onClick={() => PaymentService.debugPaymentStatus('template3')}
-            style={{
-              cursor: 'pointer',
-              padding: '4px 8px',
-              fontSize: '0.8rem',
-              borderRadius: 4,
-              border: '1px solid #ccc',
-              backgroundColor: '#f0f0f0',
-              color: '#333',
-            }}
-          >
-            🐛 Debug
-          </button>
-
-          {/* Refresh button text */}
-          <button
-            type="button"
-            onClick={async () => {
-              const text = await PaymentService.getDownloadButtonText('template3', isAdminUser);
-              setButtonText(text);
-            }}
-            style={{
-              cursor: 'pointer',
-              padding: '4px 8px',
-              fontSize: '0.8rem',
-              borderRadius: 4,
-              border: '1px solid #ccc',
-              backgroundColor: '#e0f2fe',
-              color: '#333',
-            }}
-          >
-            🔄 Refresh
-          </button>
         </div>
       </div>
 
