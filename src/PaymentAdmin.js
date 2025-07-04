@@ -310,42 +310,7 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
             🎨 Access CV Builder
           </button>
           
-          <button
-            onClick={() => {
-              const pendingPayments = payments.filter(p => p.status === 'pending');
-              if (pendingPayments.length === 0) {
-                alert('No pending payments to approve.');
-                return;
-              }
-              if (window.confirm(`Approve all ${pendingPayments.length} pending payments?`)) {
-                pendingPayments.forEach(payment => approvePayment(payment.id));
-              }
-            }}
-            style={{
-              padding: '12px 24px',
-              backgroundColor: '#22c55e',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: '600',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              transition: 'all 0.3s ease'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#16a34a';
-              e.currentTarget.style.transform = 'translateY(-2px)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#22c55e';
-              e.currentTarget.style.transform = 'translateY(0)';
-            }}
-          >
-            ✅ Approve All Pending
-          </button>
+
         </div>
       </div>
 
