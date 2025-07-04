@@ -621,6 +621,30 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
         </div>
       </div>
 
+      {/* Download Button */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: 16 }}>
+        <button
+          ref={buttonRef}
+          type="button"
+          onClick={handleDownloadClick}
+          style={{
+            cursor: 'pointer',
+            padding: '6px 18px',
+            fontSize: '0.95rem',
+            borderRadius: 6,
+            border: 'none',
+            backgroundColor: '#3498db',
+            color: 'white',
+            transition: 'background-color 0.3s ease',
+            userSelect: 'none',
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#2980b9')}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3498db')}
+        >
+          {buttonText}
+        </button>
+      </div>
+
       {/* Payment Modal - Outside PDF container */}
       {showPaymentModal && (
         <ManualPayment
