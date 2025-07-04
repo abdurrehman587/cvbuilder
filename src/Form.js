@@ -348,6 +348,8 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
       console.log('User:', user);
       console.log('Form data:', formData);
       
+      let result; // Declare result variable
+      
       // Ensure user is present
       if (!user) {
         toast.error('You must be signed in to save your CV.');
