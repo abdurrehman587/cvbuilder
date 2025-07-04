@@ -377,27 +377,7 @@ export class PaymentService {
     }
   }
 
-  // Test function to check all payments in database
-  static async testGetAllPayments() {
-    try {
-      console.log('PaymentService - testGetAllPayments called');
-      
-      const { data, error } = await supabase
-        .from('payments')
-        .select('*');
 
-      if (error) {
-        console.error('PaymentService - Error in testGetAllPayments:', error);
-        return null;
-      }
-
-      console.log('PaymentService - All payments in database:', data);
-      return data;
-    } catch (error) {
-      console.error('PaymentService - Error in testGetAllPayments:', error);
-      return null;
-    }
-  }
 
   // Debug function to check payment status
   static async debugPaymentStatus(templateId) {

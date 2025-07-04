@@ -119,31 +119,7 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
     }
   };
 
-  const testDatabaseConnection = async () => {
-    try {
-      console.log('PaymentAdmin - Testing database connection...');
-      const allPayments = await PaymentService.testGetAllPayments();
-      console.log('PaymentAdmin - Test result:', allPayments);
-      alert(`Database test completed. Found ${allPayments?.length || 0} payments. Check console for details.`);
-    } catch (error) {
-      console.error('PaymentAdmin - Database test failed:', error);
-      alert('Database test failed. Check console for details.');
-    }
-  };
 
-  const debugAdminAccess = () => {
-    const adminAccess = localStorage.getItem('admin_cv_access');
-    const adminUser = localStorage.getItem('admin_user');
-    const parsedAdminUser = adminUser ? JSON.parse(adminUser) : null;
-    
-    console.log('PaymentAdmin - Admin access debug:', {
-      adminAccess,
-      adminUser: parsedAdminUser,
-      isAdmin: adminAccess === 'true' || parsedAdminUser?.isAdmin === true
-    });
-    
-    alert(`Admin Access Debug:\nadmin_cv_access: ${adminAccess}\nisAdmin: ${adminAccess === 'true' || parsedAdminUser?.isAdmin === true}\nCheck console for details.`);
-  };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -305,61 +281,7 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
             🎨 Access CV Builder
           </button>
           
-          <button
-            onClick={debugAdminAccess}
-            style={{
-              padding: '12px 24px',
-              backgroundColor: '#f59e0b',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: '600',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              transition: 'all 0.3s ease'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#d97706';
-              e.currentTarget.style.transform = 'translateY(-2px)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#f59e0b';
-              e.currentTarget.style.transform = 'translateY(0)';
-            }}
-          >
-            🔧 Debug Admin Access
-          </button>
-          
-          <button
-            onClick={testDatabaseConnection}
-            style={{
-              padding: '12px 24px',
-              backgroundColor: '#8b5cf6',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: '600',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              transition: 'all 0.3s ease'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#7c3aed';
-              e.currentTarget.style.transform = 'translateY(-2px)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#8b5cf6';
-              e.currentTarget.style.transform = 'translateY(0)';
-            }}
-          >
-            🗄️ Test Database
-          </button>
+
 
         </div>
       </div>

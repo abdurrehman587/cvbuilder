@@ -36,7 +36,8 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentState, setPaymentState] = useState('idle');
   const [isAdminUser, setIsAdminUser] = useState(false);
-  const [buttonText, setButtonText] = useState('Download PDF (PKR 100)');
+  const [isLoading, setIsLoading] = useState(true);
+  const [buttonText, setButtonText] = useState('Loading...');
 
   const containerStyle = {
     width: '100%',
@@ -232,12 +233,33 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
 
   // Check admin status and payment status on component mount
   React.useEffect(() => {
-    // Check both localStorage and user object for admin access
-    const adminAccess = localStorage.getItem('admin_cv_access');
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
-    
-    setIsAdminUser(isAdmin);
+    const checkAdminStatus = async () => {
+      try {
+        // Wait a bit for authentication to be established
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // Check both localStorage and user object for admin access
+        const adminAccess = localStorage.getItem('admin_cv_access');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
+        
+        console.log('Template - Admin status check:', {
+          adminAccess,
+          user: user?.email,
+          userIsAdmin: user?.isAdmin,
+          isAdmin
+        });
+        
+        setIsAdminUser(isAdmin);
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+        setIsAdminUser(false);
+        setIsLoading(false);
+      }
+    };
+
+    checkAdminStatus();
   }, []);
 
   // Add a periodic check to maintain admin status
@@ -262,13 +284,19 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
   // Update button text based on payment status
   React.useEffect(() => {
     const updateButtonText = async () => {
+      // Don't update button text while loading
+      if (isLoading) {
+        setButtonText('Loading...');
+        return;
+      }
+
       if (isAdminUser) {
         setButtonText('Download PDF (Admin)');
         return;
       }
 
       try {
-        const text = await PaymentService.getDownloadButtonText('template4', isAdminUser);
+        const text = await PaymentService.getDownloadButtonText('template', isAdminUser);
         setButtonText(text);
       } catch (error) {
         console.error('Error getting button text:', error);
@@ -277,7 +305,7 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
     };
 
     updateButtonText();
-  }, [isAdminUser]);
+  }, [isAdminUser, isLoading]);
   
   const hasData = (sectionKey) => visibleSections.includes(sectionKey);
 

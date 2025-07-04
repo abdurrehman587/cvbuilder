@@ -33,7 +33,8 @@ const Template6PDF = ({ formData, visibleSections = [] }) => {
   const buttonRef = useRef(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [isAdminUser, setIsAdminUser] = useState(false);
-  const [buttonText, setButtonText] = useState('Download PDF (PKR 100)');
+  const [isLoading, setIsLoading] = useState(true);
+  const [buttonText, setButtonText] = useState('Loading...');
 
   // Check admin status and payment status on component mount
   useEffect(() => {
@@ -611,27 +612,34 @@ const Template6PDF = ({ formData, visibleSections = [] }) => {
       )}
 
       <button
-        ref={buttonRef}
-        type="button"
-        onClick={handleDownloadClick}
-        style={{
-          marginTop: 16,
-          cursor: 'pointer',
-          padding: '6px 18px',
-          fontSize: '0.95rem',
-          borderRadius: 6,
-          border: 'none',
-          backgroundColor: '#3f51b5',
-          color: 'white',
-          transition: 'background-color 0.3s ease',
-          alignSelf: 'flex-start',
-          userSelect: 'none',
-        }}
-        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#303f9f')}
-        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3f51b5')}
-      >
-        {buttonText}
-      </button>
+            ref={buttonRef}
+            type="button"
+            onClick={handleDownloadClick}
+            disabled={isLoading}
+            style={{
+              cursor: isLoading ? 'not-allowed' : 'pointer',
+              padding: '10px 20px',
+              fontSize: '1rem',
+              borderRadius: '5px',
+              border: 'none',
+              backgroundColor: isLoading ? '#cccccc' : '#22c55e',
+              color: 'white',
+              transition: 'background-color 0.3s ease',
+              opacity: isLoading ? 0.7 : 1,
+            }}
+            onMouseEnter={(e) => {
+              if (!isLoading) {
+                e.currentTarget.style.backgroundColor = '#16a34a';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isLoading) {
+                e.currentTarget.style.backgroundColor = '#22c55e';
+              }
+            }}
+          >
+            {buttonText}
+          </button>
 
       {showPaymentModal && (
         <ManualPayment

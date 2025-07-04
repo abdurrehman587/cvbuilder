@@ -32,8 +32,9 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
   const containerRef = useRef(null);
   const buttonRef = useRef(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [buttonText, setButtonText] = useState('Download PDF (PKR 100)');
+  const [buttonText, setButtonText] = useState('Loading...');
   const [isAdminUser, setIsAdminUser] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const containerStyle = {
     width: '700px',
@@ -362,12 +363,33 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
 
   // Check admin status and payment status on component mount
   useEffect(() => {
-    // Check both localStorage and user object for admin access
-    const adminAccess = localStorage.getItem('admin_cv_access');
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
-    
-    setIsAdminUser(isAdmin);
+    const checkAdminStatus = async () => {
+      try {
+        // Wait a bit for authentication to be established
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // Check both localStorage and user object for admin access
+        const adminAccess = localStorage.getItem('admin_cv_access');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
+        
+        console.log('Template5PDF - Admin status check:', {
+          adminAccess,
+          user: user?.email,
+          userIsAdmin: user?.isAdmin,
+          isAdmin
+        });
+        
+        setIsAdminUser(isAdmin);
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+        setIsAdminUser(false);
+        setIsLoading(false);
+      }
+    };
+
+    checkAdminStatus();
   }, []);
 
   // Add a periodic check to maintain admin status
@@ -392,6 +414,12 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
   // Update button text based on payment status
   useEffect(() => {
     const updateButtonText = async () => {
+      // Don't update button text while loading
+      if (isLoading) {
+        setButtonText('Loading...');
+        return;
+      }
+
       if (isAdminUser) {
         setButtonText('Download PDF (Admin)');
         return;
@@ -407,7 +435,7 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     };
 
     updateButtonText();
-  }, [isAdminUser]);
+  }, [isAdminUser, isLoading]);
 
   const generatePDF = async () => {
     if (!containerRef.current || !buttonRef.current) {
@@ -610,27 +638,34 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
       )}
 
       <button
-        ref={buttonRef}
-        type="button"
-        onClick={handleDownloadClick}
-        style={{
-          marginTop: 16,
-          cursor: 'pointer',
-          padding: '6px 18px',
-          fontSize: '0.95rem',
-          borderRadius: 6,
-          border: 'none',
-          backgroundColor: '#3f51b5',
-          color: 'white',
-          transition: 'background-color 0.3s ease',
-          alignSelf: 'flex-start',
-          userSelect: 'none',
-        }}
-        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#303f9f')}
-        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3f51b5')}
-      >
-        {buttonText}
-      </button>
+            ref={buttonRef}
+            type="button"
+            onClick={handleDownloadClick}
+            disabled={isLoading}
+            style={{
+              cursor: isLoading ? 'not-allowed' : 'pointer',
+              padding: '10px 20px',
+              fontSize: '1rem',
+              borderRadius: '5px',
+              border: 'none',
+              backgroundColor: isLoading ? '#cccccc' : '#22c55e',
+              color: 'white',
+              transition: 'background-color 0.3s ease',
+              opacity: isLoading ? 0.7 : 1,
+            }}
+            onMouseEnter={(e) => {
+              if (!isLoading) {
+                e.currentTarget.style.backgroundColor = '#16a34a';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isLoading) {
+                e.currentTarget.style.backgroundColor = '#22c55e';
+              }
+            }}
+          >
+            {buttonText}
+          </button>
 
       {showPaymentModal && (
         <ManualPayment
