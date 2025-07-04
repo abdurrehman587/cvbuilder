@@ -343,6 +343,10 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
 
   const handleSave = async () => {
     try {
+      console.log('=== SAVE CV START ===');
+      console.log('User:', user);
+      console.log('Form data:', formData);
+      
       // Ensure user is present
       if (!user) {
         toast.error('You must be signed in to save your CV.');
@@ -363,6 +367,7 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
 
       // Check if user is admin or regular user
       const isAdmin = user.isAdmin || localStorage.getItem('admin_cv_access') === 'true';
+      console.log('Is admin user:', isAdmin);
       
       if (isAdmin) {
         // For admin users, save to admin_cvs table
@@ -413,45 +418,46 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
         };
 
         // For admin, always insert new CV (multiple CVs allowed)
+        console.log('Saving admin CV to admin_cvs table');
         result = await supabase
           .from('admin_cvs')
           .insert([payload]);
       } else {
-        // For regular users, use the upsert function to save to user_cvs table
-        const { data: cvId, error } = await supabase.rpc('upsert_user_cv', {
-          p_user_email: user.email,
-          p_image_url: imageUrl && imageUrl.startsWith('http') ? imageUrl : null,
-          p_name: formData.name || '',
-          p_phone: formData.phone || '',
-          p_email: formData.email || '',
-          p_address: formData.address || '',
-          p_objective: (formData.objective || []).map(entry => entry || ''),
-          p_education: (formData.education || []).map(e => ({
+        // For regular users, use direct upsert approach to save to user_cvs table
+        const payload = {
+          user_email: user.email,
+          image_url: imageUrl && imageUrl.startsWith('http') ? imageUrl : null,
+          name: formData.name || '',
+          phone: formData.phone || '',
+          email: formData.email || '',
+          address: formData.address || '',
+          objective: (formData.objective || []).map(entry => entry || ''),
+          education: (formData.education || []).map(e => ({
             degree: e.degree || '',
             institute: e.institute || '',
             year: e.year || ''
           })),
-          p_work_experience: (formData.workExperience || []).map(w => ({
+          work_experience: (formData.workExperience || []).map(w => ({
             company: w.company || '',
             designation: w.designation || '',
             duration: w.duration || '',
             details: w.details || ''
           })),
-          p_skills: (formData.skills || []).map(s => ({
+          skills: (formData.skills || []).map(s => ({
             name: s.name || '',
             percentage: s.percentage || ''
           })),
-          p_certifications: (formData.certifications || []).map(c => c || ''),
-          p_projects: (formData.projects || []).map(p => p || ''),
-          p_languages: [
+          certifications: (formData.certifications || []).map(c => c || ''),
+          projects: (formData.projects || []).map(p => p || ''),
+          languages: [
             ...(formData.languages || []),
             ...(formData.customLanguages || [])
               .filter(lang => lang.selected && lang.name?.trim())
               .map(lang => lang.name.trim())
           ],
-          p_hobbies: (formData.hobbies || []).map(h => h || ''),
-          p_cv_references: (formData.cv_references || []).map(r => r || ''),
-          p_other_information: (formData.otherInformation || []).map(info => ({
+          hobbies: (formData.hobbies || []).map(h => h || ''),
+          cv_references: (formData.cv_references || []).map(r => r || ''),
+          other_information: (formData.otherInformation || []).map(info => ({
             id: info.id,
             labelType: info.labelType || '',
             label: info.label || '',
@@ -461,26 +467,53 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
             radioValue: info.radioValue || '',
             isCustom: info.isCustom === true
           }))
-        });
+        };
 
-        if (error) {
-          result = { error };
+        // Check if CV already exists for this user
+        console.log('Checking for existing CV for user:', user.email);
+        const { data: existingCV, error: checkError } = await supabase
+          .from('user_cvs')
+          .select('id')
+          .eq('user_email', user.email)
+          .maybeSingle();
+
+        if (checkError) {
+          console.error('Error checking for existing CV:', checkError);
+        }
+
+        if (existingCV) {
+          // Update existing CV
+          console.log('Updating existing CV for user:', user.email);
+          result = await supabase
+            .from('user_cvs')
+            .update(payload)
+            .eq('user_email', user.email);
         } else {
-          result = { data: { id: cvId } };
+          // Insert new CV
+          console.log('Inserting new CV for user:', user.email);
+          result = await supabase
+            .from('user_cvs')
+            .insert([payload]);
         }
       }
 
+      console.log('Save result:', result);
+      
       if (result.error) {
+        console.error('Save error:', result.error);
         toast.error(`Save failed: ${result.error.message}`);
         return;
       }
 
       toast.success(isAdmin ? 'Admin CV Saved Successfully!' : 'CV Saved Successfully!');
+      console.log('=== SAVE CV END ===');
+      
       // Optionally update formData with new imageUrl if uploaded
       if (formData.image && imageUrl) {
         setFormData(prev => ({ ...prev, image: null, imageUrl }));
       }
     } catch (error) {
+      console.error('Unexpected error during save:', error);
       toast.error('An unexpected error occurred while saving.');
     }
   };
