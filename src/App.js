@@ -21,6 +21,9 @@ const App = () => {
         setUser(userWithType);
         // Store user object in localStorage for payment utilities
         localStorage.setItem('user', JSON.stringify(userWithType));
+        // Clear any admin access flags for regular users
+        localStorage.removeItem('admin_cv_access');
+        localStorage.removeItem('admin_user');
       }
       setLoading(false);
     };
@@ -37,6 +40,9 @@ const App = () => {
         setUser(userWithType);
         // Store user object in localStorage for payment utilities
         localStorage.setItem('user', JSON.stringify(userWithType));
+        // Clear any admin access flags for regular users
+        localStorage.removeItem('admin_cv_access');
+        localStorage.removeItem('admin_user');
       }
       setLoading(false);
     };
@@ -59,6 +65,9 @@ const App = () => {
         setUser(userWithType);
         // Store user object in localStorage for payment utilities
         localStorage.setItem('user', JSON.stringify(userWithType));
+        // Clear any admin access flags for regular users
+        localStorage.removeItem('admin_cv_access');
+        localStorage.removeItem('admin_user');
         console.log('Auth state change - User signed in, stored user object:', userWithType.email);
       } else {
         setUser(null);
@@ -170,7 +179,10 @@ const App = () => {
           try {
             // Clear download state when signing out
             localStorage.removeItem('cv_downloaded');
-            console.log('Cleared cv_downloaded from localStorage');
+            // Clear admin access when signing out
+            localStorage.removeItem('admin_cv_access');
+            localStorage.removeItem('admin_user');
+            console.log('Cleared cv_downloaded and admin access from localStorage');
             
             // Sign out from Supabase
             await supabase.auth.signOut();

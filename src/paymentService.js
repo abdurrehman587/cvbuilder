@@ -270,9 +270,7 @@ export class PaymentService {
       
       if (!isAdmin) {
         console.error('PaymentService - Admin access denied');
-        console.log('PaymentService - Bypassing admin check for debugging...');
-        // Temporarily bypass admin check for debugging
-        // throw new Error('Admin access required');
+        throw new Error('Admin access required');
       }
 
       console.log('PaymentService - Admin access granted, checking database...');
