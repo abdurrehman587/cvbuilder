@@ -4,47 +4,113 @@ import SignupSignIn from './SignupSignIn';
 import LandingPage from './landingpage';
 import DatabaseSetupCheck from './DatabaseSetupCheck';
 
+// Add error boundary for debugging
+const ErrorBoundary = ({ children }) => {
+  const [hasError, setHasError] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const handleError = (error) => {
+      console.error('App Error:', error);
+      setError(error);
+      setHasError(true);
+    };
+
+    window.addEventListener('error', handleError);
+    window.addEventListener('unhandledrejection', handleError);
+
+    return () => {
+      window.removeEventListener('error', handleError);
+      window.removeEventListener('unhandledrejection', handleError);
+    };
+  }, []);
+
+  if (hasError) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: '#f5f6fa',
+        padding: '20px',
+        textAlign: 'center'
+      }}>
+        <div>
+          <h2>Something went wrong</h2>
+          <p>Error: {error?.message || 'Unknown error'}</p>
+          <button onClick={() => window.location.reload()}>Reload Page</button>
+        </div>
+      </div>
+    );
+  }
+
+  return children;
+};
+
 const App = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
+    console.log('App component mounted');
+    console.log('Environment check:', {
+      supabaseUrl: process.env.REACT_APP_SUPABASE_URL || 'using fallback',
+      nodeEnv: process.env.NODE_ENV,
+      isProduction: process.env.NODE_ENV === 'production'
+    });
+
     // Handle OAuth callback
     const handleAuthCallback = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        const userWithType = {
-          ...session.user,
-          userType: 'user',
-          isAdmin: false
-        };
-        setUser(userWithType);
-        // Store user object in localStorage for payment utilities
-        localStorage.setItem('user', JSON.stringify(userWithType));
-        // Clear any admin access flags for regular users
-        localStorage.removeItem('admin_cv_access');
-        localStorage.removeItem('admin_user');
+      try {
+        console.log('Handling auth callback');
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          const userWithType = {
+            ...session.user,
+            userType: 'user',
+            isAdmin: false
+          };
+          setUser(userWithType);
+          // Store user object in localStorage for payment utilities
+          localStorage.setItem('user', JSON.stringify(userWithType));
+          // Clear any admin access flags for regular users
+          localStorage.removeItem('admin_cv_access');
+          localStorage.removeItem('admin_user');
+        }
+        setLoading(false);
+      } catch (err) {
+        console.error('Error in handleAuthCallback:', err);
+        setError(err);
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     // Check for session on mount
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        const userWithType = {
-          ...session.user,
-          userType: 'user',
-          isAdmin: false
-        };
-        setUser(userWithType);
-        // Store user object in localStorage for payment utilities
-        localStorage.setItem('user', JSON.stringify(userWithType));
-        // Clear any admin access flags for regular users
-        localStorage.removeItem('admin_cv_access');
-        localStorage.removeItem('admin_user');
+      try {
+        console.log('Checking session');
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          const userWithType = {
+            ...session.user,
+            userType: 'user',
+            isAdmin: false
+          };
+          setUser(userWithType);
+          // Store user object in localStorage for payment utilities
+          localStorage.setItem('user', JSON.stringify(userWithType));
+          // Clear any admin access flags for regular users
+          localStorage.removeItem('admin_cv_access');
+          localStorage.removeItem('admin_user');
+        }
+        setLoading(false);
+      } catch (err) {
+        console.error('Error in checkSession:', err);
+        setError(err);
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     // Check if we're on an auth callback page
@@ -56,25 +122,32 @@ const App = () => {
 
     // Listen for auth changes
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        const userWithType = {
-          ...session.user,
-          userType: 'user',
-          isAdmin: false
-        };
-        setUser(userWithType);
-        // Store user object in localStorage for payment utilities
-        localStorage.setItem('user', JSON.stringify(userWithType));
-        // Clear any admin access flags for regular users
-        localStorage.removeItem('admin_cv_access');
-        localStorage.removeItem('admin_user');
-        console.log('Auth state change - User signed in, stored user object:', userWithType.email);
-      } else {
-        setUser(null);
-        // Don't remove user from localStorage here - preserve it for payment status
-        console.log('Auth state change - User signed out, preserving user object in localStorage');
+      try {
+        console.log('Auth state change:', _event, session?.user?.email);
+        if (session?.user) {
+          const userWithType = {
+            ...session.user,
+            userType: 'user',
+            isAdmin: false
+          };
+          setUser(userWithType);
+          // Store user object in localStorage for payment utilities
+          localStorage.setItem('user', JSON.stringify(userWithType));
+          // Clear any admin access flags for regular users
+          localStorage.removeItem('admin_cv_access');
+          localStorage.removeItem('admin_user');
+          console.log('Auth state change - User signed in, stored user object:', userWithType.email);
+        } else {
+          setUser(null);
+          // Don't remove user from localStorage here - preserve it for payment status
+          console.log('Auth state change - User signed out, preserving user object in localStorage');
+        }
+        setLoading(false);
+      } catch (err) {
+        console.error('Error in auth state change:', err);
+        setError(err);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     // Handle automatic sign-out only when browser is actually closing (not tab switching)
@@ -114,6 +187,38 @@ const App = () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, []);
+
+  if (error) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: '#f5f6fa',
+        padding: '20px',
+        textAlign: 'center'
+      }}>
+        <div>
+          <h2>Connection Error</h2>
+          <p>Error: {error.message || 'Failed to connect to services'}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: '#007bff',
+              color: 'white',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer'
+            }}
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -233,4 +338,10 @@ const App = () => {
   );
 };
 
-export default App;
+const AppWithErrorBoundary = () => (
+  <ErrorBoundary>
+    <App />
+  </ErrorBoundary>
+);
+
+export default AppWithErrorBoundary;
