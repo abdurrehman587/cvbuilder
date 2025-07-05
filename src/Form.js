@@ -30,6 +30,7 @@ const defaultFormData = {
   languages: ['English', 'Urdu', 'Punjabi'],
   customLanguages: [],
   hobbies: [''],
+  customSections: [],
   cv_references: [''],
   otherInformation: [
     { id: 1, labelType: 'radio', label: "Father's Name:", checked: true, value: '', name: 'parentSpouse', radioValue: 'father' },
@@ -105,6 +106,7 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
             languages: data.languages || [],
             customLanguages: [],
             hobbies: data.hobbies || [],
+            customSections: data.custom_sections || [],
             cv_references: data.references || [],
             otherInformation: data.other_information || [],
           });
@@ -149,6 +151,7 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
             languages: data.languages || [],
             customLanguages: [],
             hobbies: data.hobbies || [],
+            customSections: data.custom_sections || [],
             cv_references: data.references || [],
             otherInformation: data.other_information || [],
           });
