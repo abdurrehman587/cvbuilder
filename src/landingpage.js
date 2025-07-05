@@ -138,27 +138,24 @@ const LandingPage = ({ user }) => {
     const adminAccess = localStorage.getItem('admin_cv_access');
     setIsAdminAccess(adminAccess === 'true');
     
-    // If admin is accessing and has selected a CV, automatically select Template 1
     if (adminAccess === 'true') {
       const adminSelectedCV = localStorage.getItem('admin_selected_cv');
       if (adminSelectedCV) {
         setSelectedTemplate('Template 1');
       }
     } else if (user && user.email && !user.isAdmin) {
-      // For regular users, automatically load their CV and select Template 1
-      console.log('Regular user signed in, loading CV automatically...');
-      setIsLoadingCV(true);
-      setSelectedTemplate('Template 1');
-      
-      // The Form component will handle the actual CV loading
-      // We just need to show the loading state briefly
-      setTimeout(() => {
-        if (isLoadingCV) {
-          setIsLoadingCV(false);
-        }
-      }, 3000);
+      // Only set if not already selected
+      if (!selectedTemplate) {
+        setIsLoadingCV(true);
+        setSelectedTemplate('Template 1');
+        setTimeout(() => {
+          if (isLoadingCV) {
+            setIsLoadingCV(false);
+          }
+        }, 3000);
+      }
     }
-  }, [user, isLoadingCV]);
+  }, [user, isLoadingCV, selectedTemplate]);
 
   // Listen for back to templates event from admin panel
   useEffect(() => {
