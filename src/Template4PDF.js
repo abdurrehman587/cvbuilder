@@ -128,22 +128,23 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const educationItemStyle = {
-    marginBottom: '12px',
+    marginBottom: '8px',
   };
 
   const degreeStyle = {
     fontWeight: 'bold',
     fontSize: '14px',
-    marginBottom: '4px',
+    marginBottom: '2px',
+    color: '#ffffff',
   };
 
   const institutionStyle = {
     fontSize: '13px',
-    color: '#666',
+    color: '#ffffff',
   };
 
   const workExperienceItemStyle = {
-    marginBottom: '16px',
+    marginBottom: '12px',
   };
 
   const jobTitleStyle = {
