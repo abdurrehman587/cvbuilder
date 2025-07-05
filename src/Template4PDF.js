@@ -364,9 +364,9 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
     <div>
       {workExp.map((job, index) => (
         <div key={index} style={workExperienceItemStyle}>
-          <p style={jobTitleStyle}>{job.title}</p>
-          <p style={companyNameStyle}>{job.company} | {job.year}</p>
-          <p style={paragraphStyle}>{job.description}</p>
+          <p style={jobTitleStyle}>{job.designation}</p>
+          <p style={companyNameStyle}>{job.company} | {job.duration}</p>
+          <p style={paragraphStyle}>{job.details}</p>
         </div>
       ))}
     </div>
