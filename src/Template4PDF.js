@@ -382,7 +382,11 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
         <div key={index} style={workExperienceItemStyle}>
           <span style={jobTitleStyle}>{job.designation}</span>
           <span style={companyNameStyle}>{job.company} | {job.duration}</span>
-          <span style={paragraphStyle}>{job.details}</span>
+          {job.details && job.details.split('\n').filter(line => line.trim()).map((detail, detailIndex) => (
+            <span key={detailIndex} style={paragraphStyle}>
+              • {detail.trim()}
+            </span>
+          ))}
         </div>
       ))}
     </div>
