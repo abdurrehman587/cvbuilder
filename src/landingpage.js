@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Form from './Form';
 import Template1Preview from './Template1Preview';
 import Template2Preview from './Template2Preview';
@@ -13,6 +13,7 @@ const LandingPage = ({ user }) => {
   const [isAdminAccess, setIsAdminAccess] = useState(false);
   const [isLoadingCV, setIsLoadingCV] = useState(false);
   const [cvLoadedStatus, setCvLoadedStatus] = useState(null); // null, true (loaded), false (not found)
+  const hasSetTemplateRef = useRef(false);
   const [formData, setFormData] = useState({
     image: null,
     imageUrl: '',
@@ -143,19 +144,23 @@ const LandingPage = ({ user }) => {
       if (adminSelectedCV) {
         setSelectedTemplate('Template 1');
       }
-    } else if (user && user.email && !user.isAdmin) {
-      // Only set if not already selected
-      if (!selectedTemplate) {
-        setIsLoadingCV(true);
-        setSelectedTemplate('Template 1');
-        setTimeout(() => {
-          if (isLoadingCV) {
-            setIsLoadingCV(false);
-          }
-        }, 3000);
-      }
+    } else if (user && user.email && !user.isAdmin && !hasSetTemplateRef.current) {
+      // Only set if not already set for this user session
+      hasSetTemplateRef.current = true;
+      setIsLoadingCV(true);
+      setSelectedTemplate('Template 1');
+      setTimeout(() => {
+        if (isLoadingCV) {
+          setIsLoadingCV(false);
+        }
+      }, 3000);
     }
-  }, [user, isLoadingCV, selectedTemplate]);
+  }, [user, isLoadingCV]);
+
+  // Reset the ref when user changes
+  useEffect(() => {
+    hasSetTemplateRef.current = false;
+  }, [user?.email]);
 
   // Listen for back to templates event from admin panel
   useEffect(() => {
