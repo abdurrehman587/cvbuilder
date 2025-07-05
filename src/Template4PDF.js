@@ -599,4 +599,4 @@ Template4PDF.propTypes = {
   visibleSections: PropTypes.arrayOf(PropTypes.string),
 };
 
-export default Template4PDF;
+export default Template4PDF; 
