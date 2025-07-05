@@ -95,24 +95,24 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const sectionStyle = {
-    marginBottom: '12px',
+    marginBottom: '6px',
   };
 
   const sectionTitleStyle = {
     fontSize: '18px',
     fontWeight: 'bold',
     color: '#107268',
-    marginBottom: '8px',
+    marginBottom: '4px',
     textTransform: 'uppercase',
     borderBottom: '2px solid #107268',
-    paddingBottom: '4px',
+    paddingBottom: '2px',
   };
 
   const leftColumnSectionTitleStyle = {
     fontSize: '16px',
     fontWeight: 'bold',
     color: '#ffffff',
-    marginBottom: '6px',
+    marginBottom: '3px',
     textTransform: 'uppercase',
   };
 
@@ -122,19 +122,19 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const paragraphStyle = {
-    margin: '0 0 4px 0',
+    margin: '0 0 2px 0',
     fontSize: '14px',
-    lineHeight: '1.4',
+    lineHeight: '1.3',
   };
 
   const educationItemStyle = {
-    marginBottom: '4px',
+    marginBottom: '2px',
   };
 
   const degreeStyle = {
     fontWeight: 'bold',
     fontSize: '14px',
-    marginBottom: '1px',
+    marginBottom: '0px',
     color: '#ffffff',
   };
 
@@ -144,20 +144,20 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const workExperienceItemStyle = {
-    marginBottom: '6px',
+    marginBottom: '3px',
   };
 
   const jobTitleStyle = {
     fontWeight: 'bold',
     fontSize: '16px',
     color: '#107268',
-    marginBottom: '2px',
+    marginBottom: '1px',
   };
 
   const companyNameStyle = {
     fontSize: '14px',
     color: '#666',
-    marginBottom: '3px',
+    marginBottom: '1px',
   };
 
   const skillsContainerStyle = {
@@ -181,7 +181,7 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const listItemStyle = {
-    marginBottom: '1px',
+    marginBottom: '0px',
     fontSize: '14px',
   };
 
@@ -388,7 +388,7 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
     return (
       <ul style={{ ...listStyle, paddingLeft: '20px', listStyleType: 'disc' }}>
         {items.map((item, index) => (
-          <li key={index} style={{ marginBottom: '2px' }}>{item}</li>
+          <li key={index} style={{ marginBottom: '0px' }}>{item}</li>
         ))}
       </ul>
     );
