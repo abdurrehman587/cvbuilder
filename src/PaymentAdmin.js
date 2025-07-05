@@ -15,6 +15,24 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
     isAdmin: true
   });
 
+  // Function to map template IDs to proper template names
+  const getTemplateName = (templateId) => {
+    const templateMap = {
+      'template1': 'Template 1',
+      'template2': 'Template 2', 
+      'template3': 'Template 3',
+      'template4': 'Template 4',
+      'template5': 'Template 5',
+      'template6': 'Template 6',
+      'template7': 'Template 7',
+      'template8': 'Template 8',
+      'template9': 'Template 9',
+      'template10': 'Template 10'
+    };
+    
+    return templateMap[templateId] || templateId || 'Unknown Template';
+  };
+
   const loadPayments = useCallback(async () => {
     console.log('PaymentAdmin - loadPayments called');
     
@@ -342,7 +360,7 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
                     color: '#1e40af',
                     fontWeight: '500'
                   }}>
-                    {payment.templateName || payment.templateId || 'Unknown Template'}
+                    {getTemplateName(payment.templateId)}
                   </span>
                 </td>
                 <td style={{ padding: '12px' }}>
