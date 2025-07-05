@@ -1,6 +1,7 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import ManualPayment from './ManualPayment';
+import { PaymentService } from './paymentService';
 
 const sectionList = [
   { key: 'objective', title: 'Objective' },
@@ -17,8 +18,11 @@ const sectionList = [
 
 const Template4PDF = ({ formData, visibleSections = [] }) => {
   const containerRef = useRef(null);
+  const buttonRef = useRef(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [isAdminUser, setIsAdminUser] = useState(false);
+  const [buttonText, setButtonText] = useState('Loading...');
+  const [isLoading, setIsLoading] = useState(false);
 
   const containerStyle = {
     width: '100%',
@@ -231,6 +235,111 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
     return () => clearInterval(interval);
   }, [isAdminUser]);
 
+  // Update button text based on payment status
+  useEffect(() => {
+    const updateButtonText = async () => {
+      try {
+        const adminAccess = localStorage.getItem('admin_cv_access');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
+        
+        const text = await PaymentService.getDownloadButtonText('template4', isAdmin);
+        setButtonText(text);
+      } catch (error) {
+        console.error('Error getting button text:', error);
+        setButtonText('Download PDF (PKR 100)');
+      }
+    };
+
+    updateButtonText();
+  }, [isAdminUser, isLoading]);
+
+  const generatePDF = async () => {
+    if (!containerRef.current) {
+      console.error('Container ref not available');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      console.log('Template4PDF - Starting PDF generation...');
+
+      // Check for approved payment first
+      const approvedPayment = await PaymentService.checkApprovedPayment('template4');
+      if (!approvedPayment) {
+        console.log('Template4PDF - No approved payment found, showing payment modal');
+        setShowPaymentModal(true);
+        setIsLoading(false);
+        return;
+      }
+
+      console.log('Template4PDF - Approved payment found, proceeding with download');
+
+      // Mark payment as used
+      await PaymentService.markPaymentAsUsed(approvedPayment.id, 'template4');
+      console.log('Template4PDF - Payment marked as used');
+
+      // Update button text
+      const adminAccess = localStorage.getItem('admin_cv_access');
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
+      const newText = await PaymentService.getDownloadButtonText('template4', isAdmin);
+      setButtonText(newText);
+
+      // Generate and download PDF
+      const { jsPDF } = await import('jspdf');
+      const html2canvas = await import('html2canvas');
+      
+      const canvas = await html2canvas.default(containerRef.current, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff'
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const imgWidth = 210;
+      const pageHeight = 295;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+
+      let position = 0;
+
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      pdf.save('cv-template4.pdf');
+      console.log('Template4PDF - PDF generated and downloaded successfully');
+    } catch (error) {
+      console.error('Template4PDF - Error generating PDF:', error);
+      alert('Error generating PDF. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDownloadClick = async () => {
+    if (isLoading) {
+      console.log('Template4PDF - Download already in progress');
+      return;
+    }
+
+    try {
+      await generatePDF();
+    } catch (error) {
+      console.error('Template4PDF - Error in download click handler:', error);
+      setIsLoading(false);
+    }
+  };
+
   const hasData = (sectionKey) => visibleSections.includes(sectionKey);
 
   const renderSection = (key, title, content, isLeftColumn) => {
@@ -435,6 +544,40 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
               renderSection(section.key, section.title, sectionData[section.key], false)
             )}
         </div>
+      </div>
+
+      {/* Download Button */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: 16 }}>
+        <button
+          ref={buttonRef}
+          type="button"
+          onClick={handleDownloadClick}
+          disabled={isLoading}
+          style={{
+            cursor: isLoading ? 'not-allowed' : 'pointer',
+            padding: '6px 18px',
+            fontSize: '0.95rem',
+            borderRadius: 6,
+            border: 'none',
+            backgroundColor: isLoading ? '#cccccc' : '#3f51b5',
+            color: 'white',
+            transition: 'background-color 0.3s ease',
+            userSelect: 'none',
+            opacity: isLoading ? 0.7 : 1,
+          }}
+          onMouseEnter={(e) => {
+            if (!isLoading) {
+              e.currentTarget.style.backgroundColor = '#303f9f';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!isLoading) {
+              e.currentTarget.style.backgroundColor = '#3f51b5';
+            }
+          }}
+        >
+          {buttonText}
+        </button>
       </div>
 
       {showPaymentModal && (
