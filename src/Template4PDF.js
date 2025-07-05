@@ -122,42 +122,51 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const paragraphStyle = {
-    margin: '0 0 2px 0',
+    margin: '0px',
     fontSize: '14px',
-    lineHeight: '1.3',
+    lineHeight: '1.1',
   };
 
   const educationItemStyle = {
-    marginBottom: '2px',
+    marginBottom: '0px',
   };
 
   const degreeStyle = {
     fontWeight: 'bold',
     fontSize: '14px',
     marginBottom: '0px',
+    marginTop: '0px',
+    lineHeight: '1.1',
     color: '#ffffff',
   };
 
   const institutionStyle = {
     fontSize: '13px',
+    marginTop: '0px',
+    marginBottom: '0px',
+    lineHeight: '1.1',
     color: '#ffffff',
   };
 
   const workExperienceItemStyle = {
-    marginBottom: '3px',
+    marginBottom: '0px',
   };
 
   const jobTitleStyle = {
     fontWeight: 'bold',
     fontSize: '16px',
     color: '#107268',
-    marginBottom: '1px',
+    marginBottom: '0px',
+    marginTop: '0px',
+    lineHeight: '1.1',
   };
 
   const companyNameStyle = {
     fontSize: '14px',
     color: '#666',
-    marginBottom: '1px',
+    marginBottom: '0px',
+    marginTop: '0px',
+    lineHeight: '1.1',
   };
 
   const skillsContainerStyle = {
@@ -351,7 +360,7 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
   );
 
   const renderEducation = (education) => (
-    <div>
+    <div style={{ margin: '0px', padding: '0px' }}>
       {education.map((edu, index) => (
         <div key={index} style={educationItemStyle}>
           <p style={degreeStyle}>{edu.degree} ({edu.year})</p>
@@ -362,7 +371,7 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
   );
 
   const renderWorkExperience = (workExp) => (
-    <div>
+    <div style={{ margin: '0px', padding: '0px' }}>
       {workExp.map((job, index) => (
         <div key={index} style={workExperienceItemStyle}>
           <p style={jobTitleStyle}>{job.designation}</p>
