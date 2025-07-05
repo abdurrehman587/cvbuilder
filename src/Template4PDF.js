@@ -466,22 +466,28 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const {
-    personalInfo = {},
+    imageUrl,
+    name,
+    phone,
+    email,
+    address,
     objective = [],
     education = [],
     workExperience = [],
     skills = [],
     certifications = [],
     projects = [],
-    languages: languageData = {},
+    languages = [],
+    customLanguages = [],
     hobbies = [],
     cv_references = {},
     otherInformation = [],
+    customSections = [],
   } = formData;
 
   const allLanguages = [
-    ...(languageData.languages || []),
-    ...(languageData.customLanguages || [])
+    ...(languages || []),
+    ...(customLanguages || [])
       .filter(l => l.selected && l.name)
       .map(l => `${l.name} (${l.level})`)
   ];
@@ -498,7 +504,7 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
     projects: renderSimpleList(projects),
     languages: renderLanguages(allLanguages),
     hobbies: renderSimpleList(hobbies),
-    customSections: renderCustomSections(formData.customSections),
+    customSections: renderCustomSections(customSections),
     references: renderReferences(cv_references),
     otherInformation: renderOtherInformation(otherInformation),
   };
@@ -508,17 +514,17 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
       <div ref={containerRef} style={containerStyle}>
         <div style={leftColumnStyle}>
           <div style={photoContainerStyle}>
-            {personalInfo.photo ? (
-              <img src={personalInfo.photo} alt="Profile" style={photoStyle} />
+            {imageUrl ? (
+              <img src={imageUrl} alt="Profile" style={photoStyle} />
             ) : (
               <div style={{...photoStyle, background: '#107268' }} />
             )}
           </div>
           <div style={contactInfoStyle}>
             <h2 style={leftColumnSectionTitleStyle}>Contact</h2>
-            {personalInfo.email && <div style={contactRowStyle}>📧 {personalInfo.email}</div>}
-            {personalInfo.phone && <div style={contactRowStyle}>📞 {personalInfo.phone}</div>}
-            {personalInfo.address && <div style={contactRowStyle}>🏠 {personalInfo.address}</div>}
+            {email && <div style={contactRowStyle}>📧 {email}</div>}
+            {phone && <div style={contactRowStyle}>📞 {phone}</div>}
+            {address && <div style={contactRowStyle}>🏠 {address}</div>}
           </div>
           {sectionList
             .filter(section => leftColumnSections.includes(section.key))
@@ -527,8 +533,8 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
             )}
         </div>
         <div style={rightColumnStyle}>
-          <h1 style={nameStyle}>{personalInfo.fullName || 'Richard Sanchez'}</h1>
-          <h2 style={titleStyle}>{personalInfo.title || 'Graphic Designer'}</h2>
+          <h1 style={nameStyle}>{name || 'Your Name'}</h1>
+          <h2 style={titleStyle}>Professional Title</h2>
           {sectionList
             .filter(section => rightColumnSections.includes(section.key))
             .map(section =>
