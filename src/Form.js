@@ -1153,9 +1153,20 @@ const CustomSection = ({
   onDetailChange,
   onAddDetail,
   onRemoveDetail,
-}) => (
-  <div style={{ marginBottom: '1.5rem' }}>
+}) => {
+  console.log('CustomSection component rendered with:', { customSections });
+    return (
+    <div style={{ 
+      marginBottom: '1.5rem',
+      border: '2px solid #107268',
+      borderRadius: '8px',
+      padding: '15px',
+      backgroundColor: '#f0f8f8'
+    }}>
     <h3 style={{ fontWeight: 700, fontSize: '1.25rem', marginBottom: 8, color: '#374151' }}>Custom Sections</h3>
+    <p style={{ fontSize: '14px', color: '#666', marginBottom: '10px' }}>
+      Add custom sections to your CV with your own headings and details.
+    </p>
     {(customSections || []).map((section, sectionIndex) => (
       <div key={sectionIndex} style={{ 
         border: '1px solid #ddd', 
@@ -1233,7 +1244,8 @@ const CustomSection = ({
       Add Custom Section
     </button>
   </div>
-);
+  );
+};
 
 const DynamicSection = ({ title, entries, onChange, onAdd, onRemove, placeholder, rows, renderEntry }) => (
   <div className="dynamic-section">
