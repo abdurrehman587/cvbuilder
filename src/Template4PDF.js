@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
-import PaymentService from './paymentService';
+import { PaymentService } from './paymentService';
 import ManualPayment from './ManualPayment';
 
 const Template4PDF = ({ formData, visibleSections = [] }) => {
