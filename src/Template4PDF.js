@@ -123,8 +123,10 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
 
   const paragraphStyle = {
     margin: '0px',
+    padding: '0px',
     fontSize: '14px',
-    lineHeight: '1.1',
+    lineHeight: '1.0',
+    display: 'block',
   };
 
   const educationItemStyle = {
@@ -134,18 +136,20 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
   const degreeStyle = {
     fontWeight: 'bold',
     fontSize: '14px',
-    marginBottom: '0px',
-    marginTop: '0px',
-    lineHeight: '1.1',
+    margin: '0px',
+    padding: '0px',
+    lineHeight: '1.0',
     color: '#ffffff',
+    display: 'block',
   };
 
   const institutionStyle = {
     fontSize: '13px',
-    marginTop: '0px',
-    marginBottom: '0px',
-    lineHeight: '1.1',
+    margin: '0px',
+    padding: '0px',
+    lineHeight: '1.0',
     color: '#ffffff',
+    display: 'block',
   };
 
   const workExperienceItemStyle = {
@@ -156,17 +160,19 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
     fontWeight: 'bold',
     fontSize: '16px',
     color: '#107268',
-    marginBottom: '0px',
-    marginTop: '0px',
-    lineHeight: '1.1',
+    margin: '0px',
+    padding: '0px',
+    lineHeight: '1.0',
+    display: 'block',
   };
 
   const companyNameStyle = {
     fontSize: '14px',
     color: '#666',
-    marginBottom: '0px',
-    marginTop: '0px',
-    lineHeight: '1.1',
+    margin: '0px',
+    padding: '0px',
+    lineHeight: '1.0',
+    display: 'block',
   };
 
   const skillsContainerStyle = {
@@ -363,8 +369,8 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
     <div style={{ margin: '0px', padding: '0px' }}>
       {education.map((edu, index) => (
         <div key={index} style={educationItemStyle}>
-          <p style={degreeStyle}>{edu.degree} ({edu.year})</p>
-          <p style={institutionStyle}>{edu.institute}</p>
+          <span style={degreeStyle}>{edu.degree} ({edu.year})</span>
+          <span style={institutionStyle}>{edu.institute}</span>
         </div>
       ))}
     </div>
@@ -374,9 +380,9 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
     <div style={{ margin: '0px', padding: '0px' }}>
       {workExp.map((job, index) => (
         <div key={index} style={workExperienceItemStyle}>
-          <p style={jobTitleStyle}>{job.designation}</p>
-          <p style={companyNameStyle}>{job.company} | {job.duration}</p>
-          <p style={paragraphStyle}>{job.details}</p>
+          <span style={jobTitleStyle}>{job.designation}</span>
+          <span style={companyNameStyle}>{job.company} | {job.duration}</span>
+          <span style={paragraphStyle}>{job.details}</span>
         </div>
       ))}
     </div>
