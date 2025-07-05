@@ -2,7 +2,6 @@ import React, { useRef, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { PaymentService } from './paymentService';
 import ManualPayment from './ManualPayment';
-import { checkForApprovedPayment, markPaymentAsUsed, getDownloadButtonText as getDownloadButtonTextUtil, checkForPendingPayment } from './paymentUtils';
 
 const sectionList = [
   { key: 'objective', title: 'Objective' },
@@ -38,18 +37,8 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
   // Update button text based on payment status
   useEffect(() => {
     const updateButtonText = async () => {
-      // Check both localStorage and user object for admin access
-      const adminAccess = localStorage.getItem('admin_cv_access');
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
-      
-      if (isAdmin) {
-        setButtonText('Download PDF (Admin)');
-        return;
-      }
-
       try {
-        const text = await PaymentService.getDownloadButtonText('template7', isAdmin);
+        const text = await getDownloadButtonText();
         setButtonText(text);
       } catch (error) {
         console.error('Error getting button text:', error);
@@ -411,10 +400,19 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     }
   };
 
-  const handlePaymentSuccess = (paymentData) => {
+  const handlePaymentSuccess = async (paymentData) => {
     setShowPaymentModal(false);
     // Don't auto-download - wait for admin approval
     alert(`Payment proof submitted successfully!\n\nPayment ID: ${paymentData.paymentId}\n\nPlease wait for manual verification. You will be able to download once approved.`);
+    
+    // Update button text to reflect pending payment status
+    try {
+      const newButtonText = await PaymentService.getDownloadButtonText('template7', false);
+      setButtonText(newButtonText);
+    } catch (error) {
+      console.error('Error updating button text:', error);
+      setButtonText('Payment Submitted (Waiting for Approval)');
+    }
   };
 
   const handlePaymentFailure = (error) => {
@@ -423,22 +421,22 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     alert('Payment failed. Please try again.');
   };
 
-  const checkForApprovedPaymentLocal = () => {
-    // Check if user is admin (bypass payment)
-    const adminAccess = localStorage.getItem('admin_cv_access');
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
-    
-    return checkForApprovedPayment(isAdmin, 'template7');
-  };
-
-  const getDownloadButtonText = () => {
+  const getDownloadButtonText = async () => {
     // Check both localStorage and user object for admin access
     const adminAccess = localStorage.getItem('admin_cv_access');
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
     
-    return getDownloadButtonTextUtil(isAdmin, 'template7');
+    if (isAdmin) {
+      return 'Download PDF (Admin)';
+    }
+    
+    try {
+      return await PaymentService.getDownloadButtonText('template7', isAdmin);
+    } catch (error) {
+      console.error('Error getting button text:', error);
+      return 'Download PDF (PKR 100)';
+    }
   };
 
   const handleDownloadClick = async () => {
@@ -476,6 +474,10 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
         // User has an approved payment, allow download
         console.log('Template7PDF - Payment approved, generating PDF');
         generatePDF();
+        
+        // Update button text after successful download
+        const newButtonText = await PaymentService.getDownloadButtonText('template7', isAdmin);
+        setButtonText(newButtonText);
       } else {
         // Show payment modal
         console.log('Template7PDF - No approved payment, showing modal');
