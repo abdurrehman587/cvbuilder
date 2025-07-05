@@ -486,7 +486,8 @@ export class PaymentService {
           databaseReady: false,
           payments: [],
           approvedPayment: null,
-          pendingPayment: null
+          pendingPayment: null,
+          downloadedPayment: null
         };
       }
 
@@ -505,22 +506,33 @@ export class PaymentService {
 
       console.log('All payments for user and template:', payments);
 
+      // Check specific payment types
       const approvedPayment = await this.checkApprovedPayment(templateId);
       const pendingPayment = await this.checkPendingPayment(templateId);
+      const downloadedPayment = await this.checkDownloadedPayment(templateId);
 
-      console.log(`Template ${templateId}:`);
-      console.log('- Has approved payment:', !!approvedPayment);
-      console.log('- Has pending payment:', !!pendingPayment);
-
-      return {
+      const result = {
         user: user.email,
         databaseReady: true,
         payments: payments,
         approvedPayment: approvedPayment,
-        pendingPayment: pendingPayment
+        pendingPayment: pendingPayment,
+        downloadedPayment: downloadedPayment,
+        buttonText: await this.getDownloadButtonText(templateId, false)
       };
+
+      console.log('=== DEBUG RESULT ===');
+      console.log('User:', result.user);
+      console.log('All payments:', result.payments);
+      console.log('Approved payment:', result.approvedPayment);
+      console.log('Pending payment:', result.pendingPayment);
+      console.log('Downloaded payment:', result.downloadedPayment);
+      console.log('Button text:', result.buttonText);
+      console.log('=== END DEBUG ===');
+
+      return result;
     } catch (error) {
-      console.error('Error in debug payment status:', error);
+      console.error('Error in debug function:', error);
       return null;
     }
   }

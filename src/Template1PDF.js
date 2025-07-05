@@ -547,8 +547,15 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     }
     
     try {
+      // DEBUG: Log the current payment status
+      console.log('=== DEBUGGING PAYMENT STATUS ===');
+      const debugResult = await PaymentService.debugPaymentStatus('template1');
+      console.log('Debug result:', debugResult);
+      
       // First check if user has already downloaded (most restrictive)
       const downloadedPayment = await PaymentService.checkDownloadedPayment('template1');
+      console.log('Downloaded payment check result:', downloadedPayment);
+      
       if (downloadedPayment) {
         console.log('Template1PDF - CV already downloaded, showing payment modal for new download');
         alert('You have already downloaded this CV. Please make a new payment to download again.');
