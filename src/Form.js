@@ -600,36 +600,7 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
     }
   };
 
-  // Test function to check database connection
-  const testDatabaseConnection = async () => {
-    try {
-      console.log('=== TESTING DATABASE CONNECTION ===');
-      
-      // Test user_cvs table
-      const { data: userCvsTest, error: userCvsError } = await supabase
-        .from('user_cvs')
-        .select('count')
-        .limit(1);
-      
-      console.log('User CVs table test:', { data: userCvsTest, error: userCvsError });
-      
-      // Test admin_cvs table
-      const { data: adminCvsTest, error: adminCvsError } = await supabase
-        .from('admin_cvs')
-        .select('count')
-        .limit(1);
-      
-      console.log('Admin CVs table test:', { data: adminCvsTest, error: adminCvsError });
-      
-      // Test user authentication
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-      console.log('Auth user:', authUser);
-      
-      console.log('=== DATABASE CONNECTION TEST END ===');
-    } catch (error) {
-      console.error('Database connection test failed:', error);
-    }
-  };
+
 
   // Guard: Don't render until formData is initialized
   if (!formData) return null;
@@ -702,26 +673,7 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
 
 
               <div className="form-container">
-          {/* Debug Test Button - Remove this after testing */}
-          <div style={{ marginBottom: '20px', padding: '10px', backgroundColor: '#f0f9ff', border: '1px solid #0ea5e9', borderRadius: '8px' }}>
-            <button
-              onClick={testDatabaseConnection}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: '#0ea5e9',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '14px'
-              }}
-            >
-              🔍 Test Database Connection
-            </button>
-            <span style={{ marginLeft: '10px', fontSize: '12px', color: '#6b7280' }}>
-              Check console for results
-            </span>
-          </div>
+
 
           {/* Profile Image */}
           <div className="profile-image-section">
