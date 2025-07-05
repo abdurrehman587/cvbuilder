@@ -519,7 +519,7 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
   ];
 
   const leftColumnSections = ['education', 'certifications', 'projects', 'hobbies'];
-  const rightColumnSections = ['objective', 'workExperience', 'skills', 'languages', 'customSections', 'otherInformation', 'references'];
+  const rightColumnSections = ['objective', 'workExperience', 'skills', 'languages', 'customSections', 'otherInformation'];
 
   const sectionData = {
     objective: renderObjective(objective),
@@ -567,6 +567,18 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
               renderSection(section.key, section.title, sectionData[section.key], false)
             )}
         </div>
+        {/* References Section - Always at the very end */}
+        {hasData('references') && (
+          <div style={{ 
+            width: '100%', 
+            padding: '20px 30px', 
+            borderTop: '2px solid #107268',
+            marginTop: '10px'
+          }}>
+            <h3 style={sectionTitleStyle}>References</h3>
+            {sectionData.references}
+          </div>
+        )}
       </div>
 
       {/* Download Button */}
