@@ -1,202 +1,193 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
+import PaymentService from './paymentService';
 import ManualPayment from './ManualPayment';
-import { PaymentService } from './paymentService';
-
-const sectionList = [
-  { key: 'objective', title: 'Objective' },
-  { key: 'education', title: 'Education' },
-  { key: 'workExperience', title: 'Work Experience' },
-  { key: 'otherInformation', title: 'Other Information' },
-  { key: 'skills', title: 'Skills' },
-  { key: 'certifications', title: 'Certifications' },
-  { key: 'projects', title: 'Award' },
-  { key: 'languages', title: 'Languages' },
-  { key: 'hobbies', title: 'Hobbies' },
-  { key: 'references', title: 'References' },
-];
 
 const Template4PDF = ({ formData, visibleSections = [] }) => {
-  const containerRef = useRef(null);
-  const buttonRef = useRef(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [buttonText, setButtonText] = useState('Download PDF (PKR 100)');
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [isAdminUser, setIsAdminUser] = useState(false);
-  const [buttonText, setButtonText] = useState('Loading...');
-  const [isLoading, setIsLoading] = useState(false);
+  const containerRef = useRef(null);
+  const buttonRef = useRef(null);
 
+  const sectionList = [
+    { key: 'objective', title: 'Objective' },
+    { key: 'education', title: 'Education' },
+    { key: 'workExperience', title: 'Work Experience' },
+    { key: 'skills', title: 'Skills' },
+    { key: 'certifications', title: 'Certifications' },
+    { key: 'projects', title: 'Projects' },
+    { key: 'languages', title: 'Languages' },
+    { key: 'hobbies', title: 'Hobbies' },
+    { key: 'customSections', title: 'Custom Sections' },
+    { key: 'references', title: 'References' },
+    { key: 'otherInformation', title: 'Other Information' },
+  ];
+
+  // Styles
   const containerStyle = {
-    width: '100%',
-    margin: '0',
-    padding: '0',
-    background: '#ffffff',
-    fontFamily: "'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-    color: '#2d3748',
     display: 'flex',
-    boxSizing: 'border-box',
-    minHeight: '1123px',
+    minHeight: '297mm',
+    backgroundColor: '#ffffff',
+    fontFamily: "'Open Sans', Arial, sans-serif",
+    color: '#333',
+    position: 'relative',
   };
 
   const leftColumnStyle = {
-    background: '#083935',
-    color: '#ffffff',
-    padding: '40px 20px',
     width: '35%',
-    boxSizing: 'border-box',
+    backgroundColor: '#107268',
+    color: '#ffffff',
+    padding: '30px 20px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '20px',
   };
 
   const rightColumnStyle = {
-    background: '#ffffff',
-    color: '#2d3748',
-    padding: '40px 20px',
     width: '65%',
-    boxSizing: 'border-box',
+    padding: '30px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '20px',
   };
 
   const photoContainerStyle = {
-    width: '150px',
-    height: '150px',
-    borderRadius: '50%',
-    overflow: 'hidden',
-    margin: '0 auto 20px auto',
-    border: '5px solid #107268',
+    display: 'flex',
+    justifyContent: 'center',
+    marginBottom: '20px',
   };
 
   const photoStyle = {
-    width: '100%',
-    height: '100%',
+    width: '120px',
+    height: '120px',
+    borderRadius: '50%',
     objectFit: 'cover',
-  };
-
-  const nameStyle = {
-    fontSize: '2.8rem',
-    fontWeight: 'bold',
-    margin: '0 0 5px 0',
-    color: '#083935',
-  };
-
-  const titleStyle = {
-    fontSize: '1.5rem',
-    fontWeight: 'normal',
-    margin: '0 0 20px 0',
-    color: '#107268',
-  };
-
-  const sectionTitleStyle = {
-    fontSize: '1.4rem',
-    fontWeight: 'bold',
-    color: '#107268',
-    marginBottom: '15px',
-    textTransform: 'uppercase',
-    borderBottom: '2px solid #107268',
-    paddingBottom: '5px',
-  };
-
-  const leftColumnSectionTitleStyle = {
-    ...sectionTitleStyle,
-    color: '#ffffff',
-    borderColor: '#ffffff',
+    border: '4px solid #ffffff',
   };
 
   const contactInfoStyle = {
-    marginBottom: '30px',
+    marginBottom: '20px',
   };
 
   const contactRowStyle = {
-    fontSize: '0.9rem',
-    margin: '8px 0',
+    fontSize: '14px',
+    marginBottom: '8px',
     display: 'flex',
     alignItems: 'center',
-    gap: '10px',
+    gap: '8px',
+  };
+
+  const nameStyle = {
+    fontSize: '32px',
+    fontWeight: 'bold',
+    color: '#107268',
+    marginBottom: '8px',
+    textTransform: 'uppercase',
+  };
+
+  const titleStyle = {
+    fontSize: '18px',
+    color: '#666',
+    marginBottom: '20px',
+    fontWeight: '500',
+  };
+
+  const sectionStyle = {
+    marginBottom: '20px',
+  };
+
+  const sectionTitleStyle = {
+    fontSize: '18px',
+    fontWeight: 'bold',
+    color: '#107268',
+    marginBottom: '12px',
+    textTransform: 'uppercase',
+    borderBottom: '2px solid #107268',
+    paddingBottom: '4px',
+  };
+
+  const leftColumnSectionTitleStyle = {
+    fontSize: '16px',
+    fontWeight: 'bold',
+    color: '#ffffff',
+    marginBottom: '10px',
+    textTransform: 'uppercase',
+  };
+
+  const sectionContentStyle = {
+    fontSize: '14px',
+    lineHeight: '1.6',
   };
 
   const paragraphStyle = {
-    fontSize: '0.95rem',
-    lineHeight: 1.6,
-    color: '#4a5568',
-    marginBottom: '20px',
-    textAlign: 'justify',
+    margin: '0 0 8px 0',
+    fontSize: '14px',
+    lineHeight: '1.6',
+  };
+
+  const educationItemStyle = {
+    marginBottom: '12px',
+  };
+
+  const degreeStyle = {
+    fontWeight: 'bold',
+    fontSize: '14px',
+    marginBottom: '4px',
+  };
+
+  const institutionStyle = {
+    fontSize: '13px',
+    color: '#666',
   };
 
   const workExperienceItemStyle = {
-    marginBottom: '20px',
+    marginBottom: '16px',
   };
 
   const jobTitleStyle = {
-    fontSize: '1.1rem',
     fontWeight: 'bold',
-    color: '#083935',
-    margin: '0',
+    fontSize: '16px',
+    color: '#107268',
+    marginBottom: '4px',
   };
 
   const companyNameStyle = {
-    fontSize: '1rem',
-    fontWeight: 'normal',
-    margin: '0 0 10px 0',
-    color: '#4a5568',
+    fontSize: '14px',
+    color: '#666',
+    marginBottom: '6px',
   };
 
   const skillsContainerStyle = {
     display: 'flex',
     flexWrap: 'wrap',
-    gap: '10px',
+    gap: '8px',
   };
 
   const skillItemStyle = {
-    background: '#e6fffa',
-    padding: '8px 15px',
-    borderRadius: '20px',
-    fontSize: '0.9rem',
-    fontWeight: 500,
-    color: '#083935',
-  };
-
-  const educationItemStyle = {
-    marginBottom: '15px',
-  };
-
-  const degreeStyle = {
-    fontSize: '1rem',
-    fontWeight: 'bold',
-    margin: '0',
-    color: '#ffffff'
-  };
-
-  const institutionStyle = {
-    fontSize: '0.9rem',
-    margin: '0',
-    color: '#e6fffa'
-  };
-
-  const sectionContentStyle = {
-    padding: '1px 0',
-  };
-
-  const sectionStyle = {
-    marginBottom: '0px',
-    breakInside: 'avoid',
-    pageBreakInside: 'avoid',
+    backgroundColor: '#107268',
+    color: '#ffffff',
+    padding: '4px 12px',
+    borderRadius: '12px',
+    fontSize: '12px',
+    fontWeight: '500',
   };
 
   const listStyle = {
-    listStyleType: 'none',
-    paddingLeft: '0',
-    marginBottom: '0px',
+    margin: '0',
+    paddingLeft: '20px',
   };
 
   const listItemStyle = {
-    fontSize: '0.95rem',
-    lineHeight: 1.4,
-    color: '#4a5568',
-    marginBottom: '8px',
-    paddingLeft: '0',
+    marginBottom: '4px',
+    fontSize: '14px',
   };
 
   // Check admin status on component mount
-  React.useEffect(() => {
+  useEffect(() => {
     const checkAdminStatus = async () => {
       try {
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
         const adminAccess = localStorage.getItem('admin_cv_access');
         const user = JSON.parse(localStorage.getItem('user') || '{}');
         const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
