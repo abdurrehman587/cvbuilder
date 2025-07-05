@@ -103,7 +103,28 @@ export class PaymentService {
         return null;
       }
 
-      // First check if there's an approved payment
+      // First check if there's already a downloaded payment (prevent multiple downloads)
+      const { data: downloadedPayment, error: downloadedError } = await supabase
+        .from('payments')
+        .select('*')
+        .eq('user_email', user.email)
+        .eq('template_id', templateId)
+        .eq('status', 'downloaded')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (downloadedError && downloadedError.code !== 'PGRST116') {
+        console.error('Error checking downloaded payment:', downloadedError);
+        throw downloadedError;
+      }
+
+      if (downloadedPayment) {
+        console.log('Downloaded payment already exists - preventing multiple downloads');
+        return null;
+      }
+
+      // Check if there's an approved payment
       const { data: approvedPayment, error: approvedError } = await supabase
         .from('payments')
         .select('*')
@@ -124,7 +145,7 @@ export class PaymentService {
         return null;
       }
 
-      // Check if this payment has been used for download
+      // Check if this payment has been used for download (double-check)
       const { data: download, error: downloadError } = await supabase
         .from('cv_downloads')
         .select('*')
@@ -289,22 +310,25 @@ export class PaymentService {
     }
 
     try {
+      // First check for downloaded payment (most restrictive)
+      const downloadedPayment = await this.checkDownloadedPayment(templateId);
+      if (downloadedPayment) {
+        return 'CV Already Downloaded (Pay Again for New Download)';
+      }
+
+      // Then check for approved payment
       const approvedPayment = await this.checkApprovedPayment(templateId);
       if (approvedPayment) {
         return 'Payment Approved (Download Now)';
       }
 
+      // Then check for pending payment
       const pendingPayment = await this.checkPendingPayment(templateId);
       if (pendingPayment) {
         return 'Payment Submitted (Waiting for Approval)';
       }
 
-      // Check for downloaded payment
-      const downloadedPayment = await this.checkDownloadedPayment(templateId);
-      if (downloadedPayment) {
-        return 'CV Downloaded (Download Again)';
-      }
-
+      // No payment found - show payment option
       return 'Download PDF (PKR 100)';
     } catch (error) {
       console.error('Error getting download button text:', error);

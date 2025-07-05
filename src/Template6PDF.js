@@ -495,6 +495,15 @@ const Template6PDF = ({ formData, visibleSections = [] }) => {
     }
     
     try {
+      // First check if user has already downloaded (most restrictive)
+      const downloadedPayment = await PaymentService.checkDownloadedPayment('template6');
+      if (downloadedPayment) {
+        console.log('Template6PDF - CV already downloaded, showing payment modal for new download');
+        alert('You have already downloaded this CV. Please make a new payment to download again.');
+        setShowPaymentModal(true);
+        return;
+      }
+
       // Check if user has an approved payment
       const approvedPayment = await PaymentService.checkApprovedPayment('template6');
       console.log('Template6PDF - approvedPayment:', approvedPayment);
