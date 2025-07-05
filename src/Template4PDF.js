@@ -354,7 +354,7 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
       {education.map((edu, index) => (
         <div key={index} style={educationItemStyle}>
           <p style={degreeStyle}>{edu.degree} ({edu.year})</p>
-          <p style={institutionStyle}>{edu.institution}</p>
+          <p style={institutionStyle}>{edu.institute}</p>
         </div>
       ))}
     </div>
