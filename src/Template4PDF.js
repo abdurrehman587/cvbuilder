@@ -118,23 +118,23 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
 
   const sectionContentStyle = {
     fontSize: '14px',
-    lineHeight: '1.6',
+    lineHeight: '1.4',
   };
 
   const paragraphStyle = {
-    margin: '0 0 8px 0',
+    margin: '0 0 4px 0',
     fontSize: '14px',
-    lineHeight: '1.6',
+    lineHeight: '1.4',
   };
 
   const educationItemStyle = {
-    marginBottom: '8px',
+    marginBottom: '6px',
   };
 
   const degreeStyle = {
     fontWeight: 'bold',
     fontSize: '14px',
-    marginBottom: '2px',
+    marginBottom: '1px',
     color: '#ffffff',
   };
 
@@ -144,20 +144,20 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const workExperienceItemStyle = {
-    marginBottom: '12px',
+    marginBottom: '8px',
   };
 
   const jobTitleStyle = {
     fontWeight: 'bold',
     fontSize: '16px',
     color: '#107268',
-    marginBottom: '4px',
+    marginBottom: '2px',
   };
 
   const companyNameStyle = {
     fontSize: '14px',
     color: '#666',
-    marginBottom: '6px',
+    marginBottom: '3px',
   };
 
   const skillsContainerStyle = {
@@ -181,7 +181,7 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const listItemStyle = {
-    marginBottom: '4px',
+    marginBottom: '2px',
     fontSize: '14px',
   };
 
