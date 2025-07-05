@@ -376,7 +376,7 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
     <div style={skillsContainerStyle}>
       {skills.map((skill, index) => (
         <div key={index} style={skillItemStyle}>
-          {skill}
+          {skill.name || skill}
         </div>
       ))}
     </div>
