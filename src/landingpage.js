@@ -76,6 +76,7 @@ const LandingPage = ({ user }) => {
   };
 
   const handleBack = () => {
+    console.log('Back button clicked - setting selectedTemplate to null');
     setSelectedTemplate(null);
     // formData is preserved globally, not per template
   };
@@ -142,10 +143,12 @@ const LandingPage = ({ user }) => {
     if (adminAccess === 'true') {
       const adminSelectedCV = localStorage.getItem('admin_selected_cv');
       if (adminSelectedCV) {
+        console.log('Admin access - setting template to Template 1');
         setSelectedTemplate('Template 1');
       }
     } else if (user && user.email && !user.isAdmin && !hasSetTemplateRef.current) {
       // Only set if not already set for this user session
+      console.log('Regular user - setting template to Template 1 (first time)');
       hasSetTemplateRef.current = true;
       setIsLoadingCV(true);
       setSelectedTemplate('Template 1');
@@ -154,6 +157,12 @@ const LandingPage = ({ user }) => {
           setIsLoadingCV(false);
         }
       }, 3000);
+    } else {
+      console.log('useEffect - no action taken:', {
+        user: user?.email,
+        isAdmin: user?.isAdmin,
+        hasSetTemplate: hasSetTemplateRef.current
+      });
     }
   }, [user, isLoadingCV]);
 
