@@ -95,14 +95,14 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const sectionStyle = {
-    marginBottom: '20px',
+    marginBottom: '12px',
   };
 
   const sectionTitleStyle = {
     fontSize: '18px',
     fontWeight: 'bold',
     color: '#107268',
-    marginBottom: '12px',
+    marginBottom: '8px',
     textTransform: 'uppercase',
     borderBottom: '2px solid #107268',
     paddingBottom: '4px',
@@ -112,7 +112,7 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
     fontSize: '16px',
     fontWeight: 'bold',
     color: '#ffffff',
-    marginBottom: '10px',
+    marginBottom: '6px',
     textTransform: 'uppercase',
   };
 
@@ -128,7 +128,7 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const educationItemStyle = {
-    marginBottom: '6px',
+    marginBottom: '4px',
   };
 
   const degreeStyle = {
@@ -144,7 +144,7 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const workExperienceItemStyle = {
-    marginBottom: '8px',
+    marginBottom: '6px',
   };
 
   const jobTitleStyle = {
@@ -181,7 +181,7 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const listItemStyle = {
-    marginBottom: '2px',
+    marginBottom: '1px',
     fontSize: '14px',
   };
 
@@ -388,7 +388,7 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
     return (
       <ul style={{ ...listStyle, paddingLeft: '20px', listStyleType: 'disc' }}>
         {items.map((item, index) => (
-          <li key={index} style={{ marginBottom: '4px' }}>{item}</li>
+          <li key={index} style={{ marginBottom: '2px' }}>{item}</li>
         ))}
       </ul>
     );
