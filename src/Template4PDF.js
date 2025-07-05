@@ -415,7 +415,7 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
 
   const renderReferences = (references) => (
     <p style={paragraphStyle}>
-      {references.available ? 'Available upon request' : (references.list || []).map(ref => `${ref.name} (${ref.contact})`).join(', ')}
+      References would be furnished on demand.
     </p>
   );
 
@@ -519,7 +519,7 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
   ];
 
   const leftColumnSections = ['education', 'certifications', 'projects', 'hobbies'];
-  const rightColumnSections = ['objective', 'workExperience', 'skills', 'languages', 'customSections', 'references', 'otherInformation'];
+  const rightColumnSections = ['objective', 'workExperience', 'skills', 'languages', 'customSections', 'otherInformation', 'references'];
 
   const sectionData = {
     objective: renderObjective(objective),
