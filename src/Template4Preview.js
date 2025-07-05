@@ -147,7 +147,11 @@ const Template4Preview = ({ formData, formHeight }) => {
         }}
         aria-label="Curriculum Vitae Preview"
       >
-        <Template4PDF formData={formData} visibleSections={visibleSections} />
+        <Template4PDF 
+          key={`template4-${JSON.stringify(formData.workExperience)}`}
+          formData={formData} 
+          visibleSections={visibleSections} 
+        />
       </article>
     </div>
   );

@@ -483,6 +483,15 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
     customSections = [],
   } = formData;
 
+  // Get the professional title from first work experience
+  const professionalTitle = workExperience && workExperience.length > 0 && workExperience[0].designation 
+    ? workExperience[0].designation 
+    : 'Professional Title';
+
+  // Debug logging
+  console.log('Template4PDF - workExperience:', workExperience);
+  console.log('Template4PDF - professionalTitle:', professionalTitle);
+
   const allLanguages = [
     ...(languages || []),
     ...(customLanguages || [])
@@ -532,7 +541,7 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
         </div>
         <div style={rightColumnStyle}>
           <h1 style={nameStyle}>{name || 'Your Name'}</h1>
-          <h2 style={titleStyle}>Professional Title</h2>
+          <h2 style={titleStyle}>{professionalTitle}</h2>
           {sectionList
             .filter(section => rightColumnSections.includes(section.key))
             .map(section =>
