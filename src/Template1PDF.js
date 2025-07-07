@@ -548,6 +548,9 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     }
     
     try {
+      // First, refresh the button text to ensure we have the latest status
+      await refreshButtonText();
+      
       // DEBUG: Log the current payment status
       console.log('=== DEBUGGING PAYMENT STATUS ===');
       const debugResult = await PaymentService.debugPaymentStatus('template1');
@@ -591,9 +594,18 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
       if (pendingPayment) {
         setHasPendingPayment(true);
         setButtonText('Payment Submitted (Waiting for Approval)');
+        console.log('Template1PDF - Manual refresh: Pending payment detected');
         return;
       } else {
         setHasPendingPayment(false);
+      }
+      
+      // Check for approved payment
+      const approvedPayment = await PaymentService.checkApprovedPayment('template1');
+      if (approvedPayment) {
+        setButtonText('Payment Approved (Download Now)');
+        console.log('Template1PDF - Manual refresh: Approved payment detected');
+        return;
       }
       
       const text = await PaymentService.getDownloadButtonText('template1', isAdminUser);
@@ -656,9 +668,19 @@ Button Text: ${debugResult.buttonText}`;
         if (pendingPayment) {
           setHasPendingPayment(true);
           setButtonText('Payment Submitted (Waiting for Approval)');
+          console.log('Template1PDF - Pending payment detected, showing banner');
           return;
         } else {
           setHasPendingPayment(false);
+          console.log('Template1PDF - No pending payment, checking other statuses');
+        }
+
+        // Check for approved payment
+        const approvedPayment = await PaymentService.checkApprovedPayment('template1');
+        if (approvedPayment) {
+          setButtonText('Payment Approved (Download Now)');
+          console.log('Template1PDF - Approved payment detected, showing download button');
+          return;
         }
 
         const text = await PaymentService.getDownloadButtonText('template1', isAdminUser);
@@ -672,8 +694,8 @@ Button Text: ${debugResult.buttonText}`;
 
     updateButtonText();
     
-    // Set up periodic refresh every 10 seconds to catch payment status changes
-    const interval = setInterval(updateButtonText, 10000);
+    // Set up periodic refresh every 5 seconds to catch payment status changes
+    const interval = setInterval(updateButtonText, 5000);
     
     return () => clearInterval(interval);
   }, [isAdminUser, isLoading]);
