@@ -863,24 +863,26 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
           onAddDetail={handleAddCustomSectionDetail}
           onRemoveDetail={handleRemoveCustomSectionDetail}
         />
-        <DynamicSection
-          title="References"
-          entries={formData.cv_references}
-          onChange={(index, val) => {
-            console.log('References onChange:', { index, val, currentEntries: formData.cv_references });
-            handleArrayChange('cv_references', index, val);
-          }}
-          onAdd={() => {
-            console.log('References onAdd called');
-            handleAddEntry('cv_references');
-          }}
-          onRemove={(index) => {
-            console.log('References onRemove:', { index });
-            handleRemoveEntry('cv_references', index);
-          }}
-          placeholder="Provide your references..."
-          rows={1}
-        />
+        <div style={{ marginBottom: '1.5rem', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '16px', backgroundColor: '#f9fafb' }}>
+          <DynamicSection
+            title="References"
+            entries={formData.cv_references}
+            onChange={(index, val) => {
+              console.log('References onChange:', { index, val, currentEntries: formData.cv_references });
+              handleArrayChange('cv_references', index, val);
+            }}
+            onAdd={() => {
+              console.log('References onAdd called');
+              handleAddEntry('cv_references');
+            }}
+            onRemove={(index) => {
+              console.log('References onRemove:', { index });
+              handleRemoveEntry('cv_references', index);
+            }}
+            placeholder="Provide your references (e.g., Name, Position, Company, Contact)"
+            rows={2}
+          />
+        </div>
 
         <button onClick={handleSave} type="button" className="save-btn">
           Save
@@ -1262,11 +1264,15 @@ const CustomSection = ({
 
 const DynamicSection = ({ title, entries, onChange, onAdd, onRemove, placeholder, rows, renderEntry }) => {
   console.log('DynamicSection rendered:', { title, entries, hasEntries: entries && entries.length > 0 });
+  
+  // Ensure we always have at least one entry to show
+  const displayEntries = entries && entries.length > 0 ? entries : [''];
+  
   return (
-  <div className="dynamic-section">
-    <h3>{title}</h3>
-    {(entries || []).map((entry, index) => (
-      <div key={index} className="dynamic-entry">
+  <div className="dynamic-section" style={{ marginBottom: '1rem' }}>
+    <h3 style={{ fontWeight: 700, fontSize: '1.25rem', marginBottom: 8, color: '#374151' }}>{title}</h3>
+    {displayEntries.map((entry, index) => (
+      <div key={index} className="dynamic-entry" style={{ marginBottom: '12px', display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
         {renderEntry ? renderEntry(entry, index) : (
           <>
             <textarea
@@ -1274,12 +1280,21 @@ const DynamicSection = ({ title, entries, onChange, onAdd, onRemove, placeholder
               onChange={(e) => onChange(index, e.target.value)}
               rows={rows}
               placeholder={placeholder}
+              style={{
+                flex: 1,
+                padding: '8px',
+                border: '1px solid #d1d5db',
+                borderRadius: '4px',
+                fontSize: '14px',
+                resize: 'vertical',
+                minHeight: '60px'
+              }}
             />
             <button
               onClick={() => onRemove(index)}
-              disabled={entries.length <= 1}
+              disabled={displayEntries.length <= 1}
               className="remove-btn"
-              title={entries.length <= 1 ? 'At least one entry required' : 'Remove entry'}
+              title={displayEntries.length <= 1 ? 'At least one entry required' : 'Remove entry'}
               type="button"
             >
               Remove
