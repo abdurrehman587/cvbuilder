@@ -31,6 +31,8 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
 
   // Check admin status and payment status on component mount
   useEffect(() => {
+    console.log('Template1PDF - Admin status useEffect triggered');
+    
     const checkAdminStatus = async () => {
       try {
         // Wait a bit for authentication to be established
@@ -78,6 +80,11 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     
     return () => clearInterval(interval);
   }, [isAdminUser]);
+
+  // Simple test useEffect to verify useEffect is working
+  useEffect(() => {
+    console.log('Template1PDF - Test useEffect triggered - useEffect is working!');
+  }, []);
 
   const containerStyle = {
     width: '100%',
