@@ -28,7 +28,7 @@ const loadHtml2Pdf = () => {
   });
 };
 
-const Template1PDF = ({ formData, visibleSections = [] }) => {
+const Template9PDF = ({ formData, visibleSections = [] }) => {
   const containerRef = useRef(null);
   const buttonRef = useRef(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -554,9 +554,9 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
   );
 };
 
-Template1PDF.propTypes = {
+Template9PDF.propTypes = {
   formData: PropTypes.object.isRequired,
   visibleSections: PropTypes.array,
 };
 
-export default Template1PDF;
+export default Template9PDF;
