@@ -597,23 +597,29 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
       
       // Check for pending payment first
       const pendingPayment = await PaymentService.checkPendingPayment('template1');
+      console.log('Template1PDF - Manual refresh: Pending payment check result:', pendingPayment);
+      
       if (pendingPayment) {
         setHasPendingPayment(true);
         setButtonText('Payment Submitted (Waiting for Approval)');
-        console.log('Template1PDF - Manual refresh: Pending payment detected');
+        console.log('Template1PDF - Manual refresh: Pending payment detected, showing banner');
         return;
       } else {
         setHasPendingPayment(false);
+        console.log('Template1PDF - Manual refresh: No pending payment, checking approved payment');
       }
       
       // Check for approved payment
       const approvedPayment = await PaymentService.checkApprovedPayment('template1');
+      console.log('Template1PDF - Manual refresh: Approved payment check result:', approvedPayment);
+      
       if (approvedPayment) {
         setButtonText('Download Now');
-        console.log('Template1PDF - Manual refresh: Approved payment detected');
+        console.log('Template1PDF - Manual refresh: Approved payment detected, showing download button');
         return;
       }
       
+      console.log('Template1PDF - Manual refresh: No approved payment, getting default button text');
       const text = await PaymentService.getDownloadButtonText('template1', isAdminUser);
       setButtonText(text);
       console.log('Template1PDF - Button text refreshed to:', text);
@@ -671,27 +677,32 @@ Button Text: ${debugResult.buttonText}`;
       try {
         // Check for pending payment first
         const pendingPayment = await PaymentService.checkPendingPayment('template1');
+        console.log('Template1PDF - Periodic refresh: Pending payment check result:', pendingPayment);
+        
         if (pendingPayment) {
           setHasPendingPayment(true);
           setButtonText('Payment Submitted (Waiting for Approval)');
-          console.log('Template1PDF - Pending payment detected, showing banner');
+          console.log('Template1PDF - Periodic refresh: Pending payment detected, showing banner');
           return;
         } else {
           setHasPendingPayment(false);
-          console.log('Template1PDF - No pending payment, checking other statuses');
+          console.log('Template1PDF - Periodic refresh: No pending payment, checking approved payment');
         }
 
         // Check for approved payment
         const approvedPayment = await PaymentService.checkApprovedPayment('template1');
+        console.log('Template1PDF - Periodic refresh: Approved payment check result:', approvedPayment);
+        
         if (approvedPayment) {
           setButtonText('Download Now');
-          console.log('Template1PDF - Approved payment detected, showing download button');
+          console.log('Template1PDF - Periodic refresh: Approved payment detected, showing download button');
           return;
         }
 
+        console.log('Template1PDF - Periodic refresh: No approved payment, getting default button text');
         const text = await PaymentService.getDownloadButtonText('template1', isAdminUser);
         setButtonText(text);
-        console.log('Template1PDF - Button text updated:', text);
+        console.log('Template1PDF - Periodic refresh: Button text updated:', text);
       } catch (error) {
         console.error('Error getting button text:', error);
         setButtonText('Download PDF (PKR 100)');

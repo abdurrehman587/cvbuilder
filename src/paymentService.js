@@ -103,6 +103,26 @@ export class PaymentService {
         return null;
       }
 
+      console.log('PaymentService - Checking approved payment for:', {
+        user: user.email,
+        templateId,
+        status: 'approved'
+      });
+
+      // First try to get all payments for this user and template to debug
+      const { data: allPayments, error: allError } = await supabase
+        .from('payments')
+        .select('*')
+        .eq('user_email', user.email)
+        .eq('template_id', templateId)
+        .order('created_at', { ascending: false });
+
+      if (allError) {
+        console.error('Error getting all payments for debug:', allError);
+      } else {
+        console.log('PaymentService - All payments for user and template (approved check):', allPayments);
+      }
+
       // Check if there's an approved payment (status = 'approved' means it's available for download)
       const { data: approvedPayment, error: approvedError } = await supabase
         .from('payments')
@@ -116,7 +136,8 @@ export class PaymentService {
 
       if (approvedError && approvedError.code !== 'PGRST116') {
         console.error('Error checking approved payment:', approvedError);
-        throw approvedError;
+        // Don't throw error, just return null
+        return null;
       }
 
       if (!approvedPayment) {
