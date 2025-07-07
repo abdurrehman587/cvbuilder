@@ -53,6 +53,7 @@ const hasSectionData = (formData, sectionKey) => {
                return hasTitle && validItems.length > 0;
              });
     case 'references':
+      console.log('Template1Preview - hasSectionData for references: true (always show)');
       return true; // Always show references section
     case 'otherInformation':
       return formData.otherInformation && formData.otherInformation.length > 0 &&
@@ -70,9 +71,18 @@ const Template1Preview = ({ formData, formHeight }) => {
 
   // Update visible sections when formData changes
   useEffect(() => {
+    console.log('Template1Preview - formData changed:', formData);
+    console.log('Template1Preview - cv_references:', formData?.cv_references);
+    
     const sectionsWithData = sectionList
-      .filter(section => hasSectionData(formData, section.key))
+      .filter(section => {
+        const hasData = hasSectionData(formData, section.key);
+        console.log(`Template1Preview - Section ${section.key}: ${hasData}`);
+        return hasData;
+      })
       .map(section => section.key);
+    
+    console.log('Template1Preview - visibleSections:', sectionsWithData);
     setVisibleSections(sectionsWithData);
   }, [formData]);
 
