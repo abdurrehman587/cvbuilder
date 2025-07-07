@@ -20,6 +20,8 @@ const loadHtml2Pdf = () => {
 };
 
 const Template1PDF = ({ formData, visibleSections = [] }) => {
+  console.log('Template1PDF - Component rendered');
+  
   const containerRef = useRef(null);
   const buttonRef = useRef(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -670,6 +672,7 @@ Button Text: ${debugResult.buttonText}`;
   // Update button text and check payment status
   React.useEffect(() => {
     console.log('Template1PDF - useEffect triggered with:', { isAdminUser, isLoading });
+    console.log('Template1PDF - useEffect: Component state check');
     
     const updateButtonText = async () => {
       console.log('Template1PDF - updateButtonText called');
