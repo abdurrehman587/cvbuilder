@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Template1PDF from './Template1PDF';
+import Template7PDF from './Template7PDF';
 
 const sectionList = [
   { key: 'objective', title: 'Objective' },
@@ -56,7 +56,7 @@ const hasSectionData = (formData, sectionKey) => {
   }
 };
 
-const Template1Preview = ({ formData, formHeight }) => {
+const Template7Preview = ({ formData, formHeight }) => {
   const [visibleSections, setVisibleSections] = useState([]);
 
   // Update visible sections when formData changes
@@ -192,5 +192,5 @@ const Template1Preview = ({ formData, formHeight }) => {
   );
 };
 
-export default Template1Preview;
+export default Template7Preview;
 
