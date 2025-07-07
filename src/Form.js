@@ -119,6 +119,8 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
           }
         } else {
           console.log('No existing admin CV found for user:', user.email);
+          // Initialize with default data when no existing CV is found
+          setFormData(defaultFormData);
           if (onCVLoaded) {
             onCVLoaded(false);
           }
@@ -165,6 +167,8 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
           }
         } else {
           console.log('No existing user CV found for user:', user.email);
+          // Initialize with default data when no existing CV is found
+          setFormData(defaultFormData);
           if (onCVLoaded) {
             onCVLoaded(false);
           }
@@ -234,6 +238,8 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
           { id: newId, labelType: 'checkbox', label: '', checked: true, value: '', isCustom: true },
         ]
       });
+    } else if (field === 'cv_references') {
+      setFormData({ ...formData, [field]: [...formData[field], 'References would be furnished on demand'] });
     } else {
       setFormData({ ...formData, [field]: [...formData[field], initialEntry] });
     }
@@ -1266,7 +1272,15 @@ const DynamicSection = ({ title, entries, onChange, onAdd, onRemove, placeholder
   console.log('DynamicSection rendered:', { title, entries, hasEntries: entries && entries.length > 0 });
   
   // Ensure we always have at least one entry to show
-  const displayEntries = entries && entries.length > 0 ? entries : [''];
+  // For references section, use default text if empty
+  const getDefaultEntry = () => {
+    if (title === 'References') {
+      return 'References would be furnished on demand';
+    }
+    return '';
+  };
+  
+  const displayEntries = entries && entries.length > 0 ? entries : [getDefaultEntry()];
   
   return (
   <div className="dynamic-section" style={{ marginBottom: '1rem' }}>
