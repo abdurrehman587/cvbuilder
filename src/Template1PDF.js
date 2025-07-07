@@ -21,6 +21,8 @@ const loadHtml2Pdf = () => {
 
 const Template1PDF = ({ formData, visibleSections = [] }) => {
   console.log('Template1PDF - Component rendered');
+  console.log('Template1PDF - formData.cv_references:', formData.cv_references);
+  console.log('Template1PDF - formData.references:', formData.references);
   
   const containerRef = useRef(null);
   const buttonRef = useRef(null);
@@ -885,6 +887,12 @@ Button Text: ${debugResult.buttonText}`;
         {visibleSections.includes('references') && (
           <section style={sectionStyle} aria-label="References Section">
             <h2 style={sectionTitleStyle}>References</h2>
+            {console.log('Template1PDF - Rendering references section:', {
+              cv_references: formData.cv_references,
+              references: formData.references,
+              hasCvReferences: formData.cv_references && formData.cv_references.length > 0,
+              hasReferences: formData.references && formData.references.length > 0
+            })}
             {formData.cv_references && formData.cv_references.length > 0 ? (
               renderSimpleList(formData.cv_references)
             ) : (

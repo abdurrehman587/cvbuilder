@@ -38,7 +38,7 @@ const LandingPage = ({ user }) => {
     languages: ['English', 'Urdu', 'Punjabi'],
     customLanguages: [],
     hobbies: [''],
-    references: [''],
+    cv_references: [''],
     customSections: [{ title: '', details: [''] }],
     otherInformation: [
       { id: 1, labelType: 'radio', label: "Father's Name:", checked: true, value: '', name: 'parentSpouse', radioValue: 'father' },
