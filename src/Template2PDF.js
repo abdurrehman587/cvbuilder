@@ -20,6 +20,7 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasPendingPayment, setHasPendingPayment] = useState(false);
   const [buttonText, setButtonText] = useState('Loading...');
 
   const styles = {
@@ -230,7 +231,7 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
     return () => clearInterval(interval);
   }, [isAdminUser]);
 
-  // Update button text based on payment status
+  // Update button text and check payment status
   useEffect(() => {
     const updateButtonText = async () => {
       // Don't update button text while loading
@@ -241,10 +242,21 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
 
       if (isAdminUser) {
         setButtonText('Download PDF (Admin)');
+        setHasPendingPayment(false);
         return;
       }
 
       try {
+        // Check for pending payment first
+        const pendingPayment = await PaymentService.checkPendingPayment('template2');
+        if (pendingPayment) {
+          setHasPendingPayment(true);
+          setButtonText('Payment Submitted (Waiting for Approval)');
+          return;
+        } else {
+          setHasPendingPayment(false);
+        }
+
         const text = await PaymentService.getDownloadButtonText('template2', isAdminUser);
         setButtonText(text);
         console.log('Template2PDF - Button text updated:', text);
@@ -343,8 +355,8 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
     console.log('Payment successful:', paymentData);
     setShowPaymentModal(false);
     
-    // Update button text to reflect pending payment status
-    setButtonText('Payment Submitted (Waiting for Approval)');
+    // Set pending payment state to true
+    setHasPendingPayment(true);
     
     // Don't auto-download - wait for admin approval
     // generatePDF();
@@ -398,6 +410,17 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
   const refreshButtonText = async () => {
     try {
       console.log('Template2PDF - Manual refresh of button text');
+      
+      // Check for pending payment first
+      const pendingPayment = await PaymentService.checkPendingPayment('template2');
+      if (pendingPayment) {
+        setHasPendingPayment(true);
+        setButtonText('Payment Submitted (Waiting for Approval)');
+        return;
+      } else {
+        setHasPendingPayment(false);
+      }
+      
       const text = await PaymentService.getDownloadButtonText('template2', isAdminUser);
       setButtonText(text);
       console.log('Template2PDF - Button text refreshed to:', text);
@@ -724,102 +747,189 @@ Button Text: ${debugResult.buttonText}`;
         </div>
       </div>
 
-      {/* Download Button */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: 16 }}>
-        <button
-          ref={buttonRef}
-          type="button"
-          onClick={handleDownloadClick}
-          disabled={isLoading}
-          style={{
-            cursor: isLoading ? 'not-allowed' : 'pointer',
-            padding: '6px 18px',
+      {/* Download Button or Pending Banner */}
+      <div style={{ marginTop: 16 }}>
+        {hasPendingPayment ? (
+          /* Pending Payment Banner */
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '12px 16px',
+            backgroundColor: '#fef3c7',
+            border: '1px solid #f59e0b',
+            borderRadius: '8px',
+            color: '#92400e',
             fontSize: '0.95rem',
-            borderRadius: 6,
-            border: 'none',
-            backgroundColor: isLoading ? '#cccccc' : '#3498db',
-            color: 'white',
-            transition: 'background-color 0.3s ease',
-            userSelect: 'none',
-            opacity: isLoading ? 0.7 : 1,
-          }}
-          onMouseEnter={(e) => {
-            if (!isLoading) {
-              e.currentTarget.style.backgroundColor = '#2980b9';
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (!isLoading) {
-              e.currentTarget.style.backgroundColor = '#3498db';
-            }
-          }}
-        >
-          {buttonText}
-        </button>
-        
-        {/* Refresh Button */}
-        <button
-          type="button"
-          onClick={refreshButtonText}
-          disabled={isLoading}
-          title="Refresh payment status"
-          style={{
-            cursor: isLoading ? 'not-allowed' : 'pointer',
-            padding: '6px 12px',
-            fontSize: '0.9rem',
-            borderRadius: 6,
-            border: '1px solid #3498db',
-            backgroundColor: 'white',
-            color: '#3498db',
-            transition: 'all 0.3s ease',
-            userSelect: 'none',
-            opacity: isLoading ? 0.7 : 1,
-          }}
-          onMouseEnter={(e) => {
-            if (!isLoading) {
-              e.currentTarget.style.backgroundColor = '#f0f0f0';
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (!isLoading) {
-              e.currentTarget.style.backgroundColor = 'white';
-            }
-          }}
-        >
-          🔄
-        </button>
-        
-        {/* Debug Button */}
-        <button
-          type="button"
-          onClick={debugPaymentStatus}
-          disabled={isLoading}
-          title="Debug payment status"
-          style={{
-            cursor: isLoading ? 'not-allowed' : 'pointer',
-            padding: '6px 12px',
-            fontSize: '0.9rem',
-            borderRadius: 6,
-            border: '1px solid #ff9800',
-            backgroundColor: 'white',
-            color: '#ff9800',
-            transition: 'all 0.3s ease',
-            userSelect: 'none',
-            opacity: isLoading ? 0.7 : 1,
-          }}
-          onMouseEnter={(e) => {
-            if (!isLoading) {
-              e.currentTarget.style.backgroundColor = '#fff3e0';
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (!isLoading) {
-              e.currentTarget.style.backgroundColor = 'white';
-            }
-          }}
-        >
-          🐛
-        </button>
+            fontWeight: '500'
+          }}>
+            <span style={{ fontSize: '1.2rem' }}>⏳</span>
+            <span>Please wait for admin approval</span>
+            
+            {/* Refresh Button */}
+            <button
+              type="button"
+              onClick={refreshButtonText}
+              disabled={isLoading}
+              title="Refresh payment status"
+              style={{
+                cursor: isLoading ? 'not-allowed' : 'pointer',
+                padding: '4px 8px',
+                fontSize: '0.8rem',
+                borderRadius: 4,
+                border: '1px solid #f59e0b',
+                backgroundColor: 'white',
+                color: '#f59e0b',
+                transition: 'all 0.3s ease',
+                userSelect: 'none',
+                opacity: isLoading ? 0.7 : 1,
+                marginLeft: 'auto'
+              }}
+              onMouseEnter={(e) => {
+                if (!isLoading) {
+                  e.currentTarget.style.backgroundColor = '#fef3c7';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isLoading) {
+                  e.currentTarget.style.backgroundColor = 'white';
+                }
+              }}
+            >
+              🔄
+            </button>
+            
+            {/* Debug Button */}
+            <button
+              type="button"
+              onClick={debugPaymentStatus}
+              disabled={isLoading}
+              title="Debug payment status"
+              style={{
+                cursor: isLoading ? 'not-allowed' : 'pointer',
+                padding: '4px 8px',
+                fontSize: '0.8rem',
+                borderRadius: 4,
+                border: '1px solid #ff9800',
+                backgroundColor: 'white',
+                color: '#ff9800',
+                transition: 'all 0.3s ease',
+                userSelect: 'none',
+                opacity: isLoading ? 0.7 : 1,
+              }}
+              onMouseEnter={(e) => {
+                if (!isLoading) {
+                  e.currentTarget.style.backgroundColor = '#fff3e0';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isLoading) {
+                  e.currentTarget.style.backgroundColor = 'white';
+                }
+              }}
+            >
+              🐛
+            </button>
+          </div>
+        ) : (
+          /* Normal Download Button */
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button
+              ref={buttonRef}
+              type="button"
+              onClick={handleDownloadClick}
+              disabled={isLoading}
+              style={{
+                cursor: isLoading ? 'not-allowed' : 'pointer',
+                padding: '6px 18px',
+                fontSize: '0.95rem',
+                borderRadius: 6,
+                border: 'none',
+                backgroundColor: isLoading ? '#cccccc' : '#3498db',
+                color: 'white',
+                transition: 'background-color 0.3s ease',
+                userSelect: 'none',
+                opacity: isLoading ? 0.7 : 1,
+              }}
+              onMouseEnter={(e) => {
+                if (!isLoading) {
+                  e.currentTarget.style.backgroundColor = '#2980b9';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isLoading) {
+                  e.currentTarget.style.backgroundColor = '#3498db';
+                }
+              }}
+            >
+              {buttonText}
+            </button>
+            
+            {/* Refresh Button */}
+            <button
+              type="button"
+              onClick={refreshButtonText}
+              disabled={isLoading}
+              title="Refresh payment status"
+              style={{
+                cursor: isLoading ? 'not-allowed' : 'pointer',
+                padding: '6px 12px',
+                fontSize: '0.9rem',
+                borderRadius: 6,
+                border: '1px solid #3498db',
+                backgroundColor: 'white',
+                color: '#3498db',
+                transition: 'all 0.3s ease',
+                userSelect: 'none',
+                opacity: isLoading ? 0.7 : 1,
+              }}
+              onMouseEnter={(e) => {
+                if (!isLoading) {
+                  e.currentTarget.style.backgroundColor = '#f0f0f0';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isLoading) {
+                  e.currentTarget.style.backgroundColor = 'white';
+                }
+              }}
+            >
+              🔄
+            </button>
+            
+            {/* Debug Button */}
+            <button
+              type="button"
+              onClick={debugPaymentStatus}
+              disabled={isLoading}
+              title="Debug payment status"
+              style={{
+                cursor: isLoading ? 'not-allowed' : 'pointer',
+                padding: '6px 12px',
+                fontSize: '0.9rem',
+                borderRadius: 6,
+                border: '1px solid #ff9800',
+                backgroundColor: 'white',
+                color: '#ff9800',
+                transition: 'all 0.3s ease',
+                userSelect: 'none',
+                opacity: isLoading ? 0.7 : 1,
+              }}
+              onMouseEnter={(e) => {
+                if (!isLoading) {
+                  e.currentTarget.style.backgroundColor = '#fff3e0';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isLoading) {
+                  e.currentTarget.style.backgroundColor = 'white';
+                }
+              }}
+            >
+              🐛
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Payment Modal - Outside PDF container */}

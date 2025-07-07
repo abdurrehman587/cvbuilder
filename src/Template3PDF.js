@@ -22,6 +22,7 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [buttonText, setButtonText] = useState('Loading...');
+  const [hasPendingPayment, setHasPendingPayment] = useState(false);
 
   const containerStyle = {
     width: '100%',
@@ -611,8 +612,8 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
   const handlePaymentSuccess = (paymentData) => {
     setShowPaymentModal(false);
     
-    // Update button text to reflect pending payment status
-    setButtonText('Payment Submitted (Waiting for Approval)');
+    // Set pending payment state to true
+    setHasPendingPayment(true);
     
     // Show message about waiting for approval
     alert(`Payment proof submitted successfully!\n\nPayment ID: ${paymentData.paymentId}\n\nPlease wait for manual verification. You will be able to download once approved.`);
