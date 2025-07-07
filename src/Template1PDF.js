@@ -580,6 +580,46 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     }
   };
 
+  // Manual refresh function for button text
+  const refreshButtonText = async () => {
+    try {
+      console.log('Template1PDF - Manual refresh of button text');
+      const text = await PaymentService.getDownloadButtonText('template1', isAdminUser);
+      setButtonText(text);
+      console.log('Template1PDF - Button text refreshed to:', text);
+    } catch (error) {
+      console.error('Error refreshing button text:', error);
+    }
+  };
+
+  // Debug function to check payment status
+  const debugPaymentStatus = async () => {
+    try {
+      console.log('=== TEMPLATE1PDF PAYMENT DEBUG ===');
+      const debugResult = await PaymentService.debugPaymentStatus('template1');
+      console.log('Debug result:', debugResult);
+      
+      // Show debug info to user
+      if (debugResult) {
+        const message = `Payment Status Debug:
+User: ${debugResult.user}
+Database Ready: ${debugResult.databaseReady}
+Total Payments: ${debugResult.payments?.length || 0}
+Approved Payment: ${debugResult.approvedPayment ? 'Yes' : 'No'}
+Pending Payment: ${debugResult.pendingPayment ? 'Yes' : 'No'}
+Downloaded Payment: ${debugResult.downloadedPayment ? 'Yes' : 'No'}
+Button Text: ${debugResult.buttonText}`;
+        
+        alert(message);
+      } else {
+        alert('Debug failed - check console for details');
+      }
+    } catch (error) {
+      console.error('Debug error:', error);
+      alert('Debug error: ' + error.message);
+    }
+  };
+
   const [buttonText, setButtonText] = useState('Loading...');
 
   // Update button text based on payment status
@@ -599,6 +639,7 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
       try {
         const text = await PaymentService.getDownloadButtonText('template1', isAdminUser);
         setButtonText(text);
+        console.log('Template1PDF - Button text updated:', text);
       } catch (error) {
         console.error('Error getting button text:', error);
         setButtonText('Download PDF (PKR 100)');
@@ -606,7 +647,33 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     };
 
     updateButtonText();
+    
+    // Set up periodic refresh every 10 seconds to catch payment status changes
+    const interval = setInterval(updateButtonText, 10000);
+    
+    return () => clearInterval(interval);
   }, [isAdminUser, isLoading]);
+
+  // Listen for authentication changes and refresh button text
+  React.useEffect(() => {
+    const handleAuthChange = () => {
+      console.log('Template1PDF - Auth change detected, refreshing button text');
+      setTimeout(() => {
+        refreshButtonText();
+      }, 1000); // Small delay to ensure auth state is updated
+    };
+
+    // Listen for storage changes (when user logs in/out)
+    window.addEventListener('storage', handleAuthChange);
+    
+    // Also check on focus (when user comes back to tab)
+    window.addEventListener('focus', handleAuthChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleAuthChange);
+      window.removeEventListener('focus', handleAuthChange);
+    };
+  }, []);
 
   return (
     <>
@@ -768,6 +835,70 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
             }}
           >
             {buttonText}
+          </button>
+          
+          {/* Refresh Button */}
+          <button
+            type="button"
+            onClick={refreshButtonText}
+            disabled={isLoading}
+            title="Refresh payment status"
+            style={{
+              cursor: isLoading ? 'not-allowed' : 'pointer',
+              padding: '6px 12px',
+              fontSize: '0.9rem',
+              borderRadius: 6,
+              border: '1px solid #3f51b5',
+              backgroundColor: 'white',
+              color: '#3f51b5',
+              transition: 'all 0.3s ease',
+              userSelect: 'none',
+              opacity: isLoading ? 0.7 : 1,
+            }}
+            onMouseEnter={(e) => {
+              if (!isLoading) {
+                e.currentTarget.style.backgroundColor = '#f0f0f0';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isLoading) {
+                e.currentTarget.style.backgroundColor = 'white';
+              }
+            }}
+          >
+            🔄
+          </button>
+          
+          {/* Debug Button */}
+          <button
+            type="button"
+            onClick={debugPaymentStatus}
+            disabled={isLoading}
+            title="Debug payment status"
+            style={{
+              cursor: isLoading ? 'not-allowed' : 'pointer',
+              padding: '6px 12px',
+              fontSize: '0.9rem',
+              borderRadius: 6,
+              border: '1px solid #ff9800',
+              backgroundColor: 'white',
+              color: '#ff9800',
+              transition: 'all 0.3s ease',
+              userSelect: 'none',
+              opacity: isLoading ? 0.7 : 1,
+            }}
+            onMouseEnter={(e) => {
+              if (!isLoading) {
+                e.currentTarget.style.backgroundColor = '#fff3e0';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isLoading) {
+                e.currentTarget.style.backgroundColor = 'white';
+              }
+            }}
+          >
+            🐛
           </button>
         </div>
       </article>
