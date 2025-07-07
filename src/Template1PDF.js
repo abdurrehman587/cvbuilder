@@ -896,153 +896,153 @@ Button Text: ${debugResult.buttonText}`;
             )}
           </section>
         )}
-
-        {/* Download Controls */}
-        <div style={{ marginTop: '20px', padding: '20px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
-          {hasPendingPayment ? (
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ 
-                backgroundColor: '#fff3cd', 
-                border: '1px solid #ffeaa7', 
-                borderRadius: '6px', 
-                padding: '16px', 
-                marginBottom: '16px' 
+      </article>
+      
+      {/* Download Controls - Outside PDF container */}
+      <div style={{ marginTop: '20px', padding: '20px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
+        {hasPendingPayment ? (
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ 
+              backgroundColor: '#fff3cd', 
+              border: '1px solid #ffeaa7', 
+              borderRadius: '6px', 
+              padding: '16px', 
+              marginBottom: '16px' 
+            }}>
+              <h3 style={{ margin: '0 0 8px 0', color: '#856404', fontSize: '16px' }}>
+                ⏳ Payment Submitted - Waiting for Approval
+              </h3>
+              <p style={{ margin: '0', color: '#856404', fontSize: '14px' }}>
+                Your payment has been submitted and is being reviewed. You will be able to download your CV once approved.
+              </p>
+            </div>
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+              <button
+                onClick={refreshButtonText}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#007bff',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                Refresh Status
+              </button>
+              <button
+                onClick={debugPaymentStatus}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#6c757d',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                Debug Info
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div style={{ textAlign: 'center' }}>
+            <button
+              onClick={handleDownloadClick}
+              disabled={isLoading}
+              style={{
+                padding: '12px 24px',
+                backgroundColor: '#007bff',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                fontSize: '16px',
+                fontWeight: '500',
+                cursor: isLoading ? 'not-allowed' : 'pointer',
+                opacity: isLoading ? 0.6 : 1,
+                marginBottom: '10px'
+              }}
+            >
+              {buttonText}
+            </button>
+            
+            {/* TEMPORARY: Direct Download Button */}
+            <div style={{ 
+              marginTop: '15px', 
+              padding: '10px', 
+              backgroundColor: '#e8f5e8', 
+              border: '1px solid #28a745', 
+              borderRadius: '6px' 
+            }}>
+              <p style={{ 
+                margin: '0 0 10px 0', 
+                color: '#155724', 
+                fontSize: '14px', 
+                fontWeight: '500' 
               }}>
-                <h3 style={{ margin: '0 0 8px 0', color: '#856404', fontSize: '16px' }}>
-                  ⏳ Payment Submitted - Waiting for Approval
-                </h3>
-                <p style={{ margin: '0', color: '#856404', fontSize: '14px' }}>
-                  Your payment has been submitted and is being reviewed. You will be able to download your CV once approved.
-                </p>
-              </div>
-              <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+                🚀 TEMPORARY: Need your CV immediately?
+              </p>
+              <button
+                onClick={handleDirectDownload}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: '#28a745',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 4px rgba(40, 167, 69, 0.2)'
+                }}
+              >
+                Download CV Now (Free)
+              </button>
+              <p style={{ 
+                margin: '8px 0 0 0', 
+                color: '#6c757d', 
+                fontSize: '12px', 
+                fontStyle: 'italic' 
+              }}>
+                This bypasses the payment system temporarily
+              </p>
+            </div>
+            
+            {!isAdminUser && (
+              <div style={{ marginTop: '12px', display: 'flex', gap: '8px', justifyContent: 'center' }}>
                 <button
                   onClick={refreshButtonText}
                   style={{
-                    padding: '8px 16px',
-                    backgroundColor: '#007bff',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Refresh Status
-                </button>
-                <button
-                  onClick={debugPaymentStatus}
-                  style={{
-                    padding: '8px 16px',
+                    padding: '6px 12px',
                     backgroundColor: '#6c757d',
                     color: 'white',
                     border: 'none',
                     borderRadius: '4px',
+                    fontSize: '12px',
                     cursor: 'pointer'
                   }}
                 >
-                  Debug Info
+                  Refresh
                 </button>
-              </div>
-            </div>
-          ) : (
-            <div style={{ textAlign: 'center' }}>
-              <button
-                onClick={handleDownloadClick}
-                disabled={isLoading}
-                style={{
-                  padding: '12px 24px',
-                  backgroundColor: '#007bff',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px',
-                  fontSize: '16px',
-                  fontWeight: '500',
-                  cursor: isLoading ? 'not-allowed' : 'pointer',
-                  opacity: isLoading ? 0.6 : 1,
-                  marginBottom: '10px'
-                }}
-              >
-                {buttonText}
-              </button>
-              
-              {/* TEMPORARY: Direct Download Button */}
-              <div style={{ 
-                marginTop: '15px', 
-                padding: '10px', 
-                backgroundColor: '#e8f5e8', 
-                border: '1px solid #28a745', 
-                borderRadius: '6px' 
-              }}>
-                <p style={{ 
-                  margin: '0 0 10px 0', 
-                  color: '#155724', 
-                  fontSize: '14px', 
-                  fontWeight: '500' 
-                }}>
-                  🚀 TEMPORARY: Need your CV immediately?
-                </p>
                 <button
-                  onClick={handleDirectDownload}
+                  onClick={debugPaymentStatus}
                   style={{
-                    padding: '10px 20px',
-                    backgroundColor: '#28a745',
+                    padding: '6px 12px',
+                    backgroundColor: '#17a2b8',
                     color: 'white',
                     border: 'none',
-                    borderRadius: '6px',
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    cursor: 'pointer',
-                    boxShadow: '0 2px 4px rgba(40, 167, 69, 0.2)'
+                    borderRadius: '4px',
+                    fontSize: '12px',
+                    cursor: 'pointer'
                   }}
                 >
-                  Download CV Now (Free)
+                  Debug
                 </button>
-                <p style={{ 
-                  margin: '8px 0 0 0', 
-                  color: '#6c757d', 
-                  fontSize: '12px', 
-                  fontStyle: 'italic' 
-                }}>
-                  This bypasses the payment system temporarily
-                </p>
               </div>
-              
-              {!isAdminUser && (
-                <div style={{ marginTop: '12px', display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                  <button
-                    onClick={refreshButtonText}
-                    style={{
-                      padding: '6px 12px',
-                      backgroundColor: '#6c757d',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '4px',
-                      fontSize: '12px',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    Refresh
-                  </button>
-                  <button
-                    onClick={debugPaymentStatus}
-                    style={{
-                      padding: '6px 12px',
-                      backgroundColor: '#17a2b8',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '4px',
-                      fontSize: '12px',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    Debug
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </article>
+            )}
+          </div>
+        )}
+      </div>
       {/* Payment Modal - Outside PDF container */}
       {showPaymentModal && (
         <ManualPayment
