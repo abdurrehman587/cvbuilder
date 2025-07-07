@@ -522,8 +522,14 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     console.log('Template1PDF - Payment successful:', paymentData);
     setShowPaymentModal(false);
     
-    // Set pending payment state to true
+    // Set pending payment state to true immediately
     setHasPendingPayment(true);
+    setButtonText('Payment Submitted (Waiting for Approval)');
+    
+    // Force a refresh after a short delay to ensure the state is properly set
+    setTimeout(() => {
+      refreshButtonText();
+    }, 1000);
     
     // Don't auto-download - wait for admin approval
     // generatePDF();
@@ -692,7 +698,10 @@ Button Text: ${debugResult.buttonText}`;
       }
     };
 
-    updateButtonText();
+    // Add a small delay before first update to avoid conflicts
+    setTimeout(() => {
+      updateButtonText();
+    }, 2000);
     
     // Set up periodic refresh every 5 seconds to catch payment status changes
     const interval = setInterval(updateButtonText, 5000);

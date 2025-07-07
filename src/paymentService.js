@@ -149,6 +149,27 @@ export class PaymentService {
         return null;
       }
 
+      console.log('PaymentService - Checking pending payment for:', {
+        user: user.email,
+        templateId,
+        status: 'pending'
+      });
+
+      // First try to get all payments for this user and template to debug
+      const { data: allPayments, error: allError } = await supabase
+        .from('payments')
+        .select('*')
+        .eq('user_email', user.email)
+        .eq('template_id', templateId)
+        .order('created_at', { ascending: false });
+
+      if (allError) {
+        console.error('Error getting all payments for debug:', allError);
+      } else {
+        console.log('PaymentService - All payments for user and template:', allPayments);
+      }
+
+      // Now check for pending payment
       const { data, error } = await supabase
         .from('payments')
         .select('*')
@@ -161,7 +182,8 @@ export class PaymentService {
 
       if (error && error.code !== 'PGRST116') {
         console.error('Error checking pending payment:', error);
-        throw error;
+        // Don't throw error, just return null
+        return null;
       }
 
       console.log('Pending payment check result:', data);
