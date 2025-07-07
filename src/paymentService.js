@@ -103,7 +103,7 @@ export class PaymentService {
         return null;
       }
 
-      // Check if there's an approved payment that hasn't been used for download
+      // Check if there's an approved payment (status = 'approved' means it's available for download)
       const { data: approvedPayment, error: approvedError } = await supabase
         .from('payments')
         .select('*')
@@ -124,27 +124,9 @@ export class PaymentService {
         return null;
       }
 
-      // Check if this specific payment has been used for download
-      const { data: download, error: downloadError } = await supabase
-        .from('cv_downloads')
-        .select('*')
-        .eq('payment_id', approvedPayment.id)
-        .limit(1)
-        .single();
-
-      if (downloadError && downloadError.code !== 'PGRST116') {
-        console.error('Error checking download:', downloadError);
-        throw downloadError;
-      }
-
-      // If no download record exists for this payment, it's still available
-      if (!download) {
-        console.log('Approved payment found and not used:', approvedPayment);
-        return approvedPayment;
-      }
-
-      console.log('Approved payment found but already used');
-      return null;
+      // If we found an approved payment, it's available for download
+      console.log('Approved payment found and available for download:', approvedPayment);
+      return approvedPayment;
     } catch (error) {
       console.error('Error checking approved payment:', error);
       return null;
