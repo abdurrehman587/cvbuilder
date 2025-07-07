@@ -28,6 +28,7 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [hasPendingPayment, setHasPendingPayment] = useState(false);
+  const [buttonText, setButtonText] = useState('Loading...');
 
   // Check admin status and payment status on component mount
   useEffect(() => {
@@ -674,8 +675,6 @@ Button Text: ${debugResult.buttonText}`;
       alert('Debug error: ' + error.message);
     }
   };
-
-  const [buttonText, setButtonText] = useState('Loading...');
 
   // Update button text and check payment status
   useEffect(() => {
