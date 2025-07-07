@@ -525,11 +525,19 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     // Set pending payment state to true immediately
     setHasPendingPayment(true);
     setButtonText('Payment Submitted (Waiting for Approval)');
+    console.log('Template1PDF - Payment success: Set hasPendingPayment=true and button text');
     
-    // Force a refresh after a short delay to ensure the state is properly set
+    // Force immediate refresh and then periodic refreshes
     setTimeout(() => {
+      console.log('Template1PDF - Payment success: Forcing immediate refresh');
       refreshButtonText();
-    }, 1000);
+    }, 500);
+    
+    // Force another refresh after 2 seconds
+    setTimeout(() => {
+      console.log('Template1PDF - Payment success: Forcing second refresh');
+      refreshButtonText();
+    }, 2000);
     
     // Don't auto-download - wait for admin approval
     // generatePDF();
@@ -661,20 +669,28 @@ Button Text: ${debugResult.buttonText}`;
 
   // Update button text and check payment status
   React.useEffect(() => {
+    console.log('Template1PDF - useEffect triggered with:', { isAdminUser, isLoading });
+    
     const updateButtonText = async () => {
+      console.log('Template1PDF - updateButtonText called');
+      
       // Don't update button text while loading
       if (isLoading) {
+        console.log('Template1PDF - Still loading, setting button text to Loading...');
         setButtonText('Loading...');
         return;
       }
 
       if (isAdminUser) {
+        console.log('Template1PDF - Admin user, setting admin button text');
         setButtonText('Download PDF (Admin)');
         setHasPendingPayment(false);
         return;
       }
 
       try {
+        console.log('Template1PDF - Starting payment status checks...');
+        
         // Check for pending payment first
         const pendingPayment = await PaymentService.checkPendingPayment('template1');
         console.log('Template1PDF - Periodic refresh: Pending payment check result:', pendingPayment);
@@ -711,13 +727,22 @@ Button Text: ${debugResult.buttonText}`;
 
     // Add a small delay before first update to avoid conflicts
     setTimeout(() => {
+      console.log('Template1PDF - First updateButtonText call (delayed)');
       updateButtonText();
     }, 2000);
     
     // Set up periodic refresh every 5 seconds to catch payment status changes
-    const interval = setInterval(updateButtonText, 5000);
+    const interval = setInterval(() => {
+      console.log('Template1PDF - Periodic updateButtonText call');
+      updateButtonText();
+    }, 5000);
     
-    return () => clearInterval(interval);
+    console.log('Template1PDF - useEffect: Set up interval and delayed call');
+    
+    return () => {
+      console.log('Template1PDF - useEffect cleanup: clearing interval');
+      clearInterval(interval);
+    };
   }, [isAdminUser, isLoading]);
 
   // Listen for authentication changes and refresh button text
