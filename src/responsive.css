@@ -1,0 +1,341 @@
+/* Responsive Design Utilities */
+
+/* Mobile-first approach */
+* {
+  box-sizing: border-box;
+}
+
+/* Responsive breakpoints */
+:root {
+  --mobile: 480px;
+  --tablet: 768px;
+  --desktop: 1024px;
+  --large-desktop: 1200px;
+}
+
+/* Responsive typography */
+html {
+  font-size: 16px;
+}
+
+@media (max-width: 768px) {
+  html {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  html {
+    font-size: 12px;
+  }
+}
+
+/* Responsive containers */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0 10px;
+  }
+}
+
+/* Responsive grid system */
+.grid {
+  display: grid;
+  gap: 20px;
+}
+
+.grid-1 { grid-template-columns: 1fr; }
+.grid-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+@media (max-width: 1024px) {
+  .grid-4 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .grid-3, .grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .grid-2, .grid-3, .grid-4 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Responsive flexbox utilities */
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.justify-around {
+  justify-content: space-around;
+}
+
+/* Responsive spacing */
+@media (max-width: 768px) {
+  .mobile-hidden {
+    display: none !important;
+  }
+  
+  .mobile-block {
+    display: block !important;
+  }
+  
+  .mobile-flex {
+    display: flex !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .desktop-hidden {
+    display: none !important;
+  }
+  
+  .desktop-block {
+    display: block !important;
+  }
+  
+  .desktop-flex {
+    display: flex !important;
+  }
+}
+
+/* Touch-friendly elements */
+button, input, select, textarea, a {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+@media (max-width: 768px) {
+  button, input, select, textarea {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+}
+
+/* Responsive images */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Responsive tables */
+@media (max-width: 768px) {
+  table {
+    font-size: 14px;
+  }
+  
+  th, td {
+    padding: 8px 4px;
+  }
+}
+
+/* Responsive forms */
+@media (max-width: 768px) {
+  .form-row {
+    flex-direction: column;
+  }
+  
+  .form-group {
+    margin-bottom: 15px;
+  }
+  
+  input, textarea, select {
+    width: 100%;
+  }
+}
+
+/* Responsive navigation */
+@media (max-width: 768px) {
+  .nav-menu {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .nav-item {
+    width: 100%;
+    text-align: center;
+    padding: 10px 0;
+  }
+}
+
+/* Responsive cards */
+@media (max-width: 768px) {
+  .card {
+    margin-bottom: 15px;
+  }
+  
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Responsive buttons */
+@media (max-width: 768px) {
+  .btn {
+    padding: 12px 16px;
+    font-size: 16px;
+  }
+  
+  .btn-small {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+}
+
+/* Responsive text */
+@media (max-width: 768px) {
+  h1 { font-size: 1.75rem; }
+  h2 { font-size: 1.5rem; }
+  h3 { font-size: 1.25rem; }
+  h4 { font-size: 1.1rem; }
+  h5 { font-size: 1rem; }
+  h6 { font-size: 0.9rem; }
+}
+
+@media (max-width: 480px) {
+  h1 { font-size: 1.5rem; }
+  h2 { font-size: 1.25rem; }
+  h3 { font-size: 1.1rem; }
+  h4 { font-size: 1rem; }
+  h5 { font-size: 0.9rem; }
+  h6 { font-size: 0.8rem; }
+}
+
+/* Responsive margins and padding */
+@media (max-width: 768px) {
+  .mobile-m-0 { margin: 0 !important; }
+  .mobile-m-1 { margin: 0.25rem !important; }
+  .mobile-m-2 { margin: 0.5rem !important; }
+  .mobile-m-3 { margin: 1rem !important; }
+  .mobile-m-4 { margin: 1.5rem !important; }
+  
+  .mobile-p-0 { padding: 0 !important; }
+  .mobile-p-1 { padding: 0.25rem !important; }
+  .mobile-p-2 { padding: 0.5rem !important; }
+  .mobile-p-3 { padding: 1rem !important; }
+  .mobile-p-4 { padding: 1.5rem !important; }
+}
+
+/* Responsive visibility */
+@media (max-width: 768px) {
+  .mobile-visible { visibility: visible !important; }
+  .mobile-invisible { visibility: hidden !important; }
+}
+
+@media (min-width: 769px) {
+  .desktop-visible { visibility: visible !important; }
+  .desktop-invisible { visibility: hidden !important; }
+}
+
+/* Responsive positioning */
+@media (max-width: 768px) {
+  .mobile-relative { position: relative !important; }
+  .mobile-absolute { position: absolute !important; }
+  .mobile-fixed { position: fixed !important; }
+  .mobile-sticky { position: sticky !important; }
+}
+
+/* Responsive overflow */
+@media (max-width: 768px) {
+  .mobile-overflow-auto { overflow: auto !important; }
+  .mobile-overflow-hidden { overflow: hidden !important; }
+  .mobile-overflow-scroll { overflow: scroll !important; }
+}
+
+/* Responsive width and height */
+@media (max-width: 768px) {
+  .mobile-w-full { width: 100% !important; }
+  .mobile-w-auto { width: auto !important; }
+  .mobile-h-full { height: 100% !important; }
+  .mobile-h-auto { height: auto !important; }
+}
+
+/* Responsive text alignment */
+@media (max-width: 768px) {
+  .mobile-text-left { text-align: left !important; }
+  .mobile-text-center { text-align: center !important; }
+  .mobile-text-right { text-align: right !important; }
+}
+
+/* Responsive font weights */
+@media (max-width: 768px) {
+  .mobile-font-normal { font-weight: normal !important; }
+  .mobile-font-bold { font-weight: bold !important; }
+  .mobile-font-light { font-weight: 300 !important; }
+}
+
+/* Responsive borders */
+@media (max-width: 768px) {
+  .mobile-border { border: 1px solid #ddd !important; }
+  .mobile-border-0 { border: none !important; }
+  .mobile-rounded { border-radius: 4px !important; }
+  .mobile-rounded-lg { border-radius: 8px !important; }
+}
+
+/* Responsive shadows */
+@media (max-width: 768px) {
+  .mobile-shadow { box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important; }
+  .mobile-shadow-lg { box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important; }
+  .mobile-shadow-none { box-shadow: none !important; }
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-only {
+    display: block !important;
+  }
+  
+  body {
+    font-size: 12pt;
+    line-height: 1.4;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+  }
+  
+  .page-break {
+    page-break-before: always;
+  }
+} 

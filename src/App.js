@@ -3,6 +3,7 @@ import supabase from './supabase';
 import SignupSignIn from './SignupSignIn';
 import LandingPage from './landingpage';
 import DatabaseSetupCheck from './DatabaseSetupCheck';
+import './responsive.css';
 
 // Add error boundary for debugging
 const ErrorBoundary = ({ children }) => {
@@ -246,9 +247,37 @@ const App = () => {
 
   return (
     <div>
+      <style>
+        {`
+          @media (max-width: 768px) {
+            .signout-btn {
+              top: 10px !important;
+              right: 10px !important;
+              padding: 8px 12px !important;
+              font-size: 14px !important;
+              border-radius: 8px !important;
+            }
+            
+            .signout-btn svg {
+              width: 16px !important;
+              height: 16px !important;
+            }
+          }
+          
+          @media (max-width: 480px) {
+            .signout-btn {
+              top: 8px !important;
+              right: 8px !important;
+              padding: 6px 10px !important;
+              font-size: 12px !important;
+            }
+          }
+        `}
+      </style>
       <DatabaseSetupCheck />
       
       <button
+        className="signout-btn"
         style={{ 
           position: 'absolute', 
           top: 20, 
@@ -325,12 +354,14 @@ const App = () => {
           strokeWidth="2" 
           strokeLinecap="round" 
           strokeLinejoin="round"
+          className="mobile-hidden"
         >
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
           <polyline points="16,17 21,12 16,7"></polyline>
           <line x1="21" y1="12" x2="9" y2="12"></line>
         </svg>
-        Sign Out
+        <span className="desktop-hidden">Sign Out</span>
+        <span className="mobile-hidden">Sign Out</span>
       </button>
 
       <LandingPage user={user} />

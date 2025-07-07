@@ -214,19 +214,91 @@ const SignupSignIn = ({ onAuth }) => {
 
   return (
     <div style={{
-      minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: '#f5f6fa'
+      minHeight: '100vh', 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center',
+      background: '#f5f6fa',
+      padding: '20px',
+      boxSizing: 'border-box'
     }}>
-      <form onSubmit={handleAuth} style={{
-        background: '#fff', padding: 32, borderRadius: 12, boxShadow: '0 2px 12px #0001',
-        minWidth: 320, display: 'flex', flexDirection: 'column', gap: 16
+      <style>
+        {`
+          @media (max-width: 768px) {
+            .auth-form {
+              min-width: 280px !important;
+              padding: 24px !important;
+              margin: 10px !important;
+            }
+            
+            .auth-title {
+              font-size: 1.5rem !important;
+            }
+            
+            .auth-input {
+              font-size: 16px !important;
+              padding: 12px !important;
+            }
+            
+            .auth-button {
+              padding: 12px !important;
+              font-size: 16px !important;
+            }
+            
+            .auth-toggle {
+              margin-bottom: 12px !important;
+            }
+            
+            .auth-toggle button {
+              padding: 12px !important;
+              font-size: 14px !important;
+            }
+          }
+          
+          @media (max-width: 480px) {
+            .auth-form {
+              min-width: 250px !important;
+              padding: 20px !important;
+              margin: 5px !important;
+            }
+            
+            .auth-title {
+              font-size: 1.25rem !important;
+            }
+            
+            .auth-input {
+              padding: 10px !important;
+            }
+            
+            .auth-button {
+              padding: 10px !important;
+            }
+            
+            .auth-toggle button {
+              padding: 10px !important;
+              font-size: 13px !important;
+            }
+          }
+        `}
+      </style>
+      <form onSubmit={handleAuth} className="auth-form" style={{
+        background: '#fff', 
+        padding: 32, 
+        borderRadius: 12, 
+        boxShadow: '0 2px 12px #0001',
+        minWidth: 320, 
+        display: 'flex', 
+        flexDirection: 'column', 
+        gap: 16,
+        width: '100%',
+        maxWidth: '400px'
       }}>
-        <h2 style={{ margin: 0, textAlign: 'center' }}>
+        <h2 className="auth-title" style={{ margin: 0, textAlign: 'center' }}>
           {userType === 'admin' ? '🔐 Admin Login' : (mode === 'signup' ? 'Sign Up' : 'Sign In')}
         </h2>
 
         {/* Hidden Admin Toggle - Only show on specific conditions */}
-        <div style={{
+        <div className="auth-toggle" style={{
           display: 'flex',
           borderRadius: '8px',
           border: '1px solid #e5e7eb',
@@ -280,7 +352,13 @@ const SignupSignIn = ({ onAuth }) => {
           required
           disabled={loading}
           onChange={e => setEmail(e.target.value)}
-          style={{ padding: 10, borderRadius: 6, border: '1px solid #ccc' }}
+          className="auth-input"
+          style={{ 
+            padding: 10, 
+            borderRadius: 6, 
+            border: '1px solid #ccc',
+            fontSize: '16px'
+          }}
         />
         <input
           type="password"
@@ -289,7 +367,13 @@ const SignupSignIn = ({ onAuth }) => {
           required
           disabled={loading}
           onChange={e => setPassword(e.target.value)}
-          style={{ padding: 10, borderRadius: 6, border: '1px solid #ccc' }}
+          className="auth-input"
+          style={{ 
+            padding: 10, 
+            borderRadius: 6, 
+            border: '1px solid #ccc',
+            fontSize: '16px'
+          }}
         />
         {error && <div style={{ color: 'red', fontSize: 14 }}>{error}</div>}
         {showResend && (
@@ -315,11 +399,16 @@ const SignupSignIn = ({ onAuth }) => {
         <button 
           type="submit" 
           disabled={loading}
+          className="auth-button"
           style={{
-            padding: 10, borderRadius: 6, border: 'none', 
+            padding: 10, 
+            borderRadius: 6, 
+            border: 'none', 
             background: loading ? '#ccc' : (userType === 'admin' ? '#dc2626' : '#3f51b5'), 
-            color: '#fff', fontWeight: 600,
-            cursor: loading ? 'not-allowed' : 'pointer'
+            color: '#fff', 
+            fontWeight: 600,
+            cursor: loading ? 'not-allowed' : 'pointer',
+            fontSize: '16px'
           }}
         >
           {loading ? 'Loading...' : (userType === 'admin' ? 'Admin Login' : (mode === 'signup' ? 'Sign Up' : 'Sign In'))}

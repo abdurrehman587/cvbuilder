@@ -91,8 +91,52 @@ const Template1Preview = ({ formData, formHeight }) => {
         alignItems: 'center',
       }}
     >
-      <div style={{ width: '210mm', marginBottom: '20px' }}>
+      <style>
+        {`
+          @media (max-width: 768px) {
+            .template-container {
+              width: 100% !important;
+              max-width: 100% !important;
+            }
+            
+            .template-controls {
+              flex-wrap: wrap !important;
+              gap: 6px !important;
+              margin-bottom: 12px !important;
+            }
+            
+            .template-control-btn {
+              padding: 4px 10px !important;
+              font-size: 0.75rem !important;
+            }
+            
+            .template-article {
+              width: 100% !important;
+              border-radius: 8px !important;
+              margin: 0 10px !important;
+            }
+          }
+          
+          @media (max-width: 480px) {
+            .template-controls {
+              gap: 4px !important;
+              margin-bottom: 10px !important;
+            }
+            
+            .template-control-btn {
+              padding: 3px 8px !important;
+              font-size: 0.7rem !important;
+            }
+            
+            .template-article {
+              margin: 0 5px !important;
+            }
+          }
+        `}
+      </style>
+      <div className="template-container" style={{ width: '210mm', marginBottom: '20px' }}>
         <div
+          className="template-controls"
           style={{
             display: 'flex',
             flexWrap: 'wrap',
@@ -111,6 +155,7 @@ const Template1Preview = ({ formData, formHeight }) => {
                 key={key}
                 onClick={() => toggleSection(key)}
                 aria-pressed={active}
+                className="template-control-btn"
                 style={{
                   padding: '6px 14px',
                   fontSize: '0.85rem',
@@ -132,6 +177,7 @@ const Template1Preview = ({ formData, formHeight }) => {
         </div>
       </div>
       <article
+        className="template-article"
         style={{
           width: '210mm',
           margin: '0 auto',

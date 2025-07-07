@@ -87,14 +87,58 @@ const Template3Preview = ({ formData, formHeight }) => {
   return (
     <div
       style={{
-        maxWidth: 830,
-        margin: '0 auto',
+        width: '100%',
         display: 'flex',
-        justifyContent: 'center',
+        flexDirection: 'column',
+        alignItems: 'center',
       }}
     >
-      <div style={{ width: 794 }}>
+      <style>
+        {`
+          @media (max-width: 768px) {
+            .template-container {
+              width: 100% !important;
+              max-width: 100% !important;
+            }
+            
+            .template-controls {
+              flex-wrap: wrap !important;
+              gap: 6px !important;
+              margin-bottom: 12px !important;
+            }
+            
+            .template-control-btn {
+              padding: 4px 10px !important;
+              font-size: 0.75rem !important;
+            }
+            
+            .template-article {
+              width: 100% !important;
+              border-radius: 8px !important;
+              margin: 0 10px !important;
+            }
+          }
+          
+          @media (max-width: 480px) {
+            .template-controls {
+              gap: 4px !important;
+              margin-bottom: 10px !important;
+            }
+            
+            .template-control-btn {
+              padding: 3px 8px !important;
+              font-size: 0.7rem !important;
+            }
+            
+            .template-article {
+              margin: 0 5px !important;
+            }
+          }
+        `}
+      </style>
+      <div className="template-container" style={{ width: '210mm', marginBottom: '20px' }}>
         <div
+          className="template-controls"
           style={{
             display: 'flex',
             flexWrap: 'wrap',
@@ -113,12 +157,13 @@ const Template3Preview = ({ formData, formHeight }) => {
                 key={key}
                 onClick={() => toggleSection(key)}
                 aria-pressed={active}
+                className="template-control-btn"
                 style={{
                   padding: '6px 14px',
                   fontSize: '0.85rem',
                   borderRadius: 30,
-                  border: active ? '2px solid #667eea' : '2px solid #ccc',
-                  backgroundColor: active ? '#667eea' : '#fff',
+                  border: active ? '2px solid #3f51b5' : '2px solid #ccc',
+                  backgroundColor: active ? '#3f51b5' : '#fff',
                   color: active ? '#fff' : '#555',
                   cursor: 'pointer',
                   transition: 'all 0.3s ease',
@@ -132,28 +177,26 @@ const Template3Preview = ({ formData, formHeight }) => {
             );
           })}
         </div>
-
-        <article
-          style={{
-            width: '794px',
-            height: previewHeight,
-            margin: '0 auto',
-            padding: 24,
-            background: '#ffffff',
-            borderRadius: 10,
-            fontFamily: "'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-            color: '#2d3748',
-            display: 'flex',
-            flexDirection: 'column',
-            overflowY: 'visible',
-            boxSizing: 'border-box',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-          }}
-          aria-label="Curriculum Vitae Preview"
-        >
-          <Template3PDF formData={formData} visibleSections={visibleSections} />
-        </article>
       </div>
+      <article
+        className="template-article"
+        style={{
+          width: '210mm',
+          margin: '0 auto',
+          background: '#fdfdfd',
+          borderRadius: 10,
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          fontFamily: "'Open Sans', Arial, sans-serif",
+          color: '#333',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'visible',
+          boxSizing: 'border-box',
+        }}
+        aria-label="Curriculum Vitae Preview"
+      >
+        <Template3PDF formData={formData} visibleSections={visibleSections} />
+      </article>
     </div>
   );
 };

@@ -7,6 +7,9 @@ import Template4Preview from './Template4Preview';
 import Template5Preview from './Template5Preview';
 import Template6Preview from './Template6Preview';
 import Template7Preview from './Template7Preview';
+import Template8Preview from './Template8Preview';
+import Template9Preview from './Template9Preview';
+import Template10Preview from './Template10Preview';
 
 const LandingPage = ({ user }) => {
   const [selectedTemplate, setSelectedTemplate] = useState(null);
@@ -47,7 +50,7 @@ const LandingPage = ({ user }) => {
     ],
   });
 
-  const templates = Array.from({ length: 7 }, (_, i) => ({
+  const templates = Array.from({ length: 10 }, (_, i) => ({
     name: `Template ${i + 1}`,
     imageUrl: `/templates/template${i + 1}.jpg`,
   }));
@@ -60,6 +63,9 @@ const LandingPage = ({ user }) => {
     'Template 5': Template5Preview,
     'Template 6': Template6Preview,
     'Template 7': Template7Preview,
+    'Template 8': Template8Preview,
+    'Template 9': Template9Preview,
+    'Template 10': Template10Preview,
   };
 
   const handleTemplateClick = (template) => {
@@ -200,8 +206,63 @@ const LandingPage = ({ user }) => {
           backgroundColor: '#f4f6f8',
         }}
       >
+        <style>
+          {`
+            @media (max-width: 1024px) {
+              .editing-container {
+                flex-direction: column !important;
+                gap: 30px !important;
+              }
+              
+              .form-container {
+                flex: none !important;
+                max-width: 100% !important;
+              }
+              
+              .preview-container {
+                flex: none !important;
+                width: 100% !important;
+              }
+              
+              .editing-title {
+                font-size: 2rem !important;
+              }
+            }
+            
+            @media (max-width: 768px) {
+              .editing-wrapper {
+                padding: 15px 20px !important;
+              }
+              
+              .editing-title {
+                font-size: 1.5rem !important;
+                margin-bottom: 20px !important;
+              }
+              
+              .editing-container {
+                gap: 20px !important;
+              }
+            }
+            
+            @media (max-width: 480px) {
+              .editing-wrapper {
+                padding: 10px 15px !important;
+              }
+              
+              .editing-title {
+                font-size: 1.25rem !important;
+                margin-bottom: 16px !important;
+              }
+              
+              .editing-container {
+                gap: 15px !important;
+              }
+            }
+          `}
+        </style>
         {renderBackButton()}
         <h1
+          className="editing-title"
           style={{
             fontSize: '48px',
             fontWeight: 700,
@@ -213,6 +274,7 @@ const LandingPage = ({ user }) => {
           Editing {selectedTemplate}
         </h1>
         <div
+          className="editing-container"
           style={{
             display: 'flex',
             width: '100%',
@@ -221,6 +283,7 @@ const LandingPage = ({ user }) => {
           }}
         >
           <div
+            className="form-container"
             style={{
               display: 'flex',
               flexDirection: 'column',
@@ -246,6 +309,7 @@ const LandingPage = ({ user }) => {
             />
           </div>
           <div
+            className="preview-container"
             style={{
               flex: '0 0 auto',
               boxSizing: 'border-box',
@@ -298,11 +362,60 @@ const LandingPage = ({ user }) => {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
           }
+          
+          @media (max-width: 768px) {
+            .template-grid {
+              grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+              gap: 16px !important;
+            }
+            
+            .template-card {
+              height: 600px !important;
+              padding: 15px !important;
+            }
+            
+            .template-title {
+              font-size: 1.1rem !important;
+            }
+            
+            .page-title {
+              font-size: 2rem !important;
+              margin-bottom: 24px !important;
+            }
+            
+            .notification {
+              font-size: 14px !important;
+              padding: 12px !important;
+            }
+          }
+          
+          @media (max-width: 480px) {
+            .template-grid {
+              grid-template-columns: 1fr !important;
+              gap: 12px !important;
+            }
+            
+            .template-card {
+              height: 500px !important;
+              padding: 12px !important;
+            }
+            
+            .page-title {
+              font-size: 1.5rem !important;
+              margin-bottom: 20px !important;
+            }
+            
+            .notification {
+              font-size: 13px !important;
+              padding: 10px !important;
+            }
+          }
         `}
       </style>
       {/* Loading notification for regular users */}
       {isLoadingCV && user && !user.isAdmin && (
         <div
+          className="notification"
           style={{
             backgroundColor: '#dbeafe',
             border: '1px solid #3b82f6',
@@ -334,6 +447,7 @@ const LandingPage = ({ user }) => {
       {/* Success notification when CV is loaded */}
       {cvLoadedStatus === true && user && !user.isAdmin && (
         <div
+          className="notification"
           style={{
             backgroundColor: '#dcfce7',
             border: '1px solid #22c55e',
@@ -356,6 +470,7 @@ const LandingPage = ({ user }) => {
       {/* Info notification when no CV is found */}
       {cvLoadedStatus === false && user && !user.isAdmin && (
         <div
+          className="notification"
           style={{
             backgroundColor: '#fef3c7',
             border: '1px solid #f59e0b',
@@ -376,6 +491,7 @@ const LandingPage = ({ user }) => {
       )}
 
       <h1
+        className="page-title"
         style={{
           fontWeight: 700,
           fontSize: '48px',
@@ -389,6 +505,7 @@ const LandingPage = ({ user }) => {
       </h1>
 
       <div
+        className="template-grid"
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
@@ -409,6 +526,7 @@ const LandingPage = ({ user }) => {
               }
             }}
             title={`Click to use ${template.name}`}
+            className="template-card"
             style={{
               width: '100%',
               height: '750px',
@@ -452,6 +570,7 @@ const LandingPage = ({ user }) => {
               />
             </div>
             <div
+              className="template-title"
               style={{
                 fontWeight: '700',
                 fontSize: '1.3rem',
