@@ -1298,5 +1298,3 @@ const DynamicSection = ({ title, entries, onChange, onAdd, onRemove, placeholder
 };
 
 export default Form;
-
-
