@@ -84,6 +84,7 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
   // Simple test useEffect to verify useEffect is working
   useEffect(() => {
     console.log('Template1PDF - Test useEffect triggered - useEffect is working!');
+    console.log('Template1PDF - Test useEffect: Component mounted successfully');
   }, []);
 
   const containerStyle = {
@@ -677,7 +678,7 @@ Button Text: ${debugResult.buttonText}`;
   const [buttonText, setButtonText] = useState('Loading...');
 
   // Update button text and check payment status
-  React.useEffect(() => {
+  useEffect(() => {
     console.log('Template1PDF - useEffect triggered with:', { isAdminUser, isLoading });
     console.log('Template1PDF - useEffect: Component state check');
     
