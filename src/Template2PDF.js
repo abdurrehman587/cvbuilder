@@ -748,8 +748,8 @@ Button Text: ${debugResult.buttonText}`;
           {visibleSections.includes('references') && (
             <div style={styles.rightSection}>
               <h2 style={styles.rightSectionTitle}>References</h2>
-              {formData.references && formData.references.length > 0 ? (
-                renderSimpleList(formData.references)
+              {formData.cv_references && formData.cv_references.length > 0 ? (
+                renderSimpleList(formData.cv_references)
               ) : (
                 <p style={styles.paragraph}>References would be furnished on demand</p>
               )}

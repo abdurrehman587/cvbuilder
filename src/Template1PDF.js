@@ -885,8 +885,8 @@ Button Text: ${debugResult.buttonText}`;
         {visibleSections.includes('references') && (
           <section style={sectionStyle} aria-label="References Section">
             <h2 style={sectionTitleStyle}>References</h2>
-            {formData.references && formData.references.length > 0 ? (
-              renderSimpleList(formData.references)
+            {formData.cv_references && formData.cv_references.length > 0 ? (
+              renderSimpleList(formData.cv_references)
             ) : (
               <p style={paragraphStyle}>References would be furnished on demand</p>
             )}
