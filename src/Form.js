@@ -31,7 +31,7 @@ const defaultFormData = {
   customLanguages: [],
   hobbies: [''],
   customSections: [],
-  cv_references: [''],
+  cv_references: ['References would be furnished on demand'],
   otherInformation: [
     { id: 1, labelType: 'radio', label: "Father's Name:", checked: true, value: '', name: 'parentSpouse', radioValue: 'father' },
     { id: 2, labelType: 'radio', label: "Husband's Name:", checked: false, value: '', name: 'parentSpouse', radioValue: 'husband' },
@@ -110,7 +110,7 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
             customLanguages: [],
             hobbies: data.hobbies || [],
             customSections: data.custom_sections || [],
-            cv_references: data.cv_references || [],
+            cv_references: data.cv_references || ['References would be furnished on demand'],
             otherInformation: data.other_information || [],
           });
           
@@ -156,7 +156,7 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
             customLanguages: [],
             hobbies: data.hobbies || [],
             customSections: data.custom_sections || [],
-            cv_references: data.cv_references || [],
+            cv_references: data.cv_references || ['References would be furnished on demand'],
             otherInformation: data.other_information || [],
           });
           
