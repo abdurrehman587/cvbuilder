@@ -565,19 +565,22 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
 
   const handleDownloadClick = async () => {
     console.log('Template1PDF - Download button clicked');
-    console.log('Template1PDF - Current status:', paymentStatus);
     
     if (isAdminUser) {
       await generatePDF();
       return;
     }
 
-    if (paymentStatus.canDownload) {
+    // Check if we can download (approved payment exists)
+    const approvedPayment = await PaymentService.checkApprovedPayment('template1');
+    if (approvedPayment) {
       await generatePDF();
       return;
     }
 
-    if (paymentStatus.hasPending) {
+    // Check if there's a pending payment
+    const pendingPayment = await PaymentService.checkPendingPayment('template1');
+    if (pendingPayment) {
       alert('You have a pending payment. Please wait for admin approval.');
       return;
     }
@@ -746,7 +749,7 @@ Button Text: ${debugResult.buttonText}`;
   }, [isAdminUser, isLoading]);
 
   // Listen for authentication changes and refresh button text
-  React.useEffect(() => {
+  useEffect(() => {
     const handleAuthChange = () => {
       console.log('Template1PDF - Auth change detected, refreshing button text');
       setTimeout(() => {
@@ -921,7 +924,7 @@ Button Text: ${debugResult.buttonText}`;
               </div>
               <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
                 <button
-                  onClick={handleRefreshStatus}
+                  onClick={refreshButtonText}
                   style={{
                     padding: '8px 16px',
                     backgroundColor: '#007bff',
@@ -934,7 +937,7 @@ Button Text: ${debugResult.buttonText}`;
                   Refresh Status
                 </button>
                 <button
-                  onClick={handleDebugStatus}
+                  onClick={debugPaymentStatus}
                   style={{
                     padding: '8px 16px',
                     backgroundColor: '#6c757d',
@@ -955,7 +958,7 @@ Button Text: ${debugResult.buttonText}`;
                 disabled={isLoading}
                 style={{
                   padding: '12px 24px',
-                  backgroundColor: paymentStatus.canDownload ? '#28a745' : '#007bff',
+                  backgroundColor: '#007bff',
                   color: 'white',
                   border: 'none',
                   borderRadius: '6px',
@@ -1014,7 +1017,7 @@ Button Text: ${debugResult.buttonText}`;
               {!isAdminUser && (
                 <div style={{ marginTop: '12px', display: 'flex', gap: '8px', justifyContent: 'center' }}>
                   <button
-                    onClick={handleRefreshStatus}
+                    onClick={refreshButtonText}
                     style={{
                       padding: '6px 12px',
                       backgroundColor: '#6c757d',
@@ -1028,7 +1031,7 @@ Button Text: ${debugResult.buttonText}`;
                     Refresh
                   </button>
                   <button
-                    onClick={handleDebugStatus}
+                    onClick={debugPaymentStatus}
                     style={{
                       padding: '6px 12px',
                       backgroundColor: '#17a2b8',
