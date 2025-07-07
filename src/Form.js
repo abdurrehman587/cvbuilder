@@ -92,7 +92,7 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
 
         if (data) {
           console.log('Admin CV data loaded:', data);
-          console.log('Admin CV - references field from database:', data.references);
+          console.log('Admin CV - references field from database:', data.cv_references);
           setFormData({
             image: null,
             imageUrl: data.image_url || '',
@@ -110,7 +110,7 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
             customLanguages: [],
             hobbies: data.hobbies || [],
             customSections: data.custom_sections || [],
-            cv_references: data.references || [],
+            cv_references: data.cv_references || [],
             otherInformation: data.other_information || [],
           });
           
@@ -138,7 +138,7 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
 
         if (data) {
           console.log('User CV data loaded:', data);
-          console.log('User CV - references field from database:', data.references);
+          console.log('User CV - references field from database:', data.cv_references);
           setFormData({
             image: null,
             imageUrl: data.image_url || '',
@@ -156,7 +156,7 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
             customLanguages: [],
             hobbies: data.hobbies || [],
             customSections: data.custom_sections || [],
-            cv_references: data.references || [],
+            cv_references: data.cv_references || [],
             otherInformation: data.other_information || [],
           });
           
