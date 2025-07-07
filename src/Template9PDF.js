@@ -397,8 +397,8 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
         return;
       }
 
-      // Check for approved payment
-      const approvedPayment = await PaymentService.checkForApprovedPayment('template9');
+      // Check if user has an approved payment first
+      const approvedPayment = await PaymentService.checkApprovedPayment('template9');
       
       if (approvedPayment) {
         // Mark payment as used and download
@@ -409,6 +409,12 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
         const newButtonText = await PaymentService.getDownloadButtonText('template9', false);
         setButtonText(newButtonText);
       } else {
+        // Check if user has already downloaded (informational)
+        const downloadedPayment = await PaymentService.checkDownloadedPayment('template9');
+        if (downloadedPayment) {
+          alert('You have already downloaded this CV. Please make a new payment to download again.');
+        }
+        
         // Show payment modal
         setShowPaymentModal(true);
       }

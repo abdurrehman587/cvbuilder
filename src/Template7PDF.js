@@ -457,16 +457,7 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     }
     
     try {
-      // First check if user has already downloaded (most restrictive)
-      const downloadedPayment = await PaymentService.checkDownloadedPayment('template7');
-      if (downloadedPayment) {
-        console.log('Template7PDF - CV already downloaded, showing payment modal for new download');
-        alert('You have already downloaded this CV. Please make a new payment to download again.');
-        setShowPaymentModal(true);
-        return;
-      }
-
-      // Check if user has an approved payment
+      // Check if user has an approved payment first
       const approvedPayment = await PaymentService.checkApprovedPayment('template7');
       console.log('Template7PDF - approvedPayment:', approvedPayment);
       
@@ -479,6 +470,13 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
         const newButtonText = await PaymentService.getDownloadButtonText('template7', isAdmin);
         setButtonText(newButtonText);
       } else {
+        // Check if user has already downloaded (informational)
+        const downloadedPayment = await PaymentService.checkDownloadedPayment('template7');
+        if (downloadedPayment) {
+          console.log('Template7PDF - CV already downloaded, showing payment modal for new download');
+          alert('You have already downloaded this CV. Please make a new payment to download again.');
+        }
+        
         // Show payment modal
         console.log('Template7PDF - No approved payment, showing modal');
         setShowPaymentModal(true);
