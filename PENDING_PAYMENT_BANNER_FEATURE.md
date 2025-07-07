@@ -224,7 +224,7 @@ const refreshButtonText = async () => {
 
 ### After Admin Approval
 - Banner disappears
-- Download button reappears with "Payment Approved (Download Now)"
+- Download button reappears with "Download Now"
 
 ### After Download
 - Button shows download count: "Downloaded (1 time)", "Downloaded (2 times)", etc.

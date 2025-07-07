@@ -309,7 +309,7 @@ export class PaymentService {
       // First check for approved payment (most important)
       const approvedPayment = await this.checkApprovedPayment(templateId);
       if (approvedPayment) {
-        return 'Payment Approved (Download Now)';
+        return 'Download Now';
       }
 
       // Then check for pending payment

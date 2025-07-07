@@ -262,7 +262,7 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
         // Check for approved payment
         const approvedPayment = await PaymentService.checkApprovedPayment('template2');
         if (approvedPayment) {
-          setButtonText('Payment Approved (Download Now)');
+          setButtonText('Download Now');
           console.log('Template2PDF - Approved payment detected, showing download button');
           return;
         }
@@ -438,7 +438,7 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
       // Check for approved payment
       const approvedPayment = await PaymentService.checkApprovedPayment('template2');
       if (approvedPayment) {
-        setButtonText('Payment Approved (Download Now)');
+        setButtonText('Download Now');
         console.log('Template2PDF - Manual refresh: Approved payment detected');
         return;
       }
