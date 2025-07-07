@@ -25,7 +25,6 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
   console.log('Template1PDF - formData.references:', formData.references);
   
   const containerRef = useRef(null);
-  const buttonRef = useRef(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -474,14 +473,12 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
   })();
 
   const generatePDF = async () => {
-    if (!containerRef.current || !buttonRef.current) {
+    if (!containerRef.current) {
       alert('Preview content is not available for PDF generation');
       return;
     }
 
     try {
-      buttonRef.current.style.display = 'none';
-
       const html2pdf = await loadHtml2Pdf();
 
       await html2pdf()
@@ -523,10 +520,6 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     } catch (error) {
       console.error('PDF generation failed:', error);
       alert('Failed to generate PDF. Please try again.');
-    } finally {
-      if (buttonRef.current) {
-        buttonRef.current.style.display = 'block'; // ⭐ Button is shown again after download
-      }
     }
   };
 
