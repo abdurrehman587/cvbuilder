@@ -562,50 +562,38 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const handleDownloadClick = async () => {
-    console.log('=== DOWNLOAD CLICK START ===');
-    console.log('Template1PDF - handleDownloadClick called');
-    console.log('Template1PDF - isAdminUser:', isAdminUser);
+    console.log('Template1PDF - Download button clicked');
+    console.log('Template1PDF - Current status:', paymentStatus);
     
     if (isAdminUser) {
-      console.log('Template1PDF - Admin user, generating PDF directly');
-      generatePDF();
+      await generatePDF();
       return;
     }
+
+    if (paymentStatus.canDownload) {
+      await generatePDF();
+      return;
+    }
+
+    if (paymentStatus.hasPending) {
+      alert('You have a pending payment. Please wait for admin approval.');
+      return;
+    }
+
+    // Show payment modal
+    setShowPaymentModal(true);
+  };
+
+  // TEMPORARY: Direct download function that bypasses payment system
+  const handleDirectDownload = async () => {
+    console.log('Template1PDF - Direct download clicked (bypassing payment)');
     
     try {
-      // First, refresh the button text to ensure we have the latest status
-      await refreshButtonText();
-      
-      // DEBUG: Log the current payment status
-      console.log('=== DEBUGGING PAYMENT STATUS ===');
-      const debugResult = await PaymentService.debugPaymentStatus('template1');
-      console.log('Debug result:', debugResult);
-      
-      // Check if user has an approved payment first
-      const approvedPayment = await PaymentService.checkApprovedPayment('template1');
-      console.log('Template1PDF - approvedPayment:', approvedPayment);
-      
-      if (approvedPayment) {
-        // User has an approved payment, allow download
-        console.log('Template1PDF - Payment approved, generating PDF');
-        generatePDF();
-      } else {
-        // Check if user has already downloaded (informational)
-        const downloadedPayment = await PaymentService.checkDownloadedPayment('template1');
-        console.log('Downloaded payment check result:', downloadedPayment);
-        
-        if (downloadedPayment) {
-          console.log('Template1PDF - CV already downloaded, showing payment modal for new download');
-          alert('You have already downloaded this CV. Please make a new payment to download again.');
-        }
-        
-        // Show payment modal
-        console.log('Template1PDF - No approved payment, showing modal');
-        setShowPaymentModal(true);
-      }
+      await generatePDF();
+      alert('CV downloaded successfully! (Direct download - payment bypassed)');
     } catch (error) {
-      console.error('Error checking payment status:', error);
-      setShowPaymentModal(true);
+      console.error('Direct download failed:', error);
+      alert('Failed to download CV. Please try again.');
     }
   };
 
@@ -905,187 +893,148 @@ Button Text: ${debugResult.buttonText}`;
           </section>
         )}
 
-        {/* Download Button or Pending Banner */}
-        <div style={{ marginTop: 16 }}>
+        {/* Download Controls */}
+        <div style={{ marginTop: '20px', padding: '20px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
           {hasPendingPayment ? (
-            /* Pending Payment Banner */
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '12px 16px',
-              backgroundColor: '#fef3c7',
-              border: '1px solid #f59e0b',
-              borderRadius: '8px',
-              color: '#92400e',
-              fontSize: '0.95rem',
-              fontWeight: '500'
-            }}>
-              <span style={{ fontSize: '1.2rem' }}>⏳</span>
-              <span>Please wait for admin approval</span>
-              
-              {/* Refresh Button */}
-              <button
-                type="button"
-                onClick={refreshButtonText}
-                disabled={isLoading}
-                title="Refresh payment status"
-                style={{
-                  cursor: isLoading ? 'not-allowed' : 'pointer',
-                  padding: '4px 8px',
-                  fontSize: '0.8rem',
-                  borderRadius: 4,
-                  border: '1px solid #f59e0b',
-                  backgroundColor: 'white',
-                  color: '#f59e0b',
-                  transition: 'all 0.3s ease',
-                  userSelect: 'none',
-                  opacity: isLoading ? 0.7 : 1,
-                  marginLeft: 'auto'
-                }}
-                onMouseEnter={(e) => {
-                  if (!isLoading) {
-                    e.currentTarget.style.backgroundColor = '#fef3c7';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isLoading) {
-                    e.currentTarget.style.backgroundColor = 'white';
-                  }
-                }}
-              >
-                🔄
-              </button>
-              
-              {/* Debug Button */}
-              <button
-                type="button"
-                onClick={debugPaymentStatus}
-                disabled={isLoading}
-                title="Debug payment status"
-                style={{
-                  cursor: isLoading ? 'not-allowed' : 'pointer',
-                  padding: '4px 8px',
-                  fontSize: '0.8rem',
-                  borderRadius: 4,
-                  border: '1px solid #ff9800',
-                  backgroundColor: 'white',
-                  color: '#ff9800',
-                  transition: 'all 0.3s ease',
-                  userSelect: 'none',
-                  opacity: isLoading ? 0.7 : 1,
-                }}
-                onMouseEnter={(e) => {
-                  if (!isLoading) {
-                    e.currentTarget.style.backgroundColor = '#fff3e0';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isLoading) {
-                    e.currentTarget.style.backgroundColor = 'white';
-                  }
-                }}
-              >
-                🐛
-              </button>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ 
+                backgroundColor: '#fff3cd', 
+                border: '1px solid #ffeaa7', 
+                borderRadius: '6px', 
+                padding: '16px', 
+                marginBottom: '16px' 
+              }}>
+                <h3 style={{ margin: '0 0 8px 0', color: '#856404', fontSize: '16px' }}>
+                  ⏳ Payment Submitted - Waiting for Approval
+                </h3>
+                <p style={{ margin: '0', color: '#856404', fontSize: '14px' }}>
+                  Your payment has been submitted and is being reviewed. You will be able to download your CV once approved.
+                </p>
+              </div>
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+                <button
+                  onClick={handleRefreshStatus}
+                  style={{
+                    padding: '8px 16px',
+                    backgroundColor: '#007bff',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Refresh Status
+                </button>
+                <button
+                  onClick={handleDebugStatus}
+                  style={{
+                    padding: '8px 16px',
+                    backgroundColor: '#6c757d',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Debug Info
+                </button>
+              </div>
             </div>
           ) : (
-            /* Normal Download Button */
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ textAlign: 'center' }}>
               <button
-                ref={buttonRef}
-                type="button"
                 onClick={handleDownloadClick}
                 disabled={isLoading}
                 style={{
-                  cursor: isLoading ? 'not-allowed' : 'pointer',
-                  padding: '6px 18px',
-                  fontSize: '0.95rem',
-                  borderRadius: 6,
-                  border: 'none',
-                  backgroundColor: isLoading ? '#cccccc' : '#3f51b5',
+                  padding: '12px 24px',
+                  backgroundColor: paymentStatus.canDownload ? '#28a745' : '#007bff',
                   color: 'white',
-                  transition: 'background-color 0.3s ease',
-                  userSelect: 'none',
-                  opacity: isLoading ? 0.7 : 1,
-                }}
-                onMouseEnter={(e) => {
-                  if (!isLoading) {
-                    e.currentTarget.style.backgroundColor = '#303f9f';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isLoading) {
-                    e.currentTarget.style.backgroundColor = '#3f51b5';
-                  }
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontSize: '16px',
+                  fontWeight: '500',
+                  cursor: isLoading ? 'not-allowed' : 'pointer',
+                  opacity: isLoading ? 0.6 : 1,
+                  marginBottom: '10px'
                 }}
               >
                 {buttonText}
               </button>
               
-              {/* Refresh Button */}
-              <button
-                type="button"
-                onClick={refreshButtonText}
-                disabled={isLoading}
-                title="Refresh payment status"
-                style={{
-                  cursor: isLoading ? 'not-allowed' : 'pointer',
-                  padding: '6px 12px',
-                  fontSize: '0.9rem',
-                  borderRadius: 6,
-                  border: '1px solid #3f51b5',
-                  backgroundColor: 'white',
-                  color: '#3f51b5',
-                  transition: 'all 0.3s ease',
-                  userSelect: 'none',
-                  opacity: isLoading ? 0.7 : 1,
-                }}
-                onMouseEnter={(e) => {
-                  if (!isLoading) {
-                    e.currentTarget.style.backgroundColor = '#f0f0f0';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isLoading) {
-                    e.currentTarget.style.backgroundColor = 'white';
-                  }
-                }}
-              >
-                🔄
-              </button>
+              {/* TEMPORARY: Direct Download Button */}
+              <div style={{ 
+                marginTop: '15px', 
+                padding: '10px', 
+                backgroundColor: '#e8f5e8', 
+                border: '1px solid #28a745', 
+                borderRadius: '6px' 
+              }}>
+                <p style={{ 
+                  margin: '0 0 10px 0', 
+                  color: '#155724', 
+                  fontSize: '14px', 
+                  fontWeight: '500' 
+                }}>
+                  🚀 TEMPORARY: Need your CV immediately?
+                </p>
+                <button
+                  onClick={handleDirectDownload}
+                  style={{
+                    padding: '10px 20px',
+                    backgroundColor: '#28a745',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 4px rgba(40, 167, 69, 0.2)'
+                  }}
+                >
+                  Download CV Now (Free)
+                </button>
+                <p style={{ 
+                  margin: '8px 0 0 0', 
+                  color: '#6c757d', 
+                  fontSize: '12px', 
+                  fontStyle: 'italic' 
+                }}>
+                  This bypasses the payment system temporarily
+                </p>
+              </div>
               
-              {/* Debug Button */}
-              <button
-                type="button"
-                onClick={debugPaymentStatus}
-                disabled={isLoading}
-                title="Debug payment status"
-                style={{
-                  cursor: isLoading ? 'not-allowed' : 'pointer',
-                  padding: '6px 12px',
-                  fontSize: '0.9rem',
-                  borderRadius: 6,
-                  border: '1px solid #ff9800',
-                  backgroundColor: 'white',
-                  color: '#ff9800',
-                  transition: 'all 0.3s ease',
-                  userSelect: 'none',
-                  opacity: isLoading ? 0.7 : 1,
-                }}
-                onMouseEnter={(e) => {
-                  if (!isLoading) {
-                    e.currentTarget.style.backgroundColor = '#fff3e0';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isLoading) {
-                    e.currentTarget.style.backgroundColor = 'white';
-                  }
-                }}
-              >
-                🐛
-              </button>
+              {!isAdminUser && (
+                <div style={{ marginTop: '12px', display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                  <button
+                    onClick={handleRefreshStatus}
+                    style={{
+                      padding: '6px 12px',
+                      backgroundColor: '#6c757d',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      fontSize: '12px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Refresh
+                  </button>
+                  <button
+                    onClick={handleDebugStatus}
+                    style={{
+                      padding: '6px 12px',
+                      backgroundColor: '#17a2b8',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      fontSize: '12px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Debug
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
