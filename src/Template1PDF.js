@@ -608,6 +608,7 @@ Total Payments: ${debugResult.payments?.length || 0}
 Approved Payment: ${debugResult.approvedPayment ? 'Yes' : 'No'}
 Pending Payment: ${debugResult.pendingPayment ? 'Yes' : 'No'}
 Downloaded Payment: ${debugResult.downloadedPayment ? 'Yes' : 'No'}
+Download Count: ${debugResult.downloadCount || 0}
 Button Text: ${debugResult.buttonText}`;
         
         alert(message);

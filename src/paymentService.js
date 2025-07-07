@@ -264,6 +264,41 @@ export class PaymentService {
     }
   }
 
+  // Get download count for a template
+  static async getDownloadCount(templateId) {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.log('No authenticated user for download count check');
+        return 0;
+      }
+
+      // Check if database is ready
+      const dbReady = await this.checkDatabaseReady();
+      if (!dbReady) {
+        console.log('Database not ready, returning 0 for download count');
+        return 0;
+      }
+
+      const { count, error } = await supabase
+        .from('cv_downloads')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_email', user.email)
+        .eq('template_id', templateId);
+
+      if (error) {
+        console.error('Error getting download count:', error);
+        return 0;
+      }
+
+      console.log('Download count for template:', count);
+      return count || 0;
+    } catch (error) {
+      console.error('Error getting download count:', error);
+      return 0;
+    }
+  }
+
   // Get download button text based on payment status
   static async getDownloadButtonText(templateId, isAdminUser = false) {
     if (isAdminUser) {
@@ -283,10 +318,17 @@ export class PaymentService {
         return 'Payment Submitted (Waiting for Approval)';
       }
 
-      // Then check for downloaded payment (least restrictive - just informational)
+      // Then check for downloaded payment and get download count
       const downloadedPayment = await this.checkDownloadedPayment(templateId);
       if (downloadedPayment) {
-        return 'CV Already Downloaded (Pay Again for New Download)';
+        const downloadCount = await this.getDownloadCount(templateId);
+        if (downloadCount === 1) {
+          return 'Downloaded (1 time)';
+        } else if (downloadCount > 1) {
+          return `Downloaded (${downloadCount} times)`;
+        } else {
+          return 'CV Already Downloaded (Pay Again for New Download)';
+        }
       }
 
       // No payment found - show payment option
@@ -471,6 +513,7 @@ export class PaymentService {
       const approvedPayment = await this.checkApprovedPayment(templateId);
       const pendingPayment = await this.checkPendingPayment(templateId);
       const downloadedPayment = await this.checkDownloadedPayment(templateId);
+      const downloadCount = await this.getDownloadCount(templateId);
 
       const result = {
         user: user.email,
@@ -479,6 +522,7 @@ export class PaymentService {
         approvedPayment: approvedPayment,
         pendingPayment: pendingPayment,
         downloadedPayment: downloadedPayment,
+        downloadCount: downloadCount,
         buttonText: await this.getDownloadButtonText(templateId, false)
       };
 
@@ -488,6 +532,7 @@ export class PaymentService {
       console.log('Approved payment:', result.approvedPayment);
       console.log('Pending payment:', result.pendingPayment);
       console.log('Downloaded payment:', result.downloadedPayment);
+      console.log('Download count:', result.downloadCount);
       console.log('Button text:', result.buttonText);
       console.log('=== END DEBUG ===');
 
