@@ -45,6 +45,8 @@ const defaultFormData = {
 
 
 const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, onCVLoaded }) => {
+  console.log('Form component rendered with formData:', formData);
+  console.log('Form - cv_references:', formData?.cv_references);
 
   const [searchName, setSearchName] = useState('');
   const [searchPhone, setSearchPhone] = useState('');
@@ -90,6 +92,7 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
 
         if (data) {
           console.log('Admin CV data loaded:', data);
+          console.log('Admin CV - references field from database:', data.references);
           setFormData({
             image: null,
             imageUrl: data.image_url || '',
@@ -135,6 +138,7 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
 
         if (data) {
           console.log('User CV data loaded:', data);
+          console.log('User CV - references field from database:', data.references);
           setFormData({
             image: null,
             imageUrl: data.image_url || '',
@@ -862,9 +866,18 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
         <DynamicSection
           title="References"
           entries={formData.cv_references}
-          onChange={(index, val) => handleArrayChange('cv_references', index, val)}
-          onAdd={() => handleAddEntry('cv_references')}
-          onRemove={(index) => handleRemoveEntry('cv_references', index)}
+          onChange={(index, val) => {
+            console.log('References onChange:', { index, val, currentEntries: formData.cv_references });
+            handleArrayChange('cv_references', index, val);
+          }}
+          onAdd={() => {
+            console.log('References onAdd called');
+            handleAddEntry('cv_references');
+          }}
+          onRemove={(index) => {
+            console.log('References onRemove:', { index });
+            handleRemoveEntry('cv_references', index);
+          }}
           placeholder="Provide your references..."
           rows={1}
         />
@@ -1247,7 +1260,9 @@ const CustomSection = ({
   );
 };
 
-const DynamicSection = ({ title, entries, onChange, onAdd, onRemove, placeholder, rows, renderEntry }) => (
+const DynamicSection = ({ title, entries, onChange, onAdd, onRemove, placeholder, rows, renderEntry }) => {
+  console.log('DynamicSection rendered:', { title, entries, hasEntries: entries && entries.length > 0 });
+  return (
   <div className="dynamic-section">
     <h3>{title}</h3>
     {(entries || []).map((entry, index) => (
@@ -1279,7 +1294,8 @@ const DynamicSection = ({ title, entries, onChange, onAdd, onRemove, placeholder
       </button>
     )}
   </div>
-);
+  );
+};
 
 export default Form;
 
