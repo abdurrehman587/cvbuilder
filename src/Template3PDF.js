@@ -555,7 +555,7 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
 
   const generatePDF = async () => {
     if (!containerRef.current || !buttonRef.current) {
-      alert('Preview content is not available for PDF generation');
+      console.error('Preview content is not available for PDF generation');
       return;
     }
 
@@ -602,7 +602,6 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
 
     } catch (error) {
       console.error('PDF generation failed:', error);
-      alert('Failed to generate PDF. Please try again.');
     } finally {
       if (buttonRef.current) {
         buttonRef.current.style.display = 'block';
@@ -627,7 +626,7 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
 
   const handlePaymentFailure = (error) => {
     console.error('Payment failed:', error);
-    alert('Payment failed. Please try again.');
+    setShowPaymentModal(false);
   };
 
 
@@ -655,14 +654,7 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
         console.log('Template3PDF - Payment approved, generating PDF');
         await generatePDF();
       } else {
-        // Check if user has already downloaded (informational)
-        const downloadedPayment = await PaymentService.checkDownloadedPayment('template3');
-        if (downloadedPayment) {
-          console.log('Template3PDF - CV already downloaded, showing payment modal for new download');
-          alert('You have already downloaded this CV. Please make a new payment to download again.');
-        }
-        
-        // Show payment modal
+        // Show payment modal directly
         console.log('Template3PDF - No approved payment, showing modal');
         setShowPaymentModal(true);
       }
