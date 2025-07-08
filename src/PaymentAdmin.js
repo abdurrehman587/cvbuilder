@@ -45,20 +45,38 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
       const paymentsWithUserNames = await Promise.all(
         allPayments.map(async (payment) => {
           try {
+            console.log('Looking up user name for payment:', {
+              paymentId: payment.id,
+              userEmail: payment.user_email
+            });
+
             // First try to fetch from user_cvs table
             let { data: cvData, error: cvError } = await supabase
               .from('user_cvs')
-              .select('name')
+              .select('name, user_email')
               .eq('user_email', payment.user_email)
               .maybeSingle();
             
+            console.log('User CV lookup result:', {
+              userEmail: payment.user_email,
+              cvData: cvData,
+              cvError: cvError
+            });
+            
             // If not found in user_cvs, try admin_cvs table
             if (!cvData && !cvError) {
+              console.log('User CV not found, trying admin CV table...');
               const { data: adminCvData, error: adminCvError } = await supabase
                 .from('admin_cvs')
-                .select('name')
+                .select('name, user_email')
                 .eq('user_email', payment.user_email)
                 .maybeSingle();
+              
+              console.log('Admin CV lookup result:', {
+                userEmail: payment.user_email,
+                adminCvData: adminCvData,
+                adminCvError: adminCvError
+              });
               
               if (adminCvError) {
                 console.error('Error fetching admin CV data for user:', payment.user_email, adminCvError);
@@ -71,21 +89,49 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
               console.error('Error fetching CV data for user:', payment.user_email, cvError);
             }
             
-            console.log('Payment user name lookup:', {
+            // If still no CV data found, let's check what users exist in the CV tables
+            if (!cvData) {
+              console.log('No CV data found for user:', payment.user_email);
+              
+              // Debug: Check what users exist in user_cvs table
+              const { data: allUserCvs, error: allUserCvsError } = await supabase
+                .from('user_cvs')
+                .select('user_email, name')
+                .limit(5);
+              
+              console.log('Sample user_cvs data:', {
+                allUserCvs: allUserCvs,
+                allUserCvsError: allUserCvsError
+              });
+              
+              // Debug: Check what users exist in admin_cvs table
+              const { data: allAdminCvs, error: allAdminCvsError } = await supabase
+                .from('admin_cvs')
+                .select('user_email, name')
+                .limit(5);
+              
+              console.log('Sample admin_cvs data:', {
+                allAdminCvs: allAdminCvs,
+                allAdminCvsError: allAdminCvsError
+              });
+            }
+            
+            console.log('Final payment user name lookup result:', {
               paymentId: payment.id,
               userEmail: payment.user_email,
-              userName: cvData?.name || 'Unknown User'
+              userName: cvData?.name || `User (${payment.user_email})`,
+              cvDataFound: !!cvData
             });
             
             return {
               ...payment,
-              userName: cvData?.name || 'Unknown User'
+              userName: cvData?.name || `User (${payment.user_email})`
             };
           } catch (error) {
             console.error('Error fetching user name for payment:', payment.id, error);
             return {
               ...payment,
-              userName: 'Unknown User'
+              userName: `User (${payment.user_email})`
             };
           }
         })
@@ -321,7 +367,12 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
         borderBottom: '2px solid #22c55e',
         paddingBottom: '15px'
       }}>
-        <h1 style={{ margin: 0, color: '#22c55e' }}>💰 Payment Admin Panel</h1>
+        <div>
+          <h1 style={{ margin: 0, color: '#22c55e' }}>💰 Payment Admin Panel</h1>
+          <p style={{ margin: '5px 0 0 0', fontSize: '0.9rem', color: '#666' }}>
+            Note: User names will show as "User (email)" if CV data hasn't been saved yet
+          </p>
+        </div>
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
           <select
             value={filter}
@@ -400,7 +451,7 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
                   {payment.id}
                 </td>
                 <td style={{ padding: '12px', fontSize: '0.9rem' }}>
-                  {payment.userName || 'Unknown User'}
+                  {payment.userName || `User (${payment.user_email})`}
                 </td>
                 <td style={{ padding: '12px' }}>
                   <span style={{
