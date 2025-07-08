@@ -135,20 +135,10 @@ const ManualPayment = ({ amount, templateId, templateName, onPaymentSuccess, onP
         {/* Header */}
         <div style={{
           display: 'flex',
-          justifyContent: 'space-between',
+          justifyContent: 'flex-end',
           alignItems: 'center',
-          marginBottom: '20px',
-          borderBottom: '2px solid #22c55e',
-          paddingBottom: '10px'
+          marginBottom: '20px'
         }}>
-          <h2 style={{
-            margin: 0,
-            color: '#22c55e',
-            fontSize: '1.5rem',
-            fontWeight: 'bold'
-          }}>
-            💳 Manual Payment
-          </h2>
           <button
             onClick={onClose}
             style={{
@@ -167,6 +157,20 @@ const ManualPayment = ({ amount, templateId, templateName, onPaymentSuccess, onP
           >
             ×
           </button>
+        </div>
+
+        {/* Instructions */}
+        <div style={{
+          textAlign: 'center',
+          marginBottom: '20px',
+          padding: '15px',
+          backgroundColor: '#fef3c7',
+          borderRadius: '8px',
+          border: '1px solid #f59e0b'
+        }}>
+          <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#92400e' }}>
+            Pay Rs. 100 to any of these Accounts
+          </div>
         </div>
 
         {/* Amount Display */}
@@ -268,22 +272,7 @@ const ManualPayment = ({ amount, templateId, templateName, onPaymentSuccess, onP
 
 
 
-        {/* Instructions */}
-        <div style={{
-          backgroundColor: '#fef3c7',
-          border: '1px solid #f59e0b',
-          borderRadius: '6px',
-          padding: '12px',
-          marginBottom: '20px',
-          fontSize: '0.9rem'
-        }}>
-          <strong>Instructions:</strong>
-          <ol style={{ margin: '8px 0 0 20px', padding: 0 }}>
-            <li>Send PKR {amount} to the selected payment method</li>
-            <li>Click "Submit Payment" to proceed</li>
-            <li>Wait for verification (usually within 1-2 hours)</li>
-          </ol>
-        </div>
+
         
         {/* Form Status */}
         <div style={{
