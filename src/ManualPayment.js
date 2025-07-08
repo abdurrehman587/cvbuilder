@@ -381,10 +381,15 @@ const ManualPayment = ({ amount, templateId, templateName, onPaymentSuccess, onP
         <div style={{
           marginTop: '15px',
           textAlign: 'center',
-          fontSize: '0.8rem',
-          color: '#666'
+          fontSize: '1.5rem',
+          fontWeight: 'bold',
+          color: '#22c55e',
+          padding: '15px',
+          backgroundColor: '#f0fdf4',
+          borderRadius: '8px',
+          border: '2px solid #22c55e'
         }}>
-          Need help? Contact: abdurrehman587@gmail.com
+          Need help? Contact: 03153338612
         </div>
       </div>
     </div>
