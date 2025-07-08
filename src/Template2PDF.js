@@ -21,7 +21,6 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [hasPendingPayment, setHasPendingPayment] = useState(false);
-  const [hasApprovedPayment, setHasApprovedPayment] = useState(false);
   const [buttonText, setButtonText] = useState('Loading...');
 
   const styles = {
@@ -234,59 +233,81 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
 
   // Update button text and check payment status
   useEffect(() => {
+    console.log('Template2PDF - useEffect triggered with:', { isAdminUser, isLoading });
+    console.log('Template2PDF - useEffect: Component state check');
+    
     const updateButtonText = async () => {
+      console.log('Template2PDF - updateButtonText called');
+      
       // Don't update button text while loading
       if (isLoading) {
+        console.log('Template2PDF - Still loading, setting button text to Loading...');
         setButtonText('Loading...');
         return;
       }
 
       if (isAdminUser) {
+        console.log('Template2PDF - Admin user, setting admin button text');
         setButtonText('Download PDF (Admin)');
         setHasPendingPayment(false);
-        setHasApprovedPayment(false);
         return;
       }
 
       try {
+        console.log('Template2PDF - Starting payment status checks...');
+        
         // Check for pending payment first
         const pendingPayment = await PaymentService.checkPendingPayment('template2');
+        console.log('Template2PDF - Periodic refresh: Pending payment check result:', pendingPayment);
+        
         if (pendingPayment) {
           setHasPendingPayment(true);
           setButtonText('Payment Submitted (Waiting for Approval)');
-          console.log('Template2PDF - Pending payment detected, showing banner');
+          console.log('Template2PDF - Periodic refresh: Pending payment detected, showing banner');
           return;
         } else {
           setHasPendingPayment(false);
-          console.log('Template2PDF - No pending payment, checking other statuses');
+          console.log('Template2PDF - Periodic refresh: No pending payment, checking approved payment');
         }
 
         // Check for approved payment
         const approvedPayment = await PaymentService.checkApprovedPayment('template2');
+        console.log('Template2PDF - Periodic refresh: Approved payment check result:', approvedPayment);
+        
         if (approvedPayment) {
-          setHasApprovedPayment(true);
           setButtonText('Download Now');
-          console.log('Template2PDF - Approved payment detected, showing download button');
+          console.log('Template2PDF - Periodic refresh: Approved payment detected, showing download button');
           return;
-        } else {
-          setHasApprovedPayment(false);
         }
 
+        console.log('Template2PDF - Periodic refresh: No approved payment, getting default button text');
         const text = await PaymentService.getDownloadButtonText('template2', isAdminUser);
         setButtonText(text);
-        console.log('Template2PDF - Button text updated:', text);
+        console.log('Template2PDF - Periodic refresh: Button text updated:', text);
       } catch (error) {
         console.error('Error getting button text:', error);
         setButtonText('Download PDF (PKR 100)');
       }
     };
 
-    updateButtonText();
+    // Add a small delay before first update to avoid conflicts
+    setTimeout(() => {
+      console.log('Template2PDF - First updateButtonText call (delayed)');
+      updateButtonText();
+    }, 2000);
     
     // Set up periodic refresh every 5 seconds to catch payment status changes
-    const interval = setInterval(updateButtonText, 5000);
+    const interval = setInterval(() => {
+      console.log('Template2PDF - Periodic updateButtonText call');
+      updateButtonText();
+    }, 5000);
     
-    return () => clearInterval(interval);
+    console.log('Template2PDF - useEffect: Set up interval and delayed call');
+    
+    return () => {
+      console.log('Template2PDF - useEffect cleanup: clearing interval');
+      clearInterval(interval);
+    };
   }, [isAdminUser, isLoading]);
 
   // Listen for authentication changes and refresh button text
@@ -391,15 +412,17 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
       return;
     }
 
-    if (hasPendingPayment) {
-      alert('You have a pending payment. Please wait for admin approval.');
+    // Check if we can download (approved payment exists)
+    const approvedPayment = await PaymentService.checkApprovedPayment('template2');
+    if (approvedPayment) {
+      await generatePDF();
       return;
     }
 
-    // Check for approved payment and download directly if found
-    if (hasApprovedPayment) {
-      console.log('Template2PDF - Approved payment found, downloading directly');
-      await generatePDF();
+    // Check if there's a pending payment
+    const pendingPayment = await PaymentService.checkPendingPayment('template2');
+    if (pendingPayment) {
+      alert('You have a pending payment. Please wait for admin approval.');
       return;
     }
 
@@ -416,26 +439,29 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
       
       // Check for pending payment first
       const pendingPayment = await PaymentService.checkPendingPayment('template2');
+      console.log('Template2PDF - Manual refresh: Pending payment check result:', pendingPayment);
+      
       if (pendingPayment) {
         setHasPendingPayment(true);
         setButtonText('Payment Submitted (Waiting for Approval)');
-        console.log('Template2PDF - Manual refresh: Pending payment detected');
+        console.log('Template2PDF - Manual refresh: Pending payment detected, showing banner');
         return;
       } else {
         setHasPendingPayment(false);
+        console.log('Template2PDF - Manual refresh: No pending payment, checking approved payment');
       }
       
       // Check for approved payment
       const approvedPayment = await PaymentService.checkApprovedPayment('template2');
+      console.log('Template2PDF - Manual refresh: Approved payment check result:', approvedPayment);
+      
       if (approvedPayment) {
-        setHasApprovedPayment(true);
         setButtonText('Download Now');
-        console.log('Template2PDF - Manual refresh: Approved payment detected');
+        console.log('Template2PDF - Manual refresh: Approved payment detected, showing download button');
         return;
-      } else {
-        setHasApprovedPayment(false);
       }
       
+      console.log('Template2PDF - Manual refresh: No approved payment, getting default button text');
       const text = await PaymentService.getDownloadButtonText('template2', isAdminUser);
       setButtonText(text);
       console.log('Template2PDF - Button text refreshed to:', text);
@@ -816,7 +842,7 @@ Button Text: ${debugResult.buttonText}`;
               disabled={isLoading}
               style={{
                 padding: '12px 24px',
-                backgroundColor: hasApprovedPayment ? '#28a745' : '#007bff',
+                backgroundColor: buttonText === 'Download Now' ? '#28a745' : '#007bff',
                 color: 'white',
                 border: 'none',
                 borderRadius: '6px',
