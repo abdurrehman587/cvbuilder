@@ -3,11 +3,30 @@ import LandingPage from './landingpage';
 import { PaymentService } from './paymentService';
 import supabase from './supabase';
 
+// Custom hook for responsive design
+const useResponsive = () => {
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  return {
+    isMobile: windowWidth <= 480,
+    isTablet: windowWidth > 480 && windowWidth <= 768,
+    isDesktop: windowWidth > 768,
+    windowWidth
+  };
+};
+
 const PaymentAdmin = ({ onAccessCVBuilder }) => {
   const [payments, setPayments] = useState([]);
   const [filter, setFilter] = useState('all'); // all, pending, approved, rejected
   const [showCVBuilder, setShowCVBuilder] = useState(false);
   const [lastChecked, setLastChecked] = useState(new Date());
+  const { isMobile, isTablet, isDesktop } = useResponsive();
 
   const [adminUser] = useState({
     id: 'admin-user',
@@ -352,28 +371,50 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
 
   return (
     <div style={{
-      maxWidth: '1200px',
+      maxWidth: '100%',
       margin: '0 auto',
-      padding: '20px',
-      fontFamily: "'Inter', sans-serif"
+      padding: '10px',
+      fontFamily: "'Inter', sans-serif",
+      minHeight: '100vh',
+      backgroundColor: '#f8fafc'
     }}>
       
-
+      {/* Header Section */}
       <div style={{
         display: 'flex',
+        flexDirection: !isDesktop ? 'column' : 'row',
         justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '30px',
+        alignItems: !isDesktop ? 'stretch' : 'center',
+        marginBottom: '20px',
         borderBottom: '2px solid #22c55e',
-        paddingBottom: '15px'
+        paddingBottom: '15px',
+        gap: !isDesktop ? '15px' : '0'
       }}>
-        <div>
-          <h1 style={{ margin: 0, color: '#22c55e' }}>💰 Payment Admin Panel</h1>
-          <p style={{ margin: '5px 0 0 0', fontSize: '0.9rem', color: '#666' }}>
+        <div style={{ flex: 1 }}>
+          <h1 style={{ 
+            margin: 0, 
+            color: '#22c55e',
+            fontSize: isMobile ? '1.5rem' : '2rem',
+            textAlign: !isDesktop ? 'center' : 'left'
+          }}>
+            💰 Payment Admin Panel
+          </h1>
+          <p style={{ 
+            margin: '5px 0 0 0', 
+            fontSize: isMobile ? '0.8rem' : '0.9rem', 
+            color: '#666',
+            textAlign: !isDesktop ? 'center' : 'left'
+          }}>
             Note: User names will show as "User (email)" if CV data hasn't been saved yet
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: isMobile ? 'column' : 'row',
+          gap: '10px', 
+          alignItems: 'center',
+          justifyContent: !isDesktop ? 'center' : 'flex-end'
+        }}>
           <select
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
@@ -381,9 +422,10 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
               padding: '8px 12px',
               border: '1px solid #d1d5db',
               borderRadius: '6px',
-              fontSize: '14px',
+              fontSize: isMobile ? '12px' : '14px',
               backgroundColor: 'white',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              minWidth: isMobile ? '120px' : 'auto'
             }}
           >
             <option value="all">All Payments</option>
@@ -395,18 +437,19 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
           <button
             onClick={handleAccessCVBuilder}
             style={{
-              padding: '12px 24px',
+              padding: isMobile ? '10px 16px' : '12px 24px',
               backgroundColor: '#3b82f6',
               color: 'white',
               border: 'none',
               borderRadius: '8px',
               cursor: 'pointer',
-              fontSize: '14px',
+              fontSize: isMobile ? '12px' : '14px',
               fontWeight: '600',
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
-              transition: 'all 0.3s ease'
+              transition: 'all 0.3s ease',
+              whiteSpace: 'nowrap'
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.backgroundColor = '#2563eb';
@@ -417,132 +460,344 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
               e.currentTarget.style.transform = 'translateY(0)';
             }}
           >
-            🎨 Access CV Builder
+            🎨 {isMobile ? 'CV Builder' : 'Access CV Builder'}
           </button>
         </div>
       </div>
 
-      {/* Payments Table */}
+      {/* Payments Display - Responsive */}
       <div style={{
         backgroundColor: 'white',
         borderRadius: '8px',
         boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
         overflow: 'hidden'
       }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ backgroundColor: '#f9fafb' }}>
-              <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Payment ID</th>
-              <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>User</th>
-              <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Template</th>
-              <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Method</th>
-              <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Amount</th>
-              <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Phone</th>
-              <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Status</th>
-              <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Download</th>
-              <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Date</th>
-              <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
+        {/* Desktop Table View */}
+        {isDesktop && (
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ backgroundColor: '#f9fafb' }}>
+                <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Payment ID</th>
+                <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>User</th>
+                <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Template</th>
+                <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Method</th>
+                <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Amount</th>
+                <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Phone</th>
+                <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Status</th>
+                <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Download</th>
+                <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Date</th>
+                <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredPayments.map((payment) => (
+                <tr key={payment.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                  <td style={{ padding: '12px', fontFamily: 'monospace', fontSize: '0.9rem' }}>
+                    {payment.id}
+                  </td>
+                  <td style={{ padding: '12px', fontSize: '0.9rem' }}>
+                    {payment.userName || `User (${payment.user_email})`}
+                  </td>
+                  <td style={{ padding: '12px' }}>
+                    <span style={{
+                      padding: '4px 8px',
+                      backgroundColor: '#dbeafe',
+                      borderRadius: '4px',
+                      fontSize: '0.8rem',
+                      color: '#1e40af',
+                      fontWeight: '500'
+                    }}>
+                      {getTemplateName(payment.template_id)}
+                    </span>
+                  </td>
+                  <td style={{ padding: '12px' }}>
+                    <span style={{
+                      padding: '4px 8px',
+                      backgroundColor: '#e5e7eb',
+                      borderRadius: '4px',
+                      fontSize: '0.8rem',
+                      textTransform: 'capitalize'
+                    }}>
+                      {payment.payment_method}
+                    </span>
+                  </td>
+                  <td style={{ padding: '12px', fontWeight: 'bold' }}>
+                    PKR {payment.amount}
+                  </td>
+                  <td style={{ padding: '12px' }}>
+                    {payment.phone_number}
+                  </td>
+                  <td style={{ padding: '12px' }}>
+                    <span style={{
+                      padding: '4px 8px',
+                      backgroundColor: getStatusColor(payment.status),
+                      color: 'white',
+                      borderRadius: '4px',
+                      fontSize: '0.8rem',
+                      textTransform: 'capitalize'
+                    }}>
+                      {payment.status}
+                    </span>
+                  </td>
+                  <td style={{ padding: '12px' }}>
+                    {payment.status === 'approved' ? (
+                      <span style={{
+                        padding: '4px 8px',
+                        backgroundColor: '#22c55e',
+                        color: 'white',
+                        borderRadius: '4px',
+                        fontSize: '0.8rem'
+                      }}>
+                        ⏳ Available
+                      </span>
+                    ) : payment.status === 'downloaded' ? (
+                      <span style={{
+                        padding: '4px 8px',
+                        backgroundColor: '#3b82f6',
+                        color: 'white',
+                        borderRadius: '4px',
+                        fontSize: '0.8rem'
+                      }}>
+                        ✅ Downloaded
+                      </span>
+                    ) : (
+                      <span style={{
+                        padding: '4px 8px',
+                        backgroundColor: '#6b7280',
+                        color: 'white',
+                        borderRadius: '4px',
+                        fontSize: '0.8rem'
+                      }}>
+                        N/A
+                      </span>
+                    )}
+                  </td>
+                  <td style={{ padding: '12px', fontSize: '0.9rem' }}>
+                    {new Date(payment.created_at).toLocaleString()}
+                  </td>
+                  <td style={{ padding: '12px' }}>
+                    {payment.status === 'pending' && (
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button
+                          onClick={() => approvePayment(payment.id)}
+                          style={{
+                            padding: '4px 8px',
+                            backgroundColor: '#22c55e',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontSize: '0.8rem'
+                          }}
+                        >
+                          ✅ Approve
+                        </button>
+                        <button
+                          onClick={() => rejectPayment(payment.id)}
+                          style={{
+                            padding: '4px 8px',
+                            backgroundColor: '#ef4444',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontSize: '0.8rem'
+                          }}
+                        >
+                          ❌ Reject
+                        </button>
+                      </div>
+                    )}
+                    <button
+                      onClick={() => deletePayment(payment.id)}
+                      style={{
+                        padding: '4px 8px',
+                        backgroundColor: '#6b7280',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '0.8rem',
+                        marginTop: '4px'
+                      }}
+                    >
+                      🗑️ Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+
+        {/* Mobile Card View */}
+        {!isDesktop && (
+          <div style={{ padding: '10px' }}>
             {filteredPayments.map((payment) => (
-              <tr key={payment.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                <td style={{ padding: '12px', fontFamily: 'monospace', fontSize: '0.9rem' }}>
-                  {payment.id}
-                </td>
-                <td style={{ padding: '12px', fontSize: '0.9rem' }}>
-                  {payment.userName || `User (${payment.user_email})`}
-                </td>
-                <td style={{ padding: '12px' }}>
-                  <span style={{
-                    padding: '4px 8px',
-                    backgroundColor: '#dbeafe',
-                    borderRadius: '4px',
-                    fontSize: '0.8rem',
-                    color: '#1e40af',
-                    fontWeight: '500'
-                  }}>
-                    {getTemplateName(payment.template_id)}
-                  </span>
-                </td>
-                <td style={{ padding: '12px' }}>
-                  <span style={{
-                    padding: '4px 8px',
-                    backgroundColor: '#e5e7eb',
-                    borderRadius: '4px',
-                    fontSize: '0.8rem',
-                    textTransform: 'capitalize'
-                  }}>
-                    {payment.payment_method}
-                  </span>
-                </td>
-                <td style={{ padding: '12px', fontWeight: 'bold' }}>
-                  PKR {payment.amount}
-                </td>
-                <td style={{ padding: '12px' }}>
-                  {payment.phone_number}
-                </td>
-                <td style={{ padding: '12px' }}>
-                  <span style={{
-                    padding: '4px 8px',
-                    backgroundColor: getStatusColor(payment.status),
-                    color: 'white',
-                    borderRadius: '4px',
-                    fontSize: '0.8rem',
-                    textTransform: 'capitalize'
-                  }}>
-                    {payment.status}
-                  </span>
-                </td>
-                <td style={{ padding: '12px' }}>
-                  {payment.status === 'approved' ? (
+              <div key={payment.id} style={{
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
+                padding: '15px',
+                marginBottom: '15px',
+                backgroundColor: 'white'
+              }}>
+                {/* Payment ID */}
+                <div style={{ marginBottom: '10px' }}>
+                  <strong style={{ fontSize: '0.8rem', color: '#666' }}>Payment ID:</strong>
+                  <div style={{ fontFamily: 'monospace', fontSize: '0.9rem', wordBreak: 'break-all' }}>
+                    {payment.id}
+                  </div>
+                </div>
+
+                {/* User */}
+                <div style={{ marginBottom: '10px' }}>
+                  <strong style={{ fontSize: '0.8rem', color: '#666' }}>User:</strong>
+                  <div style={{ fontSize: '0.9rem' }}>
+                    {payment.userName || `User (${payment.user_email})`}
+                  </div>
+                </div>
+
+                {/* Template */}
+                <div style={{ marginBottom: '10px' }}>
+                  <strong style={{ fontSize: '0.8rem', color: '#666' }}>Template:</strong>
+                  <div>
                     <span style={{
                       padding: '4px 8px',
-                      backgroundColor: '#22c55e',
-                      color: 'white',
+                      backgroundColor: '#dbeafe',
                       borderRadius: '4px',
-                      fontSize: '0.8rem'
+                      fontSize: '0.8rem',
+                      color: '#1e40af',
+                      fontWeight: '500'
                     }}>
-                      ⏳ Available
+                      {getTemplateName(payment.template_id)}
                     </span>
-                  ) : payment.status === 'downloaded' ? (
-                    <span style={{
-                      padding: '4px 8px',
-                      backgroundColor: '#3b82f6',
-                      color: 'white',
-                      borderRadius: '4px',
-                      fontSize: '0.8rem'
-                    }}>
-                      ✅ Downloaded
-                    </span>
-                  ) : (
-                    <span style={{
-                      padding: '4px 8px',
-                      backgroundColor: '#6b7280',
-                      color: 'white',
-                      borderRadius: '4px',
-                      fontSize: '0.8rem'
-                    }}>
-                      N/A
-                    </span>
-                  )}
-                </td>
-                <td style={{ padding: '12px', fontSize: '0.9rem' }}>
-                  {new Date(payment.created_at).toLocaleString()}
-                </td>
-                <td style={{ padding: '12px' }}>
+                  </div>
+                </div>
+
+                {/* Method and Amount Row */}
+                <div style={{ 
+                  display: 'flex', 
+                  flexDirection: isMobile ? 'column' : 'row',
+                  gap: '10px',
+                  marginBottom: '10px'
+                }}>
+                  <div style={{ flex: 1 }}>
+                    <strong style={{ fontSize: '0.8rem', color: '#666' }}>Method:</strong>
+                    <div>
+                      <span style={{
+                        padding: '4px 8px',
+                        backgroundColor: '#e5e7eb',
+                        borderRadius: '4px',
+                        fontSize: '0.8rem',
+                        textTransform: 'capitalize'
+                      }}>
+                        {payment.payment_method}
+                      </span>
+                    </div>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <strong style={{ fontSize: '0.8rem', color: '#666' }}>Amount:</strong>
+                    <div style={{ fontWeight: 'bold', fontSize: '1rem' }}>
+                      PKR {payment.amount}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Phone */}
+                <div style={{ marginBottom: '10px' }}>
+                  <strong style={{ fontSize: '0.8rem', color: '#666' }}>Phone:</strong>
+                  <div style={{ fontSize: '0.9rem' }}>
+                    {payment.phone_number}
+                  </div>
+                </div>
+
+                {/* Status and Download Row */}
+                <div style={{ 
+                  display: 'flex', 
+                  flexDirection: isMobile ? 'column' : 'row',
+                  gap: '10px',
+                  marginBottom: '10px'
+                }}>
+                  <div style={{ flex: 1 }}>
+                    <strong style={{ fontSize: '0.8rem', color: '#666' }}>Status:</strong>
+                    <div>
+                      <span style={{
+                        padding: '4px 8px',
+                        backgroundColor: getStatusColor(payment.status),
+                        color: 'white',
+                        borderRadius: '4px',
+                        fontSize: '0.8rem',
+                        textTransform: 'capitalize'
+                      }}>
+                        {payment.status}
+                      </span>
+                    </div>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <strong style={{ fontSize: '0.8rem', color: '#666' }}>Download:</strong>
+                    <div>
+                      {payment.status === 'approved' ? (
+                        <span style={{
+                          padding: '4px 8px',
+                          backgroundColor: '#22c55e',
+                          color: 'white',
+                          borderRadius: '4px',
+                          fontSize: '0.8rem'
+                        }}>
+                          ⏳ Available
+                        </span>
+                      ) : payment.status === 'downloaded' ? (
+                        <span style={{
+                          padding: '4px 8px',
+                          backgroundColor: '#3b82f6',
+                          color: 'white',
+                          borderRadius: '4px',
+                          fontSize: '0.8rem'
+                        }}>
+                          ✅ Downloaded
+                        </span>
+                      ) : (
+                        <span style={{
+                          padding: '4px 8px',
+                          backgroundColor: '#6b7280',
+                          color: 'white',
+                          borderRadius: '4px',
+                          fontSize: '0.8rem'
+                        }}>
+                          N/A
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Date */}
+                <div style={{ marginBottom: '15px' }}>
+                  <strong style={{ fontSize: '0.8rem', color: '#666' }}>Date:</strong>
+                  <div style={{ fontSize: '0.9rem' }}>
+                    {new Date(payment.created_at).toLocaleString()}
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div style={{ 
+                  display: 'flex', 
+                  flexDirection: isMobile ? 'column' : 'row',
+                  gap: '8px'
+                }}>
                   {payment.status === 'pending' && (
-                    <div style={{ display: 'flex', gap: '8px' }}>
+                    <>
                       <button
                         onClick={() => approvePayment(payment.id)}
                         style={{
-                          padding: '4px 8px',
+                          padding: '8px 12px',
                           backgroundColor: '#22c55e',
                           color: 'white',
                           border: 'none',
                           borderRadius: '4px',
                           cursor: 'pointer',
-                          fontSize: '0.8rem'
+                          fontSize: '0.8rem',
+                          flex: 1
                         }}
                       >
                         ✅ Approve
@@ -550,64 +805,79 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
                       <button
                         onClick={() => rejectPayment(payment.id)}
                         style={{
-                          padding: '4px 8px',
+                          padding: '8px 12px',
                           backgroundColor: '#ef4444',
                           color: 'white',
                           border: 'none',
                           borderRadius: '4px',
                           cursor: 'pointer',
-                          fontSize: '0.8rem'
+                          fontSize: '0.8rem',
+                          flex: 1
                         }}
                       >
                         ❌ Reject
                       </button>
-                    </div>
+                    </>
                   )}
                   <button
                     onClick={() => deletePayment(payment.id)}
                     style={{
-                      padding: '4px 8px',
+                      padding: '8px 12px',
                       backgroundColor: '#6b7280',
                       color: 'white',
                       border: 'none',
                       borderRadius: '4px',
                       cursor: 'pointer',
                       fontSize: '0.8rem',
-                      marginTop: '4px'
+                      flex: 1
                     }}
                   >
                     🗑️ Delete
                   </button>
-                </td>
-              </tr>
+                </div>
+              </div>
             ))}
-          </tbody>
-        </table>
+          </div>
+        )}
         
         {filteredPayments.length === 0 && (
           <div style={{
-            padding: '40px',
+            padding: isMobile ? '20px' : '40px',
             textAlign: 'center',
             color: '#6b7280'
           }}>
-                    {payments.length === 0 ? (
-          <div>
-            <div style={{ fontSize: '24px', marginBottom: '10px' }}>📭</div>
-            <div style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px' }}>No payment requests found</div>
-            <div style={{ fontSize: '14px' }}>
-              When users make payments through the CV builder, they will appear here for your approval.
-            </div>
-            <div style={{ fontSize: '12px', marginTop: '8px', color: '#9ca3af' }}>
-              The system automatically checks for new payments every 5 seconds.
-            </div>
-            
-
-          </div>
-        ) : (
+            {payments.length === 0 ? (
               <div>
-                <div style={{ fontSize: '24px', marginBottom: '10px' }}>🔍</div>
-                <div style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px' }}>No payments match the current filter</div>
-                <div style={{ fontSize: '14px' }}>
+                <div style={{ fontSize: isMobile ? '48px' : '64px', marginBottom: '10px' }}>📭</div>
+                <div style={{ 
+                  fontSize: isMobile ? '16px' : '18px', 
+                  fontWeight: '600', 
+                  marginBottom: '8px' 
+                }}>
+                  No payment requests found
+                </div>
+                <div style={{ fontSize: isMobile ? '12px' : '14px' }}>
+                  When users make payments through the CV builder, they will appear here for your approval.
+                </div>
+                <div style={{ 
+                  fontSize: isMobile ? '10px' : '12px', 
+                  marginTop: '8px', 
+                  color: '#9ca3af' 
+                }}>
+                  The system automatically checks for new payments every 5 seconds.
+                </div>
+              </div>
+            ) : (
+              <div>
+                <div style={{ fontSize: isMobile ? '48px' : '64px', marginBottom: '10px' }}>🔍</div>
+                <div style={{ 
+                  fontSize: isMobile ? '16px' : '18px', 
+                  fontWeight: '600', 
+                  marginBottom: '8px' 
+                }}>
+                  No payments match the current filter
+                </div>
+                <div style={{ fontSize: isMobile ? '12px' : '14px' }}>
                   Try changing the filter or viewing all payments.
                 </div>
               </div>
@@ -624,25 +894,86 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
         borderRadius: '8px',
         border: '1px solid #22c55e'
       }}>
-        <h3 style={{ margin: '0 0 10px 0', color: '#22c55e' }}>Summary</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
-          <div>
-            <strong>Total Payments:</strong> {payments.length}
+        <h3 style={{ 
+          margin: '0 0 10px 0', 
+          color: '#22c55e',
+          fontSize: isMobile ? '1.2rem' : '1.5rem',
+          textAlign: !isDesktop ? 'center' : 'left'
+        }}>
+          Summary
+        </h3>
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: !isDesktop 
+            ? 'repeat(auto-fit, minmax(150px, 1fr))' 
+            : 'repeat(auto-fit, minmax(200px, 1fr))', 
+          gap: isMobile ? '10px' : '15px'
+        }}>
+          <div style={{
+            padding: '10px',
+            backgroundColor: 'white',
+            borderRadius: '6px',
+            textAlign: !isDesktop ? 'center' : 'left'
+          }}>
+            <strong style={{ fontSize: isMobile ? '0.8rem' : '0.9rem' }}>Total Payments:</strong>
+            <div style={{ fontSize: isMobile ? '1.2rem' : '1.5rem', fontWeight: 'bold', color: '#22c55e' }}>
+              {payments.length}
+            </div>
           </div>
-          <div>
-            <strong>Pending:</strong> {payments.filter(p => p.status === 'pending').length}
+          <div style={{
+            padding: '10px',
+            backgroundColor: 'white',
+            borderRadius: '6px',
+            textAlign: !isDesktop ? 'center' : 'left'
+          }}>
+            <strong style={{ fontSize: isMobile ? '0.8rem' : '0.9rem' }}>Pending:</strong>
+            <div style={{ fontSize: isMobile ? '1.2rem' : '1.5rem', fontWeight: 'bold', color: '#f59e0b' }}>
+              {payments.filter(p => p.status === 'pending').length}
+            </div>
           </div>
-          <div>
-            <strong>Approved:</strong> {payments.filter(p => p.status === 'approved').length}
+          <div style={{
+            padding: '10px',
+            backgroundColor: 'white',
+            borderRadius: '6px',
+            textAlign: !isDesktop ? 'center' : 'left'
+          }}>
+            <strong style={{ fontSize: isMobile ? '0.8rem' : '0.9rem' }}>Approved:</strong>
+            <div style={{ fontSize: isMobile ? '1.2rem' : '1.5rem', fontWeight: 'bold', color: '#22c55e' }}>
+              {payments.filter(p => p.status === 'approved').length}
+            </div>
           </div>
-          <div>
-            <strong>Downloaded:</strong> {payments.filter(p => p.status === 'downloaded').length}
+          <div style={{
+            padding: '10px',
+            backgroundColor: 'white',
+            borderRadius: '6px',
+            textAlign: !isDesktop ? 'center' : 'left'
+          }}>
+            <strong style={{ fontSize: isMobile ? '0.8rem' : '0.9rem' }}>Downloaded:</strong>
+            <div style={{ fontSize: isMobile ? '1.2rem' : '1.5rem', fontWeight: 'bold', color: '#3b82f6' }}>
+              {payments.filter(p => p.status === 'downloaded').length}
+            </div>
           </div>
-          <div>
-            <strong>Rejected:</strong> {payments.filter(p => p.status === 'rejected').length}
+          <div style={{
+            padding: '10px',
+            backgroundColor: 'white',
+            borderRadius: '6px',
+            textAlign: !isDesktop ? 'center' : 'left'
+          }}>
+            <strong style={{ fontSize: isMobile ? '0.8rem' : '0.9rem' }}>Rejected:</strong>
+            <div style={{ fontSize: isMobile ? '1.2rem' : '1.5rem', fontWeight: 'bold', color: '#ef4444' }}>
+              {payments.filter(p => p.status === 'rejected').length}
+            </div>
           </div>
-          <div>
-            <strong>Total Revenue:</strong> PKR {payments.filter(p => p.status === 'approved' || p.status === 'downloaded').reduce((sum, p) => sum + p.amount, 0)}
+          <div style={{
+            padding: '10px',
+            backgroundColor: 'white',
+            borderRadius: '6px',
+            textAlign: !isDesktop ? 'center' : 'left'
+          }}>
+            <strong style={{ fontSize: isMobile ? '0.8rem' : '0.9rem' }}>Total Revenue:</strong>
+            <div style={{ fontSize: isMobile ? '1.2rem' : '1.5rem', fontWeight: 'bold', color: '#059669' }}>
+              PKR {payments.filter(p => p.status === 'approved' || p.status === 'downloaded').reduce((sum, p) => sum + p.amount, 0)}
+            </div>
           </div>
         </div>
       </div>
