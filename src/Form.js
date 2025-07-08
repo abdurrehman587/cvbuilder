@@ -398,6 +398,10 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
       console.log('User:', user);
       console.log('Form data:', formData);
       
+      // Test toast to see if the system is working
+      console.log('Testing toast system...');
+      toast.info('Save operation started...');
+      
       let result; // Declare result variable
       
       // Ensure user is present
@@ -570,13 +574,16 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
       }
 
       // Show appropriate success message
+      console.log('About to show toast notification');
       if (isAdmin) {
         // For admin users, always show "Saved" since they can have multiple CVs
+        console.log('Showing admin CV saved toast');
         toast.success('Admin CV Saved Successfully!');
       } else {
         // For regular users, determine if it was an update or new save
         const isUpdate = existingCV ? true : false;
         const message = isUpdate ? 'CV Updated Successfully!' : 'CV Saved Successfully!';
+        console.log('Showing regular user toast:', message);
         toast.success(message);
       }
       

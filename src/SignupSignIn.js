@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import supabase from './supabase';
 import PaymentAdmin from './PaymentAdmin';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const SignupSignIn = ({ onAuth }) => {
   const [email, setEmail] = useState('');
@@ -171,6 +173,18 @@ const SignupSignIn = ({ onAuth }) => {
         background: '#f5f6fa',
         position: 'relative'
       }}>
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
+        />
         <button
           onClick={handleBackToLogin}
           style={{
@@ -222,6 +236,18 @@ const SignupSignIn = ({ onAuth }) => {
       padding: '20px',
       boxSizing: 'border-box'
     }}>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
       <style>
         {`
           @media (max-width: 768px) {
