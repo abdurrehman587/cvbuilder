@@ -436,72 +436,7 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
 
 
 
-  // Manual refresh function for button text
-  const refreshButtonText = async () => {
-    try {
-      console.log('Template2PDF - Manual refresh of button text');
-      
-      // Check for pending payment first
-      const pendingPayment = await PaymentService.checkPendingPayment('template2');
-      console.log('Template2PDF - Manual refresh: Pending payment check result:', pendingPayment);
-      
-      if (pendingPayment) {
-        setHasPendingPayment(true);
-        setButtonText('Payment Submitted (Waiting for Approval)');
-        console.log('Template2PDF - Manual refresh: Pending payment detected, showing banner');
-        return;
-      } else {
-        setHasPendingPayment(false);
-        console.log('Template2PDF - Manual refresh: No pending payment, checking approved payment');
-      }
-      
-      // Check for approved payment
-      const approvedPayment = await PaymentService.checkApprovedPayment('template2');
-      console.log('Template2PDF - Manual refresh: Approved payment check result:', approvedPayment);
-      
-      if (approvedPayment) {
-        setButtonText('Download Now');
-        console.log('Template2PDF - Manual refresh: Approved payment detected, showing download button');
-        return;
-      }
-      
-      console.log('Template2PDF - Manual refresh: No approved payment, getting default button text');
-      const text = await PaymentService.getDownloadButtonText('template2', isAdminUser);
-      setButtonText(text);
-      console.log('Template2PDF - Button text refreshed to:', text);
-    } catch (error) {
-      console.error('Error refreshing button text:', error);
-    }
-  };
 
-  // Debug function to check payment status
-  const debugPaymentStatus = async () => {
-    try {
-      console.log('=== TEMPLATE2PDF PAYMENT DEBUG ===');
-      const debugResult = await PaymentService.debugPaymentStatus('template2');
-      console.log('Debug result:', debugResult);
-      
-      // Show debug info to user
-      if (debugResult) {
-        const message = `Payment Status Debug:
-User: ${debugResult.user}
-Database Ready: ${debugResult.databaseReady}
-Total Payments: ${debugResult.payments?.length || 0}
-Approved Payment: ${debugResult.approvedPayment ? 'Yes' : 'No'}
-Pending Payment: ${debugResult.pendingPayment ? 'Yes' : 'No'}
-Downloaded Payment: ${debugResult.downloadedPayment ? 'Yes' : 'No'}
-Download Count: ${debugResult.downloadCount || 0}
-Button Text: ${debugResult.buttonText}`;
-        
-        alert(message);
-      } else {
-        alert('Debug failed - check console for details');
-      }
-    } catch (error) {
-      console.error('Debug error:', error);
-      alert('Debug error: ' + error.message);
-    }
-  };
 
   const renderSkills = (skills) => (
     <div>
@@ -818,34 +753,7 @@ Button Text: ${debugResult.buttonText}`;
                 Your payment has been submitted and is being reviewed. You will be able to download your CV once approved.
               </p>
             </div>
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-              <button
-                onClick={refreshButtonText}
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: '#007bff',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer'
-                }}
-              >
-                Refresh Status
-              </button>
-              <button
-                onClick={debugPaymentStatus}
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: '#6c757d',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer'
-                }}
-              >
-                Debug Info
-              </button>
-            </div>
+
           </div>
         ) : (
           <div style={{ textAlign: 'center' }}>
@@ -888,38 +796,7 @@ Button Text: ${debugResult.buttonText}`;
             
 
             
-            {!isAdminUser && (
-              <div style={{ marginTop: '12px', display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                <button
-                  onClick={refreshButtonText}
-                  style={{
-                    padding: '6px 12px',
-                    backgroundColor: '#6c757d',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    fontSize: '12px',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Refresh
-                </button>
-                <button
-                  onClick={debugPaymentStatus}
-                  style={{
-                    padding: '6px 12px',
-                    backgroundColor: '#17a2b8',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    fontSize: '12px',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Debug
-                </button>
-              </div>
-            )}
+
           </div>
         )}
       </div>
