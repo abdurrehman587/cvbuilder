@@ -21,6 +21,7 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [hasPendingPayment, setHasPendingPayment] = useState(false);
+  const [hasApprovedPayment, setHasApprovedPayment] = useState(false);
   const [buttonText, setButtonText] = useState('Loading...');
 
   const styles = {
@@ -243,6 +244,7 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
       if (isAdminUser) {
         setButtonText('Download PDF (Admin)');
         setHasPendingPayment(false);
+        setHasApprovedPayment(false);
         return;
       }
 
@@ -262,9 +264,12 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
         // Check for approved payment
         const approvedPayment = await PaymentService.checkApprovedPayment('template2');
         if (approvedPayment) {
+          setHasApprovedPayment(true);
           setButtonText('Download Now');
           console.log('Template2PDF - Approved payment detected, showing download button');
           return;
+        } else {
+          setHasApprovedPayment(false);
         }
 
         const text = await PaymentService.getDownloadButtonText('template2', isAdminUser);
@@ -391,22 +396,18 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
       return;
     }
 
+    // Check for approved payment and download directly if found
+    if (hasApprovedPayment) {
+      console.log('Template2PDF - Approved payment found, downloading directly');
+      await generatePDF();
+      return;
+    }
+
     // Show payment modal
     setShowPaymentModal(true);
   };
 
-  // TEMPORARY: Direct download function that bypasses payment system
-  const handleDirectDownload = async () => {
-    console.log('Template2PDF - Direct download clicked (bypassing payment)');
-    
-    try {
-      await generatePDF();
-      alert('CV downloaded successfully! (Direct download - payment bypassed)');
-    } catch (error) {
-      console.error('Direct download failed:', error);
-      alert('Failed to download CV. Please try again.');
-    }
-  };
+
 
   // Manual refresh function for button text
   const refreshButtonText = async () => {
@@ -427,9 +428,12 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
       // Check for approved payment
       const approvedPayment = await PaymentService.checkApprovedPayment('template2');
       if (approvedPayment) {
+        setHasApprovedPayment(true);
         setButtonText('Download Now');
         console.log('Template2PDF - Manual refresh: Approved payment detected');
         return;
+      } else {
+        setHasApprovedPayment(false);
       }
       
       const text = await PaymentService.getDownloadButtonText('template2', isAdminUser);
@@ -812,7 +816,7 @@ Button Text: ${debugResult.buttonText}`;
               disabled={isLoading}
               style={{
                 padding: '12px 24px',
-                backgroundColor: hasPendingPayment ? '#28a745' : '#007bff',
+                backgroundColor: hasApprovedPayment ? '#28a745' : '#007bff',
                 color: 'white',
                 border: 'none',
                 borderRadius: '6px',
@@ -826,47 +830,7 @@ Button Text: ${debugResult.buttonText}`;
               {buttonText}
             </button>
             
-            {/* TEMPORARY: Direct Download Button */}
-            <div style={{ 
-              marginTop: '15px', 
-              padding: '10px', 
-              backgroundColor: '#e8f5e8', 
-              border: '1px solid #28a745', 
-              borderRadius: '6px' 
-            }}>
-              <p style={{ 
-                margin: '0 0 10px 0', 
-                color: '#155724', 
-                fontSize: '14px', 
-                fontWeight: '500' 
-              }}>
-                🚀 TEMPORARY: Need your CV immediately?
-              </p>
-              <button
-                onClick={handleDirectDownload}
-                style={{
-                  padding: '10px 20px',
-                  backgroundColor: '#28a745',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  cursor: 'pointer',
-                  boxShadow: '0 2px 4px rgba(40, 167, 69, 0.2)'
-                }}
-              >
-                Download CV Now (Free)
-              </button>
-              <p style={{ 
-                margin: '8px 0 0 0', 
-                color: '#6c757d', 
-                fontSize: '12px', 
-                fontStyle: 'italic' 
-              }}>
-                This bypasses the payment system temporarily
-              </p>
-            </div>
+
             
             {!isAdminUser && (
               <div style={{ marginTop: '12px', display: 'flex', gap: '8px', justifyContent: 'center' }}>
