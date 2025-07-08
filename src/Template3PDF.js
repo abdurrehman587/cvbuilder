@@ -847,55 +847,78 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
           })()}
         </div>
 
-        {/* Download Button */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: 16 }}>
-          <button
-            ref={buttonRef}
-            type="button"
-            onClick={handleDownloadClick}
-            disabled={isLoading || isDownloading}
-            style={{
-              cursor: (isLoading || isDownloading) ? 'not-allowed' : 'pointer',
-              padding: '10px 20px',
-              fontSize: '1rem',
-              borderRadius: '5px',
-              border: 'none',
-              backgroundColor: (isLoading || isDownloading) ? '#cccccc' : '#22c55e',
-              color: 'white',
-              transition: 'background-color 0.3s ease',
-              opacity: (isLoading || isDownloading) ? 0.7 : 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px'
-            }}
-            onMouseEnter={(e) => {
-              if (!isLoading && !isDownloading) {
-                e.currentTarget.style.backgroundColor = '#16a34a';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!isLoading && !isDownloading) {
-                e.currentTarget.style.backgroundColor = '#22c55e';
-              }
-            }}
-          >
-            {isDownloading ? (
-              <>
-                <div style={{
-                  width: '16px',
-                  height: '16px',
-                  border: '2px solid #ffffff',
-                  borderTop: '2px solid transparent',
-                  borderRadius: '50%',
-                  animation: 'spin 1s linear infinite'
-                }}></div>
-                Processing...
-              </>
-            ) : (
-              buttonText
-            )}
-          </button>
+        {/* Download Controls */}
+        <div style={{ marginTop: '20px', padding: '20px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
+          {hasPendingPayment ? (
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ 
+                backgroundColor: '#fff3cd', 
+                border: '1px solid #ffeaa7', 
+                borderRadius: '6px', 
+                padding: '16px', 
+                marginBottom: '16px' 
+              }}>
+                <h3 style={{ margin: '0 0 8px 0', color: '#856404', fontSize: '16px' }}>
+                  ⏳ Payment Submitted - Waiting for Approval
+                </h3>
+                <p style={{ margin: '0', color: '#856404', fontSize: '14px' }}>
+                  Your payment has been submitted and is being reviewed. You will be able to download your CV once approved.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div style={{ textAlign: 'center' }}>
+              <button
+                ref={buttonRef}
+                type="button"
+                onClick={handleDownloadClick}
+                disabled={isLoading || isDownloading}
+                style={{
+                  cursor: (isLoading || isDownloading) ? 'not-allowed' : 'pointer',
+                  padding: '12px 24px',
+                  fontSize: '16px',
+                  fontWeight: '500',
+                  borderRadius: '6px',
+                  border: 'none',
+                  backgroundColor: (isLoading || isDownloading) ? '#cccccc' : '#22c55e',
+                  color: 'white',
+                  transition: 'background-color 0.3s ease',
+                  opacity: (isLoading || isDownloading) ? 0.7 : 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  marginBottom: '10px'
+                }}
+                onMouseEnter={(e) => {
+                  if (!isLoading && !isDownloading) {
+                    e.currentTarget.style.backgroundColor = '#16a34a';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isLoading && !isDownloading) {
+                    e.currentTarget.style.backgroundColor = '#22c55e';
+                  }
+                }}
+              >
+                {isDownloading ? (
+                  <>
+                    <div style={{
+                      width: '16px',
+                      height: '16px',
+                      border: '2px solid #ffffff',
+                      borderTop: '2px solid transparent',
+                      borderRadius: '50%',
+                      animation: 'spin 1s linear infinite'
+                    }}></div>
+                    Processing...
+                  </>
+                ) : (
+                  buttonText
+                )}
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
