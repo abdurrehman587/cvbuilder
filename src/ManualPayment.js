@@ -173,22 +173,7 @@ const ManualPayment = ({ amount, templateId, templateName, onPaymentSuccess, onP
           </div>
         </div>
 
-        {/* Amount Display */}
-        <div style={{
-          textAlign: 'center',
-          marginBottom: '20px',
-          padding: '15px',
-          backgroundColor: '#f0fdf4',
-          borderRadius: '8px',
-          border: '1px solid #22c55e'
-        }}>
-          <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#22c55e' }}>
-            Amount to Pay: PKR {amount}
-          </div>
-          <div style={{ fontSize: '0.9rem', color: '#666', marginTop: '5px' }}>
-            CV Download Fee
-          </div>
-        </div>
+
 
         {/* Payment Methods */}
         <div style={{ marginBottom: '20px' }}>
