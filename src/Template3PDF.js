@@ -611,13 +611,18 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const handlePaymentSuccess = (paymentData) => {
+    console.log('=== PAYMENT SUCCESS HANDLER ===');
+    console.log('Template3PDF - Payment successful:', paymentData);
     setShowPaymentModal(false);
     
-    // Set pending payment state to true
+    // Set pending payment state to true immediately
     setHasPendingPayment(true);
+    setButtonText('Payment Submitted (Waiting for Approval)');
+    console.log('Template3PDF - Payment success: Set hasPendingPayment=true and button text');
     
-    // Show message about waiting for approval
-    alert(`Payment proof submitted successfully!\n\nPayment ID: ${paymentData.paymentId}\n\nPlease wait for manual verification. You will be able to download once approved.`);
+    // Don't auto-download - wait for admin approval
+    // generatePDF();
+    console.log('=== PAYMENT SUCCESS HANDLER COMPLETE ===');
   };
 
   const handlePaymentFailure = (error) => {
