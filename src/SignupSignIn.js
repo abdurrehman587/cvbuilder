@@ -184,6 +184,7 @@ const SignupSignIn = ({ onAuth }) => {
           draggable
           pauseOnHover
           theme="light"
+          style={{ zIndex: 9999 }}
         />
         <button
           onClick={handleBackToLogin}
@@ -247,6 +248,7 @@ const SignupSignIn = ({ onAuth }) => {
         draggable
         pauseOnHover
         theme="light"
+        style={{ zIndex: 9999 }}
       />
       <style>
         {`

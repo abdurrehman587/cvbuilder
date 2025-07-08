@@ -260,9 +260,19 @@ const App = () => {
         draggable
         pauseOnHover
         theme="light"
+        style={{ zIndex: 9999 }}
       />
       <style>
         {`
+          /* Ensure toast notifications are visible */
+          .Toastify__toast-container {
+            z-index: 9999 !important;
+          }
+          
+          .Toastify__toast {
+            z-index: 9999 !important;
+          }
+          
           @media (max-width: 768px) {
             .signout-btn {
               top: 10px !important;

@@ -400,7 +400,12 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
       
       // Test toast to see if the system is working
       console.log('Testing toast system...');
-      toast.info('Save operation started...');
+      try {
+        toast.info('Save operation started...');
+        console.log('Toast.info called successfully');
+      } catch (error) {
+        console.error('Error calling toast.info:', error);
+      }
       
       let result; // Declare result variable
       
@@ -918,6 +923,28 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
 
         <button onClick={handleSave} type="button" className="save-btn">
           Save
+        </button>
+        
+        {/* Test button for toast */}
+        <button 
+          onClick={() => {
+            console.log('Test toast button clicked');
+            toast.success('Test toast - this should appear!');
+            toast.error('Test error toast');
+            toast.info('Test info toast');
+          }} 
+          type="button" 
+          style={{
+            marginTop: '10px',
+            padding: '10px 20px',
+            backgroundColor: '#10b981',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: 'pointer'
+          }}
+        >
+          Test Toast
         </button>
 
       </div>
