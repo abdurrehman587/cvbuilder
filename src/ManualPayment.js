@@ -168,8 +168,14 @@ const ManualPayment = ({ amount, templateId, templateName, onPaymentSuccess, onP
           borderRadius: '8px',
           border: '1px solid #f59e0b'
         }}>
-          <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#92400e' }}>
+          <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#92400e', marginBottom: '10px' }}>
             Pay Rs. 100 to any of these Accounts
+          </div>
+          <div style={{ fontSize: '1rem', color: '#92400e' }}>
+            Click on the Account in which you sent the payment.
+          </div>
+          <div style={{ fontSize: '1rem', color: '#92400e' }}>
+            Enter Number from which you sent the payment.
           </div>
         </div>
 
@@ -177,9 +183,6 @@ const ManualPayment = ({ amount, templateId, templateName, onPaymentSuccess, onP
 
         {/* Payment Methods */}
         <div style={{ marginBottom: '20px' }}>
-          <h3 style={{ marginBottom: '15px', color: '#333', fontSize: '1.1rem' }}>
-            Choose Payment Method:
-          </h3>
           
           {paymentMethods.map((method) => (
             <div
