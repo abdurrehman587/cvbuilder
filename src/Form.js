@@ -457,6 +457,10 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
               .map(lang => lang.name.trim())
           ],
           hobbies: (formData.hobbies || []).map(h => h || ''),
+          custom_sections: (formData.customSections || []).map(section => ({
+            heading: section.heading || '',
+            details: (section.details || []).map(detail => detail || '')
+          })),
           cv_references: (formData.cv_references || []).map(r => r || ''),
           other_information: (formData.otherInformation || []).map(info => ({
             id: info.id,
@@ -509,6 +513,10 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
               .map(lang => lang.name.trim())
           ],
           hobbies: (formData.hobbies || []).map(h => h || ''),
+          custom_sections: (formData.customSections || []).map(section => ({
+            heading: section.heading || '',
+            details: (section.details || []).map(detail => detail || '')
+          })),
           cv_references: (formData.cv_references || []).map(r => r || ''),
           other_information: (formData.otherInformation || []).map(info => ({
             id: info.id,
@@ -639,6 +647,7 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
         languages: cv.languages || [],
         customLanguages: [],
         hobbies: cv.hobbies || [],
+        customSections: cv.custom_sections || [],
         cv_references: cv.cv_references || [],
         otherInformation: cv.other_information || [],
       });
