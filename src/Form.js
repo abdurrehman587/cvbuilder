@@ -2,6 +2,41 @@ import React, { useState, useEffect } from 'react';
 import supabase from './supabase';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+
+// Fallback toast function in case react-toastify fails
+const fallbackToast = (message, type = 'info') => {
+  console.log(`[FALLBACK TOAST] ${type.toUpperCase()}: ${message}`);
+  // Create a simple alert as fallback
+  alert(`${type.toUpperCase()}: ${message}`);
+};
+
+// Enhanced toast function with fallback
+const safeToast = {
+  success: (message) => {
+    try {
+      toast.success(message);
+    } catch (error) {
+      console.error('Toast error:', error);
+      fallbackToast(message, 'success');
+    }
+  },
+  error: (message) => {
+    try {
+      toast.error(message);
+    } catch (error) {
+      console.error('Toast error:', error);
+      fallbackToast(message, 'error');
+    }
+  },
+  info: (message) => {
+    try {
+      toast.info(message);
+    } catch (error) {
+      console.error('Toast error:', error);
+      fallbackToast(message, 'info');
+    }
+  }
+};
 import './Form.css';
 
 const initialEntry = '';
@@ -400,12 +435,7 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
       
       // Test toast to see if the system is working
       console.log('Testing toast system...');
-      try {
-        toast.info('Save operation started...');
-        console.log('Toast.info called successfully');
-      } catch (error) {
-        console.error('Error calling toast.info:', error);
-      }
+      safeToast.info('Save operation started...');
       
       let result; // Declare result variable
       
@@ -574,7 +604,7 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
       
       if (result.error) {
         console.error('Save error:', result.error);
-        toast.error(`Save failed: ${result.error.message}`);
+        safeToast.error(`Save failed: ${result.error.message}`);
         return;
       }
 
@@ -583,13 +613,13 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
       if (isAdmin) {
         // For admin users, always show "Saved" since they can have multiple CVs
         console.log('Showing admin CV saved toast');
-        toast.success('Admin CV Saved Successfully!');
+        safeToast.success('Admin CV Saved Successfully!');
       } else {
         // For regular users, determine if it was an update or new save
         const isUpdate = existingCV ? true : false;
         const message = isUpdate ? 'CV Updated Successfully!' : 'CV Saved Successfully!';
         console.log('Showing regular user toast:', message);
-        toast.success(message);
+        safeToast.success(message);
       }
       
       console.log('=== SAVE CV END ===');
@@ -600,7 +630,7 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
       }
     } catch (error) {
       console.error('Unexpected error during save:', error);
-      toast.error('An unexpected error occurred while saving.');
+      safeToast.error('An unexpected error occurred while saving.');
     }
   };
 
@@ -608,7 +638,7 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
   const handleSearch = async () => {
     try {
       if (!searchName && !searchPhone) {
-        toast.error("Please enter name or phone number to search.");
+        safeToast.error("Please enter name or phone number to search.");
         return;
       }
 
@@ -647,7 +677,7 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
       ];
 
       if (allResults.length === 0) {
-        toast.info("No matching CV found.");
+        safeToast.info("No matching CV found.");
         return;
       }
 
@@ -674,10 +704,10 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
         otherInformation: cv.other_information || [],
       });
 
-      toast.success("CV loaded successfully.");
+      safeToast.success("CV loaded successfully.");
     } catch (err) {
       console.error("Unexpected error:", err);
-      toast.error("Unexpected error during search.");
+      safeToast.error("Unexpected error during search.");
     }
   };
 
@@ -927,12 +957,12 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
         
         {/* Test button for toast */}
         <button 
-          onClick={() => {
-            console.log('Test toast button clicked');
-            toast.success('Test toast - this should appear!');
-            toast.error('Test error toast');
-            toast.info('Test info toast');
-          }} 
+                  onClick={() => {
+          console.log('Test toast button clicked');
+          safeToast.success('Test toast - this should appear!');
+          safeToast.error('Test error toast');
+          safeToast.info('Test info toast');
+        }} 
           type="button" 
           style={{
             marginTop: '10px',

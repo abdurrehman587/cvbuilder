@@ -267,10 +267,41 @@ const App = () => {
           /* Ensure toast notifications are visible */
           .Toastify__toast-container {
             z-index: 9999 !important;
+            position: fixed !important;
+            top: 1em !important;
+            right: 1em !important;
           }
           
           .Toastify__toast {
             z-index: 9999 !important;
+            position: relative !important;
+            min-height: 64px !important;
+            box-sizing: border-box !important;
+            margin-bottom: 1rem !important;
+            padding: 8px !important;
+            border-radius: 4px !important;
+            box-shadow: 0 1px 10px 0 rgba(0, 0, 0, 0.1), 0 2px 15px 0 rgba(0, 0, 0, 0.05) !important;
+            display: flex !important;
+            justify-content: space-between !important;
+            max-height: 800px !important;
+            font-family: sans-serif !important;
+            cursor: pointer !important;
+            direction: ltr !important;
+          }
+          
+          .Toastify__toast--success {
+            background: #07bc0c !important;
+            color: white !important;
+          }
+          
+          .Toastify__toast--error {
+            background: #e74c3c !important;
+            color: white !important;
+          }
+          
+          .Toastify__toast--info {
+            background: #3498db !important;
+            color: white !important;
           }
           
           @media (max-width: 768px) {
