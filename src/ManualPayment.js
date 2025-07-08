@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 
 const ManualPayment = ({ amount, templateId, templateName, onPaymentSuccess, onPaymentFailure, onClose }) => {
   const [selectedMethod, setSelectedMethod] = useState('');
-  const [proofFile, setProofFile] = useState(null);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -44,19 +43,12 @@ const ManualPayment = ({ amount, templateId, templateName, onPaymentSuccess, onP
     }
   ];
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file && file.type.startsWith('image/')) {
-      setProofFile(file);
-    } else {
-      alert('Please select an image file (JPG, PNG, etc.)');
-    }
-  };
+
 
   const handleSubmit = async () => {
     
-    if (!selectedMethod || !proofFile || !phoneNumber) {
-      alert('Please fill in all fields');
+    if (!selectedMethod || !phoneNumber) {
+      alert('Please select payment method and enter phone number');
       return;
     }
 
@@ -274,37 +266,7 @@ const ManualPayment = ({ amount, templateId, templateName, onPaymentSuccess, onP
           />
         </div>
 
-        {/* Proof Upload */}
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#333' }}>
-            Upload Payment Proof (Screenshot/Receipt):
-          </label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            style={{
-              width: '100%',
-              padding: '10px',
-              border: '1px solid #ddd',
-              borderRadius: '6px',
-              fontSize: '1rem',
-              boxSizing: 'border-box'
-            }}
-          />
-          {proofFile && (
-            <div style={{
-              marginTop: '10px',
-              padding: '10px',
-              backgroundColor: '#f0fdf4',
-              borderRadius: '6px',
-              fontSize: '0.9rem',
-              color: '#22c55e'
-            }}>
-              ✓ File selected: {proofFile.name}
-            </div>
-          )}
-        </div>
+
 
         {/* Instructions */}
         <div style={{
@@ -318,9 +280,7 @@ const ManualPayment = ({ amount, templateId, templateName, onPaymentSuccess, onP
           <strong>Instructions:</strong>
           <ol style={{ margin: '8px 0 0 20px', padding: 0 }}>
             <li>Send PKR {amount} to the selected payment method</li>
-            <li>Take a screenshot or photo of the payment receipt</li>
-            <li>Upload the proof above</li>
-            <li>Click "Submit Payment Proof"</li>
+            <li>Click "Submit Payment" to proceed</li>
             <li>Wait for verification (usually within 1-2 hours)</li>
           </ol>
         </div>
@@ -342,15 +302,12 @@ const ManualPayment = ({ amount, templateId, templateName, onPaymentSuccess, onP
             <div style={{ color: phoneNumber ? '#22c55e' : '#ef4444' }}>
               {phoneNumber ? '✅' : '❌'} Phone Number: {phoneNumber || 'Not entered'}
             </div>
-            <div style={{ color: proofFile ? '#22c55e' : '#ef4444' }}>
-              {proofFile ? '✅' : '❌'} Proof File: {proofFile ? proofFile.name : 'Not uploaded'}
-            </div>
             <div style={{ 
-              color: (selectedMethod && phoneNumber && proofFile) ? '#22c55e' : '#f59e0b',
+              color: (selectedMethod && phoneNumber) ? '#22c55e' : '#f59e0b',
               fontWeight: 'bold',
               marginTop: '8px'
             }}>
-              {selectedMethod && phoneNumber && proofFile ? '✅ Ready to Submit' : '⚠️ Please complete all fields'}
+              {selectedMethod && phoneNumber ? '✅ Ready to Submit' : '⚠️ Please complete all fields'}
             </div>
           </div>
         </div>
@@ -358,21 +315,21 @@ const ManualPayment = ({ amount, templateId, templateName, onPaymentSuccess, onP
         {/* Submit Button */}
         <button
           onClick={handleSubmit}
-          disabled={isSubmitting || !selectedMethod || !proofFile || !phoneNumber}
+          disabled={isSubmitting || !selectedMethod || !phoneNumber}
           style={{
             width: '100%',
             padding: '12px',
-            backgroundColor: isSubmitting || !selectedMethod || !proofFile || !phoneNumber ? '#ccc' : '#22c55e',
+            backgroundColor: isSubmitting || !selectedMethod || !phoneNumber ? '#ccc' : '#22c55e',
             color: 'white',
             border: 'none',
             borderRadius: '6px',
             fontSize: '1rem',
             fontWeight: 'bold',
-            cursor: isSubmitting || !selectedMethod || !proofFile || !phoneNumber ? 'not-allowed' : 'pointer',
+            cursor: isSubmitting || !selectedMethod || !phoneNumber ? 'not-allowed' : 'pointer',
             transition: 'background-color 0.2s ease'
           }}
         >
-          {isSubmitting ? 'Submitting...' : 'Submit Payment Proof'}
+          {isSubmitting ? 'Submitting...' : 'Submit Payment'}
         </button>
         
 
