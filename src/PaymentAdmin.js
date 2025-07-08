@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import LandingPage from './landingpage';
 import { PaymentService } from './paymentService';
+import { supabase } from './supabase';
 
 const PaymentAdmin = ({ onAccessCVBuilder }) => {
   const [payments, setPayments] = useState([]);
@@ -40,18 +41,47 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
       const allPayments = await PaymentService.getAllPayments();
       console.log('PaymentAdmin - Payments loaded from Supabase:', allPayments);
       
+      // Fetch user names for each payment
+      const paymentsWithUserNames = await Promise.all(
+        allPayments.map(async (payment) => {
+          try {
+            // Fetch user CV data to get the name
+            const { data: cvData, error: cvError } = await supabase
+              .from('user_cvs')
+              .select('name')
+              .eq('user_email', payment.user_email)
+              .maybeSingle();
+            
+            if (cvError) {
+              console.error('Error fetching CV data for user:', payment.user_email, cvError);
+            }
+            
+            return {
+              ...payment,
+              userName: cvData?.name || 'Unknown User'
+            };
+          } catch (error) {
+            console.error('Error fetching user name for payment:', payment.id, error);
+            return {
+              ...payment,
+              userName: 'Unknown User'
+            };
+          }
+        })
+      );
+      
       // Check for new payments
       const previousCount = payments.length;
-      const newCount = allPayments.length;
+      const newCount = paymentsWithUserNames.length;
       
       if (newCount > previousCount) {
-        const newPayments = allPayments.slice(0, newCount - previousCount);
+        const newPayments = paymentsWithUserNames.slice(0, newCount - previousCount);
         console.log('PaymentAdmin - New payments detected:', newPayments);
       }
       
-      setPayments(allPayments);
+      setPayments(paymentsWithUserNames);
       setLastChecked(new Date());
-      console.log('PaymentAdmin - Payments set to state:', allPayments);
+      console.log('PaymentAdmin - Payments set to state:', paymentsWithUserNames);
     } catch (error) {
       console.error('Error loading payments:', error);
       
@@ -349,7 +379,7 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
                   {payment.id}
                 </td>
                 <td style={{ padding: '12px', fontSize: '0.9rem' }}>
-                  {payment.userId || 'Unknown User'}
+                  {payment.userName || 'Unknown User'}
                 </td>
                 <td style={{ padding: '12px' }}>
                   <span style={{
@@ -360,7 +390,7 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
                     color: '#1e40af',
                     fontWeight: '500'
                   }}>
-                    {getTemplateName(payment.templateId)}
+                    {getTemplateName(payment.template_id)}
                   </span>
                 </td>
                 <td style={{ padding: '12px' }}>
@@ -371,14 +401,14 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
                     fontSize: '0.8rem',
                     textTransform: 'capitalize'
                   }}>
-                    {payment.method}
+                    {payment.payment_method}
                   </span>
                 </td>
                 <td style={{ padding: '12px', fontWeight: 'bold' }}>
                   PKR {payment.amount}
                 </td>
                 <td style={{ padding: '12px' }}>
-                  {payment.phoneNumber}
+                  {payment.phone_number}
                 </td>
                 <td style={{ padding: '12px' }}>
                   <span style={{
@@ -426,7 +456,7 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
                   )}
                 </td>
                 <td style={{ padding: '12px', fontSize: '0.9rem' }}>
-                  {new Date(payment.timestamp).toLocaleString()}
+                  {new Date(payment.created_at).toLocaleString()}
                 </td>
                 <td style={{ padding: '12px' }}>
                   {payment.status === 'pending' && (

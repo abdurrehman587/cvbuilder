@@ -63,7 +63,8 @@ const ManualPayment = ({ amount, templateId, templateName, onPaymentSuccess, onP
       const paymentData = {
         templateId: templateId,
         method: selectedMethod,
-        amount: amount
+        amount: amount,
+        phoneNumber: phoneNumber
       };
       
       const payment = await PaymentService.submitPayment(paymentData);

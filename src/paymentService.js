@@ -63,6 +63,7 @@ export class PaymentService {
         template_id: paymentData.templateId,
         amount: paymentData.amount,
         payment_method: paymentData.method,
+        phone_number: paymentData.phoneNumber,
         status: 'pending'
       };
       
