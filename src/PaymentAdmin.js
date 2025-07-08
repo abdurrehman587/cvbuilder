@@ -636,113 +636,189 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
             {filteredPayments.map((payment) => (
               <div key={payment.id} style={{
                 border: '1px solid #e5e7eb',
-                borderRadius: '8px',
-                padding: '15px',
-                marginBottom: '15px',
-                backgroundColor: 'white'
+                borderRadius: '12px',
+                padding: '20px',
+                marginBottom: '20px',
+                backgroundColor: 'white',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
               }}>
-                {/* Payment ID */}
-                <div style={{ marginBottom: '10px' }}>
-                  <strong style={{ fontSize: '0.8rem', color: '#666' }}>Payment ID:</strong>
-                  <div style={{ fontFamily: 'monospace', fontSize: '0.9rem', wordBreak: 'break-all' }}>
-                    {payment.id}
-                  </div>
-                </div>
-
-                {/* User */}
-                <div style={{ marginBottom: '10px' }}>
-                  <strong style={{ fontSize: '0.8rem', color: '#666' }}>User:</strong>
-                  <div style={{ fontSize: '0.9rem' }}>
-                    {payment.userName || `User (${payment.user_email})`}
-                  </div>
-                </div>
-
-                {/* Template */}
-                <div style={{ marginBottom: '10px' }}>
-                  <strong style={{ fontSize: '0.8rem', color: '#666' }}>Template:</strong>
-                  <div>
-                    <span style={{
-                      padding: '4px 8px',
-                      backgroundColor: '#dbeafe',
-                      borderRadius: '4px',
-                      fontSize: '0.8rem',
-                      color: '#1e40af',
+                {/* Header with Status */}
+                <div style={{ 
+                  display: 'flex', 
+                  justifyContent: 'space-between', 
+                  alignItems: 'center',
+                  marginBottom: '15px',
+                  paddingBottom: '10px',
+                  borderBottom: '1px solid #f3f4f6'
+                }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ 
+                      fontSize: '0.75rem', 
+                      color: '#666', 
+                      marginBottom: '2px',
                       fontWeight: '500'
                     }}>
-                      {getTemplateName(payment.template_id)}
+                      Payment ID
+                    </div>
+                    <div style={{ 
+                      fontFamily: 'monospace', 
+                      fontSize: '0.8rem', 
+                      wordBreak: 'break-all',
+                      color: '#374151'
+                    }}>
+                      {payment.id.slice(0, 8)}...
+                    </div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <span style={{
+                      padding: '6px 12px',
+                      backgroundColor: getStatusColor(payment.status),
+                      color: 'white',
+                      borderRadius: '20px',
+                      fontSize: '0.75rem',
+                      textTransform: 'capitalize',
+                      fontWeight: '600'
+                    }}>
+                      {payment.status}
                     </span>
                   </div>
                 </div>
 
-                {/* Method and Amount Row */}
+                {/* User Info */}
                 <div style={{ 
-                  display: 'flex', 
-                  flexDirection: isMobile ? 'column' : 'row',
-                  gap: '10px',
-                  marginBottom: '10px'
+                  backgroundColor: '#f8fafc', 
+                  padding: '12px', 
+                  borderRadius: '8px',
+                  marginBottom: '15px'
                 }}>
-                  <div style={{ flex: 1 }}>
-                    <strong style={{ fontSize: '0.8rem', color: '#666' }}>Method:</strong>
+                  <div style={{ 
+                    fontSize: '0.75rem', 
+                    color: '#666', 
+                    marginBottom: '4px',
+                    fontWeight: '500'
+                  }}>
+                    User Details
+                  </div>
+                  <div style={{ fontSize: '0.9rem', fontWeight: '600', color: '#1f2937' }}>
+                    {payment.userName || `User (${payment.user_email})`}
+                  </div>
+                  <div style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '2px' }}>
+                    {payment.user_email}
+                  </div>
+                </div>
+
+                {/* Payment Details */}
+                <div style={{ 
+                  backgroundColor: '#f0fdf4', 
+                  padding: '12px', 
+                  borderRadius: '8px',
+                  marginBottom: '15px'
+                }}>
+                  <div style={{ 
+                    fontSize: '0.75rem', 
+                    color: '#666', 
+                    marginBottom: '8px',
+                    fontWeight: '500'
+                  }}>
+                    Payment Details
+                  </div>
+                  
+                  {/* Template and Amount Row */}
+                  <div style={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '8px'
+                  }}>
                     <div>
+                      <div style={{ fontSize: '0.7rem', color: '#666', marginBottom: '2px' }}>Template</div>
+                      <span style={{
+                        padding: '4px 8px',
+                        backgroundColor: '#dbeafe',
+                        borderRadius: '6px',
+                        fontSize: '0.75rem',
+                        color: '#1e40af',
+                        fontWeight: '600'
+                      }}>
+                        {getTemplateName(payment.template_id)}
+                      </span>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '0.7rem', color: '#666', marginBottom: '2px' }}>Amount</div>
+                      <div style={{ fontWeight: 'bold', fontSize: '1.1rem', color: '#059669' }}>
+                        PKR {payment.amount}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Method and Phone Row */}
+                  <div style={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}>
+                    <div>
+                      <div style={{ fontSize: '0.7rem', color: '#666', marginBottom: '2px' }}>Method</div>
                       <span style={{
                         padding: '4px 8px',
                         backgroundColor: '#e5e7eb',
-                        borderRadius: '4px',
-                        fontSize: '0.8rem',
-                        textTransform: 'capitalize'
+                        borderRadius: '6px',
+                        fontSize: '0.75rem',
+                        textTransform: 'capitalize',
+                        fontWeight: '500'
                       }}>
                         {payment.payment_method}
                       </span>
                     </div>
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <strong style={{ fontSize: '0.8rem', color: '#666' }}>Amount:</strong>
-                    <div style={{ fontWeight: 'bold', fontSize: '1rem' }}>
-                      PKR {payment.amount}
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '0.7rem', color: '#666', marginBottom: '2px' }}>Phone</div>
+                      <div style={{ fontSize: '0.8rem', fontWeight: '500', color: '#374151' }}>
+                        {payment.phone_number}
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Phone */}
-                <div style={{ marginBottom: '10px' }}>
-                  <strong style={{ fontSize: '0.8rem', color: '#666' }}>Phone:</strong>
-                  <div style={{ fontSize: '0.9rem' }}>
-                    {payment.phone_number}
-                  </div>
-                </div>
-
-                {/* Status and Download Row */}
+                {/* Date and Download Status */}
                 <div style={{ 
-                  display: 'flex', 
-                  flexDirection: isMobile ? 'column' : 'row',
-                  gap: '10px',
-                  marginBottom: '10px'
+                  backgroundColor: '#fef3c7', 
+                  padding: '12px', 
+                  borderRadius: '8px',
+                  marginBottom: '20px'
                 }}>
-                  <div style={{ flex: 1 }}>
-                    <strong style={{ fontSize: '0.8rem', color: '#666' }}>Status:</strong>
-                    <div>
-                      <span style={{
-                        padding: '4px 8px',
-                        backgroundColor: getStatusColor(payment.status),
-                        color: 'white',
-                        borderRadius: '4px',
-                        fontSize: '0.8rem',
-                        textTransform: 'capitalize'
-                      }}>
-                        {payment.status}
-                      </span>
-                    </div>
+                  <div style={{ 
+                    fontSize: '0.75rem', 
+                    color: '#666', 
+                    marginBottom: '8px',
+                    fontWeight: '500'
+                  }}>
+                    Additional Info
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <strong style={{ fontSize: '0.8rem', color: '#666' }}>Download:</strong>
+                  
+                  <div style={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}>
                     <div>
+                      <div style={{ fontSize: '0.7rem', color: '#666', marginBottom: '2px' }}>Date</div>
+                      <div style={{ fontSize: '0.8rem', fontWeight: '500', color: '#374151' }}>
+                        {new Date(payment.created_at).toLocaleDateString()}
+                      </div>
+                      <div style={{ fontSize: '0.7rem', color: '#6b7280' }}>
+                        {new Date(payment.created_at).toLocaleTimeString()}
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '0.7rem', color: '#666', marginBottom: '2px' }}>Download</div>
                       {payment.status === 'approved' ? (
                         <span style={{
                           padding: '4px 8px',
                           backgroundColor: '#22c55e',
                           color: 'white',
-                          borderRadius: '4px',
-                          fontSize: '0.8rem'
+                          borderRadius: '6px',
+                          fontSize: '0.7rem',
+                          fontWeight: '600'
                         }}>
                           ⏳ Available
                         </span>
@@ -751,8 +827,9 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
                           padding: '4px 8px',
                           backgroundColor: '#3b82f6',
                           color: 'white',
-                          borderRadius: '4px',
-                          fontSize: '0.8rem'
+                          borderRadius: '6px',
+                          fontSize: '0.7rem',
+                          fontWeight: '600'
                         }}>
                           ✅ Downloaded
                         </span>
@@ -761,8 +838,9 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
                           padding: '4px 8px',
                           backgroundColor: '#6b7280',
                           color: 'white',
-                          borderRadius: '4px',
-                          fontSize: '0.8rem'
+                          borderRadius: '6px',
+                          fontSize: '0.7rem',
+                          fontWeight: '600'
                         }}>
                           N/A
                         </span>
@@ -771,68 +849,104 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
                   </div>
                 </div>
 
-                {/* Date */}
-                <div style={{ marginBottom: '15px' }}>
-                  <strong style={{ fontSize: '0.8rem', color: '#666' }}>Date:</strong>
-                  <div style={{ fontSize: '0.9rem' }}>
-                    {new Date(payment.created_at).toLocaleString()}
-                  </div>
-                </div>
-
                 {/* Actions */}
                 <div style={{ 
                   display: 'flex', 
-                  flexDirection: isMobile ? 'column' : 'row',
-                  gap: '8px'
+                  flexDirection: 'column',
+                  gap: '10px'
                 }}>
                   {payment.status === 'pending' && (
-                    <>
+                    <div style={{ 
+                      display: 'flex', 
+                      gap: '8px'
+                    }}>
                       <button
                         onClick={() => approvePayment(payment.id)}
                         style={{
-                          padding: '8px 12px',
+                          padding: '12px 16px',
                           backgroundColor: '#22c55e',
                           color: 'white',
                           border: 'none',
-                          borderRadius: '4px',
+                          borderRadius: '8px',
                           cursor: 'pointer',
-                          fontSize: '0.8rem',
-                          flex: 1
+                          fontSize: '0.9rem',
+                          fontWeight: '600',
+                          flex: 1,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px',
+                          transition: 'all 0.2s ease'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#16a34a';
+                          e.currentTarget.style.transform = 'translateY(-1px)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = '#22c55e';
+                          e.currentTarget.style.transform = 'translateY(0)';
                         }}
                       >
-                        ✅ Approve
+                        ✅ Approve Payment
                       </button>
                       <button
                         onClick={() => rejectPayment(payment.id)}
                         style={{
-                          padding: '8px 12px',
+                          padding: '12px 16px',
                           backgroundColor: '#ef4444',
                           color: 'white',
                           border: 'none',
-                          borderRadius: '4px',
+                          borderRadius: '8px',
                           cursor: 'pointer',
-                          fontSize: '0.8rem',
-                          flex: 1
+                          fontSize: '0.9rem',
+                          fontWeight: '600',
+                          flex: 1,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px',
+                          transition: 'all 0.2s ease'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#dc2626';
+                          e.currentTarget.style.transform = 'translateY(-1px)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = '#ef4444';
+                          e.currentTarget.style.transform = 'translateY(0)';
                         }}
                       >
-                        ❌ Reject
+                        ❌ Reject Payment
                       </button>
-                    </>
+                    </div>
                   )}
                   <button
                     onClick={() => deletePayment(payment.id)}
                     style={{
-                      padding: '8px 12px',
+                      padding: '10px 16px',
                       backgroundColor: '#6b7280',
                       color: 'white',
                       border: 'none',
-                      borderRadius: '4px',
+                      borderRadius: '8px',
                       cursor: 'pointer',
                       fontSize: '0.8rem',
-                      flex: 1
+                      fontWeight: '500',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#4b5563';
+                      e.currentTarget.style.transform = 'translateY(-1px)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = '#6b7280';
+                      e.currentTarget.style.transform = 'translateY(0)';
                     }}
                   >
-                    🗑️ Delete
+                    🗑️ Delete Payment
                   </button>
                 </div>
               </div>
