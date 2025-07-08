@@ -22,6 +22,7 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [buttonText, setButtonText] = useState('Loading...');
+  const [isDownloading, setIsDownloading] = useState(false);
   const [hasPendingPayment, setHasPendingPayment] = useState(false);
 
   const containerStyle = {
@@ -631,13 +632,15 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
     console.log('Template3PDF - handleDownloadClick called');
     console.log('Template3PDF - isAdminUser:', isAdminUser);
     
-    if (isAdminUser) {
-      console.log('Template3PDF - Admin user, generating PDF directly');
-      generatePDF();
-      return;
-    }
+    setIsDownloading(true);
     
     try {
+      if (isAdminUser) {
+        console.log('Template3PDF - Admin user, generating PDF directly');
+        await generatePDF();
+        return;
+      }
+      
       // Check if user has an approved payment first
       const approvedPayment = await PaymentService.checkApprovedPayment('template3');
       console.log('Template3PDF - approvedPayment:', approvedPayment);
@@ -645,7 +648,7 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
       if (approvedPayment) {
         // User has an approved payment, allow download
         console.log('Template3PDF - Payment approved, generating PDF');
-        generatePDF();
+        await generatePDF();
       } else {
         // Check if user has already downloaded (informational)
         const downloadedPayment = await PaymentService.checkDownloadedPayment('template3');
@@ -661,6 +664,8 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
     } catch (error) {
       console.error('Error checking payment status:', error);
       setShowPaymentModal(true);
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -668,6 +673,14 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
 
   return (
     <>
+      <style>
+        {`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}
+      </style>
       <div ref={containerRef} style={containerStyle}>
         {/* Header Section */}
         <div style={headerStyle}>
@@ -835,30 +848,48 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
             ref={buttonRef}
             type="button"
             onClick={handleDownloadClick}
-            disabled={isLoading}
+            disabled={isLoading || isDownloading}
             style={{
-              cursor: isLoading ? 'not-allowed' : 'pointer',
+              cursor: (isLoading || isDownloading) ? 'not-allowed' : 'pointer',
               padding: '10px 20px',
               fontSize: '1rem',
               borderRadius: '5px',
               border: 'none',
-              backgroundColor: isLoading ? '#cccccc' : '#22c55e',
+              backgroundColor: (isLoading || isDownloading) ? '#cccccc' : '#22c55e',
               color: 'white',
               transition: 'background-color 0.3s ease',
-              opacity: isLoading ? 0.7 : 1,
+              opacity: (isLoading || isDownloading) ? 0.7 : 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px'
             }}
             onMouseEnter={(e) => {
-              if (!isLoading) {
+              if (!isLoading && !isDownloading) {
                 e.currentTarget.style.backgroundColor = '#16a34a';
               }
             }}
             onMouseLeave={(e) => {
-              if (!isLoading) {
+              if (!isLoading && !isDownloading) {
                 e.currentTarget.style.backgroundColor = '#22c55e';
               }
             }}
           >
-            {buttonText}
+            {isDownloading ? (
+              <>
+                <div style={{
+                  width: '16px',
+                  height: '16px',
+                  border: '2px solid #ffffff',
+                  borderTop: '2px solid transparent',
+                  borderRadius: '50%',
+                  animation: 'spin 1s linear infinite'
+                }}></div>
+                Processing...
+              </>
+            ) : (
+              buttonText
+            )}
           </button>
         </div>
       </div>

@@ -30,6 +30,7 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasPendingPayment, setHasPendingPayment] = useState(false);
   const [buttonText, setButtonText] = useState('Loading...');
+  const [isDownloading, setIsDownloading] = useState(false);
 
   // Check admin status and payment status on component mount
   useEffect(() => {
@@ -547,27 +548,36 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
   const handleDownloadClick = async () => {
     console.log('Template1PDF - Download button clicked');
     
-    if (isAdminUser) {
-      await generatePDF();
-      return;
-    }
+    setIsDownloading(true);
+    
+    try {
+      if (isAdminUser) {
+        await generatePDF();
+        return;
+      }
 
-    // Check if we can download (approved payment exists)
-    const approvedPayment = await PaymentService.checkApprovedPayment('template1');
-    if (approvedPayment) {
-      await generatePDF();
-      return;
-    }
+      // Check if we can download (approved payment exists)
+      const approvedPayment = await PaymentService.checkApprovedPayment('template1');
+      if (approvedPayment) {
+        await generatePDF();
+        return;
+      }
 
-    // Check if there's a pending payment
-    const pendingPayment = await PaymentService.checkPendingPayment('template1');
-    if (pendingPayment) {
-      alert('You have a pending payment. Please wait for admin approval.');
-      return;
-    }
+      // Check if there's a pending payment
+      const pendingPayment = await PaymentService.checkPendingPayment('template1');
+      if (pendingPayment) {
+        alert('You have a pending payment. Please wait for admin approval.');
+        return;
+      }
 
-    // Show payment modal
-    setShowPaymentModal(true);
+      // Show payment modal
+      setShowPaymentModal(true);
+    } catch (error) {
+      console.error('Download error:', error);
+      alert('An error occurred during download. Please try again.');
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
 
@@ -657,6 +667,14 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
 
   return (
     <>
+      <style>
+        {`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}
+      </style>
       <article ref={containerRef} style={containerStyle}>
         <header style={headerStyle}>
           {formData.image ? (
@@ -815,7 +833,7 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
           <div style={{ textAlign: 'center' }}>
             <button
               onClick={handleDownloadClick}
-              disabled={isLoading}
+              disabled={isLoading || isDownloading}
               style={{
                 padding: '12px 24px',
                 backgroundColor: '#007bff',
@@ -824,12 +842,30 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
                 borderRadius: '6px',
                 fontSize: '16px',
                 fontWeight: '500',
-                cursor: isLoading ? 'not-allowed' : 'pointer',
-                opacity: isLoading ? 0.6 : 1,
-                marginBottom: '10px'
+                cursor: (isLoading || isDownloading) ? 'not-allowed' : 'pointer',
+                opacity: (isLoading || isDownloading) ? 0.6 : 1,
+                marginBottom: '10px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px'
               }}
             >
-              {buttonText}
+              {isDownloading ? (
+                <>
+                  <div style={{
+                    width: '16px',
+                    height: '16px',
+                    border: '2px solid #ffffff',
+                    borderTop: '2px solid transparent',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite'
+                  }}></div>
+                  Processing...
+                </>
+              ) : (
+                buttonText
+              )}
             </button>
             
 

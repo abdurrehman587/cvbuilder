@@ -954,30 +954,8 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
           />
         </div>
 
-        <button onClick={handleSave} type="button" className="save-btn">
+                <button onClick={handleSave} type="button" className="save-btn">
           Save
-        </button>
-        
-        {/* Test button for toast */}
-        <button 
-                  onClick={() => {
-          console.log('Test toast button clicked');
-          safeToast.success('Test toast - this should appear!');
-          safeToast.error('Test error toast');
-          safeToast.info('Test info toast');
-        }} 
-          type="button" 
-          style={{
-            marginTop: '10px',
-            padding: '10px 20px',
-            backgroundColor: '#10b981',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: 'pointer'
-          }}
-        >
-          Test Toast
         </button>
 
       </div>
