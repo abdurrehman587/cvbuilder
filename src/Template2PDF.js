@@ -310,26 +310,7 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
     };
   }, [isAdminUser, isLoading]);
 
-  // Listen for authentication changes and refresh button text
-  useEffect(() => {
-    const handleAuthChange = () => {
-      console.log('Template2PDF - Auth change detected, refreshing button text');
-      setTimeout(() => {
-        refreshButtonText();
-      }, 1000); // Small delay to ensure auth state is updated
-    };
 
-    // Listen for storage changes (when user logs in/out)
-    window.addEventListener('storage', handleAuthChange);
-    
-    // Also check on focus (when user comes back to tab)
-    window.addEventListener('focus', handleAuthChange);
-    
-    return () => {
-      window.removeEventListener('storage', handleAuthChange);
-      window.removeEventListener('focus', handleAuthChange);
-    };
-  }, []);
 
   const generatePDF = async () => {
     if (!containerRef.current) {
