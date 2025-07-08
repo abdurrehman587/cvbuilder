@@ -533,18 +533,6 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     setButtonText('Payment Submitted (Waiting for Approval)');
     console.log('Template1PDF - Payment success: Set hasPendingPayment=true and button text');
     
-    // Force immediate refresh and then periodic refreshes
-    setTimeout(() => {
-      console.log('Template1PDF - Payment success: Forcing immediate refresh');
-      refreshButtonText();
-    }, 500);
-    
-    // Force another refresh after 2 seconds
-    setTimeout(() => {
-      console.log('Template1PDF - Payment success: Forcing second refresh');
-      refreshButtonText();
-    }, 2000);
-    
     // Don't auto-download - wait for admin approval
     // generatePDF();
     console.log('=== PAYMENT SUCCESS HANDLER COMPLETE ===');
@@ -582,85 +570,9 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     setShowPaymentModal(true);
   };
 
-  // TEMPORARY: Direct download function that bypasses payment system
-  const handleDirectDownload = async () => {
-    console.log('Template1PDF - Direct download clicked (bypassing payment)');
-    
-    try {
-      await generatePDF();
-      alert('CV downloaded successfully! (Direct download - payment bypassed)');
-    } catch (error) {
-      console.error('Direct download failed:', error);
-      alert('Failed to download CV. Please try again.');
-    }
-  };
 
-  // Manual refresh function for button text
-  const refreshButtonText = async () => {
-    try {
-      console.log('Template1PDF - Manual refresh of button text');
-      
-      // Check for pending payment first
-      const pendingPayment = await PaymentService.checkPendingPayment('template1');
-      console.log('Template1PDF - Manual refresh: Pending payment check result:', pendingPayment);
-      
-      if (pendingPayment) {
-        setHasPendingPayment(true);
-        setButtonText('Payment Submitted (Waiting for Approval)');
-        console.log('Template1PDF - Manual refresh: Pending payment detected, showing banner');
-        return;
-      } else {
-        setHasPendingPayment(false);
-        console.log('Template1PDF - Manual refresh: No pending payment, checking approved payment');
-      }
-      
-      // Check for approved payment
-      const approvedPayment = await PaymentService.checkApprovedPayment('template1');
-      console.log('Template1PDF - Manual refresh: Approved payment check result:', approvedPayment);
-      
-      if (approvedPayment) {
-        setButtonText('Download Now');
-        console.log('Template1PDF - Manual refresh: Approved payment detected, showing download button');
-        return;
-      }
-      
-      console.log('Template1PDF - Manual refresh: No approved payment, getting default button text');
-      const text = await PaymentService.getDownloadButtonText('template1', isAdminUser);
-      setButtonText(text);
-      console.log('Template1PDF - Button text refreshed to:', text);
-    } catch (error) {
-      console.error('Error refreshing button text:', error);
-    }
-  };
 
-  // Debug function to check payment status
-  const debugPaymentStatus = async () => {
-    try {
-      console.log('=== TEMPLATE1PDF PAYMENT DEBUG ===');
-      const debugResult = await PaymentService.debugPaymentStatus('template1');
-      console.log('Debug result:', debugResult);
-      
-      // Show debug info to user
-      if (debugResult) {
-        const message = `Payment Status Debug:
-User: ${debugResult.user}
-Database Ready: ${debugResult.databaseReady}
-Total Payments: ${debugResult.payments?.length || 0}
-Approved Payment: ${debugResult.approvedPayment ? 'Yes' : 'No'}
-Pending Payment: ${debugResult.pendingPayment ? 'Yes' : 'No'}
-Downloaded Payment: ${debugResult.downloadedPayment ? 'Yes' : 'No'}
-Download Count: ${debugResult.downloadCount || 0}
-Button Text: ${debugResult.buttonText}`;
-        
-        alert(message);
-      } else {
-        alert('Debug failed - check console for details');
-      }
-    } catch (error) {
-      console.error('Debug error:', error);
-      alert('Debug error: ' + error.message);
-    }
-  };
+
 
   // Update button text and check payment status
   useEffect(() => {
@@ -741,26 +653,7 @@ Button Text: ${debugResult.buttonText}`;
     };
   }, [isAdminUser, isLoading]);
 
-  // Listen for authentication changes and refresh button text
-  useEffect(() => {
-    const handleAuthChange = () => {
-      console.log('Template1PDF - Auth change detected, refreshing button text');
-      setTimeout(() => {
-        refreshButtonText();
-      }, 1000); // Small delay to ensure auth state is updated
-    };
 
-    // Listen for storage changes (when user logs in/out)
-    window.addEventListener('storage', handleAuthChange);
-    
-    // Also check on focus (when user comes back to tab)
-    window.addEventListener('focus', handleAuthChange);
-    
-    return () => {
-      window.removeEventListener('storage', handleAuthChange);
-      window.removeEventListener('focus', handleAuthChange);
-    };
-  }, []);
 
   return (
     <>
@@ -916,34 +809,7 @@ Button Text: ${debugResult.buttonText}`;
                 Your payment has been submitted and is being reviewed. You will be able to download your CV once approved.
               </p>
             </div>
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-              <button
-                onClick={refreshButtonText}
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: '#007bff',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer'
-                }}
-              >
-                Refresh Status
-              </button>
-              <button
-                onClick={debugPaymentStatus}
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: '#6c757d',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer'
-                }}
-              >
-                Debug Info
-              </button>
-            </div>
+
           </div>
         ) : (
           <div style={{ textAlign: 'center' }}>
@@ -966,80 +832,9 @@ Button Text: ${debugResult.buttonText}`;
               {buttonText}
             </button>
             
-            {/* TEMPORARY: Direct Download Button */}
-            <div style={{ 
-              marginTop: '15px', 
-              padding: '10px', 
-              backgroundColor: '#e8f5e8', 
-              border: '1px solid #28a745', 
-              borderRadius: '6px' 
-            }}>
-              <p style={{ 
-                margin: '0 0 10px 0', 
-                color: '#155724', 
-                fontSize: '14px', 
-                fontWeight: '500' 
-              }}>
-                🚀 TEMPORARY: Need your CV immediately?
-              </p>
-              <button
-                onClick={handleDirectDownload}
-                style={{
-                  padding: '10px 20px',
-                  backgroundColor: '#28a745',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  cursor: 'pointer',
-                  boxShadow: '0 2px 4px rgba(40, 167, 69, 0.2)'
-                }}
-              >
-                Download CV Now (Free)
-              </button>
-              <p style={{ 
-                margin: '8px 0 0 0', 
-                color: '#6c757d', 
-                fontSize: '12px', 
-                fontStyle: 'italic' 
-              }}>
-                This bypasses the payment system temporarily
-              </p>
-            </div>
+
             
-            {!isAdminUser && (
-              <div style={{ marginTop: '12px', display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                <button
-                  onClick={refreshButtonText}
-                  style={{
-                    padding: '6px 12px',
-                    backgroundColor: '#6c757d',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    fontSize: '12px',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Refresh
-                </button>
-                <button
-                  onClick={debugPaymentStatus}
-                  style={{
-                    padding: '6px 12px',
-                    backgroundColor: '#17a2b8',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    fontSize: '12px',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Debug
-                </button>
-              </div>
-            )}
+
           </div>
         )}
       </div>
