@@ -16,7 +16,6 @@ const loadHtml2Pdf = () => {
 
 const Template2PDF = ({ formData, visibleSections = [] }) => {
   const containerRef = useRef(null);
-  const buttonRef = useRef(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -332,14 +331,12 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
   }, []);
 
   const generatePDF = async () => {
-    if (!containerRef.current || !buttonRef.current) {
+    if (!containerRef.current) {
       alert('Preview content is not available for PDF generation');
       return;
     }
 
     try {
-      buttonRef.current.style.display = 'none';
-
       const html2pdf = await loadHtml2Pdf();
 
       await html2pdf()
@@ -379,11 +376,8 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
       }
       
     } catch (error) {
-      alert('Error generating PDF: ' + error.message);
-    } finally {
-      if (buttonRef.current) {
-        buttonRef.current.style.display = 'block';
-      }
+      console.error('PDF generation failed:', error);
+      alert('Failed to generate PDF. Please try again.');
     }
   };
 
