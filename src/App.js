@@ -3,6 +3,8 @@ import supabase from './supabase';
 import SignupSignIn from './SignupSignIn';
 import LandingPage from './landingpage';
 import DatabaseSetupCheck from './DatabaseSetupCheck';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import './responsive.css';
 
 // Add error boundary for debugging
@@ -247,6 +249,18 @@ const App = () => {
 
   return (
     <div>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
       <style>
         {`
           @media (max-width: 768px) {

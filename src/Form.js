@@ -569,7 +569,17 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
         return;
       }
 
-      toast.success(isAdmin ? 'Admin CV Saved Successfully!' : 'CV Saved Successfully!');
+      // Show appropriate success message
+      if (isAdmin) {
+        // For admin users, always show "Saved" since they can have multiple CVs
+        toast.success('Admin CV Saved Successfully!');
+      } else {
+        // For regular users, determine if it was an update or new save
+        const isUpdate = existingCV ? true : false;
+        const message = isUpdate ? 'CV Updated Successfully!' : 'CV Saved Successfully!';
+        toast.success(message);
+      }
+      
       console.log('=== SAVE CV END ===');
       
       // Optionally update formData with new imageUrl if uploaded
