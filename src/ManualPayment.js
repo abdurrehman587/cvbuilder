@@ -172,10 +172,10 @@ const ManualPayment = ({ amount, templateId, templateName, onPaymentSuccess, onP
             Pay Rs. 100 to any of these Accounts
           </div>
           <div style={{ fontSize: '1rem', color: '#92400e' }}>
-            Click on the Account in which you sent the payment.
+            Click on the Account in which you are sending the payment.
           </div>
           <div style={{ fontSize: '1rem', color: '#92400e' }}>
-            Enter Number from which you sent the payment.
+            Enter Number from which you are sending the payment.
           </div>
         </div>
 
