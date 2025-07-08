@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import LandingPage from './landingpage';
 import { PaymentService } from './paymentService';
-import { supabase } from './supabase';
+import supabase from './supabase';
 
 const PaymentAdmin = ({ onAccessCVBuilder }) => {
   const [payments, setPayments] = useState([]);
