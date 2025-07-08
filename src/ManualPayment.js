@@ -262,32 +262,7 @@ const ManualPayment = ({ amount, templateId, templateName, onPaymentSuccess, onP
 
 
         
-        {/* Form Status */}
-        <div style={{
-          backgroundColor: '#f0f9ff',
-          border: '1px solid #0ea5e9',
-          borderRadius: '6px',
-          padding: '12px',
-          marginBottom: '20px',
-          fontSize: '0.9rem'
-        }}>
-          <strong>Form Status:</strong>
-          <div style={{ marginTop: '8px' }}>
-            <div style={{ color: selectedMethod ? '#22c55e' : '#ef4444' }}>
-              {selectedMethod ? '✅' : '❌'} Payment Method: {selectedMethod || 'Not selected'}
-            </div>
-            <div style={{ color: phoneNumber ? '#22c55e' : '#ef4444' }}>
-              {phoneNumber ? '✅' : '❌'} Phone Number: {phoneNumber || 'Not entered'}
-            </div>
-            <div style={{ 
-              color: (selectedMethod && phoneNumber) ? '#22c55e' : '#f59e0b',
-              fontWeight: 'bold',
-              marginTop: '8px'
-            }}>
-              {selectedMethod && phoneNumber ? '✅ Ready to Submit' : '⚠️ Please complete all fields'}
-            </div>
-          </div>
-        </div>
+
 
         {/* Submit Button */}
         <button
