@@ -45,16 +45,37 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
       const paymentsWithUserNames = await Promise.all(
         allPayments.map(async (payment) => {
           try {
-            // Fetch user CV data to get the name
-            const { data: cvData, error: cvError } = await supabase
+            // First try to fetch from user_cvs table
+            let { data: cvData, error: cvError } = await supabase
               .from('user_cvs')
               .select('name')
               .eq('user_email', payment.user_email)
               .maybeSingle();
             
+            // If not found in user_cvs, try admin_cvs table
+            if (!cvData && !cvError) {
+              const { data: adminCvData, error: adminCvError } = await supabase
+                .from('admin_cvs')
+                .select('name')
+                .eq('user_email', payment.user_email)
+                .maybeSingle();
+              
+              if (adminCvError) {
+                console.error('Error fetching admin CV data for user:', payment.user_email, adminCvError);
+              } else {
+                cvData = adminCvData;
+              }
+            }
+            
             if (cvError) {
               console.error('Error fetching CV data for user:', payment.user_email, cvError);
             }
+            
+            console.log('Payment user name lookup:', {
+              paymentId: payment.id,
+              userEmail: payment.user_email,
+              userName: cvData?.name || 'Unknown User'
+            });
             
             return {
               ...payment,
