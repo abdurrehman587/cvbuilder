@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import supabase from './supabase';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import './Form.css';
 
 // Fallback toast function in case react-toastify fails
 const fallbackToast = (message, type = 'info') => {
@@ -37,7 +38,6 @@ const safeToast = {
     }
   }
 };
-import './Form.css';
 
 const initialEntry = '';
 
@@ -438,10 +438,11 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
       safeToast.info('Save operation started...');
       
       let result; // Declare result variable
+      let existingCV = null; // Declare existingCV variable
       
       // Ensure user is present
       if (!user) {
-        toast.error('You must be signed in to save your CV.');
+        safeToast.error('You must be signed in to save your CV.');
         return;
       }
 
@@ -572,17 +573,19 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
         // Check if CV already exists for this user
         console.log('Checking for existing CV for user:', user.email);
         console.log('Using table: user_cvs');
-        const { data: existingCV, error: checkError } = await supabase
+        const { data: existingCVData, error: checkError } = await supabase
           .from('user_cvs')
           .select('id')
           .eq('user_email', user.email)
           .maybeSingle();
+        
+        existingCV = existingCVData; // Assign to the outer variable
 
         if (checkError) {
           console.error('Error checking for existing CV:', checkError);
         }
 
-        if (existingCV) {
+        if (existingCVData) {
           // Update existing CV
           console.log('Updating existing CV for user:', user.email);
           console.log('Update payload:', payload);
