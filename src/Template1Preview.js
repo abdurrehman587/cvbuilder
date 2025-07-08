@@ -101,6 +101,27 @@ const Template1Preview = ({ formData, formHeight }) => {
         alignItems: 'center',
       }}
     >
+      {/* Save Reminder */}
+      <div style={{
+        width: '100%',
+        padding: '1rem 2rem',
+        backgroundColor: '#fef3c7',
+        borderBottom: '1px solid #f59e0b',
+        textAlign: 'center',
+        marginBottom: '20px'
+      }}>
+        <div style={{
+          fontSize: '1rem',
+          fontWeight: '600',
+          color: '#92400e',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '8px'
+        }}>
+          💾 Don't forget to save your CV for later use.
+        </div>
+      </div>
       <style>
         {`
           @media (max-width: 768px) {

@@ -785,8 +785,28 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
         </div>
       )}
 
+      {/* Save Reminder */}
+      <div style={{
+        width: '100%',
+        padding: '1rem 2rem',
+        backgroundColor: '#fef3c7',
+        borderBottom: '1px solid #f59e0b',
+        textAlign: 'center'
+      }}>
+        <div style={{
+          fontSize: '1rem',
+          fontWeight: '600',
+          color: '#92400e',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '8px'
+        }}>
+          💾 Don't forget to save your CV for later use.
+        </div>
+      </div>
 
-              <div className="form-container">
+      <div className="form-container">
 
 
           {/* Profile Image */}
