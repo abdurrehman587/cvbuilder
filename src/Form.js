@@ -85,6 +85,9 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
 
   const [searchName, setSearchName] = useState('');
   const [searchPhone, setSearchPhone] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showSearchResults, setShowSearchResults] = useState(false);
 
   useEffect(() => {
     if (!formData) {
@@ -212,6 +215,92 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
     };
     fetchUserCV();
   }, [user]);
+
+  // Live search functionality
+  useEffect(() => {
+    const performLiveSearch = async () => {
+      if (!isAdminAccess) return;
+      
+      // Only search if there's at least 2 characters in name or phone
+      if ((!searchName || searchName.length < 2) && (!searchPhone || searchPhone.length < 2)) {
+        setSearchResults([]);
+        setShowSearchResults(false);
+        return;
+      }
+
+      setIsSearching(true);
+      setShowSearchResults(true);
+
+      try {
+        // Search in both user_cvs and admin_cvs tables
+        let userQuery = supabase.from('user_cvs').select('*').limit(10);
+        let adminQuery = supabase.from('admin_cvs').select('*').limit(10);
+
+        if (searchName && searchName.length >= 2) {
+          userQuery = userQuery.ilike('name', `%${searchName}%`);
+          adminQuery = adminQuery.ilike('name', `%${searchName}%`);
+        }
+
+        if (searchPhone && searchPhone.length >= 2) {
+          // Clean the search phone number (remove all non-digit characters)
+          const cleanSearchPhone = searchPhone.replace(/\D/g, '');
+          
+          // Search for phone numbers that contain the cleaned digits
+          userQuery = userQuery.or(`phone.ilike.%${searchPhone}%,phone.ilike.%${cleanSearchPhone}%`);
+          adminQuery = adminQuery.or(`phone.ilike.%${searchPhone}%,phone.ilike.%${cleanSearchPhone}%`);
+        }
+
+        // Execute both queries
+        const [userResult, adminResult] = await Promise.all([
+          userQuery,
+          adminQuery
+        ]);
+
+        if (userResult.error) {
+          console.error("User CV search error:", userResult.error);
+        }
+
+        if (adminResult.error) {
+          console.error("Admin CV search error:", adminResult.error);
+        }
+
+        // Combine results
+        const allResults = [
+          ...(userResult.data || []),
+          ...(adminResult.data || [])
+        ];
+
+        setSearchResults(allResults);
+      } catch (error) {
+        console.error("Live search error:", error);
+        setSearchResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    };
+
+    // Debounce the search to avoid too many API calls
+    const timeoutId = setTimeout(performLiveSearch, 300);
+    return () => clearTimeout(timeoutId);
+  }, [searchName, searchPhone, isAdminAccess]);
+
+  // Close search results when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      const searchContainer = document.querySelector('[data-search-container]');
+      if (searchContainer && !searchContainer.contains(event.target)) {
+        setShowSearchResults(false);
+      }
+    };
+
+    if (showSearchResults) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showSearchResults]);
 
 
 
@@ -466,7 +555,7 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
         // For admin users, save to admin_cvs table
         const payload = {
           admin_email: user.email,
-          cv_name: formData.name || 'Admin CV',
+          cv_name: formData.name || 'Unnamed CV',
           image_url: imageUrl && imageUrl.startsWith('http') ? imageUrl : null,
           name: formData.name || '',
           phone: formData.phone || '',
@@ -514,11 +603,43 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
           }))
         };
 
-        // For admin, always insert new CV (multiple CVs allowed)
-        console.log('Saving admin CV to admin_cvs table');
-        result = await supabase
+        // Check if CV already exists for this admin
+        console.log('Checking for existing admin CV for user:', user.email);
+        console.log('Using table: admin_cvs');
+        
+        // First check if CV exists to determine if it's an update or create
+        // Get the most recent CV for this admin user
+        const { data: existingAdminCVData, error: checkError } = await supabase
           .from('admin_cvs')
-          .insert([payload]);
+          .select('id')
+          .eq('admin_email', user.email)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        
+        console.log('Admin CV check result:', { existingAdminCVData, checkError });
+        existingCV = existingAdminCVData; // Assign to the outer variable
+
+        if (checkError) {
+          console.error('Error checking for existing admin CV:', checkError);
+        }
+
+        if (existingAdminCVData) {
+          // Update existing admin CV using the specific ID
+          console.log('Updating existing admin CV for user:', user.email);
+          console.log('Update payload:', payload);
+          result = await supabase
+            .from('admin_cvs')
+            .update(payload)
+            .eq('id', existingAdminCVData.id);
+        } else {
+          // Insert new admin CV
+          console.log('Inserting new admin CV for user:', user.email);
+          console.log('Insert payload:', payload);
+          result = await supabase
+            .from('admin_cvs')
+            .insert([payload]);
+        }
       } else {
         // For regular users, use direct upsert approach to save to user_cvs table
         const payload = {
@@ -573,19 +694,22 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
         // Check if CV already exists for this user
         console.log('Checking for existing CV for user:', user.email);
         console.log('Using table: user_cvs');
-        const { data: existingCVData, error: checkError } = await supabase
+        
+        // First check if CV exists to determine if it's an update or create
+        const { data: existingUserCVData, error: checkError } = await supabase
           .from('user_cvs')
           .select('id')
           .eq('user_email', user.email)
           .maybeSingle();
         
-        existingCV = existingCVData; // Assign to the outer variable
+        console.log('User CV check result:', { existingUserCVData, checkError });
+        existingCV = existingUserCVData; // Assign to the outer variable
 
         if (checkError) {
           console.error('Error checking for existing CV:', checkError);
         }
 
-        if (existingCVData) {
+        if (existingUserCVData) {
           // Update existing CV
           console.log('Updating existing CV for user:', user.email);
           console.log('Update payload:', payload);
@@ -613,17 +737,12 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
 
       // Show appropriate success message
       console.log('About to show toast notification');
-      if (isAdmin) {
-        // For admin users, always show "Saved" since they can have multiple CVs
-        console.log('Showing admin CV saved toast');
-        safeToast.success('Admin CV Saved Successfully!');
-      } else {
-        // For regular users, determine if it was an update or new save
-        const isUpdate = existingCV ? true : false;
-        const message = isUpdate ? 'CV Updated Successfully!' : 'CV Saved Successfully!';
-        console.log('Showing regular user toast:', message);
-        safeToast.success(message);
-      }
+      console.log('Final existingCV value:', existingCV);
+      // Determine if it was an update or new save for both admin and regular users
+      const isUpdate = existingCV ? true : false;
+      const message = isUpdate ? 'CV Updated Successfully!' : 'CV Created Successfully!';
+      console.log('Is update:', isUpdate, 'Message:', message);
+      safeToast.success(message);
       
       console.log('=== SAVE CV END ===');
       
@@ -655,8 +774,12 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
       }
 
       if (searchPhone) {
-        userQuery = userQuery.ilike('phone', `%${searchPhone}%`);
-        adminQuery = adminQuery.ilike('phone', `%${searchPhone}%`);
+        // Clean the search phone number (remove all non-digit characters)
+        const cleanSearchPhone = searchPhone.replace(/\D/g, '');
+        
+        // Search for phone numbers that contain the cleaned digits
+        userQuery = userQuery.or(`phone.ilike.%${searchPhone}%,phone.ilike.%${cleanSearchPhone}%`);
+        adminQuery = adminQuery.or(`phone.ilike.%${searchPhone}%,phone.ilike.%${cleanSearchPhone}%`);
       }
 
       // Execute both queries
@@ -714,6 +837,37 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
     }
   };
 
+  const handleSelectSearchResult = (cv) => {
+    setFormData({
+      image: null,
+      imageUrl: cv.image_url || '',
+      name: cv.name || '',
+      phone: cv.phone || '',
+      email: cv.email || '',
+      address: cv.address || '',
+      objective: cv.objective || [],
+      education: cv.education || [],
+      workExperience: cv.work_experience || [],
+      skills: cv.skills || [],
+      certifications: cv.certifications || [],
+      projects: cv.projects || [],
+      languages: cv.languages || [],
+      customLanguages: [],
+      hobbies: cv.hobbies || [],
+      customSections: cv.custom_sections || [],
+      cv_references: cv.cv_references || [],
+      otherInformation: cv.other_information || [],
+    });
+
+    // Clear search
+    setSearchName('');
+    setSearchPhone('');
+    setSearchResults([]);
+    setShowSearchResults(false);
+    
+    safeToast.success("CV loaded successfully.");
+  };
+
 
 
   // Guard: Don't render until formData is initialized
@@ -723,65 +877,147 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
     <>
       {/* Search Container Above Form - Only for Admin Users */}
       {isAdminAccess && (
-        <div style={{
-          width: '100%',
-          padding: '2rem',
-          boxSizing: 'border-box',
-          backgroundColor: '#f9fafb',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '16px',
-          flexWrap: 'wrap',
-          borderBottom: '1px solid #e5e7eb'
-        }}>
-          <input
-            type="text"
-            placeholder="Search CV by name"
-            value={searchName}
-            onChange={(e) => setSearchName(e.target.value)}
-            style={{
-              flex: '1',
-              padding: '0.75rem 1rem',
-              fontSize: '1rem',
-              borderRadius: '0.75rem',
+        <div 
+          data-search-container
+          style={{
+            width: '100%',
+            padding: '2rem',
+            boxSizing: 'border-box',
+            backgroundColor: '#f9fafb',
+            borderBottom: '1px solid #e5e7eb',
+            position: 'relative'
+          }}
+        >
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '16px',
+            flexWrap: 'wrap'
+          }}>
+            <div style={{ flex: '1', minWidth: '220px', position: 'relative' }}>
+              <input
+                type="text"
+                placeholder="Search CV by name"
+                value={searchName}
+                onChange={(e) => setSearchName(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '0.75rem 1rem',
+                  fontSize: '1rem',
+                  borderRadius: '0.75rem',
+                  border: '1px solid #d1d5db',
+                  fontFamily: 'Inter, sans-serif',
+                  outline: 'none'
+                }}
+              />
+            </div>
+            <div style={{ flex: '1', minWidth: '220px', position: 'relative' }}>
+              <input
+                type="text"
+                placeholder="Search CV by Phone Number"
+                value={searchPhone}
+                onChange={(e) => setSearchPhone(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '0.75rem 1rem',
+                  fontSize: '1rem',
+                  borderRadius: '0.75rem',
+                  border: '1px solid #d1d5db',
+                  fontFamily: 'Inter, sans-serif',
+                  outline: 'none'
+                }}
+              />
+            </div>
+            <button
+              onClick={handleSearch}
+              style={{
+                padding: '0.75rem 1.5rem',
+                backgroundColor: '#2563eb',
+                color: 'white',
+                border: 'none',
+                borderRadius: '0.75rem',
+                fontSize: '1rem',
+                fontWeight: '600',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              Search
+            </button>
+          </div>
+
+          {/* Live Search Results */}
+          {showSearchResults && (
+            <div style={{
+              position: 'absolute',
+              top: '100%',
+              left: '2rem',
+              right: '2rem',
+              backgroundColor: 'white',
               border: '1px solid #d1d5db',
-              fontFamily: 'Inter, sans-serif',
-              outline: 'none',
-              minWidth: '220px'
-            }}
-          />
-          <input
-            type="text"
-            placeholder="Search CV by Phone Number"
-            value={searchPhone}
-            onChange={(e) => setSearchPhone(e.target.value)}
-            style={{
-              flex: '1',
-              padding: '0.75rem 1rem',
-              fontSize: '1rem',
               borderRadius: '0.75rem',
-              border: '1px solid #d1d5db',
-              fontFamily: 'Inter, sans-serif',
-              outline: 'none',
-              minWidth: '220px'
-            }}
-          />
-          <button
-            onClick={handleSearch}
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#2563eb',
-              color: 'white',
-              border: 'none',
-              borderRadius: '0.75rem',
-              fontSize: '1rem',
-              fontWeight: '600',
-              cursor: 'pointer',
-              whiteSpace: 'nowrap'
-            }}
-          >
-            Search
-          </button>
+              boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+              zIndex: 1000,
+              maxHeight: '400px',
+              overflowY: 'auto'
+            }}>
+              {isSearching ? (
+                <div style={{
+                  padding: '1rem',
+                  textAlign: 'center',
+                  color: '#6b7280'
+                }}>
+                  Searching...
+                </div>
+              ) : searchResults.length > 0 ? (
+                <div>
+                  {searchResults.map((cv, index) => (
+                    <div
+                      key={index}
+                      onClick={() => handleSelectSearchResult(cv)}
+                      style={{
+                        padding: '1rem',
+                        borderBottom: index < searchResults.length - 1 ? '1px solid #f3f4f6' : 'none',
+                        cursor: 'pointer',
+                        transition: 'background-color 0.2s'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.backgroundColor = '#f9fafb';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.backgroundColor = 'white';
+                      }}
+                    >
+                      <div style={{
+                        fontWeight: '600',
+                        fontSize: '1rem',
+                        color: '#111827',
+                        marginBottom: '0.25rem'
+                      }}>
+                        {cv.name || 'Unnamed CV'}
+                      </div>
+                      <div style={{
+                        fontSize: '0.875rem',
+                        color: '#6b7280'
+                      }}>
+                        {cv.phone && `📞 ${cv.phone}`}
+                        {cv.phone && cv.email && ' • '}
+                        {cv.email && `📧 ${cv.email}`}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{
+                  padding: '1rem',
+                  textAlign: 'center',
+                  color: '#6b7280'
+                }}>
+                  No results found
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -880,13 +1116,13 @@ const Form = ({ formData, setFormData, onChange, user, isAdminAccess = false, on
             <div className="skills-entry">
               <input
                 type="text"
-                value={entry.name}
+                value={entry?.name || ''}
                 onChange={(e) => handleArrayChange('skills', index, e.target.value, 'name')}
                 placeholder="Skill"
               />
               <input
                 type="text"
-                value={entry.percentage}
+                value={entry?.percentage || ''}
                 onChange={(e) => handleArrayChange('skills', index, e.target.value, 'percentage')}
                 placeholder="Percentage"
                 name="percentage"
@@ -1361,20 +1597,28 @@ const DynamicSection = ({ title, entries, onChange, onAdd, onRemove, placeholder
     if (title === 'References') {
       return 'References would be furnished on demand';
     }
+    if (title === 'Skills') {
+      return { name: '', percentage: '' };
+    }
     return '';
   };
   
-  const displayEntries = entries && entries.length > 0 ? entries : [getDefaultEntry()];
+  // For skills section, only show entries if they exist (no default entry)
+  // For other sections, use default entry only if it's a string
+  const defaultEntry = getDefaultEntry();
+  const displayEntries = entries && entries.length > 0 ? entries : 
+    (title === 'Skills') ? [] : 
+    (typeof defaultEntry === 'string') ? [defaultEntry] : [];
   
   return (
   <div className="dynamic-section" style={{ marginBottom: '1rem' }}>
     <h3 style={{ fontWeight: 700, fontSize: '1.25rem', marginBottom: 8, color: '#374151' }}>{title}</h3>
     {displayEntries.map((entry, index) => (
       <div key={index} className="dynamic-entry" style={{ marginBottom: '12px', display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
-        {renderEntry ? renderEntry(entry, index) : (
+        {renderEntry && entry ? renderEntry(entry, index) : (
           <>
             <textarea
-              value={entry}
+              value={typeof entry === 'string' ? entry : ''}
               onChange={(e) => onChange(index, e.target.value)}
               rows={rows}
               placeholder={placeholder}
