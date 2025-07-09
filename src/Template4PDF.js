@@ -21,8 +21,8 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
     { key: 'languages', title: 'Languages' },
     { key: 'hobbies', title: 'Hobbies' },
     { key: 'customSections', title: 'Custom Sections' },
-    { key: 'references', title: 'References' },
     { key: 'otherInformation', title: 'Other Information' },
+    { key: 'references', title: 'References' },
   ];
 
   // Styles
@@ -50,7 +50,7 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
     padding: '30px',
     display: 'flex',
     flexDirection: 'column',
-    gap: '20px',
+    gap: '0px',
   };
 
   const photoContainerStyle = {
@@ -72,7 +72,7 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const contactRowStyle = {
-    fontSize: '14px',
+    fontSize: '16px',
     marginBottom: '8px',
     display: 'flex',
     alignItems: 'center',
@@ -80,7 +80,7 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const nameStyle = {
-    fontSize: '32px',
+    fontSize: '36px',
     fontWeight: 'bold',
     color: '#107268',
     marginBottom: '8px',
@@ -88,28 +88,28 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const titleStyle = {
-    fontSize: '18px',
+    fontSize: '20px',
     color: '#666',
     marginBottom: '20px',
     fontWeight: '500',
   };
 
   const sectionStyle = {
-    marginBottom: '6px',
+    marginBottom: '0px',
   };
 
   const sectionTitleStyle = {
-    fontSize: '18px',
+    fontSize: '20px',
     fontWeight: 'bold',
     color: '#107268',
-    marginBottom: '4px',
+    marginBottom: '8px',
     textTransform: 'uppercase',
     borderBottom: '2px solid #107268',
     paddingBottom: '2px',
   };
 
   const leftColumnSectionTitleStyle = {
-    fontSize: '16px',
+    fontSize: '18px',
     fontWeight: 'bold',
     color: '#ffffff',
     marginBottom: '3px',
@@ -117,16 +117,17 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const sectionContentStyle = {
-    fontSize: '14px',
+    fontSize: '16px',
     lineHeight: '1.4',
   };
 
   const paragraphStyle = {
     margin: '0px',
     padding: '0px',
-    fontSize: '14px',
+    fontSize: '16px',
     lineHeight: '1.0',
     display: 'block',
+    textAlign: 'justify',
   };
 
   const educationItemStyle = {
@@ -135,7 +136,7 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
 
   const degreeStyle = {
     fontWeight: 'bold',
-    fontSize: '14px',
+    fontSize: '16px',
     margin: '0px',
     padding: '0px',
     lineHeight: '1.0',
@@ -144,7 +145,7 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const institutionStyle = {
-    fontSize: '13px',
+    fontSize: '15px',
     margin: '0px',
     padding: '0px',
     lineHeight: '1.0',
@@ -158,7 +159,7 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
 
   const jobTitleStyle = {
     fontWeight: 'bold',
-    fontSize: '16px',
+    fontSize: '18px',
     color: '#107268',
     margin: '0px',
     padding: '0px',
@@ -167,7 +168,7 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const companyNameStyle = {
-    fontSize: '14px',
+    fontSize: '16px',
     color: '#666',
     margin: '0px',
     padding: '0px',
@@ -186,8 +187,19 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
     color: '#ffffff',
     padding: '4px 12px',
     borderRadius: '12px',
-    fontSize: '12px',
+    fontSize: '14px',
     fontWeight: '500',
+  };
+
+  const languageItemStyle = {
+    backgroundColor: '#107268',
+    color: '#ffffff',
+    padding: '6px 14px',
+    borderRadius: '15px',
+    fontSize: '14px',
+    fontWeight: '500',
+    margin: '2px',
+    display: 'inline-block',
   };
 
   const listStyle = {
@@ -197,7 +209,7 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
 
   const listItemStyle = {
     marginBottom: '0px',
-    fontSize: '14px',
+    fontSize: '16px',
   };
 
   // Check admin status on component mount
@@ -352,7 +364,7 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
   const renderSection = (key, title, content, isLeftColumn) => {
     if (!hasData(key) || !content) return null;
     return (
-      <div style={sectionStyle}>
+      <div style={isLeftColumn ? sectionStyle : { ...sectionStyle, marginBottom: '0px' }}>
         <h2 style={isLeftColumn ? leftColumnSectionTitleStyle : sectionTitleStyle}>
           {title}
         </h2>
@@ -420,9 +432,13 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
   );
 
   const renderLanguages = (languages) => (
-    <p style={paragraphStyle}>
-      {languages.join(', ')}
-    </p>
+    <div style={skillsContainerStyle}>
+      {languages.map((language, index) => (
+        <div key={index} style={languageItemStyle}>
+          {language}
+        </div>
+      ))}
+    </div>
   );
 
   const renderOtherInformation = (otherInfo) => {
@@ -439,7 +455,7 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
       <ul style={listStyle}>
         {checkedItems.map((item, idx) => (
           <li key={idx} style={listItemStyle}>
-            {item.label} {item.value || '-'}
+            {item.label}: {item.value || '-'}
           </li>
         ))}
       </ul>
@@ -519,7 +535,7 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
   ];
 
   const leftColumnSections = ['education', 'certifications', 'projects', 'hobbies'];
-  const rightColumnSections = ['objective', 'workExperience', 'skills', 'languages', 'customSections', 'otherInformation'];
+  const rightColumnSections = ['objective', 'workExperience', 'skills', 'languages', 'customSections', 'otherInformation', 'references'];
 
   const sectionData = {
     objective: renderObjective(objective),
@@ -540,7 +556,9 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
       <div ref={containerRef} style={containerStyle}>
         <div style={leftColumnStyle}>
           <div style={photoContainerStyle}>
-            {imageUrl ? (
+            {formData.image ? (
+              <img src={URL.createObjectURL(formData.image)} alt="Profile" style={photoStyle} />
+            ) : imageUrl ? (
               <img src={imageUrl} alt="Profile" style={photoStyle} />
             ) : (
               <div style={{...photoStyle, background: '#107268' }} />
@@ -560,25 +578,12 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
         </div>
         <div style={rightColumnStyle}>
           <h1 style={nameStyle}>{name || 'Your Name'}</h1>
-          <h2 style={titleStyle}>{professionalTitle}</h2>
           {sectionList
             .filter(section => rightColumnSections.includes(section.key))
             .map(section =>
               renderSection(section.key, section.title, sectionData[section.key], false)
             )}
         </div>
-        {/* References Section - Always at the very end */}
-        {hasData('references') && (
-          <div style={{ 
-            width: '100%', 
-            padding: '20px 30px', 
-            borderTop: '2px solid #107268',
-            marginTop: '10px'
-          }}>
-            <h3 style={sectionTitleStyle}>References</h3>
-            {sectionData.references}
-          </div>
-        )}
       </div>
 
       {/* Download Button */}
