@@ -132,7 +132,7 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const educationItemStyle = {
-    marginBottom: '0px',
+    marginBottom: '10px',
   };
 
   const degreeStyle = {
@@ -140,16 +140,17 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
     fontSize: '16px',
     margin: '0px',
     padding: '0px',
-    lineHeight: '1.0',
+    lineHeight: '1.2',
     color: '#ffffff',
     display: 'block',
+    marginBottom: '2px',
   };
 
   const institutionStyle = {
     fontSize: '15px',
     margin: '0px',
     padding: '0px',
-    lineHeight: '1.0',
+    lineHeight: '1.2',
     color: '#ffffff',
     display: 'block',
   };
