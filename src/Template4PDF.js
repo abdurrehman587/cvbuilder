@@ -125,9 +125,10 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
     margin: '0px',
     padding: '0px',
     fontSize: '16px',
-    lineHeight: '1.0',
+    lineHeight: '1.3',
     display: 'block',
     textAlign: 'justify',
+    marginBottom: '3px',
   };
 
   const educationItemStyle = {
@@ -154,7 +155,7 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const workExperienceItemStyle = {
-    marginBottom: '0px',
+    marginBottom: '12px',
   };
 
   const jobTitleStyle = {
@@ -163,8 +164,9 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
     color: '#107268',
     margin: '0px',
     padding: '0px',
-    lineHeight: '1.0',
+    lineHeight: '1.2',
     display: 'block',
+    marginBottom: '4px',
   };
 
   const companyNameStyle = {
@@ -172,8 +174,9 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
     color: '#666',
     margin: '0px',
     padding: '0px',
-    lineHeight: '1.0',
+    lineHeight: '1.2',
     display: 'block',
+    marginBottom: '6px',
   };
 
   const skillsContainerStyle = {
@@ -359,7 +362,26 @@ const Template4PDF = ({ formData, visibleSections = [] }) => {
     }
   };
 
-  const hasData = (sectionKey) => visibleSections.includes(sectionKey);
+  const hasData = (sectionKey) => {
+    // First check if section is in visibleSections
+    if (!visibleSections.includes(sectionKey)) return false;
+    
+    // Then check if there's actual data for this section
+    const sectionContent = sectionData[sectionKey];
+    if (!sectionContent) return false;
+    
+    // For specific sections, check if they have meaningful content
+    switch (sectionKey) {
+      case 'certifications':
+        return certifications && certifications.length > 0 && certifications.some(cert => cert && cert.trim());
+      case 'projects':
+        return projects && projects.length > 0 && projects.some(project => project && project.trim());
+      case 'hobbies':
+        return hobbies && hobbies.length > 0 && hobbies.some(hobby => hobby && hobby.trim());
+      default:
+        return true; // For other sections, just check if content exists
+    }
+  };
 
   const renderSection = (key, title, content, isLeftColumn) => {
     if (!hasData(key) || !content) return null;
