@@ -15,6 +15,8 @@ const sectionList = [
   { key: 'otherInformation', title: 'Other Information' },  // Added new section
 ];
 
+const rightColumnSections = ['objective', 'workExperience', 'skills', 'languages', 'customSections', 'otherInformation', 'references'];
+
 // Helper function to check if a section has data
 const hasSectionData = (formData, sectionKey) => {
   switch (sectionKey) {

@@ -296,13 +296,38 @@ const Template7PDF = ({ formData, visibleSections = [] }) => {
     </div>
   );
 
-  const renderSimpleList = (items) => (
-    <ul style={listStyle}>
-      {items.map((item, idx) => (
-        <li key={idx} style={listItemStyle}>{item}</li>
-      ))}
-    </ul>
-  );
+  const renderSimpleList = (items) => {
+    if (!Array.isArray(items)) return null;
+    
+    // Filter out empty items and handle objects
+    const validItems = items.filter(item => {
+      if (item === null || item === undefined) return false;
+      if (typeof item === 'string') return item.trim() !== '';
+      if (typeof item === 'object') {
+        // For skill objects, check if they have a name
+        if (item.name !== undefined) return item.name && item.name.trim() !== '';
+        // For other objects, try to get a displayable value
+        const value = item.label || item.value || item.name;
+        return value && value.trim() !== '';
+      }
+      return true;
+    });
+
+    if (validItems.length === 0) return null;
+
+    return (
+      <ul style={listStyle}>
+        {validItems.map((item, idx) => (
+          <li key={idx} style={listItemStyle}>
+            {typeof item === 'string' ? item : 
+             typeof item === 'object' && item !== null ? 
+               (item.label || item.value || item.name || JSON.stringify(item)) : 
+               String(item)}
+          </li>
+        ))}
+      </ul>
+    );
+  };
 
   const renderLanguages = (languages) => (
     <div style={tagsContainerStyle}>
