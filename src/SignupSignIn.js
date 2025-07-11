@@ -163,6 +163,10 @@ const SignupSignIn = ({ onAuth }) => {
     setEmail('');
     setPassword('');
     setError('');
+    // Clear admin access when going back to login
+    localStorage.removeItem('admin_cv_access');
+    localStorage.removeItem('admin_user');
+    localStorage.removeItem('admin_selected_cv');
   };
 
   // If admin panel is shown, render the admin interface

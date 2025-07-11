@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import supabase from './supabase';
 import SignupSignIn from './SignupSignIn';
-import LandingPage from './landingpage';
+import ChooseTemplate from './choosetemplate';
 import DatabaseSetupCheck from './DatabaseSetupCheck';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -419,7 +419,7 @@ const App = () => {
         <span className="mobile-hidden">Sign Out</span>
       </button>
 
-      <LandingPage user={user} />
+              <ChooseTemplate user={user} />
     </div>
   );
 };

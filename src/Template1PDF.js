@@ -185,8 +185,8 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const listStyle = {
-    listStyleType: 'disc',
-    paddingLeft: '12px', // reduced from 18px
+    listStyleType: 'none',
+    paddingLeft: '0px',
     marginBottom: '2px', // reduced from 4px
   };
 
@@ -194,6 +194,9 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
     fontSize: '0.85rem', // restored original font size
     marginBottom: '1px', // reduced from 2px
     color: '#444',
+    position: 'relative',
+    paddingLeft: '16px',
+    lineHeight: '1.4',
   };
 
   const tableStyle = {
@@ -368,9 +371,11 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
             <span style={{
               position: 'absolute',
               left: '0',
+              top: '0',
               color: '#3f51b5',
               fontWeight: 'bold',
-              fontSize: '0.9rem',
+              fontSize: '0.85rem',
+              lineHeight: '1.4',
             }}>✦</span>
             {typeof item === 'string' ? item : 
              typeof item === 'object' && item !== null ? 
@@ -408,6 +413,15 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
         <ul style={listStyle}>
           {checkedItems.map((item, idx) => (
             <li key={idx} style={listItemStyle}>
+              <span style={{
+                position: 'absolute',
+                left: '0',
+                top: '0',
+                color: '#3f51b5',
+                fontWeight: 'bold',
+                fontSize: '0.85rem',
+                lineHeight: '1.4',
+              }}>✦</span>
               {item.label} {item.value || '-'}
             </li>
           ))}
@@ -456,7 +470,18 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
           <h2 style={sectionTitleStyle}>{sectionTitle}</h2>
           <ul style={listStyle}>
             {validItems.map((item, detailIndex) => (
-              <li key={detailIndex} style={listItemStyle}>{item}</li>
+              <li key={detailIndex} style={listItemStyle}>
+                <span style={{
+                  position: 'absolute',
+                  left: '0',
+                  top: '0',
+                  color: '#3f51b5',
+                  fontWeight: 'bold',
+                  fontSize: '0.85rem',
+                  lineHeight: '1.4',
+                }}>✦</span>
+                {item}
+              </li>
             ))}
           </ul>
         </div>

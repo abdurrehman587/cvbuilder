@@ -1,721 +1,168 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef } from 'react';
 import PropTypes from 'prop-types';
-import ManualPayment from './ManualPayment';
-import { PaymentService } from './paymentService';
 
-const sectionList = [
-  { key: 'objective', title: 'Objective' },
-  { key: 'education', title: 'Education' },
-  { key: 'workExperience', title: 'Work Experience' },
-  { key: 'otherInformation', title: 'Other Information' },  // Moved early here as per order
-  { key: 'skills', title: 'Skills' },
-  { key: 'certifications', title: 'Certifications' },
-  { key: 'projects', title: 'Projects' },
-  { key: 'languages', title: 'Languages' },
-  { key: 'hobbies', title: 'Hobbies' },
-  { key: 'references', title: 'References' },
-];
+const europassLogoUrl = '/europass_logo.png'; // Use local logo from public folder
 
-// Load html2pdf from CDN dynamically
-const loadHtml2Pdf = () => {
-  if (window.html2pdf) return Promise.resolve(window.html2pdf);
-  return new Promise((resolve, reject) => {
-    const script = document.createElement('script');
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
-    script.onload = () => resolve(window.html2pdf);
-    script.onerror = () => reject(new Error('Failed to load html2pdf.js'));
-    document.body.appendChild(script);
-  });
+const sectionTitleStyle = {
+  fontWeight: 'bold',
+  fontSize: '18px',
+  textTransform: 'uppercase',
+  borderBottom: '2px solid #888',
+  marginTop: '32px',
+  marginBottom: '12px',
+  letterSpacing: '0.5px',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
 };
 
-const Template1PDF = ({ formData, visibleSections = [] }) => {
+// Helper to extract Date of Birth from otherInformation
+const getDateOfBirth = (formData) => {
+  if (formData.dateOfBirth || formData.dob || formData.birthDate) {
+    return formData.dateOfBirth || formData.dob || formData.birthDate;
+  }
+  if (Array.isArray(formData.otherInformation)) {
+    const dobEntry = formData.otherInformation.find(
+      (item) => item.label && item.label.toLowerCase().includes('date of birth')
+    );
+    if (dobEntry && dobEntry.value) return dobEntry.value;
+  }
+  return '';
+};
+
+const Template5PDF = ({ formData }) => {
   const containerRef = useRef(null);
-  const buttonRef = useRef(null);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [buttonText, setButtonText] = useState('Loading...');
-  const [isAdminUser, setIsAdminUser] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const containerStyle = {
-    width: '700px',
-    margin: '2px auto 0',  // Reduced top margin from 6px to 2px
-    padding: '18px',
-    background: '#fdfdfd',
-    borderRadius: '10px',
-    fontFamily: "'Open Sans', Arial, sans-serif",
-    color: '#333',
-    display: 'flex',
-    flexDirection: 'column',
-    boxSizing: 'border-box',
-    minHeight: '297mm',
-  };
-
-  const headerStyle = {
-    display: 'flex',
-    alignItems: 'center', // Vertical center alignment
-    height: '140px', // Same as image height for stable vertical centering
-    marginBottom: '16px',
-    gap: '16px',
-    breakInside: 'avoid',
-    pageBreakInside: 'avoid',
-  };
-
-  const photoStyle = {
-    flexShrink: 0,
-    width: '140px',
-    height: '140px',
-    borderRadius: '50%',
-    objectFit: 'cover',
-    border: '3px solid #3f51b5',
-    boxShadow: '0 3px 12px rgba(63,81,181,0.3)',
-  };
-
-  const noPhotoPlaceholderStyle = {
-    ...photoStyle,
-    backgroundColor: '#e0e0e0',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: '#888',
-    fontStyle: 'italic',
-    fontSize: '0.95rem',
-  };
-
-  const personalInfoStyle = {
-    flexGrow: 1,
-    height: '100%', // Fill header height for vertical centering
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center', // Vertically centers name and contacts within header height
-    color: '#3f51b5',
-  };
-
-  const nameStyle = {
-    fontSize: '2.3rem',        // Slightly increased size from 2rem
-    fontWeight: 700,
-    margin: 0,                // Remove margin for tight stacking
-    letterSpacing: '0.05em',
-  };
-
-  const contactRowStyle = {
-    fontSize: '1rem',          // Increased from 0.85rem
-    margin: '2px 0',           // Keep smaller vertical margins for tight spacing
-    color: '#555',
-  };
-
-  const sectionStyle = {
-    marginBottom: '10px',
-    paddingBottom: '2px',
-    borderBottom: '1px solid #ddd',
-    breakInside: 'avoid',
-    pageBreakInside: 'avoid',
-    pageBreakAfter: 'auto',
-  };
-
-  const sectionTitleStyle = {
-    fontFamily: "'Merriweather', serif",
-    fontWeight: 700,
-    fontSize: '1.2rem',
-    color: '#3f51b5',
-    marginBottom: '6px',
-    textTransform: 'uppercase',
-    letterSpacing: '0.05em',
-    borderLeft: '4px solid #3f51b5',
-    paddingLeft: '8px',
-  };
-
-  const paragraphStyle = {
-    fontSize: '0.85rem',
-    lineHeight: 1.25,
-    color: '#444',
-    marginBottom: '6px',
-  };
-
-  const listStyle = {
-    listStyleType: 'disc',
-    paddingLeft: '18px',
-    marginBottom: '4px',
-  };
-
-  const listItemStyle = {
-    fontSize: '0.85rem',
-    marginBottom: '2px',
-    color: '#444',
-  };
-
-  const tableStyle = {
-    width: '100%',
-    borderCollapse: 'collapse',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-    marginBottom: '8px',
-  };
-
-  const tableHeaderStyle = {
-    backgroundColor: '#3f51b5',
-    color: '#fff',
-    textAlign: 'left',
-    padding: '6px 8px',
-    fontWeight: 700,
-    letterSpacing: '0.04em',
-    fontSize: '0.85rem', // Decreased font size for headers
-  };
-
-  const tableRowStyle = {
-    borderBottom: '1px solid #eee',
-  };
-
-  const tableCellStyle = {
-    padding: '6px 8px',
-    color: '#444',
-    fontSize: '0.85rem',
-  };
-
-  const skillsContainerStyle = {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '8px 16px',
-  };
-
-  const skillBarContainer = {
-    backgroundColor: '#eee',
-    borderRadius: 10,
-    height: 14,
-    width: '100%',
-    overflow: 'hidden',
-  };
-
-  const skillBarFill = (percent) => ({
-    height: '100%',
-    width: percent,
-    backgroundColor: '#3f51b5',
-    borderRadius: '10px 0 0 10px',
-  });
-
-  const tagsContainerStyle = {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: 6,
-  };
-
-  const tagStyle = {
-    backgroundColor: '#3f51b5',
-    color: '#fff',
-    padding: '4px 10px',
-    borderRadius: 20,
-    fontSize: '0.85rem',
-    fontWeight: 600,
-    userSelect: 'none',
-  };
-
-  const renderEducation = (education) => (
-    <table style={tableStyle} aria-label="Education details">
-      <thead>
-        <tr>
-          <th style={tableHeaderStyle}>Degree</th>
-          <th style={tableHeaderStyle}>Institute</th>
-          <th style={tableHeaderStyle}>Year</th>
-        </tr>
-      </thead>
-      <tbody>
-        {education.map((item, idx) => (
-          <tr key={idx} style={tableRowStyle}>
-            <td style={tableCellStyle}>{item.degree || '-'}</td>
-            <td style={tableCellStyle}>{item.institute || '-'}</td>
-            <td style={tableCellStyle}>{item.year || '-'}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-
-  const renderWorkExperience = (workExp) => (
-    <table style={tableStyle} aria-label="Work experience details">
-      <thead>
-        <tr>
-          <th style={tableHeaderStyle}>Company</th>
-          <th style={tableHeaderStyle}>Designation</th>
-          <th style={tableHeaderStyle}>Duration</th>
-        </tr>
-      </thead>
-      <tbody>
-        {workExp.map((item, idx) => (
-          <tr key={idx} style={tableRowStyle}>
-            <td style={tableCellStyle}>{item.company || '-'}</td>
-            <td style={tableCellStyle}>{item.designation || '-'}</td>
-            <td style={tableCellStyle}>{item.duration || '-'}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-
-  const renderSkills = (skills) => (
-    <div style={skillsContainerStyle}>
-      {skills.map((skill, idx) => {
-        let name = '';
-        let percentage = '0%';
-        if (typeof skill === 'string') {
-          name = skill;
-          percentage = '';
-        } else if (skill.name) {
-          name = skill.name;
-          percentage = skill.percentage || '0%';
-        }
-        return (
-          <div key={idx} style={{ display: 'flex', flexDirection: 'column' }}>
-            <div
-              style={{
-                fontWeight: 600,
-                fontSize: '0.9rem',
-                marginBottom: 3,
-                color: '#1e88e5',
-              }}
-              title={percentage}
-            >
-              {name} {percentage ? `(${percentage})` : ''}
-            </div>
-            <div style={skillBarContainer}>
-              <div style={skillBarFill(percentage)} />
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-
-  const renderSimpleList = (items) => {
-    if (!Array.isArray(items)) return null;
-    
-    // Filter out empty items and handle objects
-    const validItems = items.filter(item => {
-      if (item === null || item === undefined) return false;
-      if (typeof item === 'string') return item.trim() !== '';
-      if (typeof item === 'object') {
-        // For skill objects, check if they have a name
-        if (item.name !== undefined) return item.name && item.name.trim() !== '';
-        // For other objects, try to get a displayable value
-        const value = item.label || item.value || item.name;
-        return value && value.trim() !== '';
-      }
-      return true;
-    });
-
-    if (validItems.length === 0) return null;
-
-    return (
-      <ul style={listStyle}>
-        {validItems.map((item, idx) => (
-          <li key={idx} style={listItemStyle}>
-            {typeof item === 'string' ? item : 
-             typeof item === 'object' && item !== null ? 
-               (item.label || item.value || item.name || JSON.stringify(item)) : 
-               String(item)}
-          </li>
-        ))}
-      </ul>
-    );
-  };
-
-  const renderLanguages = (languages) => (
-    <div style={tagsContainerStyle}>
-      {languages.map((lang, idx) => (
-        <div key={idx} style={tagStyle} title={lang}>
-          {lang}
-        </div>
-      ))}
-    </div>
-  );
-
-  const renderOtherInformation = (otherInfo) => {
-    if (!otherInfo || otherInfo.length === 0) return null;
-
-    const checkedItems = otherInfo.filter(item => 
-      (item.labelType === 'radio' && item.checked) ||
-      (item.labelType === 'checkbox' && item.checked)
-    );
-
-    if (checkedItems.length === 0) return null;
-
-    return (
-      <div style={styles.leftSection}>
-        <h2 style={styles.leftSectionTitle}>Other Information</h2>
-        <ul style={styles.list}>
-          {checkedItems.map((item, idx) => (
-            <li key={idx} style={styles.listItem}>
-              {item.label} {item.value || '-'}
-            </li>
-          ))}
-        </ul>
-      </div>
-    );
-  };
-
-  const renderCustomSections = (customSections) => {
-    if (!customSections || customSections.length === 0) return null;
-
-    return customSections.map((section, sectionIndex) => {
-      // More lenient validation: require details but heading can be empty
-      if (!section.details || section.details.length === 0) {
-        console.log(`Template5PDF - section ${sectionIndex} invalid: no details`);
-        return null;
-      }
-
-      // Use default heading if empty
-      const sectionHeading = section.heading?.trim() || 'Additional Information';
-      
-      console.log(`Template5PDF - rendering section ${sectionIndex}:`, sectionHeading);
-      return (
-        <div key={sectionIndex} style={sectionStyle} aria-label={`${sectionHeading} Section`}>
-          <h2 style={sectionTitleStyle}>{sectionHeading}</h2>
-          <ul style={listStyle}>
-            {section.details.map((detail, detailIndex) => (
-              <li key={detailIndex} style={listItemStyle}>{detail}</li>
-            ))}
-          </ul>
-        </div>
-      );
-    });
-  };
-
-  const combinedLanguages = (() => {
-    if (!formData.languages) return [];
-    if (!formData.customLanguages || formData.customLanguages.length === 0) return formData.languages;
-    const customSelected = formData.customLanguages
-      .filter(l => l.selected && l.name.trim() !== '')
-      .map(l => l.name.trim());
-    return [...new Set([...formData.languages, ...customSelected])];
-  })();
-
-  // Check admin status and payment status on component mount
-  useEffect(() => {
-    const checkAdminStatus = async () => {
-      try {
-        // Wait a bit for authentication to be established
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
-        // Check both localStorage and user object for admin access
-        const adminAccess = localStorage.getItem('admin_cv_access');
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
-        
-        console.log('Template5PDF - Admin status check:', {
-          adminAccess,
-          user: user?.email,
-          userIsAdmin: user?.isAdmin,
-          isAdmin
-        });
-        
-        setIsAdminUser(isAdmin);
-        setIsLoading(false);
-      } catch (error) {
-        console.error('Error checking admin status:', error);
-        setIsAdminUser(false);
-        setIsLoading(false);
-      }
-    };
-
-    checkAdminStatus();
-  }, []);
-
-  // Add a periodic check to maintain admin status
-  useEffect(() => {
-    const checkAdminStatus = () => {
-      const adminAccess = localStorage.getItem('admin_cv_access');
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
-      
-      if (isAdmin !== isAdminUser) {
-        setIsAdminUser(isAdmin);
-        console.log('Admin status updated:', isAdmin);
-      }
-    };
-
-    // Check every 5 seconds
-    const interval = setInterval(checkAdminStatus, 5000);
-    
-    return () => clearInterval(interval);
-  }, [isAdminUser]);
-
-  // Update button text based on payment status
-  useEffect(() => {
-    const updateButtonText = async () => {
-      // Don't update button text while loading
-      if (isLoading) {
-        setButtonText('Loading...');
-        return;
-      }
-
-      if (isAdminUser) {
-        setButtonText('Download PDF (Admin)');
-        return;
-      }
-
-      try {
-        const text = await PaymentService.getDownloadButtonText('template5', isAdminUser);
-        setButtonText(text);
-      } catch (error) {
-        console.error('Error getting button text:', error);
-        setButtonText('Download PDF (PKR 100)');
-      }
-    };
-
-    updateButtonText();
-  }, [isAdminUser, isLoading]);
-
-  const generatePDF = async () => {
-    if (!containerRef.current || !buttonRef.current) {
-      alert('Preview content is not available for PDF generation');
-      return;
-    }
-
-    try {
-      buttonRef.current.style.display = 'none';
-
-      const html2pdf = await loadHtml2Pdf();
-
-      await html2pdf()
-        .set({
-          margin: 10,
-          filename: `${formData.name || 'CV'}_template5.pdf`,
-          image: { type: 'png', quality: 0.98 },
-          html2canvas: {
-            scale: 3,
-            useCORS: true,
-            letterRendering: 1,
-            backgroundColor: null,
-            scrollY: 0,
-          },
-          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-          pagebreak: { mode: ['css', 'legacy'] },
-        })
-        .from(containerRef.current)
-        .save();
-
-      // Mark the user's approved payment as used (only for non-admin users)
-      if (!isAdminUser) {
-        try {
-          const approvedPayment = await PaymentService.checkApprovedPayment('template5');
-          if (approvedPayment) {
-            await PaymentService.markPaymentAsUsed(approvedPayment.id, 'template5');
-            console.log('Payment marked as used after download');
-            
-            // Refresh button text after marking payment as used
-            const newButtonText = await PaymentService.getDownloadButtonText('template5', isAdminUser);
-            setButtonText(newButtonText);
-            console.log('Button text refreshed after download:', newButtonText);
-          }
-        } catch (error) {
-          console.error('Error marking payment as used:', error);
-        }
-      }
-      
-    } catch (error) {
-      alert('Error generating PDF: ' + error.message);
-    } finally {
-      buttonRef.current.style.display = 'inline-block';
-    }
-  };
-
-  const handleDownloadClick = async () => {
-    console.log('=== DOWNLOAD CLICK START ===');
-    console.log('Template5PDF - handleDownloadClick called');
-    console.log('Template5PDF - isAdminUser:', isAdminUser);
-    
-    if (isAdminUser) {
-      console.log('Template5PDF - Admin user, generating PDF directly');
-      generatePDF();
-      return;
-    }
-    
-    try {
-      // Check if user has an approved payment first
-      const approvedPayment = await PaymentService.checkApprovedPayment('template5');
-      console.log('Template5PDF - approvedPayment:', approvedPayment);
-      
-      if (approvedPayment) {
-        // User has an approved payment, allow download
-        console.log('Template5PDF - Payment approved, generating PDF');
-        generatePDF();
-      } else {
-        // Check if user has already downloaded (informational)
-        const downloadedPayment = await PaymentService.checkDownloadedPayment('template5');
-        if (downloadedPayment) {
-          console.log('Template5PDF - CV already downloaded, showing payment modal for new download');
-          alert('You have already downloaded this CV. Please make a new payment to download again.');
-        }
-        
-        // Show payment modal
-        console.log('Template5PDF - No approved payment, showing modal');
-        setShowPaymentModal(true);
-      }
-    } catch (error) {
-      console.error('Error checking payment status:', error);
-      setShowPaymentModal(true);
-    }
-  };
-
-  const handlePaymentSuccess = (paymentData) => {
-    setShowPaymentModal(false);
-    
-    // Update button text to reflect pending payment status
-    setButtonText('Payment Submitted (Waiting for Approval)');
-    
-    // Don't auto-download - wait for admin approval
-    alert(`Payment proof submitted successfully!\n\nPayment ID: ${paymentData.paymentId}\n\nPlease wait for manual verification. You will be able to download once approved.`);
-  };
-
-  const handlePaymentFailure = (error) => {
-    setShowPaymentModal(false);
-    console.error('Payment failed:', error);
-    alert('Payment failed. Please try again.');
-  };
-
-
+  const {
+    name = '',
+    nationality = '',
+    gender = '',
+    phone = '',
+    email = '',
+    address = '',
+    education = [],
+    workExperience = [],
+    languages = [],
+    languageSkills = {},
+    hobbies = [],
+  } = formData;
+  const dateOfBirth = getDateOfBirth(formData);
 
   return (
-    <article ref={containerRef} style={containerStyle}>
-      <header style={headerStyle}>
-        {formData.image ? (
-          <img
-            src={URL.createObjectURL(formData.image)}
-            alt="Profile"
-            style={photoStyle}
-          />
-        ) : (
-          <div style={noPhotoPlaceholderStyle}>No Photo</div>
-        )}
-        <div style={personalInfoStyle}>
-          {formData.name && <h1 style={nameStyle}>{formData.name}</h1>}
-          {formData.phone && <p style={contactRowStyle}>📞 {formData.phone}</p>}
-          {formData.email && <p style={contactRowStyle}>✉️ {formData.email}</p>}
-          {formData.address && <p style={contactRowStyle}>📍 {formData.address}</p>}
+    <div ref={containerRef} style={{ fontFamily: 'Arial, sans-serif', background: '#fff', color: '#222', padding: '16px 32px 32px 32px', maxWidth: 900, margin: '0 auto' }}>
+      {/* Header */}
+      <div style={{ position: 'relative', borderBottom: '2px solid #bbb', paddingBottom: 16, marginBottom: 24, minHeight: 120 }}>
+        <img src={europassLogoUrl} alt="Europass Logo" style={{ position: 'absolute', top: -45, right: -30, width: 320, height: 'auto', zIndex: 2 }} />
+        <div style={{ paddingTop: 15 }}>
+          <h1 style={{ fontSize: 32, fontWeight: 'bold', margin: 0, marginBottom: 24 }}>{name || 'Your Name'}</h1>
+          <div style={{ marginTop: 16, fontSize: 16 }}>
+            <span style={{ fontWeight: 'bold' }}>Phone number:</span> {phone || 'Phone'} |
+            <span style={{ fontWeight: 'bold' }}> Date of birth:</span> {dateOfBirth || 'DD/MM/YYYY'} |
+            <span style={{ fontWeight: 'bold' }}> Nationality:</span> {nationality || 'Nationality'} |
+            <span style={{ fontWeight: 'bold' }}> Gender:</span> {gender || 'Gender'}
+          </div>
+          <div style={{ fontSize: 16, marginTop: 4, wordBreak: 'keep-all', hyphens: 'none', whiteSpace: 'normal' }}>
+            <span style={{ fontWeight: 'bold' }}>Email address:</span> {email || 'your@email.com'}
+          </div>
+          <div style={{ fontSize: 16, marginTop: 4, wordBreak: 'keep-all', hyphens: 'none', whiteSpace: 'normal' }}>
+            <span style={{ fontWeight: 'bold' }}>Address:</span> {address || 'Your address'}
+          </div>
         </div>
-      </header>
+      </div>
 
-      {visibleSections.includes('objective') && formData.objective && (
-        <section style={sectionStyle} aria-label="Objective Section">
-          <h2 style={sectionTitleStyle}>Objective</h2>
-          {formData.objective.map((obj, idx) => (
-            <p key={idx} style={paragraphStyle}>{obj}</p>
-          ))}
-        </section>
-      )}
+      {/* Education Section */}
+      <div style={sectionTitleStyle}>Education and Training</div>
+      <div>
+        {education.map((edu, idx) => (
+          <div key={idx} style={{ marginBottom: 18 }}>
+            <div style={{ fontWeight: 'bold', fontSize: 15 }}>
+              {edu.degree || 'Degree'} {edu.year ? `(${edu.year})` : ''}
+            </div>
+            <div style={{ fontSize: 15, color: '#444' }}>{edu.institute || 'Institute'}</div>
+            {edu.details && <div style={{ fontSize: 14, color: '#666', marginTop: 2 }}>{edu.details}</div>}
+          </div>
+        ))}
+      </div>
 
-      {visibleSections.includes('education') && formData.education?.length > 0 && (
-        <section style={sectionStyle} aria-label="Education Section">
-          <h2 style={sectionTitleStyle}>Education</h2>
-          {renderEducation(formData.education)}
-        </section>
-      )}
+      {/* Language Skills Section */}
+      <div style={sectionTitleStyle}>Language Skills</div>
+      <div style={{ marginBottom: 12 }}>
+        <div style={{ fontWeight: 'bold', fontSize: 15 }}>Mother tongue(s): <span style={{ fontWeight: 'normal' }}>{languageSkills.motherTongue || 'Urdu'}</span></div>
+        {languageSkills.otherLanguages && languageSkills.otherLanguages.length > 0 && (
+          <div style={{ marginTop: 6 }}>
+            <div style={{ fontWeight: 'bold', fontSize: 15 }}>Other language(s):</div>
+            {/* Table for language skills */}
+            <table style={{ borderCollapse: 'collapse', width: '100%', marginTop: 6, fontSize: 14 }}>
+              <thead>
+                <tr style={{ background: '#f3f3f3' }}>
+                  <th style={{ border: '1px solid #bbb', padding: 4 }}>Language</th>
+                  <th style={{ border: '1px solid #bbb', padding: 4 }}>Listening</th>
+                  <th style={{ border: '1px solid #bbb', padding: 4 }}>Reading</th>
+                  <th style={{ border: '1px solid #bbb', padding: 4 }}>Spoken production</th>
+                  <th style={{ border: '1px solid #bbb', padding: 4 }}>Spoken interaction</th>
+                  <th style={{ border: '1px solid #bbb', padding: 4 }}>Writing</th>
+                </tr>
+              </thead>
+              <tbody>
+                {languageSkills.otherLanguages.map((lang, i) => (
+                  <tr key={i}>
+                    <td style={{ border: '1px solid #bbb', padding: 4, fontWeight: 'bold' }}>{lang.language}</td>
+                    <td style={{ border: '1px solid #bbb', padding: 4 }}>{lang.listening}</td>
+                    <td style={{ border: '1px solid #bbb', padding: 4 }}>{lang.reading}</td>
+                    <td style={{ border: '1px solid #bbb', padding: 4 }}>{lang.spokenProduction}</td>
+                    <td style={{ border: '1px solid #bbb', padding: 4 }}>{lang.spokenInteraction}</td>
+                    <td style={{ border: '1px solid #bbb', padding: 4 }}>{lang.writing}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div style={{ fontSize: 12, color: '#888', marginTop: 2 }}>
+              Levels: A1 and A2: Basic user; B1 and B2: Independent user; C1 and C2: Proficient user
+            </div>
+          </div>
+        )}
+      </div>
 
-      {visibleSections.includes('workExperience') && formData.workExperience?.length > 0 && (
-        <section style={sectionStyle} aria-label="Work Experience Section">
-          <h2 style={sectionTitleStyle}>Work Experience</h2>
-          {renderWorkExperience(formData.workExperience)}
-        </section>
-      )}
+      {/* Work Experience Section */}
+      <div style={sectionTitleStyle}>Work Experience</div>
+      <div>
+        {workExperience.map((job, idx) => (
+          <div key={idx} style={{ marginBottom: 22 }}>
+            <div style={{ fontWeight: 'bold', fontSize: 15 }}>
+              {job.designation || 'Job Title'} {job.company ? `| ${job.company}` : ''} {job.duration ? `(${job.duration})` : ''}
+            </div>
+            <div style={{ fontSize: 15, color: '#444' }}>{job.location || ''}</div>
+            {job.details && Array.isArray(job.details) ? (
+              <ul style={{ margin: '8px 0 0 18px', padding: 0, fontSize: 14, color: '#222' }}>
+                {job.details.map((d, i) => (
+                  <li key={i} style={{ marginBottom: 3 }}>{d}</li>
+                ))}
+              </ul>
+            ) : job.details ? (
+              <div style={{ marginTop: 6, fontSize: 14, color: '#222' }}>{job.details}</div>
+            ) : null}
+          </div>
+        ))}
+      </div>
 
-      {/* Insert Other Information section here after Work Experience */}
-      {visibleSections.includes('otherInformation') && renderOtherInformation(formData.otherInformation)}
-
-      {visibleSections.includes('skills') && formData.skills?.length > 0 && (
-        <section style={sectionStyle} aria-label="Skills Section">
-          <h2 style={sectionTitleStyle}>Skills</h2>
-          {renderSkills(formData.skills)}
-        </section>
-      )}
-
-      {visibleSections.includes('certifications') && formData.certifications?.length > 0 && (
-        <section style={sectionStyle} aria-label="Certifications Section">
-          <h2 style={sectionTitleStyle}>Certifications</h2>
-          {renderSimpleList(formData.certifications)}
-        </section>
-      )}
-
-      {visibleSections.includes('projects') && formData.projects?.length > 0 && (
-        <section style={sectionStyle} aria-label="Projects Section">
-          <h2 style={sectionTitleStyle}>Projects</h2>
-          {renderSimpleList(formData.projects)}
-        </section>
-      )}
-
-      {visibleSections.includes('languages') && combinedLanguages.length > 0 && (
-        <section style={sectionStyle} aria-label="Languages Section">
-          <h2 style={sectionTitleStyle}>Languages</h2>
-          {renderLanguages(combinedLanguages)}
-        </section>
-      )}
-
-      {visibleSections.includes('hobbies') && formData.hobbies?.length > 0 && (
-        <section style={sectionStyle} aria-label="Hobbies Section">
-          <h2 style={sectionTitleStyle}>Hobbies</h2>
-          {renderSimpleList(formData.hobbies)}
-        </section>
-      )}
-
-      {/* Custom Sections - rendered before references */}
-      {visibleSections.includes('customSections') && formData.customSections && formData.customSections.length > 0 && (
-        renderCustomSections(formData.customSections)
-      )}
-
-      {visibleSections.includes('references') && (
-        <section style={sectionStyle} aria-label="References Section">
-          <h2 style={sectionTitleStyle}>References</h2>
-          {formData.cv_references && formData.cv_references.length > 0 ? (
-            renderSimpleList(formData.cv_references)
-          ) : (
-            <p style={paragraphStyle}>References would be furnished on demand</p>
-          )}
-        </section>
-      )}
-
-      <button
-            ref={buttonRef}
-            type="button"
-            onClick={handleDownloadClick}
-            disabled={isLoading}
-            style={{
-              cursor: isLoading ? 'not-allowed' : 'pointer',
-              padding: '10px 20px',
-              fontSize: '1rem',
-              borderRadius: '5px',
-              border: 'none',
-              backgroundColor: isLoading ? '#cccccc' : '#22c55e',
-              color: 'white',
-              transition: 'background-color 0.3s ease',
-              opacity: isLoading ? 0.7 : 1,
-            }}
-            onMouseEnter={(e) => {
-              if (!isLoading) {
-                e.currentTarget.style.backgroundColor = '#16a34a';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!isLoading) {
-                e.currentTarget.style.backgroundColor = '#22c55e';
-              }
-            }}
-          >
-            {buttonText}
-          </button>
-
-      {showPaymentModal && (
-        <ManualPayment
-          amount={100}
-          onPaymentSuccess={handlePaymentSuccess}
-          onPaymentFailure={handlePaymentFailure}
-          onClose={() => setShowPaymentModal(false)}
-          templateId="template5"
-          templateName="Template 5"
-        />
-      )}
-    </article>
+      {/* Hobbies and Interests Section */}
+      <div style={sectionTitleStyle}>Hobbies and Interests</div>
+      <div style={{ fontSize: 15, marginTop: 6 }}>
+        {hobbies && hobbies.length > 0 ? (
+          <ul style={{ margin: 0, paddingLeft: 18 }}>
+            {hobbies.map((hobby, idx) => (
+              <li key={idx} style={{ marginBottom: 2 }}>{hobby}</li>
+            ))}
+          </ul>
+        ) : (
+          <span>No hobbies listed.</span>
+        )}
+      </div>
+    </div>
   );
 };
 
-Template1PDF.propTypes = {
+Template5PDF.propTypes = {
   formData: PropTypes.object.isRequired,
-  visibleSections: PropTypes.array,
 };
 
-export default Template1PDF;
+export default Template5PDF;

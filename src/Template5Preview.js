@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Template1PDF from './Template1PDF';
+import Template5PDF from './Template5PDF';
 
 const sectionList = [
   { key: 'objective', title: 'Objective' },
@@ -56,7 +56,7 @@ const hasSectionData = (formData, sectionKey) => {
   }
 };
 
-const Template1Preview = ({ formData, formHeight }) => {
+const Template5Preview = ({ formData, formHeight }) => {
   const [visibleSections, setVisibleSections] = useState([]);
 
   // Update visible sections when formData changes
@@ -84,27 +84,7 @@ const Template1Preview = ({ formData, formHeight }) => {
         alignItems: 'center',
       }}
     >
-      {/* Save Reminder */}
-      <div style={{
-        width: '100%',
-        padding: '1rem 2rem',
-        backgroundColor: '#fef3c7',
-        borderBottom: '1px solid #f59e0b',
-        textAlign: 'center',
-        marginBottom: '20px'
-      }}>
-        <div style={{
-          fontSize: '1rem',
-          fontWeight: '600',
-          color: '#92400e',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '8px'
-        }}>
-          💾 Don't forget to save your CV for later use.
-        </div>
-      </div>
+
       <style>
         {`
           @media (max-width: 768px) {
@@ -207,11 +187,11 @@ const Template1Preview = ({ formData, formHeight }) => {
         }}
         aria-label="Curriculum Vitae Preview"
       >
-        <Template1PDF formData={formData} visibleSections={visibleSections} />
+        <Template5PDF formData={formData} visibleSections={visibleSections} />
       </article>
     </div>
   );
 };
 
-export default Template1Preview;
+export default Template5Preview;
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import LandingPage from './landingpage';
+import ChooseTemplate from './choosetemplate';
+import AdminCVEntry from './AdminCVEntry';
 import { PaymentService } from './paymentService';
 import supabase from './supabase';
 
@@ -25,6 +26,8 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
   const [payments, setPayments] = useState([]);
   const [filter, setFilter] = useState('all'); // all, pending, approved, rejected
   const [showCVBuilder, setShowCVBuilder] = useState(false);
+  const [showCVEntry, setShowCVEntry] = useState(false);
+  const [selectedCV, setSelectedCV] = useState(null);
   const [lastChecked, setLastChecked] = useState(new Date());
   const { isMobile, isTablet, isDesktop } = useResponsive();
 
@@ -205,17 +208,23 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
       adminAccess,
       storedAdminUser: storedAdminUser ? JSON.parse(storedAdminUser) : null
     });
-  }, []);
+  }, [adminUser]);
 
   useEffect(() => {
-    loadPayments();
+    // Add a small delay to ensure admin access is set
+    const timer = setTimeout(() => {
+      loadPayments();
+    }, 100);
     
     // Set up interval to check for new payments every 5 seconds
     const interval = setInterval(() => {
       loadPayments();
     }, 5000);
     
-    return () => clearInterval(interval);
+    return () => {
+      clearTimeout(timer);
+      clearInterval(interval);
+    };
   }, [loadPayments]);
 
   const approvePayment = async (paymentId) => {
@@ -265,25 +274,94 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
     }
   };
 
-  const handleAccessCVBuilder = () => {
-    // Set admin access flag in localStorage
-    localStorage.setItem('admin_cv_access', 'true');
-    localStorage.setItem('admin_user', JSON.stringify(adminUser));
-    setShowCVBuilder(true);
-  };
+
 
   const handleBackToAdmin = () => {
     setShowCVBuilder(false);
-    // Clear admin access flag
-    localStorage.removeItem('admin_cv_access');
-    localStorage.removeItem('admin_user');
-    localStorage.removeItem('admin_selected_cv');
+    setShowCVEntry(false);
+    setSelectedCV(null); // Clear selected CV when going back
+    // Don't clear admin access flag - keep it for the admin panel
+    // Only clear admin_selected_cv if it exists
+    if (localStorage.getItem('admin_selected_cv')) {
+      localStorage.removeItem('admin_selected_cv');
+    }
+  };
+
+  const handleAccessCVEntry = () => {
+    // Set admin access flag in localStorage
+    localStorage.setItem('admin_cv_access', 'true');
+    localStorage.setItem('admin_user', JSON.stringify(adminUser));
+    setShowCVEntry(true);
+  };
+
+  const handleMakeNewCV = () => {
+    setSelectedCV(null); // Clear any selected CV when making a new one
+    setShowCVEntry(false);
+    setShowCVBuilder(true);
+  };
+
+  const handleSelectCV = (cvData) => {
+    // Handle selecting an existing CV
+    console.log('Selected CV:', cvData);
+    setSelectedCV(cvData);
+    setShowCVEntry(false);
+    setShowCVBuilder(true);
   };
 
   const filteredPayments = payments.filter(payment => {
     if (filter === 'all') return true;
     return payment.status === filter;
   });
+
+  // If CV Entry is accessed, show the AdminCVEntry component
+  if (showCVEntry) {
+    return (
+      <div style={{ minHeight: '100vh', background: '#f5f6fa' }}>
+        {/* Navigation button */}
+        <div style={{
+          position: 'absolute',
+          top: 20,
+          left: 20,
+          zIndex: 1000,
+        }}>
+          <button
+            onClick={handleBackToAdmin}
+            style={{
+              padding: '12px 24px',
+              fontSize: '16px',
+              fontWeight: '600',
+              backgroundColor: '#3b82f6',
+              color: 'white',
+              border: 'none',
+              borderRadius: '12px',
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
+              transition: 'all 0.3s ease',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              fontFamily: "'Inter', sans-serif"
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#2563eb';
+              e.currentTarget.style.transform = 'translateY(-2px)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#3b82f6';
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}
+          >
+            ← Back to Admin Panel
+          </button>
+        </div>
+        
+        <AdminCVEntry 
+          onMakeNewCV={handleMakeNewCV}
+          onSelectCV={handleSelectCV}
+        />
+      </div>
+    );
+  }
 
   // If CV Builder is accessed, show the app
   if (showCVBuilder) {
@@ -328,43 +406,13 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
           >
             ← Back to Admin Panel
           </button>
-          
-          <button
-            onClick={() => {
-              // This will trigger the LandingPage's back functionality
-              const event = new CustomEvent('backToTemplates');
-              window.dispatchEvent(event);
-            }}
-            style={{
-              padding: '12px 24px',
-              fontSize: '16px',
-              fontWeight: '600',
-              backgroundColor: '#22c55e',
-              color: 'white',
-              border: 'none',
-              borderRadius: '12px',
-              cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(34, 197, 94, 0.3)',
-              transition: 'all 0.3s ease',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              fontFamily: "'Inter', sans-serif"
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#16a34a';
-              e.currentTarget.style.transform = 'translateY(-2px)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#22c55e';
-              e.currentTarget.style.transform = 'translateY(0)';
-            }}
-          >
-            🎨 Back to Templates
-          </button>
         </div>
         
-                <LandingPage user={adminUser} />
+        <ChooseTemplate 
+          user={adminUser} 
+          initialCV={selectedCV}
+          newAdminCV={!selectedCV} // Only set newAdminCV to true if no CV is selected
+        />
       </div>
     );
   }
@@ -435,10 +483,10 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
             <option value="rejected">Rejected</option>
           </select>
           <button
-            onClick={handleAccessCVBuilder}
+            onClick={handleAccessCVEntry}
             style={{
               padding: isMobile ? '10px 16px' : '12px 24px',
-              backgroundColor: '#3b82f6',
+              backgroundColor: '#22c55e',
               color: 'white',
               border: 'none',
               borderRadius: '8px',
@@ -452,15 +500,15 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
               whiteSpace: 'nowrap'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#2563eb';
+              e.currentTarget.style.backgroundColor = '#16a34a';
               e.currentTarget.style.transform = 'translateY(-2px)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#3b82f6';
+              e.currentTarget.style.backgroundColor = '#22c55e';
               e.currentTarget.style.transform = 'translateY(0)';
             }}
           >
-            🎨 {isMobile ? 'CV Builder' : 'Access CV Builder'}
+            📝 {isMobile ? 'CV Entry' : 'CV Entry'}
           </button>
         </div>
       </div>

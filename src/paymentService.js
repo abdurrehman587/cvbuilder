@@ -390,17 +390,31 @@ export class PaymentService {
       
       // Check admin access from localStorage instead of Supabase auth
       const adminAccess = localStorage.getItem('admin_cv_access');
-      const adminUser = JSON.parse(localStorage.getItem('admin_user') || '{}');
+      const adminUserStr = localStorage.getItem('admin_user');
+      let adminUser = {};
+      
+      try {
+        adminUser = adminUserStr ? JSON.parse(adminUserStr) : {};
+      } catch (parseError) {
+        console.error('PaymentService - Error parsing admin user:', parseError);
+        adminUser = {};
+      }
+      
       const isAdmin = adminAccess === 'true' || adminUser?.isAdmin === true;
       
       console.log('PaymentService - Admin check:', {
         adminAccess,
         adminUser,
-        isAdmin
+        isAdmin,
+        adminUserStr
       });
       
       if (!isAdmin) {
-        console.error('PaymentService - Admin access denied');
+        console.error('PaymentService - Admin access denied. Current localStorage state:', {
+          admin_cv_access: localStorage.getItem('admin_cv_access'),
+          admin_user: localStorage.getItem('admin_user'),
+          allKeys: Object.keys(localStorage)
+        });
         throw new Error('Admin access required');
       }
 
