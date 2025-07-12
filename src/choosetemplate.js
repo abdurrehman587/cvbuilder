@@ -27,7 +27,6 @@ const ChooseTemplate = ({ user, initialCV, newAdminCV }) => {
 
   const hasSetTemplateRef = useRef(false);
   const formRef = useRef();
-  const [formInitialized, setFormInitialized] = useState(false);
   const [formData, setFormData] = useState({
     image: null,
     imageUrl: '',
@@ -193,11 +192,6 @@ const ChooseTemplate = ({ user, initialCV, newAdminCV }) => {
 
   const handleFormDataChange = (data) => {
     setFormData(data);
-    // Mark form as initialized when user starts entering data
-    if (data.name && data.name.trim() && !formInitialized) {
-      console.log('Form initialized with name:', data.name);
-      setFormInitialized(true);
-    }
   };
 
   const handleCVLoaded = (wasLoaded) => {
@@ -389,7 +383,7 @@ const ChooseTemplate = ({ user, initialCV, newAdminCV }) => {
             }}
           >
             <Form
-              key={initialCV ? `cv-${initialCV.id}` : (formInitialized ? 'initialized-form' : `template-${selectedTemplate}`)}
+              key={initialCV ? `cv-${initialCV.id}` : 'new-cv'}
               ref={formRef}
               formData={formData}
               setFormData={setFormData}
@@ -399,7 +393,7 @@ const ChooseTemplate = ({ user, initialCV, newAdminCV }) => {
               onCVLoaded={handleCVLoaded}
               adminCVId={adminCVId}
               setAdminCVId={setAdminCVId}
-              newAdminCV={newAdminCV && !formInitialized}
+              newAdminCV={newAdminCV}
               initialCV={initialCV}
             />
           </div>
@@ -960,4 +954,3 @@ const ChooseTemplate = ({ user, initialCV, newAdminCV }) => {
 };
 
 export default ChooseTemplate;
-
