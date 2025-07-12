@@ -111,12 +111,18 @@ const Form = forwardRef((props, ref) => {
       const isAdmin = props.user.isAdmin || localStorage.getItem('admin_cv_access') === 'true';
       console.log('Is admin user:', isAdmin);
       
-      // If newAdminCV is true, don't fetch existing CV - start with empty form
-      if (props.newAdminCV) {
+      // If newAdminCV is true and form is empty, start with empty form
+      if (props.newAdminCV && (!props.formData || !props.formData.name || !props.formData.name.trim())) {
         console.log('Creating new admin CV - starting with empty form');
         props.setFormData(defaultFormData);
         if (props.onCVLoaded) {
           props.onCVLoaded(false);
+        }
+        return;
+      } else if (props.newAdminCV && props.formData && props.formData.name && props.formData.name.trim()) {
+        console.log('Form has data, preserving existing form data:', props.formData.name);
+        if (props.onCVLoaded) {
+          props.onCVLoaded(true);
         }
         return;
       }
