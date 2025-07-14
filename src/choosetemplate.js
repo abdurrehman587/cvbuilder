@@ -506,6 +506,16 @@ const ChooseTemplate = ({ user, initialCV, newAdminCV }) => {
             transform: scale(1.2);
           }
           
+          @media (max-width: 1200px) {
+            .carousel-container {
+              padding: 0 15px;
+            }
+            
+            .template-card {
+              max-height: calc(100vh - 180px) !important;
+            }
+          }
+          
           @media (max-width: 768px) {
             .carousel-container {
               padding: 0 10px;
@@ -519,6 +529,12 @@ const ChooseTemplate = ({ user, initialCV, newAdminCV }) => {
               font-size: 1.8rem !important;
               text-align: center !important;
             }
+            
+            .carousel-nav-btn {
+              width: 40px !important;
+              height: 40px !important;
+              font-size: 1.2rem !important;
+            }
           }
           
           @media (max-width: 480px) {
@@ -528,6 +544,24 @@ const ChooseTemplate = ({ user, initialCV, newAdminCV }) => {
             
             .page-title {
               font-size: 1.5rem !important;
+            }
+            
+            .carousel-nav-btn {
+              width: 35px !important;
+              height: 35px !important;
+              font-size: 1rem !important;
+            }
+          }
+          
+          @media (max-width: 360px) {
+            .page-title {
+              font-size: 1.3rem !important;
+            }
+            
+            .carousel-nav-btn {
+              width: 30px !important;
+              height: 30px !important;
+              font-size: 0.9rem !important;
             }
           }
         `}
@@ -616,12 +650,12 @@ const ChooseTemplate = ({ user, initialCV, newAdminCV }) => {
           className="page-title"
           style={{
             fontWeight: 700,
-            fontSize: '2.5rem',
-            marginBottom: '10px',
+            fontSize: windowWidth >= 768 ? '2.5rem' : windowWidth >= 480 ? '2rem' : '1.5rem',
+            marginBottom: windowWidth >= 768 ? '10px' : '8px',
             color: '#111827',
             userSelect: 'none',
             textAlign: 'center',
-            marginTop: '10px',
+            marginTop: windowWidth >= 768 ? '10px' : '5px',
           }}
         >
           Choose Your CV Template
@@ -629,12 +663,13 @@ const ChooseTemplate = ({ user, initialCV, newAdminCV }) => {
         
         <p
           style={{
-            fontSize: '1rem',
+            fontSize: windowWidth >= 768 ? '1rem' : windowWidth >= 480 ? '0.9rem' : '0.8rem',
             color: '#6b7280',
             textAlign: 'center',
-            marginBottom: '20px',
-            maxWidth: '500px',
-            margin: '0 auto 20px',
+            marginBottom: windowWidth >= 768 ? '20px' : '15px',
+            maxWidth: windowWidth >= 768 ? '500px' : '100%',
+            margin: windowWidth >= 768 ? '0 auto 20px' : '0 auto 15px',
+            padding: windowWidth >= 768 ? '0' : '0 20px',
           }}
         >
           Select from our professional templates to create your perfect CV
@@ -950,36 +985,39 @@ const ChooseTemplate = ({ user, initialCV, newAdminCV }) => {
 
         {/* All Templates Grid Section - A4 Size Display */}
         <div style={{
-          marginTop: '60px',
-          padding: '40px 20px',
+          marginTop: windowWidth >= 768 ? '60px' : '40px',
+          padding: windowWidth >= 768 ? '40px 20px' : windowWidth >= 480 ? '30px 15px' : '20px 10px',
           backgroundColor: '#f8fafc',
-          borderRadius: '20px',
+          borderRadius: windowWidth >= 768 ? '20px' : '15px',
         }}>
           <h2 style={{
             textAlign: 'center',
-            fontSize: '2rem',
+            fontSize: windowWidth >= 768 ? '2rem' : windowWidth >= 480 ? '1.5rem' : '1.2rem',
             fontWeight: '700',
             color: '#111827',
-            marginBottom: '10px',
+            marginBottom: windowWidth >= 768 ? '10px' : '8px',
           }}>
             All Templates
           </h2>
           <p style={{
             textAlign: 'center',
-            fontSize: '1rem',
+            fontSize: windowWidth >= 768 ? '1rem' : windowWidth >= 480 ? '0.9rem' : '0.8rem',
             color: '#6b7280',
-            marginBottom: '40px',
+            marginBottom: windowWidth >= 768 ? '40px' : windowWidth >= 480 ? '30px' : '20px',
           }}>
             Browse all available templates in A4 format
           </p>
           
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
-            gap: '30px',
+            gridTemplateColumns: windowWidth >= 1200 ? 'repeat(auto-fit, minmax(210px, 1fr))' :
+                               windowWidth >= 768 ? 'repeat(auto-fit, minmax(180px, 1fr))' :
+                               windowWidth >= 480 ? 'repeat(auto-fit, minmax(150px, 1fr))' :
+                               'repeat(auto-fit, minmax(120px, 1fr))',
+            gap: windowWidth >= 768 ? '30px' : windowWidth >= 480 ? '20px' : '15px',
             maxWidth: '1200px',
             margin: '0 auto',
-            padding: '0 20px',
+            padding: windowWidth >= 768 ? '0 20px' : '0 10px',
           }}>
             {templates.map((template, index) => (
               <div
@@ -994,13 +1032,18 @@ const ChooseTemplate = ({ user, initialCV, newAdminCV }) => {
                 }}
                 title={`Click to use ${template.name}`}
                 style={{
-                  width: '210mm', // A4 width
-                  height: '297mm', // A4 height
+                  width: windowWidth >= 1200 ? '210mm' : 
+                         windowWidth >= 768 ? '180mm' : 
+                         windowWidth >= 480 ? '150mm' : '120mm',
+                  height: windowWidth >= 1200 ? '297mm' : 
+                          windowWidth >= 768 ? '254mm' : 
+                          windowWidth >= 480 ? '212mm' : '170mm',
                   maxWidth: '100%',
-                  maxHeight: '400px',
+                  maxHeight: windowWidth >= 768 ? '400px' : 
+                             windowWidth >= 480 ? '300px' : '250px',
                   backgroundColor: '#fff',
                   border: '2px solid #e2e8f0',
-                  borderRadius: '8px',
+                  borderRadius: windowWidth >= 768 ? '8px' : '6px',
                   boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                   cursor: 'pointer',
                   userSelect: 'none',
@@ -1051,24 +1094,24 @@ const ChooseTemplate = ({ user, initialCV, newAdminCV }) => {
                     left: '0',
                     right: '0',
                     background: 'linear-gradient(transparent, rgba(0,0,0,0.7))',
-                    padding: '20px',
+                    padding: windowWidth >= 768 ? '20px' : windowWidth >= 480 ? '15px' : '10px',
                     color: 'white',
                   }}>
                     <div style={{
                       fontWeight: '700',
-                      fontSize: '1.1rem',
-                      marginBottom: '8px',
+                      fontSize: windowWidth >= 768 ? '1.1rem' : windowWidth >= 480 ? '1rem' : '0.9rem',
+                      marginBottom: windowWidth >= 768 ? '8px' : '6px',
                     }}>
                       {template.name}
                     </div>
                     <button
                       style={{
-                        padding: '8px 16px',
+                        padding: windowWidth >= 768 ? '8px 16px' : windowWidth >= 480 ? '6px 12px' : '4px 8px',
                         backgroundColor: '#3b82f6',
                         color: 'white',
                         border: 'none',
-                        borderRadius: '6px',
-                        fontSize: '0.85rem',
+                        borderRadius: windowWidth >= 768 ? '6px' : '4px',
+                        fontSize: windowWidth >= 768 ? '0.85rem' : windowWidth >= 480 ? '0.8rem' : '0.75rem',
                         fontWeight: '600',
                         cursor: 'pointer',
                         transition: 'background-color 0.3s ease',
