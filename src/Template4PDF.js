@@ -706,9 +706,16 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
       const printUrl = `${window.location.origin}/print-cv?data=${formDataParam}&sections=${sectionsParam}`;
       console.log('Template4PDF - Print URL:', printUrl);
 
-      // Call the Puppeteer server to generate PDF
-      const response = await fetch(`http://localhost:5000/api/cv-pdf?cvUrl=${encodeURIComponent(printUrl)}`, {
-        method: 'GET',
+      // Call the Vercel API to generate PDF
+      const response = await fetch('/api/generate-pdf', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          html: document.documentElement.outerHTML,
+          filename: 'cv-template4.pdf'
+        }),
       });
 
       if (!response.ok) {
