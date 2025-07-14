@@ -24,6 +24,7 @@ const ChooseTemplate = ({ user, initialCV, newAdminCV }) => {
   const [mouseStart, setMouseStart] = useState(null);
   const [mouseEnd, setMouseEnd] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isHovering, setIsHovering] = useState(false);
 
   const hasSetTemplateRef = useRef(false);
   const formRef = useRef();
@@ -103,11 +104,11 @@ const ChooseTemplate = ({ user, initialCV, newAdminCV }) => {
   };
 
   const nextSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + templates.length) % templates.length);
+    setCurrentSlide((prev) => (prev + 1) % templates.length);
   };
 
   const prevSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % templates.length);
+    setCurrentSlide((prev) => (prev - 1 + templates.length) % templates.length);
   };
 
   const goToSlide = (index) => {
@@ -132,10 +133,10 @@ const ChooseTemplate = ({ user, initialCV, newAdminCV }) => {
     const isRightSwipe = distance < -50;
 
     if (isLeftSwipe) {
-      prevSlide(); // Swipe left = previous slide (flow from right to left)
+      nextSlide(); // Swipe left = next slide (Template 1 → 2 → 3...)
     }
     if (isRightSwipe) {
-      nextSlide(); // Swipe right = next slide (flow from right to left)
+      prevSlide(); // Swipe right = previous slide (Template 10 → 9 → 8...)
     }
   };
 
@@ -162,23 +163,25 @@ const ChooseTemplate = ({ user, initialCV, newAdminCV }) => {
     const isRightSwipe = distance < -50;
 
     if (isLeftSwipe) {
-      prevSlide(); // Drag left = previous slide (flow from right to left)
+      nextSlide(); // Drag left = next slide (Template 1 → 2 → 3...)
     }
     if (isRightSwipe) {
-      nextSlide(); // Drag right = next slide (flow from right to left)
+      prevSlide(); // Drag right = previous slide (Template 10 → 9 → 8...)
     }
     
     setIsDragging(false);
   };
 
-  // Auto-advance carousel every 5 seconds (flow from right to left)
+  // Auto-advance carousel every 5 seconds (Template 1 → 2 → 3...)
   useEffect(() => {
+    if (isHovering) return; // Pause auto-advance when hovering
+    
     const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev - 1 + templates.length) % templates.length);
+      setCurrentSlide((prev) => (prev + 1) % templates.length);
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [templates.length]);
+  }, [templates.length, isHovering]);
 
   // Handle window resize for responsive template display
   useEffect(() => {
@@ -432,578 +435,819 @@ const ChooseTemplate = ({ user, initialCV, newAdminCV }) => {
     );
   }
 
-  // Template selection screen with modern carousel
+  // Template selection screen with modern design
   return (
-    <div
-      style={{
-        height: '100vh',
-        padding: '20px',
-        fontFamily: "'Inter', sans-serif",
-        backgroundColor: '#f4f6f8',
-        color: '#6b7280',
-        boxSizing: 'border-box',
-        width: '100%',
-        maxWidth: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-      }}
-    >
-      <style>
-        {`
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-          
-          @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
-          
-          .carousel-container {
-            animation: fadeIn 0.6s ease-out;
-          }
-          
-          .template-card {
-            transition: all 0.3s ease;
-          }
-          
-          .template-card:hover {
-            transform: translateY(-8px) !important;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.15) !important;
-          }
-          
-          .carousel-nav-btn {
-            transition: all 0.3s ease;
-          }
-          
-          .carousel-nav-btn:hover {
-            background-color: #2563eb !important;
-            transform: scale(1.1);
-          }
-          
-          .carousel-container {
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-          }
-          
-          .template-card {
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-          }
-          
-          .dot-indicator {
-            transition: all 0.3s ease;
-          }
-          
-          .dot-indicator:hover {
-            background-color: #2563eb !important;
-            transform: scale(1.2);
-          }
-          
-          @media (max-width: 1200px) {
-            .carousel-container {
-              padding: 0 15px;
-            }
-            
-            .template-card {
-              max-height: calc(100vh - 180px) !important;
-            }
-          }
-          
-          @media (max-width: 768px) {
-            .carousel-container {
-              padding: 0 10px;
-            }
-            
-            .template-card {
-              max-height: calc(100vh - 150px) !important;
-            }
-            
-            .page-title {
-              font-size: 1.8rem !important;
-              text-align: center !important;
-            }
-            
-            .carousel-nav-btn {
-              width: 40px !important;
-              height: 40px !important;
-              font-size: 1.2rem !important;
-            }
-          }
-          
-          @media (max-width: 480px) {
-            .template-card {
-              max-height: calc(100vh - 120px) !important;
-            }
-            
-            .page-title {
-              font-size: 1.5rem !important;
-            }
-            
-            .carousel-nav-btn {
-              width: 35px !important;
-              height: 35px !important;
-              font-size: 1rem !important;
-            }
-          }
-          
-          @media (max-width: 360px) {
-            .page-title {
-              font-size: 1.3rem !important;
-            }
-            
-            .carousel-nav-btn {
-              width: 30px !important;
-              height: 30px !important;
-              font-size: 0.9rem !important;
-            }
-          }
-        `}
-      </style>
-      
-      {/* Loading notification for regular users */}
-      {isLoadingCV && user && !user.isAdmin && (
-        <div
-          className="notification"
-          style={{
-            backgroundColor: '#dbeafe',
-            border: '1px solid #3b82f6',
-            borderRadius: '8px',
-            padding: '16px',
-            marginBottom: '24px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            color: '#1e40af',
-            fontSize: '16px',
-            fontWeight: '500'
-          }}
-        >
-          <div
-            style={{
-              width: '20px',
-              height: '20px',
-              border: '2px solid #3b82f6',
-              borderTop: '2px solid transparent',
-              borderRadius: '50%',
-              animation: 'spin 1s linear infinite'
-            }}
-          />
-          Loading your saved CV data...
-        </div>
-      )}
-
-      {/* Success notification when CV is loaded */}
-      {cvLoadedStatus === true && user && !user.isAdmin && (
-        <div
-          className="notification"
-          style={{
-            backgroundColor: '#dcfce7',
-            border: '1px solid #22c55e',
-            borderRadius: '8px',
-            padding: '16px',
-            marginBottom: '24px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            color: '#166534',
-            fontSize: '16px',
-            fontWeight: '500'
-          }}
-        >
-          <span style={{ fontSize: '20px' }}>✅</span>
-          Your saved CV data has been loaded successfully!
-        </div>
-      )}
-
-      {/* Info notification when no CV is found */}
-      {cvLoadedStatus === false && user && !user.isAdmin && (
-        <div
-          className="notification"
-          style={{
-            backgroundColor: '#fef3c7',
-            border: '1px solid #f59e0b',
-            borderRadius: '8px',
-            padding: '16px',
-            marginBottom: '24px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            color: '#92400e',
-            fontSize: '16px',
-            fontWeight: '500'
-          }}
-        >
-          <span style={{ fontSize: '20px' }}>ℹ️</span>
-          No saved CV found. Start building your CV by selecting a template!
-        </div>
-      )}
-
-      <div style={{ flexShrink: 0, marginBottom: '20px' }}>
-        <h1
-          className="page-title"
-          style={{
-            fontWeight: 700,
-            fontSize: windowWidth >= 768 ? '2.5rem' : windowWidth >= 480 ? '2rem' : '1.5rem',
-            marginBottom: windowWidth >= 768 ? '10px' : '8px',
-            color: '#111827',
-            userSelect: 'none',
-            textAlign: 'center',
-            marginTop: windowWidth >= 768 ? '10px' : '5px',
-          }}
-        >
-          Choose Your CV Template
-        </h1>
+    <div style={{
+      minHeight: '100vh',
+      fontFamily: "'Inter', sans-serif",
+      backgroundColor: '#ffffff',
+      color: '#374151',
+      position: 'relative',
+      overflow: 'hidden',
+    }}>
+      {/* Background Decorative Elements */}
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        pointerEvents: 'none',
+        zIndex: 0,
+      }}>
+        {/* Floating geometric shapes */}
+        <div style={{
+          position: 'absolute',
+          top: '10%',
+          left: '5%',
+          width: '140px',
+          height: '140px',
+          background: 'linear-gradient(135deg, #667eea30, #764ba230, #f093fb30)',
+          borderRadius: '50%',
+          animation: 'float 6s ease-in-out infinite',
+          filter: 'blur(1px)',
+          boxShadow: '0 8px 32px rgba(102, 126, 234, 0.2)',
+        }} />
+        <div style={{
+          position: 'absolute',
+          top: '20%',
+          right: '8%',
+          width: '100px',
+          height: '100px',
+          background: 'linear-gradient(135deg, #764ba235, #667eea35, #f093fb25)',
+          borderRadius: '25px',
+          transform: 'rotate(45deg)',
+          animation: 'float 8s ease-in-out infinite reverse',
+          filter: 'blur(1px)',
+          boxShadow: '0 8px 32px rgba(118, 75, 162, 0.2)',
+        }} />
+        <div style={{
+          position: 'absolute',
+          bottom: '15%',
+          left: '15%',
+          width: '120px',
+          height: '120px',
+          background: 'linear-gradient(135deg, #667eea25, #764ba225, #f093fb20)',
+          borderRadius: '35px',
+          transform: 'rotate(-15deg)',
+          animation: 'float 7s ease-in-out infinite',
+          filter: 'blur(1px)',
+          boxShadow: '0 8px 32px rgba(102, 126, 234, 0.15)',
+        }} />
+        <div style={{
+          position: 'absolute',
+          bottom: '25%',
+          right: '12%',
+          width: '80px',
+          height: '80px',
+          background: 'linear-gradient(135deg, #764ba230, #667eea30, #f093fb25)',
+          borderRadius: '50%',
+          animation: 'float 9s ease-in-out infinite reverse',
+          filter: 'blur(1px)',
+          boxShadow: '0 8px 32px rgba(118, 75, 162, 0.2)',
+        }} />
         
-        <p
-          style={{
-            fontSize: windowWidth >= 768 ? '1rem' : windowWidth >= 480 ? '0.9rem' : '0.8rem',
-            color: '#6b7280',
-            textAlign: 'center',
-            marginBottom: windowWidth >= 768 ? '20px' : '15px',
-            maxWidth: windowWidth >= 768 ? '500px' : '100%',
-            margin: windowWidth >= 768 ? '0 auto 20px' : '0 auto 15px',
-            padding: windowWidth >= 768 ? '0' : '0 20px',
-          }}
-        >
-          Select from our professional templates to create your perfect CV
-        </p>
+        {/* Additional decorative elements */}
+        <div style={{
+          position: 'absolute',
+          top: '35%',
+          left: '2%',
+          width: '60px',
+          height: '60px',
+          background: 'linear-gradient(135deg, #f093fb25, #667eea25)',
+          borderRadius: '15px',
+          transform: 'rotate(30deg)',
+          animation: 'float 10s ease-in-out infinite',
+          filter: 'blur(1px)',
+        }} />
+        <div style={{
+          position: 'absolute',
+          top: '60%',
+          right: '3%',
+          width: '70px',
+          height: '70px',
+          background: 'linear-gradient(135deg, #667eea20, #f093fb20)',
+          borderRadius: '20px',
+          transform: 'rotate(-60deg)',
+          animation: 'float 11s ease-in-out infinite reverse',
+          filter: 'blur(1px)',
+        }} />
+        
+        {/* Enhanced grid pattern */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundImage: `
+            linear-gradient(rgba(102, 126, 234, 0.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(102, 126, 234, 0.05) 1px, transparent 1px)
+          `,
+          backgroundSize: '60px 60px',
+          opacity: 0.6,
+        }} />
+        
+        {/* Enhanced gradient orbs */}
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: '-150px',
+          width: '400px',
+          height: '400px',
+          background: 'radial-gradient(circle, rgba(102, 126, 234, 0.15) 0%, rgba(240, 147, 251, 0.1) 30%, transparent 70%)',
+          borderRadius: '50%',
+          filter: 'blur(50px)',
+          animation: 'pulse 8s ease-in-out infinite',
+        }} />
+        <div style={{
+          position: 'absolute',
+          bottom: '10%',
+          right: '-200px',
+          width: '500px',
+          height: '500px',
+          background: 'radial-gradient(circle, rgba(118, 75, 162, 0.12) 0%, rgba(102, 126, 234, 0.08) 40%, transparent 70%)',
+          borderRadius: '50%',
+          filter: 'blur(60px)',
+          animation: 'pulse 10s ease-in-out infinite reverse',
+        }} />
+        
+        {/* Additional ambient orbs */}
+        <div style={{
+          position: 'absolute',
+          top: '20%',
+          left: '-80px',
+          width: '250px',
+          height: '250px',
+          background: 'radial-gradient(circle, rgba(240, 147, 251, 0.1) 0%, transparent 70%)',
+          borderRadius: '50%',
+          filter: 'blur(35px)',
+          animation: 'pulse 12s ease-in-out infinite',
+        }} />
+      </div>
+      {/* Modern Header */}
+      <div style={{
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        color: 'white',
+        padding: windowWidth >= 768 ? '30px 40px' : '20px 20px',
+        textAlign: 'center',
+        position: 'relative',
+        overflow: 'hidden',
+        zIndex: 1,
+      }}>
+        {/* Header background patterns */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.1"%3E%3Ccircle cx="30" cy="30" r="2"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
+          opacity: 0.3,
+        }} />
+        
+        {/* Enhanced header decorative elements */}
+        <div style={{
+          position: 'absolute',
+          top: '-50%',
+          left: '-20%',
+          width: '200%',
+          height: '200%',
+          background: 'radial-gradient(circle at 30% 20%, rgba(255,255,255,0.15) 0%, transparent 50%)',
+          animation: 'pulse 4s ease-in-out infinite',
+        }} />
+        
+        <div style={{
+          position: 'absolute',
+          top: '20%',
+          right: '10%',
+          width: '120px',
+          height: '120px',
+          background: 'rgba(255,255,255,0.12)',
+          borderRadius: '50%',
+          animation: 'float 5s ease-in-out infinite',
+          filter: 'blur(1px)',
+          boxShadow: '0 8px 32px rgba(255,255,255,0.2)',
+        }} />
+        
+        <div style={{
+          position: 'absolute',
+          bottom: '10%',
+          left: '15%',
+          width: '80px',
+          height: '80px',
+          background: 'rgba(255,255,255,0.1)',
+          borderRadius: '25px',
+          transform: 'rotate(45deg)',
+          animation: 'float 7s ease-in-out infinite reverse',
+          filter: 'blur(1px)',
+          boxShadow: '0 8px 32px rgba(255,255,255,0.15)',
+        }} />
+        
+        {/* Additional header elements */}
+        <div style={{
+          position: 'absolute',
+          top: '40%',
+          left: '8%',
+          width: '60px',
+          height: '60px',
+          background: 'rgba(255,255,255,0.08)',
+          borderRadius: '15px',
+          transform: 'rotate(-30deg)',
+          animation: 'float 6s ease-in-out infinite',
+        }} />
+        
+        <div style={{
+          position: 'absolute',
+          bottom: '30%',
+          right: '5%',
+          width: '90px',
+          height: '90px',
+          background: 'rgba(255,255,255,0.06)',
+          borderRadius: '50%',
+          animation: 'float 8s ease-in-out infinite reverse',
+        }} />
+        
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <h1 style={{
+            fontSize: windowWidth >= 768 ? '3.5rem' : '2.5rem',
+            fontWeight: 700,
+            margin: '0 0 16px 0',
+            textShadow: '0 2px 4px rgba(0,0,0,0.1)',
+          }}>
+            Choose Your CV Template
+          </h1>
 
+          
 
+        </div>
       </div>
 
-      {/* Carousel Container */}
-      <div className="carousel-container" style={{ 
-        position: 'relative', 
-        width: '100%',
+      {/* Notifications Container */}
+      <div style={{
+        maxWidth: '1200px',
         margin: '0 auto',
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        minHeight: 0,
+        padding: windowWidth >= 768 ? '24px 40px' : '16px 20px',
       }}>
-        
-        {/* Main Template Display */}
-        <div 
-          style={{ 
-            position: 'relative', 
-            marginBottom: '20px',
-            flex: 1,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minHeight: 0,
-            touchAction: 'pan-y pinch-zoom',
-            userSelect: 'none',
-            cursor: isDragging ? 'grabbing' : 'grab',
-          }}
-          onTouchStart={onTouchStart}
-          onTouchMove={onTouchMove}
-          onTouchEnd={onTouchEnd}
-          onMouseDown={onMouseDown}
-          onMouseMove={onMouseMove}
-          onMouseUp={onMouseUp}
-          onMouseLeave={onMouseUp}
-        >
-          {/* Navigation Buttons */}
-          <button
-            onClick={prevSlide}
-            className="carousel-nav-btn"
-            style={{
-              position: 'absolute',
-              left: windowWidth >= 768 ? '10px' : '-60px',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              width: '50px',
-              height: '50px',
-              borderRadius: '50%',
-              border: 'none',
-              backgroundColor: '#3b82f6',
-              color: 'white',
-              fontSize: '1.5rem',
-              cursor: 'pointer',
-              zIndex: 10,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
-              transition: 'all 0.3s ease',
-            }}
-            aria-label="Previous template"
-          >
-            ‹
-          </button>
-          
-          <button
-            onClick={nextSlide}
-            className="carousel-nav-btn"
-            style={{
-              position: 'absolute',
-              right: windowWidth >= 768 ? '10px' : '-60px',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              width: '50px',
-              height: '50px',
-              borderRadius: '50%',
-              border: 'none',
-              backgroundColor: '#3b82f6',
-              color: 'white',
-              fontSize: '1.5rem',
-              cursor: 'pointer',
-              zIndex: 10,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
-              transition: 'all 0.3s ease',
-            }}
-            aria-label="Next template"
-          >
-            ›
-          </button>
-
-          {/* Template Cards Container - Responsive Multi-Template Display */}
+        {/* Loading notification */}
+        {isLoadingCV && user && !user.isAdmin && (
           <div style={{
+            backgroundColor: '#dbeafe',
+            border: '1px solid #3b82f6',
+            borderRadius: '16px',
+            padding: '20px',
+            marginBottom: '24px',
             display: 'flex',
-            gap: '20px',
             alignItems: 'center',
-            justifyContent: 'center',
-            width: '100%',
-            height: '100%',
-            padding: '0 20px',
-            transform: isDragging ? 'scale(0.98)' : 'scale(1)',
-            transition: 'transform 0.2s ease',
+            gap: '16px',
+            color: '#1e40af',
+            fontSize: '16px',
+            fontWeight: '500',
+            boxShadow: '0 4px 12px rgba(59, 130, 246, 0.1)',
           }}>
-            {/* Show multiple templates based on screen size */}
-            {(() => {
-              let templatesToShow = 1;
+            <div style={{
+              width: '24px',
+              height: '24px',
+              border: '3px solid #3b82f6',
+              borderTop: '3px solid transparent',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite'
+            }} />
+            Loading your saved CV data...
+          </div>
+        )}
+
+        {/* Success notification */}
+        {cvLoadedStatus === true && user && !user.isAdmin && (
+          <div style={{
+            backgroundColor: '#dcfce7',
+            border: '1px solid #22c55e',
+            borderRadius: '16px',
+            padding: '20px',
+            marginBottom: '24px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '16px',
+            color: '#166534',
+            fontSize: '16px',
+            fontWeight: '500',
+            boxShadow: '0 4px 12px rgba(34, 197, 94, 0.1)',
+          }}>
+            <span style={{ fontSize: '24px' }}>✅</span>
+            Your saved CV data has been loaded successfully!
+          </div>
+        )}
+
+        {/* Info notification */}
+        {cvLoadedStatus === false && user && !user.isAdmin && (
+          <div style={{
+            backgroundColor: '#fef3c7',
+            border: '1px solid #f59e0b',
+            borderRadius: '16px',
+            padding: '20px',
+            marginBottom: '24px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '16px',
+            color: '#92400e',
+            fontSize: '16px',
+            fontWeight: '500',
+            boxShadow: '0 4px 12px rgba(245, 158, 11, 0.1)',
+          }}>
+            <span style={{ fontSize: '24px' }}>ℹ️</span>
+            No saved CV found. Start building your CV by selecting a template!
+          </div>
+        )}
+      </div>
+
+      {/* Main Content */}
+      <div style={{
+        maxWidth: '1200px',
+        margin: '0 auto',
+        padding: windowWidth >= 768 ? '0 40px 60px' : '0 20px 40px',
+        position: 'relative',
+        zIndex: 1,
+      }}>
+        {/* Featured Templates Section */}
+        <div style={{
+          marginBottom: windowWidth >= 768 ? '80px' : '60px',
+        }}>
+          
+          {/* Carousel Container */}
+          <div className="carousel-container" style={{ 
+            position: 'relative', 
+            width: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            minHeight: windowWidth >= 1200 ? '700px' : windowWidth >= 768 ? '600px' : '400px',
+            maxHeight: windowWidth >= 1200 ? '1000px' : windowWidth >= 768 ? '800px' : '600px',
+            background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+            borderRadius: '24px',
+            padding: windowWidth >= 768 ? '40px' : '24px',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
+            overflow: 'hidden',
+          }}>
+            {/* Enhanced carousel decorative elements */}
+            <div style={{
+              position: 'absolute',
+              top: '-50%',
+              right: '-20%',
+              width: '250px',
+              height: '250px',
+              background: 'radial-gradient(circle, rgba(102, 126, 234, 0.12) 0%, rgba(240, 147, 251, 0.08) 40%, transparent 70%)',
+              borderRadius: '50%',
+              filter: 'blur(35px)',
+              animation: 'pulse 6s ease-in-out infinite',
+            }} />
+            <div style={{
+              position: 'absolute',
+              bottom: '-30%',
+              left: '-15%',
+              width: '200px',
+              height: '200px',
+              background: 'radial-gradient(circle, rgba(118, 75, 162, 0.1) 0%, rgba(102, 126, 234, 0.06) 50%, transparent 70%)',
+              borderRadius: '50%',
+              filter: 'blur(30px)',
+              animation: 'pulse 8s ease-in-out infinite reverse',
+            }} />
+            <div style={{
+              position: 'absolute',
+              top: '20%',
+              left: '5%',
+              width: '6px',
+              height: '80px',
+              background: 'linear-gradient(to bottom, transparent, rgba(102, 126, 234, 0.4), rgba(240, 147, 251, 0.3), transparent)',
+              borderRadius: '3px',
+              animation: 'pulse 3s ease-in-out infinite',
+            }} />
+            <div style={{
+              position: 'absolute',
+              bottom: '30%',
+              right: '8%',
+              width: '6px',
+              height: '60px',
+              background: 'linear-gradient(to bottom, transparent, rgba(118, 75, 162, 0.4), rgba(102, 126, 234, 0.3), transparent)',
+              borderRadius: '3px',
+              animation: 'pulse 4s ease-in-out infinite reverse',
+            }} />
+            
+            {/* Additional carousel elements */}
+            <div style={{
+              position: 'absolute',
+              top: '60%',
+              left: '8%',
+              width: '80px',
+              height: '80px',
+              background: 'radial-gradient(circle, rgba(240, 147, 251, 0.08) 0%, transparent 70%)',
+              borderRadius: '50%',
+              filter: 'blur(20px)',
+              animation: 'float 9s ease-in-out infinite',
+            }} />
+            <div style={{
+              position: 'absolute',
+              top: '10%',
+              right: '15%',
+              width: '4px',
+              height: '40px',
+              background: 'linear-gradient(to bottom, transparent, rgba(240, 147, 251, 0.3), transparent)',
+              borderRadius: '2px',
+              animation: 'pulse 5s ease-in-out infinite',
+            }} />
+            
+            {/* Main Template Display */}
+            <div 
+              style={{ 
+                position: 'relative', 
+                marginBottom: '20px',
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minHeight: windowWidth >= 1200 ? '650px' : windowWidth >= 768 ? '550px' : '350px',
+                maxHeight: windowWidth >= 1200 ? '950px' : windowWidth >= 768 ? '750px' : '550px',
+                touchAction: 'pan-y pinch-zoom',
+                userSelect: 'none',
+                cursor: isDragging ? 'grabbing' : 'grab',
+              }}
+              onTouchStart={onTouchStart}
+              onTouchMove={onTouchMove}
+              onTouchEnd={onTouchEnd}
+              onMouseDown={onMouseDown}
+              onMouseMove={onMouseMove}
+              onMouseUp={onMouseUp}
+              onMouseLeave={onMouseUp}
+            >
+              {/* Navigation Buttons */}
+              <button
+                onClick={prevSlide}
+                className="carousel-nav-btn"
+                style={{
+                  position: 'absolute',
+                  left: windowWidth >= 768 ? '10px' : '-60px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  width: '50px',
+                  height: '50px',
+                  borderRadius: '50%',
+                  border: 'none',
+                  backgroundColor: '#667eea',
+                  color: 'white',
+                  fontSize: '1.5rem',
+                  cursor: 'pointer',
+                  zIndex: 10,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
+                  transition: 'all 0.3s ease',
+                }}
+                aria-label="Previous template"
+              >
+                ‹
+              </button>
               
-              if (windowWidth >= 1200) {
-                templatesToShow = 3; // Desktop: 3 templates
-              } else if (windowWidth >= 768) {
-                templatesToShow = 2; // Tablet: 2 templates
-              } else {
-                templatesToShow = 1; // Mobile: 1 template
-              }
-              
-              // Calculate which templates to show with current slide in center
-              let startIndex, endIndex;
-              
-              if (templatesToShow === 3) {
-                // For 3 templates: show previous, current, next
-                startIndex = Math.max(0, currentSlide - 1);
-                endIndex = Math.min(templates.length, currentSlide + 2);
-                
-                // Adjust if we're near the beginning or end
-                if (currentSlide === 0) {
-                  startIndex = 0;
-                  endIndex = Math.min(3, templates.length);
-                } else if (currentSlide === templates.length - 1) {
-                  startIndex = Math.max(0, templates.length - 3);
-                  endIndex = templates.length;
-                }
-              } else if (templatesToShow === 2) {
-                // For 2 templates: show current and next, or previous and current
-                if (currentSlide === templates.length - 1) {
-                  startIndex = Math.max(0, currentSlide - 1);
-                  endIndex = templates.length;
-                } else {
-                  startIndex = currentSlide;
-                  endIndex = Math.min(templates.length, currentSlide + 2);
-                }
-              } else {
-                // For 1 template: show only current
-                startIndex = currentSlide;
-                endIndex = currentSlide + 1;
-              }
-              
-              return templates.slice(startIndex, endIndex).map((template, index) => {
-                const actualIndex = startIndex + index;
-                const isCurrentSlide = actualIndex === currentSlide;
-                
-                return (
-                  <div
-                    key={template.name}
-                    onClick={() => handleTemplateClick(template.name)}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        handleTemplateClick(template.name);
-                      }
-                    }}
-                    title={`Click to use ${template.name}`}
-                    className="template-card"
-                    style={{
-                      flex: templatesToShow === 1 ? '1' : `0 0 ${100 / templatesToShow - 5}%`,
-                      maxWidth: templatesToShow === 1 ? '600px' : `${100 / templatesToShow - 5}%`,
-                      height: '100%',
-                      backgroundColor: '#fff',
-                      border: isCurrentSlide ? '3px solid #3b82f6' : '2px solid #e2e8f0',
-                      borderRadius: '20px',
-                      boxShadow: isCurrentSlide 
-                        ? '0 20px 40px rgba(0,0,0,0.1)' 
-                        : '0 8px 20px rgba(0,0,0,0.05)',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      padding: isCurrentSlide ? '20px' : '15px',
-                      cursor: 'pointer',
-                      userSelect: 'none',
-                      boxSizing: 'border-box',
-                      position: 'relative',
-                      overflow: 'hidden',
-                      transition: 'all 0.3s ease',
-                      transform: isCurrentSlide ? 'scale(1)' : 'scale(0.9)',
-                      opacity: isCurrentSlide ? 1 : 0.6,
-                      zIndex: isCurrentSlide ? 10 : 1,
-                      filter: isCurrentSlide ? 'none' : 'brightness(0.8)',
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!isCurrentSlide) {
-                        e.currentTarget.style.transform = 'scale(0.95)';
-                        e.currentTarget.style.opacity = '0.8';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isCurrentSlide) {
-                        e.currentTarget.style.transform = 'scale(0.9)';
-                        e.currentTarget.style.opacity = '0.6';
-                      }
-                    }}
-                  >
-                    {/* Template Image */}
-                    <div
-                      style={{
-                        width: '100%',
-                        flex: 1,
-                        backgroundColor: '#f8fafc',
-                        borderRadius: '15px',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        overflow: 'hidden',
-                        border: '1px solid #e2e8f0',
-                        minHeight: 0,
-                      }}
-                    >
-                      <img
-                        src={template.imageUrl}
-                        alt={`${template.name} Preview`}
-                        style={{ 
-                          width: '100%', 
-                          height: '100%', 
-                          objectFit: 'contain', 
-                          borderRadius: '15px' 
-                        }}
-                      />
-                    </div>
+              <button
+                onClick={nextSlide}
+                className="carousel-nav-btn"
+                style={{
+                  position: 'absolute',
+                  right: windowWidth >= 768 ? '10px' : '-60px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  width: '50px',
+                  height: '50px',
+                  borderRadius: '50%',
+                  border: 'none',
+                  backgroundColor: '#667eea',
+                  color: 'white',
+                  fontSize: '1.5rem',
+                  cursor: 'pointer',
+                  zIndex: 10,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
+                  transition: 'all 0.3s ease',
+                }}
+                aria-label="Next template"
+              >
+                ›
+              </button>
+
+              {/* Template Cards Container */}
+              <div style={{
+                display: 'flex',
+                gap: '20px',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '100%',
+                height: '100%',
+                minHeight: windowWidth >= 1200 ? '650px' : windowWidth >= 768 ? '550px' : '350px',
+                maxHeight: windowWidth >= 1200 ? '950px' : windowWidth >= 768 ? '750px' : '550px',
+                padding: '0 20px',
+                transform: isDragging ? 'scale(0.98)' : 'scale(1)',
+                transition: 'transform 0.2s ease',
+                position: 'relative',
+                overflow: 'hidden',
+              }}>
+                {/* Show templates with slide animation */}
+                {(() => {
+                  // Show all templates but position them based on their relationship to current slide
+                  return templates.map((template, index) => {
+                    const actualIndex = index;
+                    const isCurrentSlide = actualIndex === currentSlide;
+                    const isNextSlide = actualIndex === (currentSlide + 1) % templates.length;
+                    const isPrevSlide = actualIndex === (currentSlide - 1 + templates.length) % templates.length;
                     
-                    {/* Template Title and Button Container */}
-                    <div style={{ flexShrink: 0, marginTop: '10px' }}>
+                    // Calculate animation states
+                    let transform = 'translateX(0)';
+                    let opacity = 1;
+                    let zIndex = 1;
+                    
+                    if (isCurrentSlide) {
+                      transform = 'translateX(0)';
+                      opacity = 1;
+                      zIndex = 10;
+                    } else if (isNextSlide) {
+                      transform = 'translateX(100%)';
+                      opacity = 0.3;
+                      zIndex = 5;
+                    } else if (isPrevSlide) {
+                      transform = 'translateX(-100%)';
+                      opacity = 0.3;
+                      zIndex = 5;
+                    } else {
+                      transform = 'translateX(200%)';
+                      opacity = 0;
+                      zIndex = 1;
+                    }
+                    
+                    return (
                       <div
-                        style={{
-                          fontWeight: '700',
-                          fontSize: isCurrentSlide ? '1.3rem' : '1.1rem',
-                          color: isCurrentSlide ? '#1e40af' : '#6b7280',
-                          marginBottom: '8px',
-                          textAlign: 'center',
+                        key={template.name}
+                        onClick={() => handleTemplateClick(template.name)}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            handleTemplateClick(template.name);
+                          }
                         }}
-                      >
-                        {template.name}
-                      </div>
-                      
-                      {/* Use Template Button */}
-                      <button
+                        title={`Click to use ${template.name}`}
+                        className="template-card"
                         style={{
-                          padding: isCurrentSlide ? '10px 24px' : '8px 20px',
-                          backgroundColor: isCurrentSlide ? '#3b82f6' : '#9ca3af',
-                          color: 'white',
-                          border: 'none',
+                          position: 'absolute',
+                          left: '50%',
+                          top: '50%',
+                          transform: `translate(-50%, -50%) ${transform}`,
+                          width: windowWidth >= 1200 ? '800px' : windowWidth >= 768 ? '700px' : '400px',
+                          maxWidth: windowWidth >= 1200 ? '800px' : windowWidth >= 768 ? '700px' : '400px',
+                          minWidth: windowWidth >= 1200 ? '600px' : windowWidth >= 768 ? '500px' : '300px',
+                          height: '100%',
+                          minHeight: windowWidth >= 1200 ? '650px' : windowWidth >= 768 ? '550px' : '350px',
+                          maxHeight: windowWidth >= 1200 ? '950px' : windowWidth >= 768 ? '750px' : '550px',
+                          backgroundColor: '#fff',
+                          border: isCurrentSlide ? '3px solid #667eea' : '2px solid #e2e8f0',
                           borderRadius: '20px',
-                          fontSize: isCurrentSlide ? '0.9rem' : '0.85rem',
-                          fontWeight: '600',
+                          boxShadow: isCurrentSlide 
+                            ? '0 20px 40px rgba(0,0,0,0.1)' 
+                            : '0 8px 20px rgba(0,0,0,0.05)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          padding: isCurrentSlide ? '20px' : '15px',
                           cursor: 'pointer',
-                          transition: 'all 0.3s ease',
+                          userSelect: 'none',
+                          boxSizing: 'border-box',
+                          overflow: 'hidden',
+                          transition: 'all 0.8s cubic-bezier(0.4, 0, 0.2, 1)',
+                          opacity: opacity,
+                          zIndex: zIndex,
+                          filter: isCurrentSlide ? 'none' : 'brightness(0.8)',
                         }}
                         onMouseEnter={(e) => {
+                          setIsHovering(true);
                           if (isCurrentSlide) {
-                            e.currentTarget.style.backgroundColor = '#2563eb';
+                            e.currentTarget.style.transform = 'translate(-50%, -50%) scale(1.05)';
                           }
                         }}
                         onMouseLeave={(e) => {
+                          setIsHovering(false);
                           if (isCurrentSlide) {
-                            e.currentTarget.style.backgroundColor = '#3b82f6';
+                            e.currentTarget.style.transform = 'translate(-50%, -50%) scale(1)';
                           }
                         }}
                       >
-                        {isCurrentSlide ? 'Use This Template' : 'Select Template'}
-                      </button>
-                    </div>
-                  </div>
-                );
-              });
-            })()}
+                        {/* Template Image */}
+                        <div
+                          style={{
+                            width: '100%',
+                            flex: 1,
+                            backgroundColor: '#f8fafc',
+                            borderRadius: '15px',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            overflow: 'hidden',
+                            border: '1px solid #e2e8f0',
+                            minHeight: windowWidth >= 768 ? '350px' : '250px',
+                            maxHeight: windowWidth >= 1200 ? '650px' : windowWidth >= 768 ? '550px' : '450px',
+                            aspectRatio: '0.707', // A4 aspect ratio (210mm/297mm)
+                          }}
+                        >
+                          <img
+                            src={template.imageUrl}
+                            alt={`${template.name} Preview`}
+                            style={{ 
+                              width: '100%', 
+                              height: '100%', 
+                              objectFit: 'contain', 
+                              borderRadius: '15px',
+                              padding: '10px',
+                            }}
+                          />
+                        </div>
+                        
+                        {/* Template Title and Button Container */}
+                        <div style={{ flexShrink: 0, marginTop: '10px' }}>
+                          <div
+                            style={{
+                              fontWeight: '700',
+                              fontSize: isCurrentSlide ? '1.3rem' : '1.1rem',
+                              color: isCurrentSlide ? '#667eea' : '#6b7280',
+                              marginBottom: '8px',
+                              textAlign: 'center',
+                            }}
+                          >
+                            {template.name}
+                          </div>
+                          
+                          {/* Use Template Button */}
+                          <button
+                            style={{
+                              padding: isCurrentSlide ? '10px 24px' : '8px 20px',
+                              backgroundColor: isCurrentSlide ? '#667eea' : '#9ca3af',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '20px',
+                              fontSize: isCurrentSlide ? '0.9rem' : '0.85rem',
+                              fontWeight: '600',
+                              cursor: 'pointer',
+                              transition: 'all 0.3s ease',
+                            }}
+                            onMouseEnter={(e) => {
+                              if (isCurrentSlide) {
+                                e.currentTarget.style.backgroundColor = '#5a67d8';
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (isCurrentSlide) {
+                                e.currentTarget.style.backgroundColor = '#667eea';
+                              }
+                            }}
+                          >
+                            {isCurrentSlide ? 'Use This Template' : 'Select Template'}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
+            </div>
+
+            {/* Dot Indicators */}
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                gap: '12px',
+                marginBottom: '15px',
+                flexShrink: 0,
+              }}
+            >
+              {templates.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => goToSlide(index)}
+                  className="dot-indicator"
+                  style={{
+                    width: '12px',
+                    height: '12px',
+                    borderRadius: '50%',
+                    border: 'none',
+                    backgroundColor: index === currentSlide ? '#667eea' : '#cbd5e1',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                  }}
+                  aria-label={`Go to template ${index + 1}`}
+                />
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Dot Indicators */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            gap: '12px',
-            marginBottom: '15px',
-            flexShrink: 0,
-          }}
-        >
-          {templates.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => goToSlide(index)}
-              className="dot-indicator"
-              style={{
-                width: '12px',
-                height: '12px',
-                borderRadius: '50%',
-                border: 'none',
-                backgroundColor: index === currentSlide ? '#3b82f6' : '#cbd5e1',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-              }}
-              aria-label={`Go to template ${index + 1}`}
-            />
-          ))}
-        </div>
-
-        {/* All Templates Grid Section - A4 Size Display */}
+        {/* All Templates Grid Section */}
         <div style={{
-          marginTop: windowWidth >= 768 ? '60px' : '40px',
-          padding: windowWidth >= 768 ? '40px 20px' : windowWidth >= 480 ? '30px 15px' : '20px 10px',
-          backgroundColor: '#f8fafc',
-          borderRadius: windowWidth >= 768 ? '20px' : '15px',
+          marginTop: windowWidth >= 768 ? '80px' : '60px',
+          padding: windowWidth >= 768 ? '40px' : '24px',
+          background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+          borderRadius: '24px',
+          boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
+          position: 'relative',
+          overflow: 'hidden',
         }}>
+          {/* Enhanced grid section decorative elements */}
+          <div style={{
+            position: 'absolute',
+            top: '10%',
+            right: '5%',
+            width: '100px',
+            height: '100px',
+            background: 'radial-gradient(circle, rgba(102, 126, 234, 0.12) 0%, rgba(240, 147, 251, 0.08) 40%, transparent 70%)',
+            borderRadius: '50%',
+            filter: 'blur(25px)',
+            animation: 'pulse 7s ease-in-out infinite',
+          }} />
+          <div style={{
+            position: 'absolute',
+            bottom: '15%',
+            left: '8%',
+            width: '80px',
+            height: '80px',
+            background: 'radial-gradient(circle, rgba(118, 75, 162, 0.1) 0%, rgba(102, 126, 234, 0.06) 50%, transparent 70%)',
+            borderRadius: '50%',
+            filter: 'blur(20px)',
+            animation: 'pulse 9s ease-in-out infinite reverse',
+          }} />
+          <div style={{
+            position: 'absolute',
+            top: '50%',
+            left: '2%',
+            width: '4px',
+            height: '100px',
+            background: 'linear-gradient(to bottom, transparent, rgba(102, 126, 234, 0.3), rgba(240, 147, 251, 0.2), transparent)',
+            borderRadius: '2px',
+            animation: 'pulse 4s ease-in-out infinite',
+          }} />
+          <div style={{
+            position: 'absolute',
+            bottom: '20%',
+            right: '3%',
+            width: '4px',
+            height: '70px',
+            background: 'linear-gradient(to bottom, transparent, rgba(118, 75, 162, 0.3), rgba(102, 126, 234, 0.2), transparent)',
+            borderRadius: '2px',
+            animation: 'pulse 5s ease-in-out infinite reverse',
+          }} />
+          
+          {/* Additional grid elements */}
+          <div style={{
+            position: 'absolute',
+            top: '30%',
+            right: '15%',
+            width: '60px',
+            height: '60px',
+            background: 'radial-gradient(circle, rgba(240, 147, 251, 0.08) 0%, transparent 70%)',
+            borderRadius: '50%',
+            filter: 'blur(15px)',
+            animation: 'float 10s ease-in-out infinite',
+          }} />
+          <div style={{
+            position: 'absolute',
+            bottom: '40%',
+            left: '15%',
+            width: '5px',
+            height: '40px',
+            background: 'linear-gradient(to bottom, transparent, rgba(240, 147, 251, 0.25), transparent)',
+            borderRadius: '3px',
+            animation: 'pulse 6s ease-in-out infinite',
+          }} />
           <h2 style={{
             textAlign: 'center',
-            fontSize: windowWidth >= 768 ? '2rem' : windowWidth >= 480 ? '1.5rem' : '1.2rem',
-            fontWeight: '700',
+            fontSize: windowWidth >= 768 ? '2.5rem' : '2rem',
+            fontWeight: 600,
             color: '#111827',
-            marginBottom: windowWidth >= 768 ? '10px' : '8px',
+            marginBottom: windowWidth >= 768 ? '16px' : '12px',
+            position: 'relative',
           }}>
             All Templates
+            <div style={{
+              width: '60px',
+              height: '4px',
+              backgroundColor: '#667eea',
+              margin: '16px auto 0',
+              borderRadius: '2px',
+            }} />
           </h2>
           <p style={{
             textAlign: 'center',
-            fontSize: windowWidth >= 768 ? '1rem' : windowWidth >= 480 ? '0.9rem' : '0.8rem',
+            fontSize: windowWidth >= 768 ? '1.1rem' : '1rem',
             color: '#6b7280',
-            marginBottom: windowWidth >= 768 ? '40px' : windowWidth >= 480 ? '30px' : '20px',
+            marginBottom: windowWidth >= 768 ? '40px' : '32px',
+            maxWidth: '600px',
+            margin: '0 auto 40px',
           }}>
             Browse all available templates in A4 format
           </p>
@@ -1107,7 +1351,7 @@ const ChooseTemplate = ({ user, initialCV, newAdminCV }) => {
                     <button
                       style={{
                         padding: windowWidth >= 768 ? '8px 16px' : windowWidth >= 480 ? '6px 12px' : '4px 8px',
-                        backgroundColor: '#3b82f6',
+                        backgroundColor: '#667eea',
                         color: 'white',
                         border: 'none',
                         borderRadius: windowWidth >= 768 ? '6px' : '4px',
@@ -1117,10 +1361,10 @@ const ChooseTemplate = ({ user, initialCV, newAdminCV }) => {
                         transition: 'background-color 0.3s ease',
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = '#2563eb';
+                        e.currentTarget.style.backgroundColor = '#5a67d8';
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = '#3b82f6';
+                        e.currentTarget.style.backgroundColor = '#667eea';
                       }}
                     >
                       Use Template
@@ -1131,8 +1375,63 @@ const ChooseTemplate = ({ user, initialCV, newAdminCV }) => {
             ))}
           </div>
         </div>
-
       </div>
+      
+      {/* Enhanced CSS Animations */}
+      <style jsx>{`
+        @keyframes float {
+          0%, 100% {
+            transform: translateY(0px) rotate(0deg);
+          }
+          25% {
+            transform: translateY(-15px) rotate(2deg);
+          }
+          50% {
+            transform: translateY(-25px) rotate(0deg);
+          }
+          75% {
+            transform: translateY(-15px) rotate(-2deg);
+          }
+        }
+        
+        @keyframes pulse {
+          0%, 100% {
+            opacity: 0.1;
+            transform: scale(1);
+          }
+          50% {
+            opacity: 0.25;
+            transform: scale(1.08);
+          }
+        }
+        
+        @keyframes spin {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
+        
+        @keyframes glow {
+          0%, 100% {
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.2);
+          }
+          50% {
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.4);
+          }
+        }
+        
+        @keyframes shimmer {
+          0% {
+            background-position: -200% 0;
+          }
+          100% {
+            background-position: 200% 0;
+          }
+        }
+      `}</style>
     </div>
   );
 };
