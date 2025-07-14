@@ -750,13 +750,29 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
       console.log('Template4PDF - Calling API with HTML length:', cvHTML.length);
       alert(`Template4PDF: Calling API with HTML length: ${cvHTML.length}`);
       
+      // First, test if the API is accessible
+      try {
+        const healthResponse = await fetch('/api/health?v=' + Date.now());
+        console.log('Template4PDF - Health check status:', healthResponse.status);
+        alert(`Template4PDF: Health check status: ${healthResponse.status}`);
+        
+        if (!healthResponse.ok) {
+          throw new Error(`Health check failed: ${healthResponse.status}`);
+        }
+      } catch (healthError) {
+        console.error('Template4PDF - Health check failed:', healthError);
+        alert(`Template4PDF: Health check failed - ${healthError.message}`);
+        throw new Error('API is not accessible. Please try again later.');
+      }
+      
       // Call the Vercel API to generate PDF with cache busting
-      const response = await fetch('/api/generate-pdf', {
+      const response = await fetch('/api/generate-pdf?v=' + Date.now(), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
         },
         body: JSON.stringify({
           html: cvHTML,
