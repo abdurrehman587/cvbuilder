@@ -747,11 +747,13 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
 
       console.log('Template4PDF - Calling API with HTML length:', cvHTML.length);
       
-      // Call the Vercel API to generate PDF
+      // Call the Vercel API to generate PDF with cache busting
       const response = await fetch('/api/generate-pdf', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
         },
         body: JSON.stringify({
           html: cvHTML,
@@ -764,6 +766,12 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Template4PDF - API error response:', errorText);
+        
+        // If it's a 404, the API route might not be deployed yet
+        if (response.status === 404) {
+          throw new Error('API route not found. Please check if the deployment is complete.');
+        }
+        
         throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
       }
 
