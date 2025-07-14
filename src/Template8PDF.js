@@ -13,6 +13,7 @@ const sectionList = [
   { key: 'projects', title: 'Projects' },
   { key: 'languages', title: 'Languages' },
   { key: 'hobbies', title: 'Hobbies' },
+  { key: 'customSections', title: 'Custom Sections' },
   { key: 'references', title: 'References' },
 ];
 
@@ -367,6 +368,43 @@ const Template8PDF = ({ formData, visibleSections = [] }) => {
     );
   };
 
+  const renderCustomSections = (customSections) => {
+    console.log('Template8PDF - renderCustomSections called with:', customSections);
+    
+    if (!customSections || customSections.length === 0) {
+      console.log('Template8PDF - renderCustomSections: no customSections or empty array');
+      return null;
+    }
+
+    return customSections.map((section, sectionIndex) => {
+      console.log(`Template8PDF - processing section ${sectionIndex}:`, section);
+      
+      // Get title and details
+      const sectionTitle = section.heading || 'Additional Information';
+      const sectionDetails = section.details || [];
+      
+      // Simplified validation: show section if it has a resolved title AND valid details
+      const hasTitle = sectionTitle && sectionTitle.trim() !== '';
+      
+      // Filter out empty details for display
+      const validDetails = sectionDetails.filter(detail => detail && detail.trim() !== '');
+      
+      // Only show sections that have both a title AND valid details
+      if (!hasTitle || validDetails.length === 0) {
+        console.log(`Template8PDF - section ${sectionIndex} hidden: no title or no valid details`);
+        return null;
+      }
+      
+      console.log(`Template8PDF - rendering section ${sectionIndex}:`, sectionTitle);
+      return (
+        <section key={sectionIndex} style={sectionStyle} aria-label={`${sectionTitle} Section`}>
+          <h2 style={sectionTitleStyle}>{sectionTitle}</h2>
+          {renderSimpleList(validDetails)}
+        </section>
+      );
+    });
+  };
+
   const combinedLanguages = (() => {
     if (!formData.languages) return [];
     if (!formData.customLanguages || formData.customLanguages.length === 0) return formData.languages;
@@ -529,6 +567,27 @@ const Template8PDF = ({ formData, visibleSections = [] }) => {
           {renderSimpleList(formData.hobbies)}
         </section>
       )}
+
+      {/* Custom Sections - rendered before references */}
+      {(() => {
+        console.log('Template8PDF - customSections check:', {
+          visibleSections,
+          hasCustomSections: visibleSections.includes('customSections'),
+          formDataCustomSections: formData.customSections,
+          customSectionsLength: formData.customSections?.length
+        });
+        
+        // Force custom sections to be visible if they exist
+        const shouldShowCustomSections = (visibleSections.includes('customSections') || formData.customSections?.length > 0) && 
+                                        formData.customSections && 
+                                        formData.customSections.length > 0;
+        
+        console.log('Template8PDF - shouldShowCustomSections:', shouldShowCustomSections);
+        
+        return shouldShowCustomSections && (
+          renderCustomSections(formData.customSections)
+        );
+      })()}
 
       {visibleSections.includes('references') && (
         <section style={sectionStyle} aria-label="References Section">

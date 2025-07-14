@@ -521,19 +521,19 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
     return customSections.map((section, sectionIndex) => {
       console.log(`Template2PDF - processing section ${sectionIndex}:`, section);
       
-      // Get title and items, supporting both new and old structure
-      const sectionTitle = section.title || section.heading || 'Additional Information';
-      const sectionItems = section.items || section.details || [];
+      // Get title and details
+      const sectionTitle = section.heading || 'Additional Information';
+      const sectionDetails = section.details || [];
       
-      // Simplified validation: show section if it has a resolved title AND valid items
+      // Simplified validation: show section if it has a resolved title AND valid details
       const hasTitle = sectionTitle && sectionTitle.trim() !== '';
       
-      // Filter out empty items for display
-      const validItems = sectionItems.filter(item => item && item.trim() !== '');
+      // Filter out empty details for display
+      const validDetails = sectionDetails.filter(detail => detail && detail.trim() !== '');
       
-      // Only show sections that have both a title AND valid items
-      if (!hasTitle || validItems.length === 0) {
-        console.log(`Template2PDF - section ${sectionIndex} hidden: no title or no valid items`);
+      // Only show sections that have both a title AND valid details
+      if (!hasTitle || validDetails.length === 0) {
+        console.log(`Template2PDF - section ${sectionIndex} hidden: no title or no valid details`);
         return null;
       }
       
@@ -542,8 +542,8 @@ const Template2PDF = ({ formData, visibleSections = [] }) => {
         <div key={sectionIndex} style={styles.rightSection}>
           <h2 style={styles.rightSectionTitle}>{sectionTitle}</h2>
           <ul style={{ paddingLeft: '20px', marginTop: '10px' }}>
-            {validItems.map((item, itemIndex) => (
-              <li key={itemIndex} style={{ ...styles.listItem, marginLeft: '0px' }}>{item}</li>
+            {validDetails.map((detail, detailIndex) => (
+              <li key={detailIndex} style={{ ...styles.listItem, marginLeft: '0px' }}>{detail}</li>
             ))}
           </ul>
         </div>

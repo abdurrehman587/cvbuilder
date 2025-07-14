@@ -431,36 +431,36 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
   };
 
   const renderCustomSections = (customSections) => {
+    console.log('Template1PDF - renderCustomSections called with:', customSections);
     
-          if (!customSections || customSections.length === 0) {
-        return null;
-      }
+    if (!customSections || customSections.length === 0) {
+      console.log('Template1PDF - renderCustomSections: no customSections or empty array');
+      return null;
+    }
 
     return customSections.map((section, sectionIndex) => {
       console.log(`Template1PDF - processing section ${sectionIndex}:`, section);
       console.log(`Template1PDF - section ${sectionIndex} keys:`, Object.keys(section));
-      console.log(`Template1PDF - section ${sectionIndex} title:`, section.title);
       console.log(`Template1PDF - section ${sectionIndex} heading:`, section.heading);
-      console.log(`Template1PDF - section ${sectionIndex} items:`, section.items);
       console.log(`Template1PDF - section ${sectionIndex} details:`, section.details);
       
-      // Get title and items, supporting both new and old structure
-      const sectionTitle = section.title || section.heading || 'Additional Information';
-      const sectionItems = section.items || section.details || [];
+      // Get title and details
+      const sectionTitle = section.heading || 'Additional Information';
+      const sectionDetails = section.details || [];
       
       console.log(`Template1PDF - section ${sectionIndex} resolved title:`, sectionTitle);
-      console.log(`Template1PDF - section ${sectionIndex} resolved items:`, sectionItems);
+      console.log(`Template1PDF - section ${sectionIndex} resolved details:`, sectionDetails);
       
-      // Simplified validation: show section if it has a resolved title AND valid items
+      // Simplified validation: show section if it has a resolved title AND valid details
       const hasTitle = sectionTitle && sectionTitle.trim() !== '';
       
-      // Filter out empty items for display
-      const validItems = sectionItems ? sectionItems.filter(item => item && item.trim() !== '') : [];
-      console.log(`Template1PDF - section ${sectionIndex} valid items:`, validItems);
+      // Filter out empty details for display
+      const validDetails = sectionDetails.filter(detail => detail && detail.trim() !== '');
+      console.log(`Template1PDF - section ${sectionIndex} valid details:`, validDetails);
       
-      // Only show sections that have both a title AND valid items
-      if (!hasTitle || validItems.length === 0) {
-        console.log(`Template1PDF - section ${sectionIndex} hidden: no title or no valid items`);
+      // Only show sections that have both a title AND valid details
+      if (!hasTitle || validDetails.length === 0) {
+        console.log(`Template1PDF - section ${sectionIndex} hidden: no title or no valid details`);
         return null;
       }
       
@@ -469,7 +469,7 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
         <div key={sectionIndex} style={sectionStyle} aria-label={`${sectionTitle} Section`}>
           <h2 style={sectionTitleStyle}>{sectionTitle}</h2>
           <ul style={listStyle}>
-            {validItems.map((item, detailIndex) => (
+            {validDetails.map((detail, detailIndex) => (
               <li key={detailIndex} style={listItemStyle}>
                 <span style={{
                   position: 'absolute',
@@ -480,7 +480,7 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
                   fontSize: '0.85rem',
                   lineHeight: '1.4',
                 }}>✦</span>
-                {item}
+                {detail}
               </li>
             ))}
           </ul>

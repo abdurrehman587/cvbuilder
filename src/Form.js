@@ -77,6 +77,20 @@ const defaultFormData = {
   ],
 };
 
+// Available sections for positioning custom sections
+const availableSections = [
+  { value: 'objective', label: 'Objective' },
+  { value: 'education', label: 'Education' },
+  { value: 'workExperience', label: 'Work Experience' },
+  { value: 'skills', label: 'Skills' },
+  { value: 'certifications', label: 'Certifications' },
+  { value: 'projects', label: 'Projects' },
+  { value: 'languages', label: 'Languages' },
+  { value: 'hobbies', label: 'Hobbies' },
+  { value: 'otherInformation', label: 'Other Information' },
+  { value: 'cv_references', label: 'References' },
+  { value: 'end', label: 'At the end' }
+];
 
 
 const Form = forwardRef((props, ref) => {
@@ -174,7 +188,10 @@ const Form = forwardRef((props, ref) => {
           languages: cvData.languages || [],
           customLanguages: [],
           hobbies: cvData.hobbies || [],
-          customSections: cvData.custom_sections || [],
+          customSections: (cvData.custom_sections || []).map(section => ({
+            ...section,
+            positionAfter: section.positionAfter || 'end'
+          })),
           cv_references: cvData.cv_references || ['References would be furnished on demand'],
           otherInformation: cvData.other_information || [],
         });
@@ -232,7 +249,10 @@ const Form = forwardRef((props, ref) => {
             languages: data.languages || [],
             customLanguages: [],
             hobbies: data.hobbies || [],
-            customSections: data.custom_sections || [],
+            customSections: (data.custom_sections || []).map(section => ({
+              ...section,
+              positionAfter: section.positionAfter || 'end'
+            })),
             cv_references: data.cv_references || ['References would be furnished on demand'],
             otherInformation: data.other_information || [],
           });
@@ -280,7 +300,10 @@ const Form = forwardRef((props, ref) => {
             languages: data.languages || [],
             customLanguages: [],
             hobbies: data.hobbies || [],
-            customSections: data.custom_sections || [],
+            customSections: (data.custom_sections || []).map(section => ({
+              ...section,
+              positionAfter: section.positionAfter || 'end'
+            })),
             cv_references: data.cv_references || ['References would be furnished on demand'],
             otherInformation: data.other_information || [],
           });
@@ -453,7 +476,7 @@ const Form = forwardRef((props, ref) => {
   const handleAddCustomSection = () => {
     props.setFormData({ 
       ...props.formData, 
-      customSections: [...props.formData.customSections, { heading: '', details: [''] }] 
+      customSections: [...props.formData.customSections, { heading: '', details: [''], positionAfter: 'end' }] 
     });
   };
 
@@ -612,7 +635,8 @@ const Form = forwardRef((props, ref) => {
           hobbies: (props.formData.hobbies || []).map(h => h || ''),
           custom_sections: (props.formData.customSections || []).map(section => ({
             heading: section.heading || '',
-            details: (section.details || []).map(detail => detail || '')
+            details: (section.details || []).map(detail => detail || ''),
+            positionAfter: section.positionAfter || 'end'
           })),
           cv_references: (props.formData.cv_references || []).map(r => r || ''),
           other_information: (props.formData.otherInformation || []).map(info => ({
@@ -694,7 +718,8 @@ const Form = forwardRef((props, ref) => {
           hobbies: (props.formData.hobbies || []).map(h => h || ''),
           custom_sections: (props.formData.customSections || []).map(section => ({
             heading: section.heading || '',
-            details: (section.details || []).map(detail => detail || '')
+            details: (section.details || []).map(detail => detail || ''),
+            positionAfter: section.positionAfter || 'end'
           })),
           cv_references: (props.formData.cv_references || []).map(r => r || ''),
           other_information: (props.formData.otherInformation || []).map(info => ({
@@ -1250,7 +1275,7 @@ const CustomSection = ({
     }}>
     <h3 style={{ fontWeight: 700, fontSize: '1.25rem', marginBottom: 8, color: '#374151' }}>Custom Sections</h3>
     <p style={{ fontSize: '14px', color: '#666', marginBottom: '10px' }}>
-      Add custom sections to your CV with your own headings and details.
+      Add custom sections to your CV with your own headings and details. Choose where each custom section should appear in your CV.
     </p>
     {(customSections || []).map((section, sectionIndex) => (
       <div key={sectionIndex} style={{ 
@@ -1272,14 +1297,32 @@ const CustomSection = ({
               border: '1px solid #ccc',
               borderRadius: '4px',
               fontSize: '16px',
-              fontWeight: 'bold'
+              fontWeight: 'bold',
+              marginRight: '10px'
             }}
           />
+          <select
+            value={section.positionAfter || 'end'}
+            onChange={(e) => onChange(sectionIndex, 'positionAfter', e.target.value)}
+            style={{
+              padding: '8px',
+              border: '1px solid #ccc',
+              borderRadius: '4px',
+              fontSize: '14px',
+              marginRight: '10px',
+              minWidth: '150px'
+            }}
+          >
+            {availableSections.map(option => (
+              <option key={option.value} value={option.value}>
+                After {option.label}
+              </option>
+            ))}
+          </select>
           <button
             onClick={() => onRemove(sectionIndex)}
             className="remove-btn"
             type="button"
-            style={{ marginLeft: '10px' }}
             title="Remove section"
           >
             Remove Section

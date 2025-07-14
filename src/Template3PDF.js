@@ -447,19 +447,19 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
     return customSections.map((section, sectionIndex) => {
       console.log(`Template3PDF - processing section ${sectionIndex}:`, section);
       
-      // Get title and items, supporting both new and old structure
-      const sectionTitle = section.title || section.heading || 'Additional Information';
-      const sectionItems = section.items || section.details || [];
+      // Get title and details
+      const sectionTitle = section.heading || 'Additional Information';
+      const sectionDetails = section.details || [];
       
-      // Simplified validation: show section if it has a resolved title AND valid items
+      // Simplified validation: show section if it has a resolved title AND valid details
       const hasTitle = sectionTitle && sectionTitle.trim() !== '';
       
-      // Filter out empty items for display
-      const validItems = sectionItems.filter(item => item && item.trim() !== '');
+      // Filter out empty details for display
+      const validDetails = sectionDetails.filter(detail => detail && detail.trim() !== '');
       
-      // Only show sections that have both a title AND valid items
-      if (!hasTitle || validItems.length === 0) {
-        console.log(`Template3PDF - section ${sectionIndex} hidden: no title or no valid items`);
+      // Only show sections that have both a title AND valid details
+      if (!hasTitle || validDetails.length === 0) {
+        console.log(`Template3PDF - section ${sectionIndex} hidden: no title or no valid details`);
         return null;
       }
       
@@ -468,8 +468,8 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
         <div key={sectionIndex} style={sectionStyle}>
           <h3 style={sectionTitleStyle}>{sectionTitle}</h3>
           <ul style={listStyle}>
-            {validItems.map((item, detailIndex) => (
-              <li key={detailIndex} style={listItemStyle}>{item}</li>
+            {validDetails.map((detail, detailIndex) => (
+              <li key={detailIndex} style={listItemStyle}>{detail}</li>
             ))}
           </ul>
         </div>

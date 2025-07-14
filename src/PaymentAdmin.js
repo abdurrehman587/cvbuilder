@@ -90,8 +90,8 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
               console.log('User CV not found, trying admin CV table...');
               const { data: adminCvData, error: adminCvError } = await supabase
                 .from('admin_cvs')
-                .select('name, user_email')
-                .eq('user_email', payment.user_email)
+                .select('name, admin_email')
+                .eq('admin_email', payment.user_email)
                 .maybeSingle();
               
               console.log('Admin CV lookup result:', {
@@ -129,7 +129,7 @@ const PaymentAdmin = ({ onAccessCVBuilder }) => {
               // Debug: Check what users exist in admin_cvs table
               const { data: allAdminCvs, error: allAdminCvsError } = await supabase
                 .from('admin_cvs')
-                .select('user_email, name')
+                .select('admin_email, name')
                 .limit(5);
               
               console.log('Sample admin_cvs data:', {

@@ -30,7 +30,7 @@ const getDateOfBirth = (formData) => {
   return '';
 };
 
-const Template5PDF = ({ formData }) => {
+const Template5PDF = ({ formData, visibleSections = [] }) => {
   const containerRef = useRef(null);
   const {
     name = '',
@@ -44,8 +44,52 @@ const Template5PDF = ({ formData }) => {
     languages = [],
     languageSkills = {},
     hobbies = [],
+    customSections = [],
   } = formData;
   const dateOfBirth = getDateOfBirth(formData);
+
+  const renderCustomSections = (customSections) => {
+    console.log('Template5PDF - renderCustomSections called with:', customSections);
+    
+    if (!customSections || customSections.length === 0) {
+      console.log('Template5PDF - renderCustomSections: no customSections or empty array');
+      return null;
+    }
+
+    return customSections.map((section, sectionIndex) => {
+      console.log(`Template5PDF - processing section ${sectionIndex}:`, section);
+      
+      // Get title and details
+      const sectionTitle = section.heading || 'Additional Information';
+      const sectionDetails = section.details || [];
+      
+      // Simplified validation: show section if it has a resolved title AND valid details
+      const hasTitle = sectionTitle && sectionTitle.trim() !== '';
+      
+      // Filter out empty details for display
+      const validDetails = sectionDetails.filter(detail => detail && detail.trim() !== '');
+      
+      // Only show sections that have both a title AND valid details
+      if (!hasTitle || validDetails.length === 0) {
+        console.log(`Template5PDF - section ${sectionIndex} hidden: no title or no valid details`);
+        return null;
+      }
+      
+      console.log(`Template5PDF - rendering section ${sectionIndex}:`, sectionTitle);
+      return (
+        <div key={sectionIndex}>
+          <div style={sectionTitleStyle}>{sectionTitle}</div>
+          <div style={{ fontSize: 15, marginTop: 6 }}>
+            <ul style={{ margin: 0, paddingLeft: 18 }}>
+              {validDetails.map((detail, detailIndex) => (
+                <li key={detailIndex} style={{ marginBottom: 2 }}>{detail}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      );
+    });
+  };
 
   return (
     <div ref={containerRef} style={{ fontFamily: 'Arial, sans-serif', background: '#fff', color: '#222', padding: '16px 32px 32px 32px', maxWidth: 900, margin: '0 auto' }}>
@@ -144,6 +188,27 @@ const Template5PDF = ({ formData }) => {
         ))}
       </div>
 
+      {/* Custom Sections - rendered before hobbies */}
+      {(() => {
+        console.log('Template5PDF - customSections check:', {
+          visibleSections,
+          hasCustomSections: visibleSections.includes('customSections'),
+          formDataCustomSections: formData.customSections,
+          customSectionsLength: formData.customSections?.length
+        });
+        
+        // Force custom sections to be visible if they exist
+        const shouldShowCustomSections = (visibleSections.includes('customSections') || formData.customSections?.length > 0) && 
+                                        formData.customSections && 
+                                        formData.customSections.length > 0;
+        
+        console.log('Template5PDF - shouldShowCustomSections:', shouldShowCustomSections);
+        
+        return shouldShowCustomSections && (
+          renderCustomSections(formData.customSections)
+        );
+      })()}
+
       {/* Hobbies and Interests Section */}
       <div style={sectionTitleStyle}>Hobbies and Interests</div>
       <div style={{ fontSize: 15, marginTop: 6 }}>
@@ -163,6 +228,7 @@ const Template5PDF = ({ formData }) => {
 
 Template5PDF.propTypes = {
   formData: PropTypes.object.isRequired,
+  visibleSections: PropTypes.array,
 };
 
 export default Template5PDF;

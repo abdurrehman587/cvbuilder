@@ -41,10 +41,19 @@ const hasSectionData = (formData, sectionKey) => {
       return formData.hobbies && formData.hobbies.length > 0;
     case 'customSections':
       return formData.customSections && formData.customSections.length > 0 &&
-             formData.customSections.some(section => 
-               section && typeof section === 'object' && 
-               (section.title || section.heading || section.details) // Show if either title, heading, or details exist
-             );
+             formData.customSections.some(section => {
+               if (!section || typeof section !== 'object') return false;
+               
+               // Get title and details
+               const sectionTitle = section.heading || 'Additional Information';
+               const sectionDetails = section.details || [];
+               
+               // Check if section has both a title AND valid details
+               const hasTitle = sectionTitle && sectionTitle.trim() !== '';
+               const validDetails = sectionDetails.filter(detail => detail && detail.trim() !== '');
+               
+               return hasTitle && validDetails.length > 0;
+             });
     case 'references':
       return true; // Always show references section
     case 'otherInformation':

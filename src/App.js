@@ -3,6 +3,7 @@ import supabase from './supabase';
 import SignupSignIn from './SignupSignIn';
 import ChooseTemplate from './choosetemplate';
 import DatabaseSetupCheck from './DatabaseSetupCheck';
+import PrintCV from './PrintCV';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './responsive.css';
@@ -235,6 +236,39 @@ const App = () => {
         <div>Loading...</div>
       </div>
     );
+  }
+
+  // Check if this is a print route
+  if (window.location.pathname === '/print-cv') {
+    // Try to get data from URL params first
+    const urlParams = new URLSearchParams(window.location.search);
+    const dataParam = urlParams.get('data');
+    const sectionsParam = urlParams.get('sections');
+    let formDataStr = dataParam;
+    let visibleSectionsStr = sectionsParam;
+    if (!formDataStr) {
+      // Fallback to localStorage
+      formDataStr = localStorage.getItem('print_cv_data');
+      visibleSectionsStr = localStorage.getItem('print_cv_sections');
+    }
+    
+    console.log('Print route accessed');
+    console.log('formDataStr exists:', !!formDataStr);
+    console.log('visibleSectionsStr exists:', !!visibleSectionsStr);
+    
+    if (formDataStr) {
+      try {
+        const formData = JSON.parse(formDataStr);
+        const visibleSections = visibleSectionsStr ? JSON.parse(visibleSectionsStr) : [];
+        console.log('Print CV data loaded successfully:', { formData: !!formData, visibleSections });
+        return <PrintCV formData={formData} visibleSections={visibleSections} />;
+      } catch (error) {
+        console.error('Error parsing print CV data:', error);
+        return <div>Error loading CV data: {error.message}</div>;
+      }
+    } else {
+      return <div>No CV data found for printing. Please try downloading again.</div>;
+    }
   }
 
   // Always show SignupSignIn as homepage/root route

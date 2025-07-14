@@ -42,15 +42,15 @@ const hasSectionData = (formData, sectionKey) => {
              formData.customSections.some(section => {
                if (!section || typeof section !== 'object') return false;
                
-               // Get title and items, supporting both new and old structure
-               const sectionTitle = section.title || section.heading || 'Additional Information';
-               const sectionItems = section.items || section.details || [];
+               // Get title and details
+               const sectionTitle = section.heading || 'Additional Information';
+               const sectionDetails = section.details || [];
                
-               // Check if section has both a title AND valid items
+               // Check if section has both a title AND valid details
                const hasTitle = sectionTitle && sectionTitle.trim() !== '';
-               const validItems = sectionItems.filter(item => item && item.trim() !== '');
+               const validDetails = sectionDetails.filter(detail => detail && detail.trim() !== '');
                
-               return hasTitle && validItems.length > 0;
+               return hasTitle && validDetails.length > 0;
              });
     case 'references':
       return true; // Always show references section
