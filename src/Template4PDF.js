@@ -3,6 +3,8 @@ import PropTypes from 'prop-types';
 import { PaymentService } from './paymentService';
 import ManualPayment from './ManualPayment';
 
+
+
 const PAGE_HEIGHT_MM = 297;
 const PAGE_MARGIN_TOP_MM = 20;
 const PAGE_MARGIN_BOTTOM_MM = 20;
@@ -670,7 +672,7 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
 
     try {
       setIsLoading(true);
-      console.log('Template4PDF - Starting PDF generation with Puppeteer...');
+      console.log('Template4PDF - Starting PDF generation with API...');
 
       // Check if user is admin
       const adminAccess = localStorage.getItem('admin_cv_access');
@@ -699,12 +701,6 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
       // Update button text
       const newText = await PaymentService.getDownloadButtonText('template4', isAdmin);
       setButtonText(newText);
-
-      // Create the print URL with data as URL parameters
-      const formDataParam = encodeURIComponent(JSON.stringify(formData));
-      const sectionsParam = encodeURIComponent(JSON.stringify(visibleSections));
-      const printUrl = `${window.location.origin}/print-cv?data=${formDataParam}&sections=${sectionsParam}`;
-      console.log('Template4PDF - Print URL:', printUrl);
 
       // Get the CV container HTML
       const cvContainer = containerRef.current;
@@ -764,7 +760,6 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
       });
 
       console.log('Template4PDF - API response status:', response.status);
-      console.log('Template4PDF - API response headers:', response.headers);
 
       if (!response.ok) {
         const errorText = await response.text();

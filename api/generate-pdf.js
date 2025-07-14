@@ -24,6 +24,7 @@ module.exports = async (req, res) => {
     }
 
     console.log('Starting PDF generation...');
+    console.log('HTML content length:', html.length);
 
     // Launch browser with proper configuration for Vercel
     browser = await puppeteer.launch({
@@ -38,7 +39,10 @@ module.exports = async (req, res) => {
         '--single-process',
         '--disable-gpu',
         '--disable-web-security',
-        '--disable-features=VizDisplayCompositor'
+        '--disable-features=VizDisplayCompositor',
+        '--disable-background-timer-throttling',
+        '--disable-backgrounding-occluded-windows',
+        '--disable-renderer-backgrounding'
       ]
     });
 
@@ -58,7 +62,7 @@ module.exports = async (req, res) => {
     });
 
     // Wait a bit for any dynamic content to render
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(3000);
 
     // Add print-specific CSS
     await page.addStyleTag({
