@@ -749,6 +749,8 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
         </html>
       `;
 
+      console.log('Template4PDF - Calling API with HTML length:', cvHTML.length);
+      
       // Call the Vercel API to generate PDF
       const response = await fetch('/api/generate-pdf', {
         method: 'POST',
@@ -761,8 +763,13 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
         }),
       });
 
+      console.log('Template4PDF - API response status:', response.status);
+      console.log('Template4PDF - API response headers:', response.headers);
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        console.error('Template4PDF - API error response:', errorText);
+        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
       }
 
       // Get the PDF blob
@@ -781,7 +788,21 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
       console.log('Template4PDF - PDF generated and downloaded successfully');
     } catch (error) {
       console.error('Template4PDF - Error generating PDF:', error);
-      alert('Error generating PDF. Please try again. If the problem persists, contact support.');
+      
+      // More specific error messages based on the error type
+      let errorMessage = 'Error generating PDF. Please try again.';
+      
+      if (error.message.includes('Failed to fetch')) {
+        errorMessage = 'Network error. Please check your internet connection and try again.';
+      } else if (error.message.includes('HTTP error! status: 500')) {
+        errorMessage = 'Server error. Please try again in a few moments.';
+      } else if (error.message.includes('HTTP error! status: 404')) {
+        errorMessage = 'API not found. Please contact support.';
+      } else if (error.message.includes('timeout')) {
+        errorMessage = 'Request timed out. Please try again.';
+      }
+      
+      alert(errorMessage);
     } finally {
       setIsLoading(false);
     }
