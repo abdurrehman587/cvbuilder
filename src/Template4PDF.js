@@ -706,6 +706,49 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
       const printUrl = `${window.location.origin}/print-cv?data=${formDataParam}&sections=${sectionsParam}`;
       console.log('Template4PDF - Print URL:', printUrl);
 
+      // Get the CV container HTML
+      const cvContainer = containerRef.current;
+      if (!cvContainer) {
+        throw new Error('CV container not found');
+      }
+
+      // Create a complete HTML document with the CV content
+      const cvHTML = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <title>CV - Template 4</title>
+          <style>
+            body { 
+              margin: 0; 
+              padding: 0; 
+              font-family: Arial, sans-serif;
+              background: white;
+            }
+            * { 
+              box-sizing: border-box; 
+            }
+            .page-break { 
+              page-break-before: always; 
+            }
+            .avoid-break { 
+              page-break-inside: avoid; 
+            }
+            .cv-page {
+              page-break-after: always;
+            }
+            .cv-page:last-child {
+              page-break-after: auto;
+            }
+          </style>
+        </head>
+        <body>
+          ${cvContainer.outerHTML}
+        </body>
+        </html>
+      `;
+
       // Call the Vercel API to generate PDF
       const response = await fetch('/api/generate-pdf', {
         method: 'POST',
@@ -713,7 +756,7 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          html: document.documentElement.outerHTML,
+          html: cvHTML,
           filename: 'cv-template4.pdf'
         }),
       });
@@ -738,7 +781,7 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
       console.log('Template4PDF - PDF generated and downloaded successfully');
     } catch (error) {
       console.error('Template4PDF - Error generating PDF:', error);
-      alert('Error generating PDF. Please make sure the PDF server is running on port 5000.');
+      alert('Error generating PDF. Please try again. If the problem persists, contact support.');
     } finally {
       setIsLoading(false);
     }
