@@ -103,11 +103,11 @@ const ChooseTemplate = ({ user, initialCV, newAdminCV }) => {
   };
 
   const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % templates.length);
+    setCurrentSlide((prev) => (prev - 1 + templates.length) % templates.length);
   };
 
   const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + templates.length) % templates.length);
+    setCurrentSlide((prev) => (prev + 1) % templates.length);
   };
 
   const goToSlide = (index) => {
@@ -132,10 +132,10 @@ const ChooseTemplate = ({ user, initialCV, newAdminCV }) => {
     const isRightSwipe = distance < -50;
 
     if (isLeftSwipe) {
-      nextSlide(); // Swipe left = next slide
+      prevSlide(); // Swipe left = previous slide (flow from right to left)
     }
     if (isRightSwipe) {
-      prevSlide(); // Swipe right = previous slide
+      nextSlide(); // Swipe right = next slide (flow from right to left)
     }
   };
 
@@ -162,19 +162,19 @@ const ChooseTemplate = ({ user, initialCV, newAdminCV }) => {
     const isRightSwipe = distance < -50;
 
     if (isLeftSwipe) {
-      nextSlide(); // Drag left = next slide
+      prevSlide(); // Drag left = previous slide (flow from right to left)
     }
     if (isRightSwipe) {
-      prevSlide(); // Drag right = previous slide
+      nextSlide(); // Drag right = next slide (flow from right to left)
     }
     
     setIsDragging(false);
   };
 
-  // Auto-advance carousel every 5 seconds
+  // Auto-advance carousel every 5 seconds (flow from right to left)
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % templates.length);
+      setCurrentSlide((prev) => (prev - 1 + templates.length) % templates.length);
     }, 5000);
 
     return () => clearInterval(interval);
