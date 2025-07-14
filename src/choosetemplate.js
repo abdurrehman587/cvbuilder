@@ -948,6 +948,147 @@ const ChooseTemplate = ({ user, initialCV, newAdminCV }) => {
           ))}
         </div>
 
+        {/* All Templates Grid Section - A4 Size Display */}
+        <div style={{
+          marginTop: '60px',
+          padding: '40px 20px',
+          backgroundColor: '#f8fafc',
+          borderRadius: '20px',
+        }}>
+          <h2 style={{
+            textAlign: 'center',
+            fontSize: '2rem',
+            fontWeight: '700',
+            color: '#111827',
+            marginBottom: '10px',
+          }}>
+            All Templates
+          </h2>
+          <p style={{
+            textAlign: 'center',
+            fontSize: '1rem',
+            color: '#6b7280',
+            marginBottom: '40px',
+          }}>
+            Browse all available templates in A4 format
+          </p>
+          
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
+            gap: '30px',
+            maxWidth: '1200px',
+            margin: '0 auto',
+            padding: '0 20px',
+          }}>
+            {templates.map((template, index) => (
+              <div
+                key={template.name}
+                onClick={() => handleTemplateClick(template.name)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    handleTemplateClick(template.name);
+                  }
+                }}
+                title={`Click to use ${template.name}`}
+                style={{
+                  width: '210mm', // A4 width
+                  height: '297mm', // A4 height
+                  maxWidth: '100%',
+                  maxHeight: '400px',
+                  backgroundColor: '#fff',
+                  border: '2px solid #e2e8f0',
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                  cursor: 'pointer',
+                  userSelect: 'none',
+                  boxSizing: 'border-box',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  transition: 'all 0.3s ease',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  margin: '0 auto',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-8px)';
+                  e.currentTarget.style.boxShadow = '0 12px 24px rgba(0,0,0,0.15)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+                }}
+              >
+                {/* A4 Template Preview */}
+                <div style={{
+                  width: '100%',
+                  height: '100%',
+                  backgroundColor: '#f8fafc',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  overflow: 'hidden',
+                  border: '1px solid #e2e8f0',
+                  position: 'relative',
+                }}>
+                  <img
+                    src={template.imageUrl}
+                    alt={`${template.name} A4 Preview`}
+                    style={{ 
+                      width: '100%', 
+                      height: '100%', 
+                      objectFit: 'contain',
+                      padding: '10px',
+                    }}
+                  />
+                  
+                  {/* Template Overlay */}
+                  <div style={{
+                    position: 'absolute',
+                    bottom: '0',
+                    left: '0',
+                    right: '0',
+                    background: 'linear-gradient(transparent, rgba(0,0,0,0.7))',
+                    padding: '20px',
+                    color: 'white',
+                  }}>
+                    <div style={{
+                      fontWeight: '700',
+                      fontSize: '1.1rem',
+                      marginBottom: '8px',
+                    }}>
+                      {template.name}
+                    </div>
+                    <button
+                      style={{
+                        padding: '8px 16px',
+                        backgroundColor: '#3b82f6',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '6px',
+                        fontSize: '0.85rem',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        transition: 'background-color 0.3s ease',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#2563eb';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = '#3b82f6';
+                      }}
+                    >
+                      Use Template
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
       </div>
     </div>
   );
