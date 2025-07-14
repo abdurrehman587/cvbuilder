@@ -667,12 +667,14 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
   const generatePDF = async () => {
     if (!containerRef.current) {
       console.error('Container ref not available');
+      alert('Template4PDF: Container ref not available');
       return;
     }
 
     try {
       setIsLoading(true);
       console.log('Template4PDF - Starting PDF generation with API...');
+      alert('Template4PDF: Starting PDF generation...');
 
       // Check if user is admin
       const adminAccess = localStorage.getItem('admin_cv_access');
@@ -746,6 +748,7 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
       `;
 
       console.log('Template4PDF - Calling API with HTML length:', cvHTML.length);
+      alert(`Template4PDF: Calling API with HTML length: ${cvHTML.length}`);
       
       // Call the Vercel API to generate PDF with cache busting
       const response = await fetch('/api/generate-pdf', {
@@ -762,6 +765,7 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
       });
 
       console.log('Template4PDF - API response status:', response.status);
+      alert(`Template4PDF: API response status: ${response.status}`);
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -789,8 +793,10 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
       window.URL.revokeObjectURL(url);
 
       console.log('Template4PDF - PDF generated and downloaded successfully');
+      alert('Template4PDF: PDF generated and downloaded successfully!');
     } catch (error) {
       console.error('Template4PDF - Error generating PDF:', error);
+      alert(`Template4PDF Error: ${error.message}`);
       
       // More specific error messages based on the error type
       let errorMessage = 'Error generating PDF. Please try again.';
