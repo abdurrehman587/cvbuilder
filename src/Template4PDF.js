@@ -14,6 +14,8 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
   const [buttonText, setButtonText] = useState('Download PDF (PKR 100)');
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [isAdminUser, setIsAdminUser] = useState(false);
+  const [hasPendingPayment, setHasPendingPayment] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const containerRef = useRef(null);
   const buttonRef = useRef(null);
 
@@ -648,21 +650,81 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
 
   // Update button text based on payment status
   useEffect(() => {
+    console.log('Template4PDF - useEffect triggered with:', { isAdminUser, isLoading });
+    console.log('Template4PDF - useEffect: Component state check');
+    
     const updateButtonText = async () => {
+      console.log('Template4PDF - updateButtonText called');
+      
+      // Don't update button text while loading
+      if (isLoading) {
+        console.log('Template4PDF - Still loading, setting button text to Loading...');
+        setButtonText('Loading...');
+        return;
+      }
+
+      if (isAdminUser) {
+        console.log('Template4PDF - Admin user, setting admin button text');
+        setButtonText('Download PDF (Admin)');
+        setHasPendingPayment(false);
+        return;
+      }
+
       try {
-        const adminAccess = localStorage.getItem('admin_cv_access');
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
+        console.log('Template4PDF - Starting payment status checks...');
         
-        const text = await PaymentService.getDownloadButtonText('template4', isAdmin);
+        // Check for pending payment first
+        const pendingPayment = await PaymentService.checkPendingPayment('template4');
+        console.log('Template4PDF - Periodic refresh: Pending payment check result:', pendingPayment);
+        
+        if (pendingPayment) {
+          setHasPendingPayment(true);
+          setButtonText('Payment Submitted (Waiting for Approval)');
+          console.log('Template4PDF - Periodic refresh: Pending payment detected, showing banner');
+          return;
+        } else {
+          setHasPendingPayment(false);
+          console.log('Template4PDF - Periodic refresh: No pending payment, checking approved payment');
+        }
+
+        // Check for approved payment
+        const approvedPayment = await PaymentService.checkApprovedPayment('template4');
+        console.log('Template4PDF - Periodic refresh: Approved payment check result:', approvedPayment);
+        
+        if (approvedPayment) {
+          setButtonText('Download Now');
+          console.log('Template4PDF - Periodic refresh: Approved payment detected, showing download button');
+          return;
+        }
+
+        console.log('Template4PDF - Periodic refresh: No approved payment, getting default button text');
+        const text = await PaymentService.getDownloadButtonText('template4', isAdminUser);
         setButtonText(text);
+        console.log('Template4PDF - Periodic refresh: Button text updated:', text);
       } catch (error) {
         console.error('Error getting button text:', error);
         setButtonText('Download PDF (PKR 100)');
       }
     };
 
-    updateButtonText();
+    // Add a small delay before first update to avoid conflicts
+    setTimeout(() => {
+      console.log('Template4PDF - First updateButtonText call (delayed)');
+      updateButtonText();
+    }, 2000);
+    
+    // Set up periodic refresh every 5 seconds to catch payment status changes
+    const interval = setInterval(() => {
+      console.log('Template4PDF - Periodic updateButtonText call');
+      updateButtonText();
+    }, 5000);
+    
+    console.log('Template4PDF - useEffect: Set up interval and delayed call');
+    
+    return () => {
+      console.log('Template4PDF - useEffect cleanup: clearing interval');
+      clearInterval(interval);
+    };
   }, [isAdminUser, isLoading]);
 
   const generatePDF = async () => {
@@ -802,21 +864,36 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
 
   const handleDownloadClick = async () => {
     console.log('Template4PDF - Download button clicked');
-    console.log('Template4PDF - isLoading:', isLoading);
-    console.log('Template4PDF - containerRef.current:', containerRef.current);
     
-    if (isLoading) {
-      console.log('Template4PDF - Download already in progress');
-      return;
-    }
-
+    setIsDownloading(true);
+    
     try {
-      console.log('Template4PDF - Starting download process...');
-      await generatePDF();
+      if (isAdminUser) {
+        await generatePDF();
+        return;
+      }
+
+      // Check if we can download (approved payment exists)
+      const approvedPayment = await PaymentService.checkApprovedPayment('template4');
+      if (approvedPayment) {
+        await generatePDF();
+        return;
+      }
+
+      // Check if there's a pending payment
+      const pendingPayment = await PaymentService.checkPendingPayment('template4');
+      if (pendingPayment) {
+        alert('You have a pending payment. Please wait for admin approval.');
+        return;
+      }
+
+      // Show payment modal
+      setShowPaymentModal(true);
     } catch (error) {
-      console.error('Template4PDF - Error in download click handler:', error);
-      alert(`Download failed: ${error.message}`);
-      setIsLoading(false);
+      console.error('Download error:', error);
+      alert('An error occurred during download. Please try again.');
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -1747,6 +1824,11 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
   return (
     <>
       <style>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        
         .cv-page, .print-page {
           width: 794px !important;
           height: 1123px !important;
@@ -1999,39 +2081,80 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
             </div>
           </>
         )}
-      {/* Download Button - Hidden in print mode */}
+      {/* Download Controls - Outside PDF container */}
       {!isPrintMode && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: 40 }}>
-          <button
-            ref={buttonRef}
-            type="button"
-            onClick={handleDownloadClick}
-            disabled={isLoading}
-            style={{
-              cursor: isLoading ? 'not-allowed' : 'pointer',
-              padding: '6px 18px',
-              fontSize: '0.95rem',
-              borderRadius: 6,
-              border: 'none',
-              backgroundColor: isLoading ? '#cccccc' : '#3f51b5',
-              color: 'white',
-              transition: 'background-color 0.3s ease',
-              userSelect: 'none',
-              opacity: isLoading ? 0.7 : 1,
-            }}
-            onMouseEnter={(e) => {
-              if (!isLoading) {
-                e.currentTarget.style.backgroundColor = '#303f9f';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!isLoading) {
-                e.currentTarget.style.backgroundColor = '#3f51b5';
-              }
-            }}
-          >
-            {buttonText}
-          </button>
+        <div style={{ marginTop: '20px', padding: '20px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
+          {hasPendingPayment ? (
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ 
+                backgroundColor: '#fff3cd', 
+                border: '1px solid #ffeaa7', 
+                borderRadius: '6px', 
+                padding: '16px', 
+                marginBottom: '16px' 
+              }}>
+                <h3 style={{ margin: '0 0 8px 0', color: '#856404', fontSize: '16px' }}>
+                  ⏳ Payment Submitted - Waiting for Approval
+                </h3>
+                <p style={{ margin: '0', color: '#856404', fontSize: '14px' }}>
+                  Your payment has been submitted and is being reviewed. You will be able to download your CV once approved.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div style={{ textAlign: 'center' }}>
+              <button
+                ref={buttonRef}
+                type="button"
+                onClick={handleDownloadClick}
+                disabled={isLoading || isDownloading}
+                style={{
+                  cursor: (isLoading || isDownloading) ? 'not-allowed' : 'pointer',
+                  padding: '12px 24px',
+                  fontSize: '16px',
+                  fontWeight: '500',
+                  borderRadius: '6px',
+                  border: 'none',
+                  backgroundColor: (isLoading || isDownloading) ? '#cccccc' : '#3f51b5',
+                  color: 'white',
+                  transition: 'background-color 0.3s ease',
+                  userSelect: 'none',
+                  opacity: (isLoading || isDownloading) ? 0.6 : 1,
+                  marginBottom: '10px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
+                }}
+                onMouseEnter={(e) => {
+                  if (!isLoading && !isDownloading) {
+                    e.currentTarget.style.backgroundColor = '#303f9f';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isLoading && !isDownloading) {
+                    e.currentTarget.style.backgroundColor = '#3f51b5';
+                  }
+                }}
+              >
+                {isDownloading ? (
+                  <>
+                    <div style={{
+                      width: '16px',
+                      height: '16px',
+                      border: '2px solid #ffffff',
+                      borderTop: '2px solid transparent',
+                      borderRadius: '50%',
+                      animation: 'spin 1s linear infinite'
+                    }}></div>
+                    Processing...
+                  </>
+                ) : (
+                  buttonText
+                )}
+              </button>
+            </div>
+          )}
         </div>
       )}
       {showPaymentModal && !isPrintMode && (
