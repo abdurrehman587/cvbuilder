@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import ReactDOMServer from 'react-dom/server';
 import PropTypes from 'prop-types';
-import UnifiedPaymentSystem from './UnifiedPaymentSystem';
+import CentralizedPaymentSystem from './CentralizedPaymentSystem';
 import html2pdf from 'html2pdf.js';
 
 
@@ -1912,12 +1912,12 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
             </div>
           </>
         )}
-      {/* Unified Payment System */}
-      <UnifiedPaymentSystem
+      {/* Centralized Payment and Download System */}
+      <CentralizedPaymentSystem
         templateId="template4"
+        templateName="Template 4"
         onDownload={generatePDF}
         isPrintMode={isPrintMode}
-        containerStyle={{ marginTop: '20px', padding: '20px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}
       />
     </>
   );
