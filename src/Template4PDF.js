@@ -827,11 +827,29 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
 
       console.log('PDF generation completed successfully');
       
-      setButtonText('PDF Downloaded!');
-      
-      setTimeout(() => {
-        setButtonText('Download PDF (PKR 100)');
-      }, 3000);
+      // Mark the user's approved payment as used (only for non-admin users)
+      if (!isAdminUser) {
+        try {
+          const approvedPayment = await PaymentService.checkApprovedPayment('template4');
+          if (approvedPayment) {
+            await PaymentService.markPaymentAsUsed(approvedPayment.id, 'template4');
+            console.log('Payment marked as used in Supabase');
+            
+            // Refresh button text after marking payment as used
+            const newButtonText = await PaymentService.getDownloadButtonText('template4', isAdminUser);
+            setButtonText(newButtonText);
+            console.log('Button text refreshed after download:', newButtonText);
+          }
+        } catch (error) {
+          console.error('Error marking payment as used:', error);
+        }
+      } else {
+        // For admin users, just show success message briefly
+        setButtonText('PDF Downloaded!');
+        setTimeout(() => {
+          setButtonText('Download PDF (Admin)');
+        }, 3000);
+      }
 
     } catch (error) {
       console.error('Error generating PDF:', error);
@@ -896,8 +914,17 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
         return;
       }
 
-      // Show payment modal
-      console.log('Template4PDF - No payment found, showing payment modal');
+      // Check if there's a downloaded payment (user wants to download again)
+      const downloadedPayment = await PaymentService.checkDownloadedPayment('template4');
+      console.log('Template4PDF - Downloaded payment check result:', downloadedPayment);
+      if (downloadedPayment) {
+        console.log('Template4PDF - Downloaded payment found, showing payment modal for new download');
+        setShowPaymentModal(true);
+        return;
+      }
+
+      // Show payment modal for first-time payment
+      console.log('Template4PDF - No payment found, showing payment modal for first download');
       setShowPaymentModal(true);
     } catch (error) {
       console.error('Download error:', error);
