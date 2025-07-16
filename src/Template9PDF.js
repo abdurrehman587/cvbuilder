@@ -1,7 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { PaymentService } from './paymentService';
-import ManualPayment from './ManualPayment';
+import CentralizedPaymentSystem from './CentralizedPaymentSystem';
 
 const sectionList = [
   { key: 'objective', title: 'Objective' },
@@ -32,8 +31,6 @@ const loadHtml2Pdf = () => {
 const Template9PDF = ({ formData, visibleSections = [] }) => {
   const containerRef = useRef(null);
   const buttonRef = useRef(null);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [buttonText, setButtonText] = useState('Loading...');
 
   const containerStyle = {
     width: '700px',
@@ -190,24 +187,7 @@ const Template9PDF = ({ formData, visibleSections = [] }) => {
     borderRadius: '10px 0 0 10px',
   });
 
-  // Update button text based on payment status
-  useEffect(() => {
-    const updateButtonText = async () => {
-      try {
-        const adminAccess = localStorage.getItem('admin_cv_access');
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
-        
-        const text = await PaymentService.getDownloadButtonText('template9', isAdmin);
-        setButtonText(text);
-      } catch (error) {
-        console.error('Error getting button text:', error);
-        setButtonText('Download PDF (PKR 100)');
-      }
-    };
 
-    updateButtonText();
-  }, []);
 
   const tagsContainerStyle = {
     display: 'flex',
@@ -449,43 +429,7 @@ const Template9PDF = ({ formData, visibleSections = [] }) => {
     }
   };
 
-  const handleDownloadClick = async () => {
-    try {
-      const adminAccess = localStorage.getItem('admin_cv_access');
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
-      
-      if (isAdmin) {
-        generatePDF();
-        return;
-      }
 
-      // Check if user has an approved payment first
-      const approvedPayment = await PaymentService.checkApprovedPayment('template9');
-      
-      if (approvedPayment) {
-        // Mark payment as used and download
-        await PaymentService.markPaymentAsUsed(approvedPayment.id, 'template9');
-        generatePDF();
-        
-        // Update button text
-        const newButtonText = await PaymentService.getDownloadButtonText('template9', false);
-        setButtonText(newButtonText);
-      } else {
-        // Check if user has already downloaded (informational)
-        const downloadedPayment = await PaymentService.checkDownloadedPayment('template9');
-        if (downloadedPayment) {
-          alert('You have already downloaded this CV. Please make a new payment to download again.');
-        }
-        
-        // Show payment modal
-        setShowPaymentModal(true);
-      }
-    } catch (error) {
-      console.error('Error handling download click:', error);
-      alert('Error processing download. Please try again.');
-    }
-  };
 
   return (
     <article ref={containerRef} style={containerStyle}>
@@ -600,40 +544,12 @@ const Template9PDF = ({ formData, visibleSections = [] }) => {
         </section>
       )}
 
-      <button
-        ref={buttonRef}
-        type="button"
-        onClick={handleDownloadClick}
-        style={{
-          marginTop: 16,
-          cursor: 'pointer',
-          padding: '6px 18px',
-          fontSize: '0.95rem',
-          borderRadius: 6,
-          border: 'none',
-          backgroundColor: '#3f51b5',
-          color: 'white',
-          transition: 'background-color 0.3s ease',
-          alignSelf: 'flex-start',
-          userSelect: 'none',
-        }}
-        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#303f9f')}
-        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3f51b5')}
-      >
-        {buttonText}
-      </button>
-
-      {showPaymentModal && (
-        <ManualPayment
-          templateId="template9"
-          onClose={() => setShowPaymentModal(false)}
-          onPaymentSuccess={async () => {
-            setShowPaymentModal(false);
-            const newButtonText = await PaymentService.getDownloadButtonText('template9', false);
-            setButtonText(newButtonText);
-          }}
-        />
-      )}
+      {/* Centralized Payment and Download System */}
+      <CentralizedPaymentSystem
+        templateId="template9"
+        templateName="Template 9"
+        onDownload={generatePDF}
+      />
     </article>
   );
 };
