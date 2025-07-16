@@ -613,6 +613,9 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
   useEffect(() => {
     const updateButtonText = async () => {
       try {
+        // Clear admin flags for regular users first
+        CleanPaymentService.clearAdminFlagsForRegularUsers();
+        
         // Check if user is admin
         const isAdmin = CleanPaymentService.isAdminUser();
         

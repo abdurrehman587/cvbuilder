@@ -10,11 +10,41 @@ export class CleanPaymentService {
   static isAdminUser() {
     const adminAccess = localStorage.getItem('admin_cv_access');
     const user = JSON.parse(localStorage.getItem('user') || '{}');
-    return adminAccess === 'true' || user?.isAdmin === true;
+    const adminUser = JSON.parse(localStorage.getItem('admin_user') || '{}');
+    
+    // Check if user is actually an admin (not just has admin access)
+    const isAdmin = (adminAccess === 'true' && adminUser?.isAdmin === true) || 
+                   (user?.isAdmin === true && user?.email === process.env.REACT_APP_ADMIN_EMAIL);
+    
+    console.log('CleanPaymentService - Admin check:', {
+      adminAccess,
+      userEmail: user?.email,
+      userIsAdmin: user?.isAdmin,
+      adminUserEmail: adminUser?.email,
+      adminUserIsAdmin: adminUser?.isAdmin,
+      isAdmin
+    });
+    
+    return isAdmin;
   }
   
   static getAdminButtonText() {
     return 'Download PDF (Admin)';
+  }
+  
+  static clearAdminFlagsForRegularUsers() {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const adminUser = JSON.parse(localStorage.getItem('admin_user') || '{}');
+    
+    // If current user is not the admin user, clear admin flags
+    if (user?.email !== adminUser?.email && user?.email !== process.env.REACT_APP_ADMIN_EMAIL) {
+      console.log('CleanPaymentService - Clearing admin flags for regular user:', user?.email);
+      localStorage.removeItem('admin_cv_access');
+      localStorage.removeItem('admin_user');
+      return true;
+    }
+    
+    return false;
   }
   
   static async adminDownload(templateId) {
