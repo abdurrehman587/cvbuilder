@@ -12,6 +12,35 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
   const [isLoading, setIsLoading] = useState(false);
   const containerRef = useRef(null);
 
+  // Destructure form data
+  const {
+    name,
+    phone,
+    email,
+    address,
+    objective,
+    education,
+    workExperience,
+    skills,
+    certifications,
+    projects,
+    languages,
+    customLanguages,
+    hobbies,
+    cv_references,
+    otherInformation,
+    imageUrl
+  } = formData || {};
+
+  // Combine languages and custom languages
+  const allLanguages = [
+    ...(languages || []),
+    ...(customLanguages || [])
+      .filter(l => l.selected && l.name)
+      .map(l => `${l.name} (${l.level})`)
+  ];
+
+
   const sectionList = [
     { key: 'objective', title: 'Objective' },
     { key: 'education', title: 'Education' },
@@ -1214,37 +1243,12 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
 
 
 
-  const {
-    imageUrl,
-    name,
-    phone,
-    email,
-    address,
-    objective = [],
-    education = [],
-    workExperience = [],
-    skills = [],
-    certifications = [],
-    projects = [],
-    languages = [],
-    customLanguages = [],
-    hobbies = [],
-    cv_references = {},
-    otherInformation = [],
-    customSections = [],
-  } = formData;
-
   // Get the professional title from first work experience
   const professionalTitle = workExperience && workExperience.length > 0 && workExperience[0].designation 
     ? workExperience[0].designation 
     : 'Professional Title';
 
-  const allLanguages = [
-    ...(languages || []),
-    ...(customLanguages || [])
-      .filter(l => l.selected && l.name)
-      .map(l => `${l.name} (${l.level})`)
-  ];
+
 
   // Define sectionData early so it's available for hasData function
   const sectionData = {
