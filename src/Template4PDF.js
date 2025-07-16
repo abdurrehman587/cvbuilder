@@ -1,10 +1,7 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import ReactDOMServer from 'react-dom/server';
 import PropTypes from 'prop-types';
-import { CleanPaymentService } from './cleanPaymentService';
-import CleanPaymentModal from './CleanPaymentModal';
-import { toast } from 'react-toastify';
-import { debugPaymentStatus } from './debugPaymentStatus';
+import UnifiedPaymentSystem from './UnifiedPaymentSystem';
 import html2pdf from 'html2pdf.js';
 
 
@@ -13,13 +10,7 @@ import html2pdf from 'html2pdf.js';
 
 const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [buttonText, setButtonText] = useState('Download PDF (PKR 100)');
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [isAdminUser, setIsAdminUser] = useState(false);
-  const [hasPendingPayment, setHasPendingPayment] = useState(false);
-  const [isDownloading, setIsDownloading] = useState(false);
   const containerRef = useRef(null);
-  const buttonRef = useRef(null);
 
   const sectionList = [
     { key: 'objective', title: 'Objective' },
@@ -610,66 +601,7 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
 
 
 
-  // Clean payment system - check admin status and update button text
-  useEffect(() => {
-    const updateButtonText = async () => {
-      try {
-        // Clear admin flags for regular users first
-        CleanPaymentService.clearAdminFlagsForRegularUsers();
-        
-        // Check if user is admin
-        const isAdmin = CleanPaymentService.isAdminUser();
-        
-        // Update admin status if changed
-        if (isAdmin !== isAdminUser) {
-          setIsAdminUser(isAdmin);
-          console.log('Template4PDF - Admin status updated:', isAdmin);
-        }
-        
-        // Don't update button text while loading
-        if (isLoading) {
-          setButtonText('Loading...');
-          return;
-        }
 
-        if (isAdmin) {
-          // Admin user - always free download
-          setButtonText(CleanPaymentService.getAdminButtonText());
-          setHasPendingPayment(false);
-          return;
-        }
-
-        // Regular user - check payment status
-        const buttonText = await CleanPaymentService.getUserButtonText('template4');
-        setButtonText(buttonText);
-        
-        // Check for pending payment to show banner
-        const pendingPayment = await CleanPaymentService.checkUserPendingPayment('template4');
-        setHasPendingPayment(!!pendingPayment);
-        
-      } catch (error) {
-        console.error('Template4PDF - Error updating button text:', error);
-        setButtonText('Download PDF (PKR 100)');
-      }
-    };
-
-    // Initial call with delay to avoid conflicts
-    const initialTimeout = setTimeout(() => {
-      console.log('Template4PDF - Initial clean payment system check');
-      updateButtonText();
-    }, 1000);
-    
-    // Set up periodic refresh every 10 seconds
-    const interval = setInterval(() => {
-      console.log('Template4PDF - Periodic clean payment system check');
-      updateButtonText();
-    }, 10000);
-    
-    return () => {
-      clearTimeout(initialTimeout);
-      clearInterval(interval);
-    };
-  }, [isLoading]); // Only depend on isLoading to prevent loops
 
   const generatePDF = async () => {
     console.log('=== HYBRID PDF GENERATION START ===');
@@ -768,30 +700,6 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
       pdf.save(filename);
 
       console.log('PDF generation completed successfully');
-      
-      // Mark the user's approved payment as used (only for non-admin users)
-      if (!isAdminUser) {
-        try {
-          const approvedPayment = await CleanPaymentService.checkUserApprovedPayment('template4');
-          if (approvedPayment) {
-            await CleanPaymentService.markUserPaymentAsUsed(approvedPayment.id, 'template4');
-            console.log('Payment marked as used in Supabase');
-            
-            // Refresh button text after marking payment as used
-            const newButtonText = await CleanPaymentService.getUserButtonText('template4');
-            setButtonText(newButtonText);
-            console.log('Button text refreshed after download:', newButtonText);
-          }
-        } catch (error) {
-          console.error('Error marking payment as used:', error);
-        }
-      } else {
-        // For admin users, just show success message briefly
-        setButtonText('PDF Downloaded!');
-        setTimeout(() => {
-          setButtonText('Download PDF (Admin)');
-        }, 3000);
-      }
 
     } catch (error) {
       console.error('Error generating PDF:', error);
@@ -823,60 +731,7 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
     }
   };
 
-  const handleDownloadClick = async () => {
-    console.log('Template4PDF - Download button clicked');
-    console.log('Template4PDF - isAdminUser:', isAdminUser);
-    
-    setIsDownloading(true);
-    
-    try {
-      if (isAdminUser) {
-        // Admin user - always free download
-        console.log('Template4PDF - Admin user, proceeding with direct download');
-        await generatePDF();
-        return;
-      }
 
-      // Regular user - use clean payment system
-      console.log('Template4PDF - Regular user, using clean payment system');
-      const downloadResult = await CleanPaymentService.handleUserDownload('template4');
-      
-      if (downloadResult.canDownload) {
-        console.log('Template4PDF - User can download, proceeding with PDF generation');
-        await generatePDF();
-        
-        // Immediately update button text after successful download
-        const newButtonText = await CleanPaymentService.getUserButtonText('template4');
-        setButtonText(newButtonText);
-        console.log('Template4PDF - Button text updated after download:', newButtonText);
-        return;
-      }
-      
-      // Handle different reasons why user can't download
-      switch (downloadResult.reason) {
-        case 'pending_payment':
-          console.log('Template4PDF - Pending payment found, showing alert');
-          alert('You have a pending payment. Please wait for admin approval.');
-          break;
-          
-        case 'needs_new_payment':
-        case 'no_payment':
-          console.log('Template4PDF - Payment required, showing payment modal');
-          setShowPaymentModal(true);
-          break;
-          
-        default:
-          console.log('Template4PDF - Unknown reason, showing payment modal');
-          setShowPaymentModal(true);
-          break;
-      }
-    } catch (error) {
-      console.error('Template4PDF - Download error:', error);
-      alert('An error occurred during download. Please try again.');
-    } finally {
-      setIsDownloading(false);
-    }
-  };
 
   const hasData = (sectionKey) => {
     // Handle custom sections - they should be included if customSections is in visibleSections or if custom sections exist
@@ -1358,41 +1213,7 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
     };
   };
 
-  const handlePaymentSuccess = async (paymentData) => {
-    setShowPaymentModal(false);
-    console.log('Template4PDF - Payment successful:', paymentData);
-    toast.success('Payment submitted successfully! Please wait for admin approval.');
-    
-    // Update button text to reflect pending payment status
-    const newButtonText = await CleanPaymentService.getUserButtonText('template4');
-    setButtonText(newButtonText);
-    console.log('Template4PDF - Button text updated after payment submission:', newButtonText);
-  };
 
-  const handlePaymentFailure = (error) => {
-    setShowPaymentModal(false);
-    console.error('Template4PDF - Payment failed:', error);
-    toast.error('Payment failed. Please try again.');
-  };
-
-  const handleDebugPaymentStatus = async () => {
-    console.log('Template4PDF - Debug button clicked');
-    const debugResult = await debugPaymentStatus('template4');
-    console.log('Template4PDF - Debug result:', debugResult);
-    
-    if (debugResult) {
-      alert(`Debug Info:
-User: ${debugResult.user}
-Expected Button Text: ${debugResult.expectedButtonText}
-Current Button Text: ${buttonText}
-Admin Access: ${debugResult.adminData.adminAccess}
-User Is Admin: ${debugResult.adminData.userIsAdmin}
-Approved Payments: ${debugResult.approvedPayments.length}
-Pending Payments: ${debugResult.pendingPayments.length}
-Downloaded Payments: ${debugResult.downloadedPayments.length}
-      `);
-    }
-  };
 
   const {
     imageUrl,
@@ -2087,113 +1908,13 @@ Downloaded Payments: ${debugResult.downloadedPayments.length}
             </div>
           </>
         )}
-      {/* Download Controls - Outside PDF container */}
-      {!isPrintMode && (
-        <div style={{ marginTop: '20px', padding: '20px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
-          {hasPendingPayment ? (
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ 
-                backgroundColor: '#fff3cd', 
-                border: '1px solid #ffeaa7', 
-                borderRadius: '6px', 
-                padding: '16px', 
-                marginBottom: '16px' 
-              }}>
-                <h3 style={{ margin: '0 0 8px 0', color: '#856404', fontSize: '16px' }}>
-                  ⏳ Payment Submitted - Waiting for Approval
-                </h3>
-                <p style={{ margin: '0', color: '#856404', fontSize: '14px' }}>
-                  Your payment has been submitted and is being reviewed. You will be able to download your CV once approved.
-                </p>
-              </div>
-            </div>
-          ) : (
-            <>
-              {/* Debug button for testing */}
-              {process.env.NODE_ENV === 'development' && (
-                <div style={{ textAlign: 'center', marginBottom: '10px' }}>
-                  <button
-                    onClick={handleDebugPaymentStatus}
-                    style={{
-                      padding: '8px 16px',
-                      fontSize: '14px',
-                      backgroundColor: '#007bff',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      marginBottom: '10px'
-                    }}
-                  >
-                    Debug Payment Status
-                  </button>
-                </div>
-              )}
-            <div style={{ textAlign: 'center' }}>
-              <button
-                ref={buttonRef}
-                type="button"
-                onClick={handleDownloadClick}
-                disabled={isLoading || isDownloading}
-                style={{
-                  cursor: (isLoading || isDownloading) ? 'not-allowed' : 'pointer',
-                  padding: '12px 24px',
-                  fontSize: '16px',
-                  fontWeight: '500',
-                  borderRadius: '6px',
-                  border: 'none',
-                  backgroundColor: (isLoading || isDownloading) ? '#cccccc' : '#3f51b5',
-                  color: 'white',
-                  transition: 'background-color 0.3s ease',
-                  userSelect: 'none',
-                  opacity: (isLoading || isDownloading) ? 0.6 : 1,
-                  marginBottom: '10px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px'
-                }}
-                onMouseEnter={(e) => {
-                  if (!isLoading && !isDownloading) {
-                    e.currentTarget.style.backgroundColor = '#303f9f';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isLoading && !isDownloading) {
-                    e.currentTarget.style.backgroundColor = '#3f51b5';
-                  }
-                }}
-              >
-                {isDownloading ? (
-                  <>
-                    <div style={{
-                      width: '16px',
-                      height: '16px',
-                      border: '2px solid #ffffff',
-                      borderTop: '2px solid transparent',
-                      borderRadius: '50%',
-                      animation: 'spin 1s linear infinite'
-                    }}></div>
-                    Processing...
-                  </>
-                ) : (
-                  buttonText
-                )}
-              </button>
-            </div>
-            </>
-          )}
-        </div>
-      )}
-      {showPaymentModal && !isPrintMode && (
-        <CleanPaymentModal
-          isOpen={showPaymentModal}
-          onClose={() => setShowPaymentModal(false)}
-          templateId="template4"
-          onPaymentSuccess={handlePaymentSuccess}
-          onPaymentError={handlePaymentFailure}
-        />
-      )}
+      {/* Unified Payment System */}
+      <UnifiedPaymentSystem
+        templateId="template4"
+        onDownload={generatePDF}
+        isPrintMode={isPrintMode}
+        containerStyle={{ marginTop: '20px', padding: '20px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}
+      />
     </>
   );
 };
