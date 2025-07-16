@@ -449,6 +449,7 @@ const SignupSignIn = ({ onAuth }) => {
                   backdropFilter: 'blur(10px)',
                   transition: 'all 0.3s ease',
                   cursor: 'pointer',
+                  textAlign: 'left',
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.background = 'rgba(255, 255, 255, 0.95)';
@@ -483,6 +484,7 @@ const SignupSignIn = ({ onAuth }) => {
                  backdropFilter: 'blur(10px)',
                  transition: 'all 0.3s ease',
                  cursor: 'pointer',
+                 textAlign: 'left',
                }}
                onMouseEnter={(e) => {
                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.95)';
@@ -517,6 +519,7 @@ const SignupSignIn = ({ onAuth }) => {
                  backdropFilter: 'blur(10px)',
                  transition: 'all 0.3s ease',
                  cursor: 'pointer',
+                 textAlign: 'left',
                }}
                onMouseEnter={(e) => {
                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.95)';
@@ -551,6 +554,7 @@ const SignupSignIn = ({ onAuth }) => {
                  backdropFilter: 'blur(10px)',
                  transition: 'all 0.3s ease',
                  cursor: 'pointer',
+                 textAlign: 'left',
                }}
                onMouseEnter={(e) => {
                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.95)';
@@ -585,6 +589,7 @@ const SignupSignIn = ({ onAuth }) => {
                  backdropFilter: 'blur(10px)',
                  transition: 'all 0.3s ease',
                  cursor: 'pointer',
+                 textAlign: 'left',
                }}
                onMouseEnter={(e) => {
                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.95)';
@@ -619,6 +624,7 @@ const SignupSignIn = ({ onAuth }) => {
                  backdropFilter: 'blur(10px)',
                  transition: 'all 0.3s ease',
                  cursor: 'pointer',
+                 textAlign: 'left',
                }}
                onMouseEnter={(e) => {
                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.95)';
@@ -653,6 +659,7 @@ const SignupSignIn = ({ onAuth }) => {
                  backdropFilter: 'blur(10px)',
                  transition: 'all 0.3s ease',
                  cursor: 'pointer',
+                 textAlign: 'left',
                }}
                onMouseEnter={(e) => {
                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.95)';
@@ -687,6 +694,7 @@ const SignupSignIn = ({ onAuth }) => {
                  backdropFilter: 'blur(10px)',
                  transition: 'all 0.3s ease',
                  cursor: 'pointer',
+                 textAlign: 'left',
                }}
                onMouseEnter={(e) => {
                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.95)';
