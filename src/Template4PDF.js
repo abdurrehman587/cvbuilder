@@ -608,7 +608,6 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
     
     try {
       setIsLoading(true);
-      setButtonText('Generating PDF...');
 
       // Import required libraries
       const { jsPDF } = await import('jspdf');
