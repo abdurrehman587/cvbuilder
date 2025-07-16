@@ -3,6 +3,7 @@ import ReactDOMServer from 'react-dom/server';
 import PropTypes from 'prop-types';
 import { CleanPaymentService } from './cleanPaymentService';
 import CleanPaymentModal from './CleanPaymentModal';
+import { toast } from 'react-toastify';
 import html2pdf from 'html2pdf.js';
 
 
@@ -767,13 +768,13 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
       // Mark the user's approved payment as used (only for non-admin users)
       if (!isAdminUser) {
         try {
-          const approvedPayment = await PaymentService.checkApprovedPayment('template4');
+          const approvedPayment = await CleanPaymentService.checkUserApprovedPayment('template4');
           if (approvedPayment) {
-            await PaymentService.markPaymentAsUsed(approvedPayment.id, 'template4');
+            await CleanPaymentService.markUserPaymentAsUsed(approvedPayment.id, 'template4');
             console.log('Payment marked as used in Supabase');
             
             // Refresh button text after marking payment as used
-            const newButtonText = await PaymentService.getDownloadButtonText('template4', isAdminUser);
+            const newButtonText = await CleanPaymentService.getUserButtonText('template4');
             setButtonText(newButtonText);
             console.log('Button text refreshed after download:', newButtonText);
           }
