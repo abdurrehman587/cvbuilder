@@ -26,6 +26,7 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
     projects,
     languages,
     customLanguages,
+    customSections,
     hobbies,
     cv_references,
     otherInformation,
