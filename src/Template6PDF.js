@@ -1,7 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import ManualPayment from './ManualPayment';
-import { PaymentService } from './paymentService';
+import CentralizedPaymentSystem from './CentralizedPaymentSystem';
 
 const sectionList = [
   { key: 'objective', title: 'Objective' },
@@ -31,59 +30,8 @@ const loadHtml2Pdf = () => {
 const Template6PDF = ({ formData, visibleSections = [] }) => {
   const containerRef = useRef(null);
   const buttonRef = useRef(null);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [isAdminUser, setIsAdminUser] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [buttonText, setButtonText] = useState('Loading...');
 
-  // Check admin status and payment status on component mount
-  useEffect(() => {
-    // Check both localStorage and user object for admin access
-    const adminAccess = localStorage.getItem('admin_cv_access');
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
-    
-    setIsAdminUser(isAdmin);
-  }, []);
 
-  // Add a periodic check to maintain admin status
-  useEffect(() => {
-    const checkAdminStatus = () => {
-      const adminAccess = localStorage.getItem('admin_cv_access');
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
-      
-      if (isAdmin !== isAdminUser) {
-        setIsAdminUser(isAdmin);
-        console.log('Admin status updated:', isAdmin);
-      }
-    };
-
-    // Check every 5 seconds
-    const interval = setInterval(checkAdminStatus, 5000);
-    
-    return () => clearInterval(interval);
-  }, [isAdminUser]);
-
-  // Update button text based on payment status
-  useEffect(() => {
-    const updateButtonText = async () => {
-      if (isAdminUser) {
-        setButtonText('Download PDF (Admin)');
-        return;
-      }
-
-      try {
-        const text = await PaymentService.getDownloadButtonText('template6', isAdminUser);
-        setButtonText(text);
-      } catch (error) {
-        console.error('Error getting button text:', error);
-        setButtonText('Download PDF (PKR 100)');
-      }
-    };
-
-    updateButtonText();
-  }, [isAdminUser]);
 
   const containerStyle = {
     width: '700px',
@@ -463,86 +411,11 @@ const Template6PDF = ({ formData, visibleSections = [] }) => {
         })
         .from(containerRef.current)
         .save();
-
-      // Mark the user's approved payment as used (only for non-admin users)
-      if (!isAdminUser) {
-        try {
-          const approvedPayment = await PaymentService.checkApprovedPayment('template6');
-          if (approvedPayment) {
-            await PaymentService.markPaymentAsUsed(approvedPayment.id, 'template6');
-            console.log('Payment marked as used after download');
-            
-            // Refresh button text after marking payment as used
-            const newButtonText = await PaymentService.getDownloadButtonText('template6', isAdminUser);
-            setButtonText(newButtonText);
-            console.log('Button text refreshed after download:', newButtonText);
-          }
-        } catch (error) {
-          console.error('Error marking payment as used:', error);
-        }
-      }
       
     } catch (error) {
       alert('Error generating PDF: ' + error.message);
     } finally {
       buttonRef.current.style.display = 'inline-block';
-    }
-  };
-
-  const handlePaymentSuccess = (paymentData) => {
-    console.log('=== PAYMENT SUCCESS HANDLER ===');
-    console.log('Template6PDF - Payment successful:', paymentData);
-    setShowPaymentModal(false);
-    
-    // Update button text to reflect pending payment status
-    setButtonText('Payment Submitted (Waiting for Approval)');
-    
-    // Don't auto-download - wait for admin approval
-    // generatePDF();
-    console.log('=== PAYMENT SUCCESS HANDLER COMPLETE ===');
-  };
-
-  const handlePaymentFailure = (error) => {
-    setShowPaymentModal(false);
-    console.error('Payment failed:', error);
-    alert('Payment failed. Please try again.');
-  };
-
-  const handleDownloadClick = async () => {
-    console.log('=== DOWNLOAD CLICK START ===');
-    console.log('Template6PDF - handleDownloadClick called');
-    console.log('Template6PDF - isAdminUser:', isAdminUser);
-    
-    if (isAdminUser) {
-      console.log('Template6PDF - Admin user, generating PDF directly');
-      generatePDF();
-      return;
-    }
-    
-    try {
-      // Check if user has an approved payment first
-      const approvedPayment = await PaymentService.checkApprovedPayment('template6');
-      console.log('Template6PDF - approvedPayment:', approvedPayment);
-      
-      if (approvedPayment) {
-        // User has an approved payment, allow download
-        console.log('Template6PDF - Payment approved, generating PDF');
-        generatePDF();
-      } else {
-        // Check if user has already downloaded (informational)
-        const downloadedPayment = await PaymentService.checkDownloadedPayment('template6');
-        if (downloadedPayment) {
-          console.log('Template6PDF - CV already downloaded, showing payment modal for new download');
-          alert('You have already downloaded this CV. Please make a new payment to download again.');
-        }
-        
-        // Show payment modal
-        console.log('Template6PDF - No approved payment, showing modal');
-        setShowPaymentModal(true);
-      }
-    } catch (error) {
-      console.error('Error checking payment status:', error);
-      setShowPaymentModal(true);
     }
   };
 
@@ -643,46 +516,12 @@ const Template6PDF = ({ formData, visibleSections = [] }) => {
         </section>
       )}
 
-      <button
-            ref={buttonRef}
-            type="button"
-            onClick={handleDownloadClick}
-            disabled={isLoading}
-            style={{
-              cursor: isLoading ? 'not-allowed' : 'pointer',
-              padding: '10px 20px',
-              fontSize: '1rem',
-              borderRadius: '5px',
-              border: 'none',
-              backgroundColor: isLoading ? '#cccccc' : '#22c55e',
-              color: 'white',
-              transition: 'background-color 0.3s ease',
-              opacity: isLoading ? 0.7 : 1,
-            }}
-            onMouseEnter={(e) => {
-              if (!isLoading) {
-                e.currentTarget.style.backgroundColor = '#16a34a';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!isLoading) {
-                e.currentTarget.style.backgroundColor = '#22c55e';
-              }
-            }}
-          >
-            {buttonText}
-          </button>
-
-      {showPaymentModal && (
-        <ManualPayment
-          amount={100}
-          onPaymentSuccess={handlePaymentSuccess}
-          onPaymentFailure={handlePaymentFailure}
-          onClose={() => setShowPaymentModal(false)}
-          templateId="template6"
-          templateName="Template 6"
-        />
-      )}
+      {/* Centralized Payment and Download System */}
+      <CentralizedPaymentSystem
+        templateId="template6"
+        templateName="Template 6"
+        onDownload={generatePDF}
+      />
     </article>
   );
 };
