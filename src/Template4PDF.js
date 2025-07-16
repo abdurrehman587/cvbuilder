@@ -697,10 +697,12 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
           return;
         }
 
-        console.log('Template4PDF - Periodic refresh: No approved payment, getting default button text');
-        const text = await PaymentService.getDownloadButtonText('template4', isAdminUser);
-        setButtonText(text);
-        console.log('Template4PDF - Periodic refresh: Button text updated:', text);
+              console.log('Template4PDF - Periodic refresh: No approved payment, getting default button text');
+      console.log('Template4PDF - Calling PaymentService.getDownloadButtonText with isAdminUser:', isAdminUser);
+      const text = await PaymentService.getDownloadButtonText('template4', isAdminUser);
+      console.log('Template4PDF - PaymentService returned button text:', text);
+      setButtonText(text);
+      console.log('Template4PDF - Periodic refresh: Button text updated:', text);
       } catch (error) {
         console.error('Error getting button text:', error);
         setButtonText('Download PDF (PKR 100)');
@@ -826,10 +828,9 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
       console.log('PDF generation completed successfully');
       
       setButtonText('PDF Downloaded!');
-      alert('PDF downloaded successfully! Check your downloads folder.');
       
       setTimeout(() => {
-        setButtonText('Download PDF (Free)');
+        setButtonText('Download PDF (PKR 100)');
       }, 3000);
 
     } catch (error) {
@@ -864,30 +865,39 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
 
   const handleDownloadClick = async () => {
     console.log('Template4PDF - Download button clicked');
+    console.log('Template4PDF - isAdminUser:', isAdminUser);
     
     setIsDownloading(true);
     
     try {
       if (isAdminUser) {
+        console.log('Template4PDF - Admin user, proceeding with direct download');
         await generatePDF();
         return;
       }
 
+      console.log('Template4PDF - Regular user, checking payment status...');
+
       // Check if we can download (approved payment exists)
       const approvedPayment = await PaymentService.checkApprovedPayment('template4');
+      console.log('Template4PDF - Approved payment check result:', approvedPayment);
       if (approvedPayment) {
+        console.log('Template4PDF - Approved payment found, proceeding with download');
         await generatePDF();
         return;
       }
 
       // Check if there's a pending payment
       const pendingPayment = await PaymentService.checkPendingPayment('template4');
+      console.log('Template4PDF - Pending payment check result:', pendingPayment);
       if (pendingPayment) {
+        console.log('Template4PDF - Pending payment found, showing alert');
         alert('You have a pending payment. Please wait for admin approval.');
         return;
       }
 
       // Show payment modal
+      console.log('Template4PDF - No payment found, showing payment modal');
       setShowPaymentModal(true);
     } catch (error) {
       console.error('Download error:', error);
