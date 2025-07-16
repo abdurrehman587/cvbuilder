@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import ReactDOMServer from 'react-dom/server';
 import PropTypes from 'prop-types';
-import { PaymentService } from './paymentService';
-import ManualPayment from './ManualPayment';
+import { CleanPaymentService } from './cleanPaymentService';
+import CleanPaymentModal from './CleanPaymentModal';
 import html2pdf from 'html2pdf.js';
 
 
@@ -615,112 +615,63 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
     console.log('Template4PDF - Admin flags cleared, isAdminUser set to false');
   };
 
-  // Combined admin status check and button text update
+  // Clean payment system - check admin status and update button text
   useEffect(() => {
-    console.log('Template4PDF - Combined useEffect triggered');
-    
-    const checkAdminStatusAndUpdateButton = async () => {
+    const updateButtonText = async () => {
       try {
-        // Check admin status first
-        const adminAccess = localStorage.getItem('admin_cv_access');
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
-        
-        console.log('Template4PDF - Admin status check:', {
-          adminAccess,
-          user: user?.email,
-          userIsAdmin: user?.isAdmin,
-          userType: user?.userType,
-          isAdmin
-        });
-        
-        // Force regular user status if userType is 'user' and not explicitly admin
-        let finalAdminStatus = isAdmin;
-        if (user?.userType === 'user' && adminAccess !== 'true') {
-          console.log('Template4PDF - Forcing regular user status based on userType');
-          finalAdminStatus = false;
-        }
+        // Check if user is admin
+        const isAdmin = CleanPaymentService.isAdminUser();
         
         // Update admin status if changed
-        if (finalAdminStatus !== isAdminUser) {
-          setIsAdminUser(finalAdminStatus);
-          console.log('Template4PDF - Admin status updated:', finalAdminStatus);
+        if (isAdmin !== isAdminUser) {
+          setIsAdminUser(isAdmin);
+          console.log('Template4PDF - Admin status updated:', isAdmin);
         }
         
         // Don't update button text while loading
         if (isLoading) {
-          console.log('Template4PDF - Still loading, setting button text to Loading...');
           setButtonText('Loading...');
           return;
         }
 
-        // Update button text based on admin status and payment status
-        if (finalAdminStatus) {
-          console.log('Template4PDF - Admin user, setting admin button text');
-          setButtonText('Download PDF (Admin)');
+        if (isAdmin) {
+          // Admin user - always free download
+          setButtonText(CleanPaymentService.getAdminButtonText());
           setHasPendingPayment(false);
           return;
         }
 
-        // For regular users, check payment status
-        console.log('Template4PDF - Regular user, checking payment status...');
+        // Regular user - check payment status
+        const buttonText = await CleanPaymentService.getUserButtonText('template4');
+        setButtonText(buttonText);
         
-        // Check for pending payment first
-        const pendingPayment = await PaymentService.checkPendingPayment('template4');
-        console.log('Template4PDF - Pending payment check result:', pendingPayment);
-        
-        if (pendingPayment) {
-          setHasPendingPayment(true);
-          setButtonText('Payment Submitted (Waiting for Approval)');
-          console.log('Template4PDF - Pending payment detected, showing banner');
-          return;
-        } else {
-          setHasPendingPayment(false);
-        }
-
-        // Check for approved payment
-        const approvedPayment = await PaymentService.checkApprovedPayment('template4');
-        console.log('Template4PDF - Approved payment check result:', approvedPayment);
-        
-        if (approvedPayment) {
-          setButtonText('Download Now');
-          console.log('Template4PDF - Approved payment detected, showing download button');
-          return;
-        }
-
-        // Get default button text
-        console.log('Template4PDF - No approved payment, getting default button text');
-        const text = await PaymentService.getDownloadButtonText('template4', finalAdminStatus);
-        console.log('Template4PDF - PaymentService returned button text:', text);
-        setButtonText(text);
-        console.log('Template4PDF - Button text updated:', text);
+        // Check for pending payment to show banner
+        const pendingPayment = await CleanPaymentService.checkUserPendingPayment('template4');
+        setHasPendingPayment(!!pendingPayment);
         
       } catch (error) {
-        console.error('Error in checkAdminStatusAndUpdateButton:', error);
+        console.error('Template4PDF - Error updating button text:', error);
         setButtonText('Download PDF (PKR 100)');
       }
     };
 
     // Initial call with delay to avoid conflicts
     const initialTimeout = setTimeout(() => {
-      console.log('Template4PDF - Initial admin status and button text check');
-      checkAdminStatusAndUpdateButton();
+      console.log('Template4PDF - Initial clean payment system check');
+      updateButtonText();
     }, 1000);
     
-    // Set up periodic refresh every 10 seconds (less frequent to reduce conflicts)
+    // Set up periodic refresh every 10 seconds
     const interval = setInterval(() => {
-      console.log('Template4PDF - Periodic admin status and button text check');
-      checkAdminStatusAndUpdateButton();
+      console.log('Template4PDF - Periodic clean payment system check');
+      updateButtonText();
     }, 10000);
     
-    console.log('Template4PDF - Combined useEffect: Set up initial call and interval');
-    
     return () => {
-      console.log('Template4PDF - Combined useEffect cleanup: clearing timeout and interval');
       clearTimeout(initialTimeout);
       clearInterval(interval);
     };
-  }, [isLoading]); // Only depend on isLoading, not isAdminUser to prevent loops
+  }, [isLoading]); // Only depend on isLoading to prevent loops
 
   const generatePDF = async () => {
     console.log('=== HYBRID PDF GENERATION START ===');
@@ -882,45 +833,42 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
     
     try {
       if (isAdminUser) {
+        // Admin user - always free download
         console.log('Template4PDF - Admin user, proceeding with direct download');
         await generatePDF();
         return;
       }
 
-      console.log('Template4PDF - Regular user, checking payment status...');
-
-      // Check if we can download (approved payment exists)
-      const approvedPayment = await PaymentService.checkApprovedPayment('template4');
-      console.log('Template4PDF - Approved payment check result:', approvedPayment);
-      if (approvedPayment) {
-        console.log('Template4PDF - Approved payment found, proceeding with download');
+      // Regular user - use clean payment system
+      console.log('Template4PDF - Regular user, using clean payment system');
+      const downloadResult = await CleanPaymentService.handleUserDownload('template4');
+      
+      if (downloadResult.canDownload) {
+        console.log('Template4PDF - User can download, proceeding with PDF generation');
         await generatePDF();
         return;
       }
-
-      // Check if there's a pending payment
-      const pendingPayment = await PaymentService.checkPendingPayment('template4');
-      console.log('Template4PDF - Pending payment check result:', pendingPayment);
-      if (pendingPayment) {
-        console.log('Template4PDF - Pending payment found, showing alert');
-        alert('You have a pending payment. Please wait for admin approval.');
-        return;
+      
+      // Handle different reasons why user can't download
+      switch (downloadResult.reason) {
+        case 'pending_payment':
+          console.log('Template4PDF - Pending payment found, showing alert');
+          alert('You have a pending payment. Please wait for admin approval.');
+          break;
+          
+        case 'needs_new_payment':
+        case 'no_payment':
+          console.log('Template4PDF - Payment required, showing payment modal');
+          setShowPaymentModal(true);
+          break;
+          
+        default:
+          console.log('Template4PDF - Unknown reason, showing payment modal');
+          setShowPaymentModal(true);
+          break;
       }
-
-      // Check if there's a downloaded payment (user wants to download again)
-      const downloadedPayment = await PaymentService.checkDownloadedPayment('template4');
-      console.log('Template4PDF - Downloaded payment check result:', downloadedPayment);
-      if (downloadedPayment) {
-        console.log('Template4PDF - Downloaded payment found, showing payment modal for new download');
-        setShowPaymentModal(true);
-        return;
-      }
-
-      // Show payment modal for first-time payment
-      console.log('Template4PDF - No payment found, showing payment modal for first download');
-      setShowPaymentModal(true);
     } catch (error) {
-      console.error('Download error:', error);
+      console.error('Template4PDF - Download error:', error);
       alert('An error occurred during download. Please try again.');
     } finally {
       setIsDownloading(false);
@@ -1409,13 +1357,14 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
 
   const handlePaymentSuccess = (paymentData) => {
     setShowPaymentModal(false);
-    console.log('Payment successful:', paymentData);
+    console.log('Template4PDF - Payment successful:', paymentData);
+    toast.success('Payment submitted successfully! Please wait for admin approval.');
   };
 
   const handlePaymentFailure = (error) => {
     setShowPaymentModal(false);
-    console.error('Payment failed:', error);
-    alert('Payment failed. Please try again.');
+    console.error('Template4PDF - Payment failed:', error);
+    toast.error('Payment failed. Please try again.');
   };
 
   const {
@@ -2209,13 +2158,12 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
         </div>
       )}
       {showPaymentModal && !isPrintMode && (
-        <ManualPayment
-          amount={100}
-          templateId="template4"
-          templateName="Template 4"
-          onPaymentSuccess={handlePaymentSuccess}
-          onPaymentFailure={handlePaymentFailure}
+        <CleanPaymentModal
+          isOpen={showPaymentModal}
           onClose={() => setShowPaymentModal(false)}
+          templateId="template4"
+          onPaymentSuccess={handlePaymentSuccess}
+          onPaymentError={handlePaymentFailure}
         />
       )}
     </>
