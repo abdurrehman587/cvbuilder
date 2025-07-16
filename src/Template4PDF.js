@@ -840,6 +840,11 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
       if (downloadResult.canDownload) {
         console.log('Template4PDF - User can download, proceeding with PDF generation');
         await generatePDF();
+        
+        // Immediately update button text after successful download
+        const newButtonText = await CleanPaymentService.getUserButtonText('template4');
+        setButtonText(newButtonText);
+        console.log('Template4PDF - Button text updated after download:', newButtonText);
         return;
       }
       
@@ -1349,10 +1354,15 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
     };
   };
 
-  const handlePaymentSuccess = (paymentData) => {
+  const handlePaymentSuccess = async (paymentData) => {
     setShowPaymentModal(false);
     console.log('Template4PDF - Payment successful:', paymentData);
     toast.success('Payment submitted successfully! Please wait for admin approval.');
+    
+    // Update button text to reflect pending payment status
+    const newButtonText = await CleanPaymentService.getUserButtonText('template4');
+    setButtonText(newButtonText);
+    console.log('Template4PDF - Button text updated after payment submission:', newButtonText);
   };
 
   const handlePaymentFailure = (error) => {

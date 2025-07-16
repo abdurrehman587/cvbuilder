@@ -214,25 +214,34 @@ export class CleanPaymentService {
   
   static async getUserButtonText(templateId) {
     try {
+      console.log('CleanPaymentService - Getting button text for template:', templateId);
+      
       // Check for approved payment first
       const approvedPayment = await this.checkUserApprovedPayment(templateId);
+      console.log('CleanPaymentService - Approved payment check:', approvedPayment ? 'Found' : 'Not found');
       if (approvedPayment) {
+        console.log('CleanPaymentService - Returning: Download Now');
         return 'Download Now';
       }
       
       // Check for pending payment
       const pendingPayment = await this.checkUserPendingPayment(templateId);
+      console.log('CleanPaymentService - Pending payment check:', pendingPayment ? 'Found' : 'Not found');
       if (pendingPayment) {
+        console.log('CleanPaymentService - Returning: Payment Submitted (Waiting for Approval)');
         return 'Payment Submitted (Waiting for Approval)';
       }
       
       // Check for downloaded payment (user wants to download again)
       const downloadedPayment = await this.checkUserDownloadedPayment(templateId);
+      console.log('CleanPaymentService - Downloaded payment check:', downloadedPayment ? 'Found' : 'Not found');
       if (downloadedPayment) {
+        console.log('CleanPaymentService - Returning: Download PDF (PKR 100) - New Download');
         return 'Download PDF (PKR 100) - New Download';
       }
       
       // No payment found
+      console.log('CleanPaymentService - No payment found, returning: Download PDF (PKR 100)');
       return 'Download PDF (PKR 100)';
     } catch (error) {
       console.error('CleanPaymentService - Error getting user button text:', error);
@@ -242,9 +251,13 @@ export class CleanPaymentService {
   
   static async handleUserDownload(templateId) {
     try {
+      console.log('CleanPaymentService - Handling user download for template:', templateId);
+      
       // Check for approved payment
       const approvedPayment = await this.checkUserApprovedPayment(templateId);
+      console.log('CleanPaymentService - Approved payment check:', approvedPayment ? 'Found' : 'Not found');
       if (approvedPayment) {
+        console.log('CleanPaymentService - Marking payment as used and allowing download');
         // Mark payment as used and allow download
         await this.markUserPaymentAsUsed(approvedPayment.id, templateId);
         return { canDownload: true, reason: 'approved_payment' };
@@ -252,17 +265,22 @@ export class CleanPaymentService {
       
       // Check for pending payment
       const pendingPayment = await this.checkUserPendingPayment(templateId);
+      console.log('CleanPaymentService - Pending payment check:', pendingPayment ? 'Found' : 'Not found');
       if (pendingPayment) {
+        console.log('CleanPaymentService - Pending payment found, download blocked');
         return { canDownload: false, reason: 'pending_payment' };
       }
       
       // Check for downloaded payment
       const downloadedPayment = await this.checkUserDownloadedPayment(templateId);
+      console.log('CleanPaymentService - Downloaded payment check:', downloadedPayment ? 'Found' : 'Not found');
       if (downloadedPayment) {
+        console.log('CleanPaymentService - Downloaded payment found, new payment required');
         return { canDownload: false, reason: 'needs_new_payment' };
       }
       
       // No payment found
+      console.log('CleanPaymentService - No payment found, new payment required');
       return { canDownload: false, reason: 'no_payment' };
     } catch (error) {
       console.error('CleanPaymentService - Error handling user download:', error);
