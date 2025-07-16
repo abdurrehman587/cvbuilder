@@ -4,8 +4,7 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import NewPaymentModal from './NewPaymentModal';
-import { NewPaymentService } from './NewPaymentService';
+import CentralizedPaymentSystem from './CentralizedPaymentSystem';
 
 // Load html2pdf from CDN dynamically
 const loadHtml2Pdf = () => {
@@ -23,124 +22,8 @@ const NewTemplate1PDF = ({ formData, visibleSections = [] }) => {
   console.log('NewTemplate1PDF - Component rendered');
   
   const containerRef = useRef(null);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [isAdminUser, setIsAdminUser] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [buttonText, setButtonText] = useState('Loading...');
-  const [hasPendingPayment, setHasPendingPayment] = useState(false);
-  const [paymentStatus, setPaymentStatus] = useState({
-    canDownload: false,
-    hasPending: false,
-    downloadCount: 0
-  });
 
-  // TEMPORARY: Bypass payment modal for testing
-  useEffect(() => {
-    // Set admin access temporarily for easier testing
-    localStorage.setItem('admin_cv_access', 'true');
-    console.log('NewTemplate1PDF: Admin access temporarily enabled for testing');
-  }, []);
 
-  // Initialize payment service and check admin status
-  useEffect(() => {
-    const initializeComponent = async () => {
-      try {
-        console.log('NewTemplate1PDF - Initializing component...');
-        
-        // Initialize payment service
-        await NewPaymentService.initialize();
-        
-        // Check admin status
-        const adminAccess = localStorage.getItem('admin_cv_access');
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
-        
-        console.log('NewTemplate1PDF - Admin status:', { adminAccess, user: user?.email, isAdmin });
-        setIsAdminUser(isAdmin);
-        setIsLoading(false);
-        
-        // Initial payment status check
-        await updatePaymentStatus();
-        
-      } catch (error) {
-        console.error('NewTemplate1PDF - Initialization failed:', error);
-        setIsLoading(false);
-      }
-    };
-
-    initializeComponent();
-  }, []);
-
-  // Update payment status and button text
-  const updatePaymentStatus = async () => {
-    try {
-      console.log('NewTemplate1PDF - Updating payment status...');
-      
-      if (isAdminUser) {
-        setButtonText('Download PDF (Admin)');
-        setHasPendingPayment(false);
-        setPaymentStatus({
-          canDownload: true,
-          hasPending: false,
-          downloadCount: 0
-        });
-        return;
-      }
-
-      // Check payment status
-      const canDownload = await NewPaymentService.canDownload('template1');
-      const hasPending = await NewPaymentService.hasPendingPayment('template1');
-      const downloadCount = await NewPaymentService.getDownloadCount('template1');
-      const buttonTextResult = await NewPaymentService.getDownloadButtonText('template1', isAdminUser);
-
-      console.log('NewTemplate1PDF - Payment status:', {
-        canDownload,
-        hasPending,
-        downloadCount,
-        buttonText: buttonTextResult
-      });
-
-      setButtonText(buttonTextResult);
-      setHasPendingPayment(hasPending);
-      setPaymentStatus({
-        canDownload,
-        hasPending,
-        downloadCount
-      });
-
-    } catch (error) {
-      console.error('NewTemplate1PDF - Update payment status failed:', error);
-      setButtonText('Download PDF (PKR 100)');
-    }
-  };
-
-  // Periodic status updates
-  useEffect(() => {
-    if (isLoading) return;
-
-    const interval = setInterval(() => {
-      console.log('NewTemplate1PDF - Periodic status update');
-      updatePaymentStatus();
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [isLoading, isAdminUser]);
-
-  // Listen for authentication changes
-  useEffect(() => {
-    const handleAuthChange = () => {
-      console.log('NewTemplate1PDF - Auth change detected');
-      setTimeout(updatePaymentStatus, 1000);
-    };
-
-    window.addEventListener('storage', handleAuthChange);
-    window.addEventListener('focus', handleAuthChange);
-
-    return () => {
-      window.removeEventListener('storage', handleAuthChange);
-      window.removeEventListener('focus', handleAuthChange);
-    };
-  }, []);
 
   const generatePDF = async () => {
     try {
@@ -165,79 +48,9 @@ const NewTemplate1PDF = ({ formData, visibleSections = [] }) => {
       
       console.log('NewTemplate1PDF - PDF generated successfully');
       
-      // Mark payment as downloaded if not admin
-      if (!isAdminUser && paymentStatus.canDownload) {
-        try {
-          const approvedPayment = await NewPaymentService.getApprovedPayment('template1');
-          if (approvedPayment) {
-            await NewPaymentService.markPaymentAsDownloaded(approvedPayment.id, 'template1');
-            console.log('NewTemplate1PDF - Payment marked as downloaded');
-            await updatePaymentStatus();
-          }
-        } catch (error) {
-          console.error('NewTemplate1PDF - Failed to mark payment as downloaded:', error);
-        }
-      }
-      
     } catch (error) {
       console.error('NewTemplate1PDF - PDF generation failed:', error);
       alert('Failed to generate PDF. Please try again.');
-    }
-  };
-
-  const handleDownloadClick = async () => {
-    console.log('NewTemplate1PDF - Download button clicked');
-    console.log('NewTemplate1PDF - Current status:', paymentStatus);
-    
-    if (isAdminUser) {
-      await generatePDF();
-      return;
-    }
-
-    if (paymentStatus.canDownload) {
-      await generatePDF();
-      return;
-    }
-
-    if (paymentStatus.hasPending) {
-      alert('You have a pending payment. Please wait for admin approval.');
-      return;
-    }
-
-    // Show payment modal
-    setShowPaymentModal(true);
-  };
-
-  const handlePaymentSuccess = (paymentData) => {
-    console.log('NewTemplate1PDF - Payment successful:', paymentData);
-    setShowPaymentModal(false);
-    setHasPendingPayment(true);
-    setButtonText('Payment Submitted (Waiting for Approval)');
-    
-    alert(`Payment submitted successfully!\n\nPayment ID: ${paymentData.paymentId}\n\nPlease wait for admin approval. You will be able to download your CV once approved.`);
-  };
-
-  const handlePaymentFailure = (error) => {
-    console.error('NewTemplate1PDF - Payment failed:', error);
-    setShowPaymentModal(false);
-    alert(`Payment failed: ${error.message}`);
-  };
-
-  const handleRefreshStatus = async () => {
-    console.log('NewTemplate1PDF - Manual refresh requested');
-    await updatePaymentStatus();
-  };
-
-  const handleDebugStatus = async () => {
-    try {
-      console.log('NewTemplate1PDF - Debug status requested');
-      const debugResult = await NewPaymentService.debugPaymentStatus('template1');
-      console.log('NewTemplate1PDF - Debug result:', debugResult);
-      
-      alert(`Debug Information:\n\nUser: ${debugResult.user}\nTemplate: template1\nCan Download: ${debugResult.canDownload}\nHas Pending: ${debugResult.hasPending}\nDownload Count: ${debugResult.downloadCount}\nButton Text: ${debugResult.buttonText}`);
-    } catch (error) {
-      console.error('NewTemplate1PDF - Debug failed:', error);
-      alert(`Debug failed: ${error.message}`);
     }
   };
 
@@ -612,117 +425,11 @@ const NewTemplate1PDF = ({ formData, visibleSections = [] }) => {
         )}
       </article>
 
-      {/* Download Controls */}
-      <div style={{ marginTop: '20px', padding: '20px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
-        {hasPendingPayment ? (
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ 
-              backgroundColor: '#fff3cd', 
-              border: '1px solid #ffeaa7', 
-              borderRadius: '6px', 
-              padding: '16px', 
-              marginBottom: '16px' 
-            }}>
-              <h3 style={{ margin: '0 0 8px 0', color: '#856404', fontSize: '16px' }}>
-                ⏳ Payment Submitted - Waiting for Approval
-              </h3>
-              <p style={{ margin: '0', color: '#856404', fontSize: '14px' }}>
-                Your payment has been submitted and is being reviewed. You will be able to download your CV once approved.
-              </p>
-            </div>
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-              <button
-                onClick={handleRefreshStatus}
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: '#007bff',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer'
-                }}
-              >
-                Refresh Status
-              </button>
-              <button
-                onClick={handleDebugStatus}
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: '#6c757d',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer'
-                }}
-              >
-                Debug Info
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div style={{ textAlign: 'center' }}>
-            <button
-              onClick={handleDownloadClick}
-              disabled={isLoading}
-              style={{
-                padding: '12px 24px',
-                backgroundColor: paymentStatus.canDownload ? '#28a745' : '#007bff',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                fontSize: '16px',
-                fontWeight: '500',
-                cursor: isLoading ? 'not-allowed' : 'pointer',
-                opacity: isLoading ? 0.6 : 1
-              }}
-            >
-              {buttonText}
-            </button>
-            
-            {!isAdminUser && (
-              <div style={{ marginTop: '12px', display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                <button
-                  onClick={handleRefreshStatus}
-                  style={{
-                    padding: '6px 12px',
-                    backgroundColor: '#6c757d',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    fontSize: '12px',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Refresh
-                </button>
-                <button
-                  onClick={handleDebugStatus}
-                  style={{
-                    padding: '6px 12px',
-                    backgroundColor: '#17a2b8',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    fontSize: '12px',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Debug
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Payment Modal */}
-      <NewPaymentModal
-        isOpen={showPaymentModal}
-        onClose={() => setShowPaymentModal(false)}
+      {/* Centralized Payment and Download System */}
+      <CentralizedPaymentSystem
         templateId="template1"
         templateName="Template 1"
-        onPaymentSuccess={handlePaymentSuccess}
-        onPaymentFailure={handlePaymentFailure}
+        onDownload={generatePDF}
       />
     </>
   );
