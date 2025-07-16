@@ -606,14 +606,7 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
     borderRadius: '20px 0 0 0',
   };
 
-  // Debug function to clear admin flags (for testing)
-  const clearAdminFlags = () => {
-    console.log('Template4PDF - Clearing admin flags for testing');
-    localStorage.removeItem('admin_cv_access');
-    localStorage.removeItem('admin_user');
-    setIsAdminUser(false);
-    console.log('Template4PDF - Admin flags cleared, isAdminUser set to false');
-  };
+
 
   // Clean payment system - check admin status and update button text
   useEffect(() => {
@@ -2082,25 +2075,7 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
             </div>
           ) : (
             <>
-              {/* Debug button for testing */}
-              {process.env.NODE_ENV === 'development' && (
-                <div style={{ textAlign: 'center', marginBottom: '10px' }}>
-                  <button
-                    onClick={clearAdminFlags}
-                    style={{
-                      padding: '4px 8px',
-                      fontSize: '12px',
-                      backgroundColor: '#ff6b6b',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '4px',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    Clear Admin Flags (Debug)
-                  </button>
-                </div>
-              )}
+
             <div style={{ textAlign: 'center' }}>
               <button
                 ref={buttonRef}
