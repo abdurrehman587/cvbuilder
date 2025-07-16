@@ -34,6 +34,13 @@ const NewTemplate1PDF = ({ formData, visibleSections = [] }) => {
     downloadCount: 0
   });
 
+  // TEMPORARY: Bypass payment modal for testing
+  useEffect(() => {
+    // Set admin access temporarily for easier testing
+    localStorage.setItem('admin_cv_access', 'true');
+    console.log('NewTemplate1PDF: Admin access temporarily enabled for testing');
+  }, []);
+
   // Initialize payment service and check admin status
   useEffect(() => {
     const initializeComponent = async () => {

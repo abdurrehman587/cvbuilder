@@ -4,6 +4,7 @@ import SignupSignIn from './SignupSignIn';
 import ChooseTemplate from './choosetemplate';
 import DatabaseSetupCheck from './DatabaseSetupCheck';
 import PrintCV from './PrintCV';
+import APITest from './APITest';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './responsive.css';
@@ -269,6 +270,11 @@ const App = () => {
     } else {
       return <div>No CV data found for printing. Please try downloading again.</div>;
     }
+  }
+
+  // Check if this is the API test route
+  if (window.location.pathname === '/api-test') {
+    return <APITest />;
   }
 
   // Always show SignupSignIn as homepage/root route

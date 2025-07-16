@@ -23,58 +23,83 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'HTML content is required' });
     }
 
-    console.log('Starting PDF generation...');
+    console.log('Starting simple PDF generation...');
     console.log('HTML content length:', html.length);
 
-    // Launch browser with proper configuration for Vercel serverless
-    browser = await puppeteer.launch({
-      headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--no-first-run',
-        '--no-zygote',
-        '--single-process',
-        '--disable-gpu',
-        '--disable-web-security',
-        '--disable-features=VizDisplayCompositor',
-        '--disable-background-timer-throttling',
-        '--disable-backgrounding-occluded-windows',
-        '--disable-renderer-backgrounding',
-        '--disable-extensions',
-        '--disable-plugins',
-        '--disable-images',
-        '--disable-javascript',
-        '--disable-default-apps',
-        '--disable-sync',
-        '--disable-translate',
-        '--hide-scrollbars',
-        '--mute-audio',
-        '--no-default-browser-check',
-        '--disable-component-extensions-with-background-pages',
-        '--disable-background-networking',
-        '--disable-background-timer-throttling',
-        '--disable-client-side-phishing-detection',
-        '--disable-default-apps',
-        '--disable-extensions',
-        '--disable-hang-monitor',
-        '--disable-prompt-on-repost',
-        '--disable-sync',
-        '--disable-web-resources',
-        '--metrics-recording-only',
-        '--no-first-run',
-        '--safebrowsing-disable-auto-update',
-        '--enable-automation',
-        '--password-store=basic',
-        '--use-mock-keychain'
-      ],
-      // Use the Chrome binary that's available in Vercel's serverless environment
-      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/google-chrome-stable',
-      // Disable download of Chrome binary since we're using system Chrome
-      skipDownload: true
-    });
+    // Try different Chrome executable paths for Vercel
+    const chromePaths = [
+      process.env.PUPPETEER_EXECUTABLE_PATH,
+      '/usr/bin/google-chrome-stable',
+      '/usr/bin/chromium-browser',
+      '/usr/bin/chromium',
+      '/snap/bin/chromium',
+      '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', // macOS
+      'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe', // Windows
+      'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe' // Windows 32-bit
+    ];
+
+    let browserLaunched = false;
+    let lastError = null;
+
+    for (const chromePath of chromePaths) {
+      if (!chromePath) continue;
+      
+      try {
+        console.log(`Trying Chrome path: ${chromePath}`);
+        
+        browser = await puppeteer.launch({
+          headless: true,
+          executablePath: chromePath,
+          args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-gpu',
+            '--no-first-run',
+            '--no-zygote',
+            '--single-process',
+            '--disable-extensions',
+            '--disable-plugins',
+            '--disable-images',
+            '--disable-javascript',
+            '--disable-default-apps',
+            '--disable-sync',
+            '--disable-translate',
+            '--hide-scrollbars',
+            '--mute-audio',
+            '--no-default-browser-check',
+            '--disable-background-networking',
+            '--disable-background-timer-throttling',
+            '--disable-client-side-phishing-detection',
+            '--disable-default-apps',
+            '--disable-extensions',
+            '--disable-hang-monitor',
+            '--disable-prompt-on-repost',
+            '--disable-sync',
+            '--disable-web-resources',
+            '--metrics-recording-only',
+            '--no-first-run',
+            '--safebrowsing-disable-auto-update',
+            '--enable-automation',
+            '--password-store=basic',
+            '--use-mock-keychain'
+          ],
+          skipDownload: true
+        });
+
+        browserLaunched = true;
+        console.log(`Successfully launched browser with path: ${chromePath}`);
+        break;
+      } catch (error) {
+        console.log(`Failed to launch browser with path ${chromePath}:`, error.message);
+        lastError = error;
+        continue;
+      }
+    }
+
+    if (!browserLaunched) {
+      throw new Error(`Could not launch browser. Tried paths: ${chromePaths.filter(Boolean).join(', ')}. Last error: ${lastError?.message}`);
+    }
 
     const page = await browser.newPage();
     
@@ -156,7 +181,7 @@ module.exports = async (req, res) => {
     res.send(pdf);
 
   } catch (error) {
-    console.error('PDF generation error:', error);
+    console.error('Simple PDF generation error:', error);
     
     // More detailed error response
     const errorResponse = {
@@ -164,7 +189,12 @@ module.exports = async (req, res) => {
       message: error.message,
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV || 'development',
-      chromePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/google-chrome-stable'
+      chromePaths: [
+        process.env.PUPPETEER_EXECUTABLE_PATH,
+        '/usr/bin/google-chrome-stable',
+        '/usr/bin/chromium-browser',
+        '/usr/bin/chromium'
+      ].filter(Boolean)
     };
     
     // Only include stack trace in development

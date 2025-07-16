@@ -32,6 +32,13 @@ const Template1PDF = ({ formData, visibleSections = [] }) => {
   const [buttonText, setButtonText] = useState('Loading...');
   const [isDownloading, setIsDownloading] = useState(false);
 
+  // TEMPORARY: Bypass payment modal for testing
+  useEffect(() => {
+    // Set admin access temporarily for easier testing
+    localStorage.setItem('admin_cv_access', 'true');
+    console.log('Template1PDF: Admin access temporarily enabled for testing');
+  }, []);
+
   // Check admin status and payment status on component mount
   useEffect(() => {
     console.log('Template1PDF - Admin status useEffect triggered');

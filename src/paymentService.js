@@ -133,9 +133,9 @@ export class PaymentService {
         .eq('status', 'approved')
         .order('created_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
-      if (approvedError && approvedError.code !== 'PGRST116') {
+      if (approvedError) {
         console.error('Error checking approved payment:', approvedError);
         // Don't throw error, just return null
         return null;
@@ -146,8 +146,7 @@ export class PaymentService {
         return null;
       }
 
-      // If we found an approved payment, it's available for download
-      console.log('Approved payment found and available for download:', approvedPayment);
+      console.log('Approved payment found:', approvedPayment);
       return approvedPayment;
     } catch (error) {
       console.error('Error checking approved payment:', error);
@@ -200,9 +199,9 @@ export class PaymentService {
         .eq('status', 'pending')
         .order('created_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         console.error('Error checking pending payment:', error);
         // Don't throw error, just return null
         return null;
@@ -240,11 +239,11 @@ export class PaymentService {
         .eq('status', 'downloaded')
         .order('created_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         console.error('Error checking downloaded payment:', error);
-        throw error;
+        return null;
       }
 
       console.log('Downloaded payment check result:', data);
