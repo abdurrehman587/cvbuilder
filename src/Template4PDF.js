@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import { CleanPaymentService } from './cleanPaymentService';
 import CleanPaymentModal from './CleanPaymentModal';
 import { toast } from 'react-toastify';
+import { debugPaymentStatus } from './debugPaymentStatus';
 import html2pdf from 'html2pdf.js';
 
 
@@ -1374,6 +1375,25 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
     toast.error('Payment failed. Please try again.');
   };
 
+  const handleDebugPaymentStatus = async () => {
+    console.log('Template4PDF - Debug button clicked');
+    const debugResult = await debugPaymentStatus('template4');
+    console.log('Template4PDF - Debug result:', debugResult);
+    
+    if (debugResult) {
+      alert(`Debug Info:
+User: ${debugResult.user}
+Expected Button Text: ${debugResult.expectedButtonText}
+Current Button Text: ${buttonText}
+Admin Access: ${debugResult.adminData.adminAccess}
+User Is Admin: ${debugResult.adminData.userIsAdmin}
+Approved Payments: ${debugResult.approvedPayments.length}
+Pending Payments: ${debugResult.pendingPayments.length}
+Downloaded Payments: ${debugResult.downloadedPayments.length}
+      `);
+    }
+  };
+
   const {
     imageUrl,
     name,
@@ -2089,7 +2109,26 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
             </div>
           ) : (
             <>
-
+              {/* Debug button for testing */}
+              {process.env.NODE_ENV === 'development' && (
+                <div style={{ textAlign: 'center', marginBottom: '10px' }}>
+                  <button
+                    onClick={handleDebugPaymentStatus}
+                    style={{
+                      padding: '8px 16px',
+                      fontSize: '14px',
+                      backgroundColor: '#007bff',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      marginBottom: '10px'
+                    }}
+                  >
+                    Debug Payment Status
+                  </button>
+                </div>
+              )}
             <div style={{ textAlign: 'center' }}>
               <button
                 ref={buttonRef}
