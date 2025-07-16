@@ -606,10 +606,22 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
     borderRadius: '20px 0 0 0',
   };
 
-  // Check admin status on component mount
+  // Debug function to clear admin flags (for testing)
+  const clearAdminFlags = () => {
+    console.log('Template4PDF - Clearing admin flags for testing');
+    localStorage.removeItem('admin_cv_access');
+    localStorage.removeItem('admin_user');
+    setIsAdminUser(false);
+    console.log('Template4PDF - Admin flags cleared, isAdminUser set to false');
+  };
+
+  // Combined admin status check and button text update
   useEffect(() => {
-    const checkAdminStatus = async () => {
+    console.log('Template4PDF - Combined useEffect triggered');
+    
+    const checkAdminStatusAndUpdateButton = async () => {
       try {
+        // Check admin status first
         const adminAccess = localStorage.getItem('admin_cv_access');
         const user = JSON.parse(localStorage.getItem('user') || '{}');
         const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
@@ -623,133 +635,92 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
         });
         
         // Force regular user status if userType is 'user' and not explicitly admin
+        let finalAdminStatus = isAdmin;
         if (user?.userType === 'user' && adminAccess !== 'true') {
           console.log('Template4PDF - Forcing regular user status based on userType');
-          setIsAdminUser(false);
-        } else {
-          setIsAdminUser(isAdmin);
+          finalAdminStatus = false;
         }
-      } catch (error) {
-        console.error('Error checking admin status:', error);
-        setIsAdminUser(false);
-      }
-    };
+        
+        // Update admin status if changed
+        if (finalAdminStatus !== isAdminUser) {
+          setIsAdminUser(finalAdminStatus);
+          console.log('Template4PDF - Admin status updated:', finalAdminStatus);
+        }
+        
+        // Don't update button text while loading
+        if (isLoading) {
+          console.log('Template4PDF - Still loading, setting button text to Loading...');
+          setButtonText('Loading...');
+          return;
+        }
 
-    checkAdminStatus();
-  }, []);
+        // Update button text based on admin status and payment status
+        if (finalAdminStatus) {
+          console.log('Template4PDF - Admin user, setting admin button text');
+          setButtonText('Download PDF (Admin)');
+          setHasPendingPayment(false);
+          return;
+        }
 
-  // Add a periodic check to maintain admin status
-  React.useEffect(() => {
-    const checkAdminStatus = () => {
-      const adminAccess = localStorage.getItem('admin_cv_access');
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
-      
-      // Force regular user status if userType is 'user' and not explicitly admin
-      let finalAdminStatus = isAdmin;
-      if (user?.userType === 'user' && adminAccess !== 'true') {
-        finalAdminStatus = false;
-      }
-      
-      if (finalAdminStatus !== isAdminUser) {
-        setIsAdminUser(finalAdminStatus);
-        console.log('Template4PDF - Admin status updated:', finalAdminStatus);
-      }
-    };
-
-    const interval = setInterval(checkAdminStatus, 5000);
-    return () => clearInterval(interval);
-  }, [isAdminUser]);
-
-  // Debug function to clear admin flags (for testing)
-  const clearAdminFlags = () => {
-    console.log('Template4PDF - Clearing admin flags for testing');
-    localStorage.removeItem('admin_cv_access');
-    localStorage.removeItem('admin_user');
-    setIsAdminUser(false);
-    console.log('Template4PDF - Admin flags cleared, isAdminUser set to false');
-  };
-
-  // Update button text based on payment status
-  useEffect(() => {
-    console.log('Template4PDF - useEffect triggered with:', { isAdminUser, isLoading });
-    console.log('Template4PDF - useEffect: Component state check');
-    
-    const updateButtonText = async () => {
-      console.log('Template4PDF - updateButtonText called');
-      
-      // Don't update button text while loading
-      if (isLoading) {
-        console.log('Template4PDF - Still loading, setting button text to Loading...');
-        setButtonText('Loading...');
-        return;
-      }
-
-      if (isAdminUser) {
-        console.log('Template4PDF - Admin user, setting admin button text');
-        setButtonText('Download PDF (Admin)');
-        setHasPendingPayment(false);
-        return;
-      }
-
-      try {
-        console.log('Template4PDF - Starting payment status checks...');
+        // For regular users, check payment status
+        console.log('Template4PDF - Regular user, checking payment status...');
         
         // Check for pending payment first
         const pendingPayment = await PaymentService.checkPendingPayment('template4');
-        console.log('Template4PDF - Periodic refresh: Pending payment check result:', pendingPayment);
+        console.log('Template4PDF - Pending payment check result:', pendingPayment);
         
         if (pendingPayment) {
           setHasPendingPayment(true);
           setButtonText('Payment Submitted (Waiting for Approval)');
-          console.log('Template4PDF - Periodic refresh: Pending payment detected, showing banner');
+          console.log('Template4PDF - Pending payment detected, showing banner');
           return;
         } else {
           setHasPendingPayment(false);
-          console.log('Template4PDF - Periodic refresh: No pending payment, checking approved payment');
         }
 
         // Check for approved payment
         const approvedPayment = await PaymentService.checkApprovedPayment('template4');
-        console.log('Template4PDF - Periodic refresh: Approved payment check result:', approvedPayment);
+        console.log('Template4PDF - Approved payment check result:', approvedPayment);
         
         if (approvedPayment) {
           setButtonText('Download Now');
-          console.log('Template4PDF - Periodic refresh: Approved payment detected, showing download button');
+          console.log('Template4PDF - Approved payment detected, showing download button');
           return;
         }
 
-              console.log('Template4PDF - Periodic refresh: No approved payment, getting default button text');
-      console.log('Template4PDF - Calling PaymentService.getDownloadButtonText with isAdminUser:', isAdminUser);
-      const text = await PaymentService.getDownloadButtonText('template4', isAdminUser);
-      console.log('Template4PDF - PaymentService returned button text:', text);
-      setButtonText(text);
-      console.log('Template4PDF - Periodic refresh: Button text updated:', text);
+        // Get default button text
+        console.log('Template4PDF - No approved payment, getting default button text');
+        const text = await PaymentService.getDownloadButtonText('template4', finalAdminStatus);
+        console.log('Template4PDF - PaymentService returned button text:', text);
+        setButtonText(text);
+        console.log('Template4PDF - Button text updated:', text);
+        
       } catch (error) {
-        console.error('Error getting button text:', error);
+        console.error('Error in checkAdminStatusAndUpdateButton:', error);
         setButtonText('Download PDF (PKR 100)');
       }
     };
 
-    // Add a small delay before first update to avoid conflicts
-    setTimeout(() => {
-      console.log('Template4PDF - First updateButtonText call (delayed)');
-      updateButtonText();
-    }, 2000);
+    // Initial call with delay to avoid conflicts
+    const initialTimeout = setTimeout(() => {
+      console.log('Template4PDF - Initial admin status and button text check');
+      checkAdminStatusAndUpdateButton();
+    }, 1000);
     
-    // Set up periodic refresh every 5 seconds to catch payment status changes
+    // Set up periodic refresh every 10 seconds (less frequent to reduce conflicts)
     const interval = setInterval(() => {
-      console.log('Template4PDF - Periodic updateButtonText call');
-      updateButtonText();
-    }, 5000);
+      console.log('Template4PDF - Periodic admin status and button text check');
+      checkAdminStatusAndUpdateButton();
+    }, 10000);
     
-    console.log('Template4PDF - useEffect: Set up interval and delayed call');
+    console.log('Template4PDF - Combined useEffect: Set up initial call and interval');
     
     return () => {
-      console.log('Template4PDF - useEffect cleanup: clearing interval');
+      console.log('Template4PDF - Combined useEffect cleanup: clearing timeout and interval');
+      clearTimeout(initialTimeout);
       clearInterval(interval);
     };
-  }, [isAdminUser, isLoading]);
+  }, [isLoading]); // Only depend on isLoading, not isAdminUser to prevent loops
 
   const generatePDF = async () => {
     console.log('=== HYBRID PDF GENERATION START ===');
