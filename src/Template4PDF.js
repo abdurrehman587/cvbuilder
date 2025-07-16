@@ -614,14 +614,21 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
         const user = JSON.parse(localStorage.getItem('user') || '{}');
         const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
         
-        console.log('Template - Admin status check:', {
+        console.log('Template4PDF - Admin status check:', {
           adminAccess,
           user: user?.email,
           userIsAdmin: user?.isAdmin,
+          userType: user?.userType,
           isAdmin
         });
         
-        setIsAdminUser(isAdmin);
+        // Force regular user status if userType is 'user' and not explicitly admin
+        if (user?.userType === 'user' && adminAccess !== 'true') {
+          console.log('Template4PDF - Forcing regular user status based on userType');
+          setIsAdminUser(false);
+        } else {
+          setIsAdminUser(isAdmin);
+        }
       } catch (error) {
         console.error('Error checking admin status:', error);
         setIsAdminUser(false);
@@ -638,15 +645,30 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       const isAdmin = adminAccess === 'true' || user?.isAdmin === true;
       
-      if (isAdmin !== isAdminUser) {
-        setIsAdminUser(isAdmin);
-        console.log('Admin status updated:', isAdmin);
+      // Force regular user status if userType is 'user' and not explicitly admin
+      let finalAdminStatus = isAdmin;
+      if (user?.userType === 'user' && adminAccess !== 'true') {
+        finalAdminStatus = false;
+      }
+      
+      if (finalAdminStatus !== isAdminUser) {
+        setIsAdminUser(finalAdminStatus);
+        console.log('Template4PDF - Admin status updated:', finalAdminStatus);
       }
     };
 
     const interval = setInterval(checkAdminStatus, 5000);
     return () => clearInterval(interval);
   }, [isAdminUser]);
+
+  // Debug function to clear admin flags (for testing)
+  const clearAdminFlags = () => {
+    console.log('Template4PDF - Clearing admin flags for testing');
+    localStorage.removeItem('admin_cv_access');
+    localStorage.removeItem('admin_user');
+    setIsAdminUser(false);
+    console.log('Template4PDF - Admin flags cleared, isAdminUser set to false');
+  };
 
   // Update button text based on payment status
   useEffect(() => {
@@ -2139,6 +2161,26 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
               </div>
             </div>
           ) : (
+            <>
+              {/* Debug button for testing */}
+              {process.env.NODE_ENV === 'development' && (
+                <div style={{ textAlign: 'center', marginBottom: '10px' }}>
+                  <button
+                    onClick={clearAdminFlags}
+                    style={{
+                      padding: '4px 8px',
+                      fontSize: '12px',
+                      backgroundColor: '#ff6b6b',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Clear Admin Flags (Debug)
+                  </button>
+                </div>
+              )}
             <div style={{ textAlign: 'center' }}>
               <button
                 ref={buttonRef}
@@ -2191,6 +2233,7 @@ const Template4PDF = ({ formData, visibleSections = [], isPrintMode = false }) =
                 )}
               </button>
             </div>
+            </>
           )}
         </div>
       )}
