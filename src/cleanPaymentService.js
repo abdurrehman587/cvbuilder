@@ -12,9 +12,17 @@ export class CleanPaymentService {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const adminUser = JSON.parse(localStorage.getItem('admin_user') || '{}');
     
-    // Check if user is actually an admin (not just has admin access)
-    const isAdmin = (adminAccess === 'true' && adminUser?.isAdmin === true) || 
-                   (user?.isAdmin === true && user?.email === process.env.REACT_APP_ADMIN_EMAIL);
+    // First, clear admin flags if current user is not the admin user
+    if (user?.email !== adminUser?.email && user?.email !== process.env.REACT_APP_ADMIN_EMAIL) {
+      console.log('CleanPaymentService - Clearing admin flags for non-admin user:', user?.email);
+      localStorage.removeItem('admin_cv_access');
+      localStorage.removeItem('admin_user');
+      return false;
+    }
+    
+    // Check if user is actually an admin (only if they are the admin user)
+    const isAdmin = (user?.email === process.env.REACT_APP_ADMIN_EMAIL) || 
+                   (adminAccess === 'true' && adminUser?.isAdmin === true && user?.email === adminUser?.email);
     
     console.log('CleanPaymentService - Admin check:', {
       adminAccess,
@@ -41,6 +49,14 @@ export class CleanPaymentService {
       console.log('CleanPaymentService - Clearing admin flags for regular user:', user?.email);
       localStorage.removeItem('admin_cv_access');
       localStorage.removeItem('admin_user');
+      
+      // Also clear any user object that might have admin flags
+      if (user?.isAdmin === true && user?.email !== process.env.REACT_APP_ADMIN_EMAIL) {
+        const updatedUser = { ...user, isAdmin: false };
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        console.log('CleanPaymentService - Updated user object to remove admin flag');
+      }
+      
       return true;
     }
     
