@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import Form from "./Form";
+import SignupSignIn from "./SignupSignIn";
 import Template1Preview from "./Template1Preview";
 import Template2Preview from "./Template2Preview";
 import Template3Preview from "./Template3Preview";
@@ -310,6 +311,39 @@ const ChooseTemplateMobile = ({ user }) => {
           </div>
         </div>
       </div>
+
+      {/* Signup/Signin Section */}
+      {!user && (
+        <div style={{
+          background: 'white',
+          borderRadius: '16px',
+          padding: '25px 20px',
+          marginBottom: '30px',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+        }}>
+          <h2 style={{
+            fontSize: '22px',
+            fontWeight: 'bold',
+            color: '#1f2937',
+            marginBottom: '15px',
+            textAlign: 'center'
+          }}>
+            Get Started
+          </h2>
+          <p style={{
+            fontSize: '16px',
+            color: '#6b7280',
+            marginBottom: '20px',
+            textAlign: 'center'
+          }}>
+            Sign up or sign in to create your professional CV
+          </p>
+          <SignupSignIn onAuth={(user) => {
+            // This will be handled by the parent App component
+            window.location.reload();
+          }} />
+        </div>
+      )}
 
       {/* Template Selection Section */}
       <div style={{
