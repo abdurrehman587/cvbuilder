@@ -9,14 +9,21 @@ import RealTimePaymentNotifier from './RealTimePaymentNotifier';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './responsive.css';
+import { initializeJWTFix } from './JWTTokenFix';
 
-// Add error boundary for debugging
+// Simplified error boundary to prevent flickering
 const ErrorBoundary = ({ children }) => {
   const [hasError, setHasError] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     const handleError = (error) => {
+      // Only handle critical errors, ignore JWT token errors
+      if (error?.message && error.message.includes('InvalidJWTToken')) {
+        console.log('Ignoring JWT token error to prevent flickering');
+        return;
+      }
+      
       console.error('App Error:', error);
       setError(error);
       setHasError(true);
@@ -45,7 +52,38 @@ const ErrorBoundary = ({ children }) => {
         <div>
           <h2>Something went wrong</h2>
           <p>Error: {error?.message || 'Unknown error'}</p>
-          <button onClick={() => window.location.reload()}>Reload Page</button>
+          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '20px' }}>
+            <button 
+              onClick={() => window.location.reload()}
+              style={{
+                padding: '10px 20px',
+                backgroundColor: '#667eea',
+                color: 'white',
+                border: 'none',
+                borderRadius: '5px',
+                cursor: 'pointer'
+              }}
+            >
+              Reload Page
+            </button>
+            <button 
+              onClick={() => {
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.reload();
+              }}
+              style={{
+                padding: '10px 20px',
+                backgroundColor: '#dc3545',
+                color: 'white',
+                border: 'none',
+                borderRadius: '5px',
+                cursor: 'pointer'
+              }}
+            >
+              Clear Data & Reload
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -66,6 +104,17 @@ const App = () => {
       nodeEnv: process.env.NODE_ENV,
       isProduction: process.env.NODE_ENV === 'production'
     });
+
+    // Gentle JWT error handler (doesn't cause flickering)
+    const handleJWTError = (event) => {
+      if (event.error && event.error.message && event.error.message.includes('InvalidJWTToken')) {
+        console.log('JWT Token error detected, but not clearing data to prevent flickering');
+        // Just log the error, don't clear data or reload
+        return;
+      }
+    };
+
+    window.addEventListener('error', handleJWTError);
 
     // Handle OAuth callback
     const handleAuthCallback = async () => {
@@ -130,6 +179,16 @@ const App = () => {
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       try {
         console.log('Auth state change:', _event, session?.user?.email);
+        
+        // Prevent rapid re-renders by checking if user state actually changed
+        const currentUserEmail = user?.email;
+        const newUserEmail = session?.user?.email;
+        
+        if (currentUserEmail === newUserEmail && user && session?.user) {
+          console.log('Auth state change - User unchanged, skipping update');
+          return;
+        }
+        
         if (session?.user) {
           const userWithType = {
             ...session.user,
@@ -191,6 +250,7 @@ const App = () => {
     return () => {
       listener?.subscription?.unsubscribe();
       window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('error', handleJWTError);
     };
   }, []);
 

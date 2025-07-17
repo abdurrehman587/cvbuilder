@@ -17,14 +17,7 @@ const ChooseTemplate = ({ user, initialCV, newAdminCV }) => {
   const [isAdminAccess, setIsAdminAccess] = useState(false);
   const [isLoadingCV, setIsLoadingCV] = useState(false);
   const [cvLoadedStatus, setCvLoadedStatus] = useState(null); // null, true (loaded), false (not found)
-  const [currentSlide, setCurrentSlide] = useState(0);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
-  const [touchStart, setTouchStart] = useState(null);
-  const [touchEnd, setTouchEnd] = useState(null);
-  const [mouseStart, setMouseStart] = useState(null);
-  const [mouseEnd, setMouseEnd] = useState(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [isHovering, setIsHovering] = useState(false);
 
   const hasSetTemplateRef = useRef(false);
   const formRef = useRef();
@@ -103,85 +96,7 @@ const ChooseTemplate = ({ user, initialCV, newAdminCV }) => {
     // formData is preserved globally, not per template
   };
 
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % templates.length);
-  };
 
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + templates.length) % templates.length);
-  };
-
-  const goToSlide = (index) => {
-    setCurrentSlide(index);
-  };
-
-  // Swipe functions for carousel
-  const onTouchStart = (e) => {
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const onTouchMove = (e) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > 50;
-    const isRightSwipe = distance < -50;
-
-    if (isLeftSwipe) {
-      nextSlide(); // Swipe left = next slide (Template 1 → 2 → 3...)
-    }
-    if (isRightSwipe) {
-      prevSlide(); // Swipe right = previous slide (Template 10 → 9 → 8...)
-    }
-  };
-
-  // Mouse drag functions for desktop
-  const onMouseDown = (e) => {
-    setIsDragging(true);
-    setMouseEnd(null);
-    setMouseStart(e.clientX);
-  };
-
-  const onMouseMove = (e) => {
-    if (!isDragging) return;
-    setMouseEnd(e.clientX);
-  };
-
-  const onMouseUp = () => {
-    if (!isDragging || !mouseStart || !mouseEnd) {
-      setIsDragging(false);
-      return;
-    }
-    
-    const distance = mouseStart - mouseEnd;
-    const isLeftSwipe = distance > 50;
-    const isRightSwipe = distance < -50;
-
-    if (isLeftSwipe) {
-      nextSlide(); // Drag left = next slide (Template 1 → 2 → 3...)
-    }
-    if (isRightSwipe) {
-      prevSlide(); // Drag right = previous slide (Template 10 → 9 → 8...)
-    }
-    
-    setIsDragging(false);
-  };
-
-  // Auto-advance carousel every 5 seconds (Template 1 → 2 → 3...)
-  useEffect(() => {
-    if (isHovering) return; // Pause auto-advance when hovering
-    
-    const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % templates.length);
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [templates.length, isHovering]);
 
   // Handle window resize for responsive template display
   useEffect(() => {
@@ -303,19 +218,8 @@ const ChooseTemplate = ({ user, initialCV, newAdminCV }) => {
   // Note: This is handled by the Form component, so we don't need to duplicate the logic here
   // The Form component will handle initialCV properly and update the formData through props.setFormData
 
-  // Autosave every 10 seconds
-  useEffect(() => {
-    if (!selectedTemplate) return;
-    const interval = setInterval(() => {
-      if (formRef.current && formRef.current.handleSave) {
-        formRef.current.handleSave();
-        // Optionally show a toast or log
-        // toast.info('Autosaved!');
-        console.log('Autosave triggered');
-      }
-    }, 10000);
-    return () => clearInterval(interval);
-  }, [selectedTemplate, formData]);
+  // Auto-save is handled silently in Form.js component
+  // No need for additional auto-save here
 
   if (selectedTemplate && TemplateComponentsMap[selectedTemplate]) {
     const PreviewComponent = TemplateComponentsMap[selectedTemplate];
@@ -340,11 +244,13 @@ const ChooseTemplate = ({ user, initialCV, newAdminCV }) => {
           alignItems: 'center',
           marginBottom: '20px',
           paddingTop: isAdminAccess ? '60px' : '0', // Add top padding for admin to avoid overlap
+          flexWrap: 'wrap',
+          gap: '10px',
         }}>
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: '1 1 auto', minWidth: '120px' }}>
             {renderBackButton()}
           </div>
-          <div style={{ flex: 1, textAlign: 'center' }}>
+          <div style={{ flex: '2 1 auto', textAlign: 'center', minWidth: '200px' }}>
             <h1
               className="cv-editing-title"
               style={{
@@ -358,7 +264,7 @@ const ChooseTemplate = ({ user, initialCV, newAdminCV }) => {
               Editing {selectedTemplate}
             </h1>
           </div>
-          <div style={{ flex: 1 }}></div> {/* Empty space for balance */}
+          <div style={{ flex: '1 1 auto', minWidth: '120px' }}></div> {/* Empty space for balance */}
         </div>
         <div
           className="cv-editing-container"
@@ -367,6 +273,7 @@ const ChooseTemplate = ({ user, initialCV, newAdminCV }) => {
             width: '100%',
             justifyContent: 'flex-start',
             gap: '60px',
+            flexDirection: 'row',
           }}
         >
           <div
@@ -773,608 +680,160 @@ const ChooseTemplate = ({ user, initialCV, newAdminCV }) => {
           marginBottom: windowWidth >= 768 ? '80px' : '60px',
         }}>
           
-          {/* Carousel Container */}
-          <div className="carousel-container" style={{ 
-            position: 'relative', 
+          {/* Templates Grid Container */}
+          <div className="templates-grid-container" style={{ 
             width: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            minHeight: windowWidth >= 1200 ? '700px' : windowWidth >= 768 ? '600px' : '400px',
-            maxHeight: windowWidth >= 1200 ? '1000px' : windowWidth >= 768 ? '800px' : '600px',
             background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
             borderRadius: '24px',
             padding: windowWidth >= 768 ? '40px' : '24px',
             boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
-            overflow: 'hidden',
           }}>
-            {/* Enhanced carousel decorative elements */}
-            <div style={{
-              position: 'absolute',
-              top: '-50%',
-              right: '-20%',
-              width: '250px',
-              height: '250px',
-              background: 'radial-gradient(circle, rgba(102, 126, 234, 0.12) 0%, rgba(240, 147, 251, 0.08) 40%, transparent 70%)',
-              borderRadius: '50%',
-              filter: 'blur(35px)',
-              animation: 'pulse 6s ease-in-out infinite',
-            }} />
-            <div style={{
-              position: 'absolute',
-              bottom: '-30%',
-              left: '-15%',
-              width: '200px',
-              height: '200px',
-              background: 'radial-gradient(circle, rgba(118, 75, 162, 0.1) 0%, rgba(102, 126, 234, 0.06) 50%, transparent 70%)',
-              borderRadius: '50%',
-              filter: 'blur(30px)',
-              animation: 'pulse 8s ease-in-out infinite reverse',
-            }} />
-            <div style={{
-              position: 'absolute',
-              top: '20%',
-              left: '5%',
-              width: '6px',
-              height: '80px',
-              background: 'linear-gradient(to bottom, transparent, rgba(102, 126, 234, 0.4), rgba(240, 147, 251, 0.3), transparent)',
-              borderRadius: '3px',
-              animation: 'pulse 3s ease-in-out infinite',
-            }} />
-            <div style={{
-              position: 'absolute',
-              bottom: '30%',
-              right: '8%',
-              width: '6px',
-              height: '60px',
-              background: 'linear-gradient(to bottom, transparent, rgba(118, 75, 162, 0.4), rgba(102, 126, 234, 0.3), transparent)',
-              borderRadius: '3px',
-              animation: 'pulse 4s ease-in-out infinite reverse',
-            }} />
-            
-            {/* Additional carousel elements */}
-            <div style={{
-              position: 'absolute',
-              top: '60%',
-              left: '8%',
-              width: '80px',
-              height: '80px',
-              background: 'radial-gradient(circle, rgba(240, 147, 251, 0.08) 0%, transparent 70%)',
-              borderRadius: '50%',
-              filter: 'blur(20px)',
-              animation: 'float 9s ease-in-out infinite',
-            }} />
-            <div style={{
-              position: 'absolute',
-              top: '10%',
-              right: '15%',
-              width: '4px',
-              height: '40px',
-              background: 'linear-gradient(to bottom, transparent, rgba(240, 147, 251, 0.3), transparent)',
-              borderRadius: '2px',
-              animation: 'pulse 5s ease-in-out infinite',
-            }} />
-            
-            {/* Main Template Display */}
-            <div 
-              style={{ 
-                position: 'relative', 
-                marginBottom: '20px',
-                flex: 1,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                minHeight: windowWidth >= 1200 ? '650px' : windowWidth >= 768 ? '550px' : '350px',
-                maxHeight: windowWidth >= 1200 ? '950px' : windowWidth >= 768 ? '750px' : '550px',
-                touchAction: 'pan-y pinch-zoom',
-                userSelect: 'none',
-                cursor: isDragging ? 'grabbing' : 'grab',
-              }}
-              onTouchStart={onTouchStart}
-              onTouchMove={onTouchMove}
-              onTouchEnd={onTouchEnd}
-              onMouseDown={onMouseDown}
-              onMouseMove={onMouseMove}
-              onMouseUp={onMouseUp}
-              onMouseLeave={onMouseUp}
-            >
-              {/* Navigation Buttons */}
-              <button
-                onClick={prevSlide}
-                className="carousel-nav-btn"
-                style={{
-                  position: 'absolute',
-                  left: windowWidth >= 768 ? '10px' : '-60px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  width: '50px',
-                  height: '50px',
-                  borderRadius: '50%',
-                  border: 'none',
-                  backgroundColor: '#667eea',
-                  color: 'white',
-                  fontSize: '1.5rem',
-                  cursor: 'pointer',
-                  zIndex: 10,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
-                  transition: 'all 0.3s ease',
-                }}
-                aria-label="Previous template"
-              >
-                ‹
-              </button>
-              
-              <button
-                onClick={nextSlide}
-                className="carousel-nav-btn"
-                style={{
-                  position: 'absolute',
-                  right: windowWidth >= 768 ? '10px' : '-60px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  width: '50px',
-                  height: '50px',
-                  borderRadius: '50%',
-                  border: 'none',
-                  backgroundColor: '#667eea',
-                  color: 'white',
-                  fontSize: '1.5rem',
-                  cursor: 'pointer',
-                  zIndex: 10,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
-                  transition: 'all 0.3s ease',
-                }}
-                aria-label="Next template"
-              >
-                ›
-              </button>
 
-              {/* Template Cards Container */}
-              <div style={{
-                display: 'flex',
-                gap: '20px',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: '100%',
-                height: '100%',
-                minHeight: windowWidth >= 1200 ? '650px' : windowWidth >= 768 ? '550px' : '350px',
-                maxHeight: windowWidth >= 1200 ? '950px' : windowWidth >= 768 ? '750px' : '550px',
-                padding: '0 20px',
-                transform: isDragging ? 'scale(0.98)' : 'scale(1)',
-                transition: 'transform 0.2s ease',
-                position: 'relative',
-                overflow: 'hidden',
-              }}>
-                {/* Show templates with slide animation */}
-                {(() => {
-                  // Show all templates but position them based on their relationship to current slide
-                  return templates.map((template, index) => {
-                    const actualIndex = index;
-                    const isCurrentSlide = actualIndex === currentSlide;
-                    const isNextSlide = actualIndex === (currentSlide + 1) % templates.length;
-                    const isPrevSlide = actualIndex === (currentSlide - 1 + templates.length) % templates.length;
-                    
-                    // Calculate animation states
-                    let transform = 'translateX(0)';
-                    let opacity = 1;
-                    let zIndex = 1;
-                    
-                    if (isCurrentSlide) {
-                      transform = 'translateX(0)';
-                      opacity = 1;
-                      zIndex = 10;
-                    } else if (isNextSlide) {
-                      transform = 'translateX(100%)';
-                      opacity = 0.3;
-                      zIndex = 5;
-                    } else if (isPrevSlide) {
-                      transform = 'translateX(-100%)';
-                      opacity = 0.3;
-                      zIndex = 5;
-                    } else {
-                      transform = 'translateX(200%)';
-                      opacity = 0;
-                      zIndex = 1;
+
+            {/* Templates Grid - CV Page Style */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: windowWidth >= 1200 ? 'repeat(2, 1fr)' : 
+                                   windowWidth >= 768 ? 'repeat(2, 1fr)' : '1fr',
+              gap: windowWidth >= 768 ? '40px' : '30px',
+              maxWidth: '1400px',
+              margin: '0 auto',
+            }}>
+              {templates.map((template, index) => (
+                <div
+                  key={template.name}
+                  onClick={() => handleTemplateClick(template.name)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      handleTemplateClick(template.name);
                     }
+                  }}
+                  title={`Click to use ${template.name}`}
+                  className="template-cv-page"
+                  style={{
+                    backgroundColor: '#fff',
+                    border: '2px solid #e2e8f0',
+                    borderRadius: '8px',
+                    boxShadow: '0 8px 20px rgba(0,0,0,0.05)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    cursor: 'pointer',
+                    userSelect: 'none',
+                    boxSizing: 'border-box',
+                    overflow: 'hidden',
+                    transition: 'all 0.3s ease',
+                    aspectRatio: '0.707', // A4 aspect ratio (210mm/297mm)
+                    width: '100%',
+                    maxWidth: windowWidth >= 1200 ? '600px' : windowWidth >= 768 ? '500px' : '400px',
+                    margin: '0 auto',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-5px) scale(1.02)';
+                    e.currentTarget.style.boxShadow = '0 20px 40px rgba(0,0,0,0.1)';
+                    e.currentTarget.style.borderColor = '#667eea';
+                    // Show overlay
+                    const overlay = e.currentTarget.querySelector('.template-overlay');
+                    if (overlay) {
+                      overlay.style.opacity = '1';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                    e.currentTarget.style.boxShadow = '0 8px 20px rgba(0,0,0,0.05)';
+                    e.currentTarget.style.borderColor = '#e2e8f0';
+                    // Hide overlay
+                    const overlay = e.currentTarget.querySelector('.template-overlay');
+                    if (overlay) {
+                      overlay.style.opacity = '0';
+                    }
+                  }}
+                >
+                  {/* CV Page Preview */}
+                  <div
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      backgroundColor: '#f8fafc',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      overflow: 'hidden',
+                      position: 'relative',
+                    }}
+                  >
+                    <img
+                      src={template.imageUrl}
+                      alt={`${template.name} Preview`}
+                      style={{ 
+                        width: '100%', 
+                        height: '100%', 
+                        objectFit: 'cover', 
+                        padding: '0',
+                      }}
+                    />
                     
-                    return (
+                    {/* Overlay with Template Name and Button */}
+                    <div
+                      style={{
+                        position: 'absolute',
+                        bottom: '0',
+                        left: '0',
+                        right: '0',
+                        background: 'linear-gradient(transparent, rgba(0,0,0,0.8))',
+                        padding: '20px',
+                        color: 'white',
+                        textAlign: 'center',
+                        opacity: 0,
+                        transition: 'opacity 0.3s ease',
+                      }}
+                      className="template-overlay"
+                    >
                       <div
-                        key={template.name}
-                        onClick={() => handleTemplateClick(template.name)}
-                        role="button"
-                        tabIndex={0}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            handleTemplateClick(template.name);
-                          }
-                        }}
-                        title={`Click to use ${template.name}`}
-                        className="template-card"
                         style={{
-                          position: 'absolute',
-                          left: '50%',
-                          top: '50%',
-                          transform: `translate(-50%, -50%) ${transform}`,
-                          width: windowWidth >= 1200 ? '800px' : windowWidth >= 768 ? '700px' : '400px',
-                          maxWidth: windowWidth >= 1200 ? '800px' : windowWidth >= 768 ? '700px' : '400px',
-                          minWidth: windowWidth >= 1200 ? '600px' : windowWidth >= 768 ? '500px' : '300px',
-                          height: '100%',
-                          minHeight: windowWidth >= 1200 ? '650px' : windowWidth >= 768 ? '550px' : '350px',
-                          maxHeight: windowWidth >= 1200 ? '950px' : windowWidth >= 768 ? '750px' : '550px',
-                          backgroundColor: '#fff',
-                          border: isCurrentSlide ? '3px solid #667eea' : '2px solid #e2e8f0',
-                          borderRadius: '20px',
-                          boxShadow: isCurrentSlide 
-                            ? '0 20px 40px rgba(0,0,0,0.1)' 
-                            : '0 8px 20px rgba(0,0,0,0.05)',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          padding: isCurrentSlide ? '20px' : '15px',
-                          cursor: 'pointer',
-                          userSelect: 'none',
-                          boxSizing: 'border-box',
-                          overflow: 'hidden',
-                          transition: 'all 0.8s cubic-bezier(0.4, 0, 0.2, 1)',
-                          opacity: opacity,
-                          zIndex: zIndex,
-                          filter: isCurrentSlide ? 'none' : 'brightness(0.8)',
-                        }}
-                        onMouseEnter={(e) => {
-                          setIsHovering(true);
-                          if (isCurrentSlide) {
-                            e.currentTarget.style.transform = 'translate(-50%, -50%) scale(1.05)';
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          setIsHovering(false);
-                          if (isCurrentSlide) {
-                            e.currentTarget.style.transform = 'translate(-50%, -50%) scale(1)';
-                          }
+                          fontWeight: '700',
+                          fontSize: windowWidth >= 768 ? '1.4rem' : '1.2rem',
+                          marginBottom: '12px',
+                          textShadow: '0 2px 4px rgba(0,0,0,0.5)',
                         }}
                       >
-                        {/* Template Image */}
-                        <div
-                          style={{
-                            width: '100%',
-                            flex: 1,
-                            backgroundColor: '#f8fafc',
-                            borderRadius: '15px',
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            overflow: 'hidden',
-                            border: '1px solid #e2e8f0',
-                            minHeight: windowWidth >= 768 ? '350px' : '250px',
-                            maxHeight: windowWidth >= 1200 ? '650px' : windowWidth >= 768 ? '550px' : '450px',
-                            aspectRatio: '0.707', // A4 aspect ratio (210mm/297mm)
-                          }}
-                        >
-                          <img
-                            src={template.imageUrl}
-                            alt={`${template.name} Preview`}
-                            style={{ 
-                              width: '100%', 
-                              height: '100%', 
-                              objectFit: 'contain', 
-                              borderRadius: '15px',
-                              padding: '10px',
-                            }}
-                          />
-                        </div>
-                        
-                        {/* Template Title and Button Container */}
-                        <div style={{ flexShrink: 0, marginTop: '10px' }}>
-                          <div
-                            style={{
-                              fontWeight: '700',
-                              fontSize: isCurrentSlide ? '1.3rem' : '1.1rem',
-                              color: isCurrentSlide ? '#667eea' : '#6b7280',
-                              marginBottom: '8px',
-                              textAlign: 'center',
-                            }}
-                          >
-                            {template.name}
-                          </div>
-                          
-                          {/* Use Template Button */}
-                          <button
-                            style={{
-                              padding: isCurrentSlide ? '10px 24px' : '8px 20px',
-                              backgroundColor: isCurrentSlide ? '#667eea' : '#9ca3af',
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: '20px',
-                              fontSize: isCurrentSlide ? '0.9rem' : '0.85rem',
-                              fontWeight: '600',
-                              cursor: 'pointer',
-                              transition: 'all 0.3s ease',
-                            }}
-                            onMouseEnter={(e) => {
-                              if (isCurrentSlide) {
-                                e.currentTarget.style.backgroundColor = '#5a67d8';
-                              }
-                            }}
-                            onMouseLeave={(e) => {
-                              if (isCurrentSlide) {
-                                e.currentTarget.style.backgroundColor = '#667eea';
-                              }
-                            }}
-                          >
-                            {isCurrentSlide ? 'Use This Template' : 'Select Template'}
-                          </button>
-                        </div>
+                        {template.name}
                       </div>
-                    );
-                  });
-                })()}
-              </div>
-            </div>
-
-            {/* Dot Indicators */}
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'center',
-                gap: '12px',
-                marginBottom: '15px',
-                flexShrink: 0,
-              }}
-            >
-              {templates.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => goToSlide(index)}
-                  className="dot-indicator"
-                  style={{
-                    width: '12px',
-                    height: '12px',
-                    borderRadius: '50%',
-                    border: 'none',
-                    backgroundColor: index === currentSlide ? '#667eea' : '#cbd5e1',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                  }}
-                  aria-label={`Go to template ${index + 1}`}
-                />
+                      
+                      <button
+                        style={{
+                          padding: '10px 24px',
+                          backgroundColor: '#667eea',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '20px',
+                          fontSize: windowWidth >= 768 ? '0.9rem' : '0.8rem',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          transition: 'all 0.3s ease',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#5a67d8';
+                          e.currentTarget.style.transform = 'scale(1.05)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = '#667eea';
+                          e.currentTarget.style.transform = 'scale(1)';
+                        }}
+                      >
+                        Use This Template
+                      </button>
+                    </div>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
         </div>
 
-        {/* All Templates Grid Section */}
-        <div style={{
-          marginTop: windowWidth >= 768 ? '80px' : '60px',
-          padding: windowWidth >= 768 ? '40px' : '24px',
-          background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
-          borderRadius: '24px',
-          boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
-          position: 'relative',
-          overflow: 'hidden',
-        }}>
-          {/* Enhanced grid section decorative elements */}
-          <div style={{
-            position: 'absolute',
-            top: '10%',
-            right: '5%',
-            width: '100px',
-            height: '100px',
-            background: 'radial-gradient(circle, rgba(102, 126, 234, 0.12) 0%, rgba(240, 147, 251, 0.08) 40%, transparent 70%)',
-            borderRadius: '50%',
-            filter: 'blur(25px)',
-            animation: 'pulse 7s ease-in-out infinite',
-          }} />
-          <div style={{
-            position: 'absolute',
-            bottom: '15%',
-            left: '8%',
-            width: '80px',
-            height: '80px',
-            background: 'radial-gradient(circle, rgba(118, 75, 162, 0.1) 0%, rgba(102, 126, 234, 0.06) 50%, transparent 70%)',
-            borderRadius: '50%',
-            filter: 'blur(20px)',
-            animation: 'pulse 9s ease-in-out infinite reverse',
-          }} />
-          <div style={{
-            position: 'absolute',
-            top: '50%',
-            left: '2%',
-            width: '4px',
-            height: '100px',
-            background: 'linear-gradient(to bottom, transparent, rgba(102, 126, 234, 0.3), rgba(240, 147, 251, 0.2), transparent)',
-            borderRadius: '2px',
-            animation: 'pulse 4s ease-in-out infinite',
-          }} />
-          <div style={{
-            position: 'absolute',
-            bottom: '20%',
-            right: '3%',
-            width: '4px',
-            height: '70px',
-            background: 'linear-gradient(to bottom, transparent, rgba(118, 75, 162, 0.3), rgba(102, 126, 234, 0.2), transparent)',
-            borderRadius: '2px',
-            animation: 'pulse 5s ease-in-out infinite reverse',
-          }} />
-          
-          {/* Additional grid elements */}
-          <div style={{
-            position: 'absolute',
-            top: '30%',
-            right: '15%',
-            width: '60px',
-            height: '60px',
-            background: 'radial-gradient(circle, rgba(240, 147, 251, 0.08) 0%, transparent 70%)',
-            borderRadius: '50%',
-            filter: 'blur(15px)',
-            animation: 'float 10s ease-in-out infinite',
-          }} />
-          <div style={{
-            position: 'absolute',
-            bottom: '40%',
-            left: '15%',
-            width: '5px',
-            height: '40px',
-            background: 'linear-gradient(to bottom, transparent, rgba(240, 147, 251, 0.25), transparent)',
-            borderRadius: '3px',
-            animation: 'pulse 6s ease-in-out infinite',
-          }} />
-          <h2 style={{
-            textAlign: 'center',
-            fontSize: windowWidth >= 768 ? '2.5rem' : '2rem',
-            fontWeight: 600,
-            color: '#111827',
-            marginBottom: windowWidth >= 768 ? '16px' : '12px',
-            position: 'relative',
-          }}>
-            All Templates
-            <div style={{
-              width: '60px',
-              height: '4px',
-              backgroundColor: '#667eea',
-              margin: '16px auto 0',
-              borderRadius: '2px',
-            }} />
-          </h2>
-          <p style={{
-            textAlign: 'center',
-            fontSize: windowWidth >= 768 ? '1.1rem' : '1rem',
-            color: '#6b7280',
-            marginBottom: windowWidth >= 768 ? '40px' : '32px',
-            maxWidth: '600px',
-            margin: '0 auto 40px',
-          }}>
-            Browse all available templates in A4 format
-          </p>
-          
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: windowWidth >= 1200 ? 'repeat(auto-fit, minmax(210px, 1fr))' :
-                               windowWidth >= 768 ? 'repeat(auto-fit, minmax(180px, 1fr))' :
-                               windowWidth >= 480 ? 'repeat(auto-fit, minmax(150px, 1fr))' :
-                               'repeat(auto-fit, minmax(120px, 1fr))',
-            gap: windowWidth >= 768 ? '30px' : windowWidth >= 480 ? '20px' : '15px',
-            maxWidth: '1200px',
-            margin: '0 auto',
-            padding: windowWidth >= 768 ? '0 20px' : '0 10px',
-          }}>
-            {templates.map((template, index) => (
-              <div
-                key={template.name}
-                onClick={() => handleTemplateClick(template.name)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    handleTemplateClick(template.name);
-                  }
-                }}
-                title={`Click to use ${template.name}`}
-                style={{
-                  width: windowWidth >= 1200 ? '210mm' : 
-                         windowWidth >= 768 ? '180mm' : 
-                         windowWidth >= 480 ? '150mm' : '120mm',
-                  height: windowWidth >= 1200 ? '297mm' : 
-                          windowWidth >= 768 ? '254mm' : 
-                          windowWidth >= 480 ? '212mm' : '170mm',
-                  maxWidth: '100%',
-                  maxHeight: windowWidth >= 768 ? '400px' : 
-                             windowWidth >= 480 ? '300px' : '250px',
-                  backgroundColor: '#fff',
-                  border: '2px solid #e2e8f0',
-                  borderRadius: windowWidth >= 768 ? '8px' : '6px',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                  cursor: 'pointer',
-                  userSelect: 'none',
-                  boxSizing: 'border-box',
-                  position: 'relative',
-                  overflow: 'hidden',
-                  transition: 'all 0.3s ease',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  margin: '0 auto',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-8px)';
-                  e.currentTarget.style.boxShadow = '0 12px 24px rgba(0,0,0,0.15)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
-                }}
-              >
-                {/* A4 Template Preview */}
-                <div style={{
-                  width: '100%',
-                  height: '100%',
-                  backgroundColor: '#f8fafc',
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  overflow: 'hidden',
-                  border: '1px solid #e2e8f0',
-                  position: 'relative',
-                }}>
-                  <img
-                    src={template.imageUrl}
-                    alt={`${template.name} A4 Preview`}
-                    style={{ 
-                      width: '100%', 
-                      height: '100%', 
-                      objectFit: 'contain',
-                      padding: '10px',
-                    }}
-                  />
-                  
-                  {/* Template Overlay */}
-                  <div style={{
-                    position: 'absolute',
-                    bottom: '0',
-                    left: '0',
-                    right: '0',
-                    background: 'linear-gradient(transparent, rgba(0,0,0,0.7))',
-                    padding: windowWidth >= 768 ? '20px' : windowWidth >= 480 ? '15px' : '10px',
-                    color: 'white',
-                  }}>
-                    <div style={{
-                      fontWeight: '700',
-                      fontSize: windowWidth >= 768 ? '1.1rem' : windowWidth >= 480 ? '1rem' : '0.9rem',
-                      marginBottom: windowWidth >= 768 ? '8px' : '6px',
-                    }}>
-                      {template.name}
-                    </div>
-                    <button
-                      style={{
-                        padding: windowWidth >= 768 ? '8px 16px' : windowWidth >= 480 ? '6px 12px' : '4px 8px',
-                        backgroundColor: '#667eea',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: windowWidth >= 768 ? '6px' : '4px',
-                        fontSize: windowWidth >= 768 ? '0.85rem' : windowWidth >= 480 ? '0.8rem' : '0.75rem',
-                        fontWeight: '600',
-                        cursor: 'pointer',
-                        transition: 'background-color 0.3s ease',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = '#5a67d8';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = '#667eea';
-                      }}
-                    >
-                      Use Template
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+
       </div>
       
       {/* Enhanced CSS Animations */}

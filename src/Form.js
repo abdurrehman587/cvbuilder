@@ -804,6 +804,169 @@ const Form = forwardRef((props, ref) => {
     handleSave,
   }));
 
+  // Automatic CV update every 10 seconds (without success toast)
+  useEffect(() => {
+    if (!props.user || !props.formData) return;
+
+    const autoSaveCV = async () => {
+      try {
+        console.log('Auto-saving CV...');
+        
+        let imageUrl = props.formData.imageUrl;
+
+        // Upload image if present
+        if (props.formData.image) {
+          const uploadedUrl = await uploadImage(props.formData.image);
+          if (uploadedUrl) {
+            imageUrl = uploadedUrl;
+          }
+        }
+
+        // Check if user is admin or regular user
+        const isAdmin = props.user.isAdmin || localStorage.getItem('admin_cv_access') === 'true';
+        
+        if (isAdmin) {
+          // For admin users, save to admin_cvs table
+          const payload = {
+            admin_email: props.user.email,
+            cv_name: props.formData.name || 'Unnamed CV',
+            image_url: imageUrl && imageUrl.startsWith('http') ? imageUrl : null,
+            name: props.formData.name || '',
+            phone: props.formData.phone || '',
+            email: props.formData.email || '',
+            address: props.formData.address || '',
+            objective: (props.formData.objective || []).map(entry => entry || ''),
+            education: (props.formData.education || []).map(e => ({
+              degree: e.degree || '',
+              institute: e.institute || '',
+              year: e.year || ''
+            })),
+            work_experience: (props.formData.workExperience || []).map(w => ({
+              company: w.company || '',
+              designation: w.designation || '',
+              duration: w.duration || '',
+              details: w.details || ''
+            })),
+            skills: (props.formData.skills || []).map(s => ({
+              name: s.name || '',
+              percentage: s.percentage || ''
+            })),
+            certifications: (props.formData.certifications || []).map(c => c || ''),
+            projects: (props.formData.projects || []).map(p => p || ''),
+            languages: [
+              ...(props.formData.languages || []),
+              ...(props.formData.customLanguages || [])
+                .filter(lang => lang.selected && lang.name?.trim())
+                .map(lang => lang.name.trim())
+            ],
+            hobbies: (props.formData.hobbies || []).map(h => h || ''),
+            custom_sections: (props.formData.customSections || []).map(section => ({
+              heading: section.heading || '',
+              details: (section.details || []).map(detail => detail || ''),
+              positionAfter: section.positionAfter || 'end'
+            })),
+            cv_references: (props.formData.cv_references || []).map(r => r || ''),
+            other_information: (props.formData.otherInformation || []).map(info => ({
+              id: info.id,
+              labelType: info.labelType || '',
+              label: info.label || '',
+              checked: info.checked === true,
+              value: info.value || '',
+              name: info.name || '',
+              radioValue: info.radioValue || '',
+              isCustom: info.isCustom === true
+            }))
+          };
+
+          if (props.adminCVId) {
+            // Update existing admin CV
+            await supabase
+              .from('admin_cvs')
+              .update(payload)
+              .eq('id', props.adminCVId);
+          } else {
+            // Insert new admin CV
+            const insertResult = await supabase
+              .from('admin_cvs')
+              .insert([payload])
+              .select('id')
+              .single();
+            if (insertResult.data && insertResult.data.id && props.setAdminCVId) {
+              props.setAdminCVId(insertResult.data.id);
+            }
+          }
+        } else {
+          // For regular users, save to user_cvs table
+          const payload = {
+            user_email: props.user.email,
+            image_url: imageUrl && imageUrl.startsWith('http') ? imageUrl : null,
+            name: props.formData.name || '',
+            phone: props.formData.phone || '',
+            email: props.formData.email || '',
+            address: props.formData.address || '',
+            objective: (props.formData.objective || []).map(entry => entry || ''),
+            education: (props.formData.education || []).map(e => ({
+              degree: e.degree || '',
+              institute: e.institute || '',
+              year: e.year || ''
+            })),
+            work_experience: (props.formData.workExperience || []).map(w => ({
+              company: w.company || '',
+              designation: w.designation || '',
+              duration: w.duration || '',
+              details: w.details || ''
+            })),
+            skills: (props.formData.skills || []).map(s => ({
+              name: s.name || '',
+              percentage: s.percentage || ''
+            })),
+            certifications: (props.formData.certifications || []).map(c => c || ''),
+            projects: (props.formData.projects || []).map(p => p || ''),
+            languages: [
+              ...(props.formData.languages || []),
+              ...(props.formData.customLanguages || [])
+                .filter(lang => lang.selected && lang.name?.trim())
+                .map(lang => lang.name.trim())
+            ],
+            hobbies: (props.formData.hobbies || []).map(h => h || ''),
+            custom_sections: (props.formData.customSections || []).map(section => ({
+              heading: section.heading || '',
+              details: (section.details || []).map(detail => detail || ''),
+              positionAfter: section.positionAfter || 'end'
+            })),
+            cv_references: (props.formData.cv_references || []).map(r => r || ''),
+            other_information: (props.formData.otherInformation || []).map(info => ({
+              id: info.id,
+              labelType: info.labelType || '',
+              label: info.label || '',
+              checked: info.checked === true,
+              value: info.value || '',
+              name: info.name || '',
+              radioValue: info.radioValue || '',
+              isCustom: info.isCustom === true
+            }))
+          };
+
+          // Use upsert to handle both insert and update
+          await supabase
+            .from('user_cvs')
+            .upsert([payload], { onConflict: 'user_email' });
+        }
+
+        console.log('Auto-save completed successfully');
+      } catch (error) {
+        console.error('Auto-save error:', error);
+        // Don't show toast for auto-save errors to avoid spam
+      }
+    };
+
+    // Set up interval for auto-save
+    const interval = setInterval(autoSaveCV, 10000); // 10 seconds
+
+    // Cleanup interval on unmount
+    return () => clearInterval(interval);
+  }, [props.user, props.formData, props.adminCVId, props.setAdminCVId]);
+
   // Guard: Don't render until formData is initialized
   if (!props.formData) return null;
 
