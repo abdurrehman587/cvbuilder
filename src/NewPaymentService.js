@@ -243,7 +243,7 @@ export class NewPaymentService {
   }
 
   /**
-   * Get approved payment for template
+   * Get approved payment for template that hasn't been used yet
    */
   static async getApprovedPayment(templateId) {
     try {
@@ -264,7 +264,28 @@ export class NewPaymentService {
         throw error;
       }
       
-      return data || null;
+      if (!data) {
+        return null;
+      }
+
+      // Check if this payment has been used by looking in cv_downloads table
+      const { data: downloads, error: downloadError } = await supabase
+        .from('cv_downloads')
+        .select('*')
+        .eq('payment_id', data.id);
+
+      if (downloadError) {
+        console.error('NewPaymentService - Error checking downloads:', downloadError);
+        return null;
+      }
+
+      // If no downloads found for this payment, it's unused
+      if (!downloads || downloads.length === 0) {
+        return data;
+      }
+
+      // Payment has been used, return null
+      return null;
     } catch (error) {
       console.error('NewPaymentService - Get approved payment failed:', error);
       return null;
@@ -303,17 +324,11 @@ export class NewPaymentService {
     try {
       const user = await this.getCurrentUser();
       
-      // Update payment status
+      // Update payment status to 'downloaded' for admin panel visibility
       const { data: updatedPayment, error: updateError } = await supabase
         .from('payments')
-        .update({ 
-          status: this.STATUS.DOWNLOADED,
-          download_used: true,
-          downloaded_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
+        .update({ status: 'downloaded' })
         .eq('id', paymentId)
-        .eq('user_id', user.id)
         .select()
         .single();
       
@@ -322,7 +337,7 @@ export class NewPaymentService {
         throw updateError;
       }
       
-      // Record download
+      // Also record the download in cv_downloads table for tracking
       const { data: download, error: downloadError } = await supabase
         .from('cv_downloads')
         .insert({
@@ -337,11 +352,11 @@ export class NewPaymentService {
       
       if (downloadError) {
         console.error('NewPaymentService - Record download failed:', downloadError);
-        throw downloadError;
+        // Don't throw here as the main payment update was successful
       }
       
-      console.log('NewPaymentService - Payment marked as downloaded:', updatedPayment);
-      return { payment: updatedPayment, download };
+      console.log('NewPaymentService - Payment marked as downloaded and download recorded:', { updatedPayment, download });
+      return { updatedPayment, download };
       
     } catch (error) {
       console.error('NewPaymentService - Mark payment as downloaded failed:', error);
@@ -358,9 +373,10 @@ export class NewPaymentService {
         return 'Download PDF (Admin)';
       }
       
-      // Check for approved payment first
+      // Check for approved payment that hasn't been used yet
       const approvedPayment = await this.getApprovedPayment(templateId);
       if (approvedPayment) {
+        // User has an unused approved payment - can download once
         return 'Download Now';
       }
       
@@ -370,14 +386,10 @@ export class NewPaymentService {
         return 'Payment Submitted (Waiting for Approval)';
       }
       
-      // Check download count
+      // Check download count (but no approved payment)
       const downloadCount = await this.getDownloadCount(templateId);
       if (downloadCount > 0) {
-        if (downloadCount === 1) {
-          return 'Downloaded (1 time)';
-        } else {
-          return `Downloaded (${downloadCount} times)`;
-        }
+        return 'Download PDF (PKR 100) - New Payment Required';
       }
       
       // No payment found - show payment option

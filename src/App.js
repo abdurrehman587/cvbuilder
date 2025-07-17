@@ -5,6 +5,7 @@ import ChooseTemplate from './choosetemplate';
 import DatabaseSetupCheck from './DatabaseSetupCheck';
 import PrintCV from './PrintCV';
 import APITest from './APITest';
+import RealTimePaymentNotifier from './RealTimePaymentNotifier';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './responsive.css';
@@ -302,6 +303,10 @@ const App = () => {
         theme="light"
         style={{ zIndex: 9999 }}
       />
+      
+      {/* Real-time payment notifications */}
+      <RealTimePaymentNotifier />
+      
       <style>
         {`
           /* Ensure toast notifications are visible */

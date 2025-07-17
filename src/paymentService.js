@@ -215,41 +215,41 @@ export class PaymentService {
     }
   }
 
-  // Check if user has a downloaded payment for a template
+  // Check if user has downloaded the CV for a template
   static async checkDownloadedPayment(templateId) {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        console.log('No authenticated user for downloaded payment check');
+        console.log('No authenticated user for download check');
         return null;
       }
 
       // Check if database is ready
       const dbReady = await this.checkDatabaseReady();
       if (!dbReady) {
-        console.log('Database not ready, returning null for downloaded payment');
+        console.log('Database not ready, returning null for download check');
         return null;
       }
 
-      const { data, error } = await supabase
-        .from('payments')
+      // Check cv_downloads table instead of payments with 'downloaded' status
+      const { data: downloads, error } = await supabase
+        .from('cv_downloads')
         .select('*')
         .eq('user_email', user.email)
         .eq('template_id', templateId)
-        .eq('status', 'downloaded')
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .order('downloaded_at', { ascending: false });
 
       if (error) {
-        console.error('Error checking downloaded payment:', error);
+        console.error('Error checking downloads:', error);
         return null;
       }
 
-      console.log('Downloaded payment check result:', data);
-      return data || null;
+      // Return the most recent download if any exist
+      const result = downloads && downloads.length > 0 ? downloads[0] : null;
+      console.log('Download check result:', result);
+      return result;
     } catch (error) {
-      console.error('Error checking downloaded payment:', error);
+      console.error('Error checking downloads:', error);
       return null;
     }
   }
@@ -268,22 +268,8 @@ export class PaymentService {
         throw new Error('Database not ready');
       }
 
-      // Update payment status to "Downloaded"
-      const { data: updatedPayment, error: updateError } = await supabase
-        .from('payments')
-        .update({ status: 'downloaded' })
-        .eq('id', paymentId)
-        .select()
-        .single();
-
-      if (updateError) {
-        console.error('Error updating payment status to downloaded:', updateError);
-        throw updateError;
-      }
-
-      console.log('Payment status updated to downloaded:', updatedPayment);
-
-      // Record the download
+      // Keep payment status as 'approved' - don't change it to 'downloaded'
+      // Instead, just record the download in cv_downloads table
       const { data: download, error: downloadError } = await supabase
         .from('cv_downloads')
         .insert({
@@ -302,7 +288,7 @@ export class PaymentService {
       console.log('Download recorded successfully:', download);
       return download;
     } catch (error) {
-      console.error('Error marking payment as used:', error);
+      console.error('Error recording download:', error);
       throw error;
     }
   }
@@ -349,10 +335,18 @@ export class PaymentService {
     }
 
     try {
-      // First check for approved payment (most important)
+      // First check for approved payment (most important) - if approved, user can always download
       const approvedPayment = await this.checkApprovedPayment(templateId);
       if (approvedPayment) {
-        return 'Download Now';
+        // Check download count to show appropriate text
+        const downloadCount = await this.getDownloadCount(templateId);
+        if (downloadCount === 0) {
+          return 'Download Now';
+        } else if (downloadCount === 1) {
+          return 'Download Again';
+        } else {
+          return `Download Again (${downloadCount} times downloaded)`;
+        }
       }
 
       // Then check for pending payment
@@ -361,17 +355,10 @@ export class PaymentService {
         return 'Payment Submitted (Waiting for Approval)';
       }
 
-      // Then check for downloaded payment and get download count
-      const downloadedPayment = await this.checkDownloadedPayment(templateId);
-      if (downloadedPayment) {
-        const downloadCount = await this.getDownloadCount(templateId);
-        if (downloadCount === 1) {
-          return 'Downloaded (1 time)';
-        } else if (downloadCount > 1) {
-          return `Downloaded (${downloadCount} times)`;
-        } else {
-          return 'CV Already Downloaded (Pay Again for New Download)';
-        }
+      // Then check download count (but no approved payment)
+      const downloadCount = await this.getDownloadCount(templateId);
+      if (downloadCount > 0) {
+        return 'Download PDF (PKR 100) - New Payment Required';
       }
 
       // No payment found - show payment option

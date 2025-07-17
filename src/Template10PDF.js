@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import PropTypes from 'prop-types';
+import CentralizedPaymentSystem from './CentralizedPaymentSystem';
 
 const sectionList = [
   { key: 'objective', title: 'Objective' },
@@ -539,28 +540,12 @@ const Template10PDF = ({ formData, visibleSections = [] }) => {
         </section>
       )}
 
-      <button
-        ref={buttonRef}
-        type="button"
-        onClick={generatePDF}
-        style={{
-          marginTop: 16,
-          cursor: 'pointer',
-          padding: '6px 18px',
-          fontSize: '0.95rem',
-          borderRadius: 6,
-          border: 'none',
-          backgroundColor: '#3f51b5',
-          color: 'white',
-          transition: 'background-color 0.3s ease',
-          alignSelf: 'flex-start',
-          userSelect: 'none',
-        }}
-        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#303f9f')}
-        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3f51b5')}
-      >
-        Download PDF
-      </button>
+      {/* Centralized Payment and Download System */}
+      <CentralizedPaymentSystem
+        templateId="template10"
+        templateName="Template 10"
+        onDownload={generatePDF}
+      />
     </article>
   );
 };

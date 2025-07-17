@@ -1,15 +1,31 @@
 import React, { useRef, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import CentralizedPaymentSystem from './CentralizedPaymentSystem';
+import html2canvas from 'html2canvas';
 
 // Load html2pdf from CDN dynamically
 const loadHtml2Pdf = () => {
-  if (window.html2pdf) return Promise.resolve(window.html2pdf);
+  if (window.html2pdf) {
+    console.log('Template3PDF: html2pdf already loaded');
+    return Promise.resolve(window.html2pdf);
+  }
+  
+  console.log('Template3PDF: Loading html2pdf from CDN...');
   return new Promise((resolve, reject) => {
     const script = document.createElement('script');
     script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
-    script.onload = () => resolve(window.html2pdf);
-    script.onerror = () => reject(new Error('Failed to load html2pdf.js'));
+    script.onload = () => {
+      console.log('Template3PDF: html2pdf script loaded successfully');
+      if (window.html2pdf) {
+        resolve(window.html2pdf);
+      } else {
+        reject(new Error('html2pdf not found in window object after script load'));
+      }
+    };
+    script.onerror = () => {
+      console.error('Template3PDF: Failed to load html2pdf script');
+      reject(new Error('Failed to load html2pdf.js from CDN'));
+    };
     document.body.appendChild(script);
   });
 };
@@ -475,20 +491,36 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
 
 
   const generatePDF = async () => {
-    if (!containerRef.current || !buttonRef.current) {
-      console.error('Preview content is not available for PDF generation');
+    console.log('Template3PDF: Starting PDF generation...');
+    
+    if (!containerRef.current) {
+      console.error('Template3PDF: Container ref is not available');
       return;
     }
 
     try {
-      buttonRef.current.style.display = 'none';
-
+      console.log('Template3PDF: Loading html2pdf library...');
       const html2pdf = await loadHtml2Pdf();
+      console.log('Template3PDF: html2pdf loaded successfully');
+
+      const filename = `${formData.name || 'CV'}_template3.pdf`;
+      console.log('Template3PDF: Generating PDF with filename:', filename);
+
+      // Add a small delay to ensure the DOM is fully rendered
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Test if the container has content
+      console.log('Template3PDF: Container content check:', {
+        hasContainer: !!containerRef.current,
+        containerHTML: containerRef.current.innerHTML.substring(0, 200) + '...',
+        containerHeight: containerRef.current.offsetHeight,
+        containerWidth: containerRef.current.offsetWidth
+      });
 
       await html2pdf()
         .set({
           margin: 5,
-          filename: `${formData.name || 'CV'}_template3.pdf`,
+          filename: filename,
           image: { type: 'png', quality: 0.98 },
           html2canvas: {
             scale: 3,
@@ -503,11 +535,31 @@ const Template3PDF = ({ formData, visibleSections = [] }) => {
         .from(containerRef.current)
         .save();
 
+      console.log('Template3PDF: PDF generated and saved successfully');
+
     } catch (error) {
-      console.error('PDF generation failed:', error);
-    } finally {
-      if (buttonRef.current) {
-        buttonRef.current.style.display = 'block';
+      console.error('Template3PDF: PDF generation failed:', error);
+      
+      // Try fallback method
+      try {
+        console.log('Template3PDF: Trying fallback download method...');
+        const element = containerRef.current;
+        const canvas = await html2canvas(element, {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: '#ffffff'
+        });
+        
+        const link = document.createElement('a');
+        link.download = `${formData.name || 'CV'}_template3.png`;
+        link.href = canvas.toDataURL();
+        link.click();
+        
+        console.log('Template3PDF: Fallback PNG download completed');
+      } catch (fallbackError) {
+        console.error('Template3PDF: Fallback download also failed:', fallbackError);
+        alert('PDF generation failed. Please try again or contact support.');
       }
     }
   };

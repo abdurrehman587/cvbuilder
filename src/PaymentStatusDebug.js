@@ -2,12 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { CleanPaymentService } from './cleanPaymentService';
 import supabase from './supabase';
 
-const DebugPaymentStatus = ({ templateId }) => {
+const PaymentStatusDebug = ({ templateId }) => {
   const [userEmail, setUserEmail] = useState(null);
   const [paymentStatus, setPaymentStatus] = useState({});
   const [buttonText, setButtonText] = useState('Loading...');
   const [isLoading, setIsLoading] = useState(true);
-  const [rawPaymentData, setRawPaymentData] = useState(null);
 
   useEffect(() => {
     const getCurrentUser = async () => {
@@ -29,24 +28,9 @@ const DebugPaymentStatus = ({ templateId }) => {
       if (!userEmail || !templateId) return;
 
       try {
-        console.log('DebugPaymentStatus - Checking payment status for:', { userEmail, templateId });
+        console.log('PaymentStatusDebug - Checking payment status for:', { userEmail, templateId });
         
-        // Get raw payment data from database
-        const { data: payments, error } = await supabase
-          .from('payments')
-          .select('*')
-          .eq('user_email', userEmail)
-          .eq('template_id', templateId)
-          .order('created_at', { ascending: false });
-
-        if (error) {
-          console.error('DebugPaymentStatus - Error fetching payments:', error);
-        } else {
-          console.log('DebugPaymentStatus - Raw payment data:', payments);
-          setRawPaymentData(payments);
-        }
-        
-        // Check all payment statuses using the service
+        // Check all payment statuses
         const approvedPayment = await CleanPaymentService.checkUserApprovedPayment(templateId);
         const pendingPayment = await CleanPaymentService.checkUserPendingPayment(templateId);
         const previousDownload = await CleanPaymentService.checkUserDownloadedPayment(templateId);
@@ -56,27 +40,21 @@ const DebugPaymentStatus = ({ templateId }) => {
           approvedPayment: approvedPayment ? 'Found' : 'Not found',
           pendingPayment: pendingPayment ? 'Found' : 'Not found',
           previousDownload: previousDownload ? 'Found' : 'Not found',
-          buttonText: buttonTextResult,
-          approvedPaymentData: approvedPayment,
-          pendingPaymentData: pendingPayment,
-          previousDownloadData: previousDownload
+          buttonText: buttonTextResult
         });
         
         setButtonText(buttonTextResult);
         setIsLoading(false);
         
-        console.log('DebugPaymentStatus - Status:', {
+        console.log('PaymentStatusDebug - Status:', {
           approvedPayment: approvedPayment ? 'Found' : 'Not found',
           pendingPayment: pendingPayment ? 'Found' : 'Not found',
           previousDownload: previousDownload ? 'Found' : 'Not found',
-          buttonText: buttonTextResult,
-          approvedPaymentData: approvedPayment,
-          pendingPaymentData: pendingPayment,
-          previousDownloadData: previousDownload
+          buttonText: buttonTextResult
         });
         
       } catch (error) {
-        console.error('DebugPaymentStatus - Error checking status:', error);
+        console.error('PaymentStatusDebug - Error checking status:', error);
         setIsLoading(false);
       }
     };
@@ -96,7 +74,7 @@ const DebugPaymentStatus = ({ templateId }) => {
       margin: '20px 0',
       backgroundColor: '#f8f9fa'
     }}>
-      <h3 style={{ color: '#007bff', marginTop: 0 }}>🔍 Payment Status Debug (Detailed)</h3>
+      <h3 style={{ color: '#007bff', marginTop: 0 }}>🔍 Payment Status Debug</h3>
       
       <div style={{ marginBottom: '10px' }}>
         <strong>User Email:</strong> {userEmail || 'Not signed in'}
@@ -147,78 +125,6 @@ const DebugPaymentStatus = ({ templateId }) => {
         </span>
       </div>
       
-      {/* Raw Payment Data */}
-      {rawPaymentData && (
-        <div style={{ 
-          marginBottom: '15px',
-          padding: '10px',
-          backgroundColor: '#e9ecef',
-          border: '1px solid #dee2e6',
-          borderRadius: '4px'
-        }}>
-          <strong>Raw Payment Data from Database:</strong>
-          <pre style={{ 
-            fontSize: '12px', 
-            overflow: 'auto', 
-            maxHeight: '200px',
-            backgroundColor: '#f8f9fa',
-            padding: '8px',
-            borderRadius: '4px',
-            marginTop: '8px'
-          }}>
-            {JSON.stringify(rawPaymentData, null, 2)}
-          </pre>
-        </div>
-      )}
-      
-      {/* Approved Payment Details */}
-      {paymentStatus.approvedPaymentData && (
-        <div style={{ 
-          marginBottom: '15px',
-          padding: '10px',
-          backgroundColor: '#d4edda',
-          border: '1px solid #c3e6cb',
-          borderRadius: '4px'
-        }}>
-          <strong>Approved Payment Details:</strong>
-          <pre style={{ 
-            fontSize: '12px', 
-            overflow: 'auto', 
-            maxHeight: '150px',
-            backgroundColor: '#f8f9fa',
-            padding: '8px',
-            borderRadius: '4px',
-            marginTop: '8px'
-          }}>
-            {JSON.stringify(paymentStatus.approvedPaymentData, null, 2)}
-          </pre>
-        </div>
-      )}
-      
-      {/* Pending Payment Details */}
-      {paymentStatus.pendingPaymentData && (
-        <div style={{ 
-          marginBottom: '15px',
-          padding: '10px',
-          backgroundColor: '#fff3cd',
-          border: '1px solid #ffeaa7',
-          borderRadius: '4px'
-        }}>
-          <strong>Pending Payment Details:</strong>
-          <pre style={{ 
-            fontSize: '12px', 
-            overflow: 'auto', 
-            maxHeight: '150px',
-            backgroundColor: '#f8f9fa',
-            padding: '8px',
-            borderRadius: '4px',
-            marginTop: '8px'
-          }}>
-            {JSON.stringify(paymentStatus.pendingPaymentData, null, 2)}
-          </pre>
-        </div>
-      )}
-      
       <div style={{ 
         padding: '10px', 
         backgroundColor: paymentStatus.approvedPayment === 'Found' ? '#d4edda' : '#f8d7da',
@@ -247,26 +153,8 @@ const DebugPaymentStatus = ({ templateId }) => {
           It should show "{paymentStatus.buttonText}" and be clickable.
         </div>
       )}
-      
-      {/* Force Refresh Button */}
-      <div style={{ marginTop: '15px' }}>
-        <button
-          onClick={() => window.location.reload()}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: '#007bff',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: '14px'
-          }}
-        >
-          🔄 Refresh Page
-        </button>
-      </div>
     </div>
   );
 };
 
-export default DebugPaymentStatus; 
+export default PaymentStatusDebug; 

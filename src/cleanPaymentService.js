@@ -3,6 +3,93 @@ import supabase from './supabase';
 // Clean Payment Service - Separate systems for Admin and Users
 export class CleanPaymentService {
   
+  // Real-time subscription management
+  static subscriptions = new Map();
+  
+  // ========================================
+  // REAL-TIME SUBSCRIPTION METHODS
+  // ========================================
+  
+  static subscribeToPaymentUpdates(userEmail, templateId, callback) {
+    try {
+      console.log('CleanPaymentService - Setting up real-time subscription for:', { userEmail, templateId });
+      
+      const subscriptionKey = `${userEmail}-${templateId}`;
+      
+      // Remove existing subscription if any
+      if (this.subscriptions.has(subscriptionKey)) {
+        this.subscriptions.get(subscriptionKey).unsubscribe();
+        this.subscriptions.delete(subscriptionKey);
+      }
+      
+      // Subscribe to payment changes for this user and template
+      const subscription = supabase
+        .channel(`payment-updates-${subscriptionKey}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'payments',
+            filter: `user_email=eq.${userEmail} AND template_id=eq.${templateId}`
+          },
+          (payload) => {
+            console.log('CleanPaymentService - Real-time payment update:', payload);
+            callback(payload);
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'cv_downloads',
+            filter: `user_email=eq.${userEmail} AND template_id=eq.${templateId}`
+          },
+          (payload) => {
+            console.log('CleanPaymentService - Real-time download update:', payload);
+            callback(payload);
+          }
+        )
+        .subscribe();
+      
+      this.subscriptions.set(subscriptionKey, subscription);
+      console.log('CleanPaymentService - Real-time subscription active for:', subscriptionKey);
+      
+      return subscription;
+    } catch (error) {
+      console.error('CleanPaymentService - Error setting up real-time subscription:', error);
+      return null;
+    }
+  }
+  
+  static unsubscribeFromPaymentUpdates(userEmail, templateId) {
+    try {
+      const subscriptionKey = `${userEmail}-${templateId}`;
+      
+      if (this.subscriptions.has(subscriptionKey)) {
+        const subscription = this.subscriptions.get(subscriptionKey);
+        subscription.unsubscribe();
+        this.subscriptions.delete(subscriptionKey);
+        console.log('CleanPaymentService - Unsubscribed from payment updates for:', subscriptionKey);
+      }
+    } catch (error) {
+      console.error('CleanPaymentService - Error unsubscribing from payment updates:', error);
+    }
+  }
+  
+  static unsubscribeAll() {
+    try {
+      for (const [key, subscription] of this.subscriptions) {
+        subscription.unsubscribe();
+        console.log('CleanPaymentService - Unsubscribed from:', key);
+      }
+      this.subscriptions.clear();
+    } catch (error) {
+      console.error('CleanPaymentService - Error unsubscribing all:', error);
+    }
+  }
+  
   // ========================================
   // ADMIN SYSTEM - Always free downloads
   // ========================================
@@ -144,6 +231,8 @@ export class CleanPaymentService {
         return null;
       }
 
+      // Check for approved payment that hasn't been used yet
+      // Since is_used column doesn't exist, we'll use cv_downloads table to check if payment was used
       const { data: approvedPayment, error } = await supabase
         .from('payments')
         .select('*')
@@ -159,7 +248,28 @@ export class CleanPaymentService {
         return null;
       }
 
-      return approvedPayment;
+      if (!approvedPayment) {
+        return null;
+      }
+
+      // Check if this payment has been used by looking in cv_downloads table
+      const { data: downloads, error: downloadError } = await supabase
+        .from('cv_downloads')
+        .select('*')
+        .eq('payment_id', approvedPayment.id);
+
+      if (downloadError) {
+        console.error('CleanPaymentService - Error checking downloads:', downloadError);
+        return null;
+      }
+
+      // If no downloads found for this payment, it's unused
+      if (!downloads || downloads.length === 0) {
+        return approvedPayment;
+      }
+
+      // Payment has been used, return null
+      return null;
     } catch (error) {
       console.error('CleanPaymentService - Error checking approved payment:', error);
       return null;
@@ -212,48 +322,99 @@ export class CleanPaymentService {
         return null;
       }
 
-      const { data: downloadedPayment, error } = await supabase
-        .from('payments')
+      // Check cv_downloads table instead of payments with 'downloaded' status
+      const { data: downloads, error } = await supabase
+        .from('cv_downloads')
         .select('*')
         .eq('user_email', user.email)
         .eq('template_id', templateId)
-        .eq('status', 'downloaded')
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .order('downloaded_at', { ascending: false });
 
       if (error) {
-        console.error('CleanPaymentService - Error checking downloaded payment:', error);
+        console.error('CleanPaymentService - Error checking downloads:', error);
         return null;
       }
 
-      return downloadedPayment;
+      // Return the most recent download if any exist
+      return downloads && downloads.length > 0 ? downloads[0] : null;
     } catch (error) {
-      console.error('CleanPaymentService - Error checking downloaded payment:', error);
+      console.error('CleanPaymentService - Error checking downloads:', error);
       return null;
+    }
+  }
+
+  static async getUserDownloadCount(templateId) {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        return 0;
+      }
+
+      const dbReady = await this.checkDatabaseReady();
+      if (!dbReady) {
+        return 0;
+      }
+
+      // Get total download count for this template
+      const { data: downloads, error } = await supabase
+        .from('cv_downloads')
+        .select('*')
+        .eq('user_email', user.email)
+        .eq('template_id', templateId);
+
+      if (error) {
+        console.error('CleanPaymentService - Error getting download count:', error);
+        return 0;
+      }
+
+      return downloads ? downloads.length : 0;
+    } catch (error) {
+      console.error('CleanPaymentService - Error getting download count:', error);
+      return 0;
     }
   }
   
   static async markUserPaymentAsUsed(paymentId, templateId) {
     try {
-      const { data, error } = await supabase
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      // Update payment status to 'downloaded' for admin panel visibility
+      const { data: updatedPayment, error: updateError } = await supabase
         .from('payments')
-        .update({ 
-          status: 'downloaded',
-          downloaded_at: new Date().toISOString()
-        })
+        .update({ status: 'downloaded' })
         .eq('id', paymentId)
         .select()
         .single();
 
-      if (error) {
-        throw error;
+      if (updateError) {
+        console.error('CleanPaymentService - Error updating payment status:', updateError);
+        throw updateError;
       }
 
-      console.log('CleanPaymentService - Payment marked as used:', data);
-      return data;
+      // Also record the download in cv_downloads table for tracking
+      const { data: download, error: downloadError } = await supabase
+        .from('cv_downloads')
+        .insert({
+          user_email: user.email,
+          template_id: templateId,
+          payment_id: paymentId,
+          downloaded_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (downloadError) {
+        console.error('CleanPaymentService - Error recording download:', downloadError);
+        // Don't throw here as the main payment update was successful
+      }
+
+      console.log('CleanPaymentService - Payment marked as downloaded and download recorded:', { updatedPayment, download });
+      return { updatedPayment, download };
     } catch (error) {
-      console.error('CleanPaymentService - Error marking payment as used:', error);
+      console.error('CleanPaymentService - Error marking payment as downloaded:', error);
       throw error;
     }
   }
@@ -262,10 +423,11 @@ export class CleanPaymentService {
     try {
       console.log('CleanPaymentService - Getting button text for template:', templateId);
       
-      // Check for approved payment first
+      // Check for approved payment that hasn't been used yet
       const approvedPayment = await this.checkUserApprovedPayment(templateId);
       console.log('CleanPaymentService - Approved payment check:', approvedPayment ? 'Found' : 'Not found');
       if (approvedPayment) {
+        // User has an unused approved payment - can download once
         console.log('CleanPaymentService - Returning: Download Now');
         return 'Download Now';
       }
@@ -278,12 +440,12 @@ export class CleanPaymentService {
         return 'Payment Submitted (Waiting for Approval)';
       }
       
-      // Check for downloaded payment (user wants to download again)
-      const downloadedPayment = await this.checkUserDownloadedPayment(templateId);
-      console.log('CleanPaymentService - Downloaded payment check:', downloadedPayment ? 'Found' : 'Not found');
-      if (downloadedPayment) {
-        console.log('CleanPaymentService - Returning: Download PDF (PKR 100) - New Download');
-        return 'Download PDF (PKR 100) - New Download';
+      // Check for previous downloads to show appropriate message
+      const previousDownload = await this.checkUserDownloadedPayment(templateId);
+      console.log('CleanPaymentService - Previous download check:', previousDownload ? 'Found' : 'Not found');
+      if (previousDownload) {
+        console.log('CleanPaymentService - Returning: Download PDF (PKR 100) - New Payment Required');
+        return 'Download PDF (PKR 100) - New Payment Required';
       }
       
       // No payment found
@@ -299,12 +461,12 @@ export class CleanPaymentService {
     try {
       console.log('CleanPaymentService - Handling user download for template:', templateId);
       
-      // Check for approved payment
+      // Check for approved payment - if approved, user can always download
       const approvedPayment = await this.checkUserApprovedPayment(templateId);
       console.log('CleanPaymentService - Approved payment check:', approvedPayment ? 'Found' : 'Not found');
       if (approvedPayment) {
-        console.log('CleanPaymentService - Marking payment as used and allowing download');
-        // Mark payment as used and allow download
+        console.log('CleanPaymentService - Recording download and allowing download');
+        // Record the download and allow download
         await this.markUserPaymentAsUsed(approvedPayment.id, templateId);
         return { canDownload: true, reason: 'approved_payment' };
       }
@@ -317,11 +479,11 @@ export class CleanPaymentService {
         return { canDownload: false, reason: 'pending_payment' };
       }
       
-      // Check for downloaded payment
-      const downloadedPayment = await this.checkUserDownloadedPayment(templateId);
-      console.log('CleanPaymentService - Downloaded payment check:', downloadedPayment ? 'Found' : 'Not found');
-      if (downloadedPayment) {
-        console.log('CleanPaymentService - Downloaded payment found, new payment required');
+      // Check for previous downloads (but no approved payment)
+      const previousDownload = await this.checkUserDownloadedPayment(templateId);
+      console.log('CleanPaymentService - Previous download check:', previousDownload ? 'Found' : 'Not found');
+      if (previousDownload) {
+        console.log('CleanPaymentService - Previous download found, new payment required');
         return { canDownload: false, reason: 'needs_new_payment' };
       }
       

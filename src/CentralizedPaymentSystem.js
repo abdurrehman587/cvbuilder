@@ -11,7 +11,8 @@ const CentralizedPaymentSystem = ({
   templateId, 
   templateName, 
   onDownload, 
-  isPrintMode = false 
+  isPrintMode = false,
+  debug = false
 }) => {
   const [buttonText, setButtonText] = useState('Loading...');
   const [isLoading, setIsLoading] = useState(true);
@@ -19,6 +20,95 @@ const CentralizedPaymentSystem = ({
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [hasPendingPayment, setHasPendingPayment] = useState(false);
   const [isAdminUser, setIsAdminUser] = useState(false);
+  const [userEmail, setUserEmail] = useState(null);
+  const [subscription, setSubscription] = useState(null);
+
+  // Get current user email
+  useEffect(() => {
+    const getCurrentUser = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user?.email) {
+          setUserEmail(user.email);
+        }
+      } catch (error) {
+        console.error('Error getting current user:', error);
+      }
+    };
+    
+    getCurrentUser();
+  }, []);
+
+  // Set up real-time subscription for payment updates
+  useEffect(() => {
+    if (!userEmail || !templateId || isAdminUser) return;
+
+    console.log('CentralizedPaymentSystem - Setting up real-time subscription for:', { userEmail, templateId });
+    
+    const handlePaymentUpdate = async (payload) => {
+      console.log('CentralizedPaymentSystem - Real-time update received:', payload);
+      
+      // Update button text immediately when payment status changes
+      try {
+        const newButtonText = await getDownloadButtonText(templateId, isAdminUser);
+        setButtonText(newButtonText);
+        console.log('CentralizedPaymentSystem - Button text updated via real-time:', newButtonText);
+        
+        // Check for pending payment to show banner
+        const pendingPayment = await checkPendingPayment(templateId);
+        setHasPendingPayment(!!pendingPayment);
+        
+        // Show notification for status changes
+        if (payload.table === 'payments' && payload.eventType === 'UPDATE') {
+          const newStatus = payload.new.status;
+          const oldStatus = payload.old.status;
+          
+          if (oldStatus === 'pending' && newStatus === 'approved') {
+            toast.success('🎉 Your payment has been approved! You can now download your CV.');
+          } else if (oldStatus === 'pending' && newStatus === 'rejected') {
+            toast.error('❌ Your payment was rejected. Please contact support.');
+          }
+        }
+      } catch (error) {
+        console.error('CentralizedPaymentSystem - Error updating button text from real-time update:', error);
+      }
+    };
+
+    // Subscribe to real-time updates
+    const newSubscription = supabase
+      .channel(`payment-updates-${userEmail}-${templateId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'payments',
+          filter: `user_email=eq.${userEmail} AND template_id=eq.${templateId}`
+        },
+        handlePaymentUpdate
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'cv_downloads',
+          filter: `user_email=eq.${userEmail} AND template_id=eq.${templateId}`
+        },
+        handlePaymentUpdate
+      )
+      .subscribe();
+
+    setSubscription(newSubscription);
+
+    // Cleanup subscription on unmount
+    return () => {
+      if (newSubscription) {
+        newSubscription.unsubscribe();
+        console.log('CentralizedPaymentSystem - Unsubscribed from payment updates');
+      }
+    };
+  }, [userEmail, templateId, isAdminUser]);
 
   // Check admin status
   useEffect(() => {
@@ -27,50 +117,47 @@ const CentralizedPaymentSystem = ({
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       const adminUser = JSON.parse(localStorage.getItem('admin_user') || '{}');
       
-      // Clear admin flags for regular users
-      if (user?.email !== adminUser?.email && user?.email !== process.env.REACT_APP_ADMIN_EMAIL) {
-        localStorage.removeItem('admin_cv_access');
-        localStorage.removeItem('admin_user');
-        if (user?.isAdmin) {
-          user.isAdmin = false;
-          localStorage.setItem('user', JSON.stringify(user));
-        }
-      }
+      const isAdmin = (user?.email === process.env.REACT_APP_ADMIN_EMAIL) || 
+                     (adminAccess === 'true' && adminUser?.isAdmin === true && user?.email === adminUser?.email);
       
-      // Check if user is actually an admin
-      const isAdmin = (adminAccess === 'true' && adminUser?.isAdmin === true && 
-                      (user?.email === adminUser?.email || user?.email === process.env.REACT_APP_ADMIN_EMAIL)) ||
-                     (user?.isAdmin === true && user?.email === process.env.REACT_APP_ADMIN_EMAIL);
-      
-      setIsAdminUser(isAdmin);
-      console.log('CentralizedPaymentSystem - Admin check:', {
-        adminAccess,
+      console.log('CentralizedPaymentSystem - Admin status check:', {
         userEmail: user?.email,
-        userIsAdmin: user?.isAdmin,
-        adminUserEmail: adminUser?.email,
-        adminUserIsAdmin: adminUser?.isAdmin,
+        adminEmail: process.env.REACT_APP_ADMIN_EMAIL,
+        adminAccess,
+        adminUser,
         isAdmin
       });
+      
+      setIsAdminUser(isAdmin);
+      
+      // If admin user, immediately update button text
+      if (isAdmin) {
+        setButtonText('Download PDF (Admin)');
+        setIsLoading(false);
+      }
     };
 
     checkAdminStatus();
-    setIsLoading(false);
+    
+    // Check admin status periodically
+    const interval = setInterval(checkAdminStatus, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   // Update button text based on payment status
   useEffect(() => {
-    if (isLoading) return;
-
     const updateButtonText = async () => {
       try {
         if (isAdminUser) {
           setButtonText('Download PDF (Admin)');
           setHasPendingPayment(false);
+          setIsLoading(false);
           return;
         }
 
         const text = await getDownloadButtonText(templateId, isAdminUser);
         setButtonText(text);
+        console.log('CentralizedPaymentSystem - Button text updated:', text);
         
         // Check for pending payment
         const pendingPayment = await checkPendingPayment(templateId);
@@ -81,12 +168,33 @@ const CentralizedPaymentSystem = ({
       }
     };
 
-    updateButtonText();
+    // Initial call immediately if we have user email or admin status
+    if (userEmail || isAdminUser) {
+      updateButtonText();
+    }
 
-    // Set up periodic updates
-    const interval = setInterval(updateButtonText, 5000);
+    // Set up periodic updates as fallback (less frequent since we have real-time)
+    const interval = setInterval(() => {
+      if (userEmail || isAdminUser) {
+        updateButtonText();
+      }
+    }, 30000); // 30 seconds as fallback
     return () => clearInterval(interval);
-  }, [isAdminUser, isLoading, templateId]);
+  }, [isAdminUser, userEmail, templateId]);
+
+  // Set loading to false when we have user email or admin status is determined
+  useEffect(() => {
+    if (userEmail || isAdminUser) {
+      setIsLoading(false);
+    } else {
+      // Set loading to false after a short delay if no user email
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+      }, 2000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [userEmail, isAdminUser]);
 
   // Payment service methods
   const checkPendingPayment = async (templateId) => {
@@ -119,13 +227,16 @@ const CentralizedPaymentSystem = ({
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       if (!user?.email) return null;
 
+      // Check for approved payment that hasn't been used yet
+      // Since is_used column doesn't exist, we'll use cv_downloads table to check if payment was used
       const { data, error } = await supabase
         .from('payments')
         .select('*')
         .eq('user_email', user.email)
         .eq('template_id', templateId)
         .eq('status', 'approved')
-        .eq('is_used', false)
+        .order('created_at', { ascending: false })
+        .limit(1)
         .single();
 
       if (error && error.code !== 'PGRST116') {
@@ -133,7 +244,30 @@ const CentralizedPaymentSystem = ({
         return null;
       }
 
-      return data;
+      if (!data) {
+        return null;
+      }
+
+      // Check if this payment has been used by looking in cv_downloads table
+      const { data: downloads, error: downloadError } = await supabase
+        .from('cv_downloads')
+        .select('*')
+        .eq('payment_id', data.id);
+
+      if (downloadError) {
+        console.error('Error checking downloads:', downloadError);
+        return null;
+      }
+
+      // If no downloads found for this payment, it's unused
+      if (!downloads || downloads.length === 0) {
+        console.log('CentralizedPaymentSystem - checkApprovedPayment result:', data);
+        return data;
+      }
+
+      // Payment has been used, return null
+      console.log('CentralizedPaymentSystem - Payment has been used, returning null');
+      return null;
     } catch (error) {
       console.error('Error checking approved payment:', error);
       return null;
@@ -145,44 +279,90 @@ const CentralizedPaymentSystem = ({
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       if (!user?.email) return null;
 
-      const { data, error } = await supabase
-        .from('payments')
+      const { data: downloads, error } = await supabase
+        .from('cv_downloads')
         .select('*')
         .eq('user_email', user.email)
         .eq('template_id', templateId)
-        .eq('status', 'approved')
-        .eq('is_used', true)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
+        .order('downloaded_at', { ascending: false });
 
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error checking downloaded payment:', error);
+      if (error) {
+        console.error('Error checking downloads:', error);
         return null;
       }
 
-      return data;
+      // Return the most recent download if any exist
+      return downloads && downloads.length > 0 ? downloads[0] : null;
     } catch (error) {
-      console.error('Error checking downloaded payment:', error);
+      console.error('Error checking downloads:', error);
       return null;
+    }
+  };
+
+  const getDownloadCount = async (templateId) => {
+    try {
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      if (!user?.email) return 0;
+
+      const { data: downloads, error } = await supabase
+        .from('cv_downloads')
+        .select('*')
+        .eq('user_email', user.email)
+        .eq('template_id', templateId);
+
+      if (error) {
+        console.error('Error getting download count:', error);
+        return 0;
+      }
+
+      return downloads ? downloads.length : 0;
+    } catch (error) {
+      console.error('Error getting download count:', error);
+      return 0;
     }
   };
 
   const markPaymentAsUsed = async (paymentId, templateId) => {
     try {
-      const { error } = await supabase
-        .from('payments')
-        .update({ is_used: true, used_at: new Date().toISOString() })
-        .eq('id', paymentId);
-
-      if (error) {
-        console.error('Error marking payment as used:', error);
-        throw error;
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      if (!user?.email) {
+        throw new Error('User not authenticated');
       }
 
-      console.log('Payment marked as used successfully');
+      // Update payment status to 'downloaded' for admin panel visibility
+      const { data: updatedPayment, error: updateError } = await supabase
+        .from('payments')
+        .update({ status: 'downloaded' })
+        .eq('id', paymentId)
+        .select()
+        .single();
+
+      if (updateError) {
+        console.error('Error updating payment status:', updateError);
+        throw updateError;
+      }
+
+      // Also record the download in cv_downloads table for tracking
+      const { data: download, error: downloadError } = await supabase
+        .from('cv_downloads')
+        .insert({
+          user_email: user.email,
+          template_id: templateId,
+          payment_id: paymentId,
+          downloaded_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (downloadError) {
+        console.error('Error recording download:', downloadError);
+        // Don't throw here as the main payment update was successful
+      }
+
+      console.log('Payment marked as downloaded and download recorded:', { updatedPayment, download });
+      return { updatedPayment, download };
     } catch (error) {
-      console.error('Error marking payment as used:', error);
+      console.error('Error marking payment as downloaded:', error);
       throw error;
     }
   };
@@ -193,25 +373,38 @@ const CentralizedPaymentSystem = ({
     }
 
     try {
-      // Check for approved payment first
+      console.log('CentralizedPaymentSystem - getDownloadButtonText called for template:', templateId);
+      
+      // Check for approved payment that hasn't been used yet
       const approvedPayment = await checkApprovedPayment(templateId);
+      console.log('CentralizedPaymentSystem - checkApprovedPayment result:', approvedPayment);
+      
       if (approvedPayment) {
+        // User has an unused approved payment - can download once
+        console.log('CentralizedPaymentSystem - Returning: Download Now');
         return 'Download Now';
       }
 
       // Check for pending payment
       const pendingPayment = await checkPendingPayment(templateId);
+      console.log('CentralizedPaymentSystem - checkPendingPayment result:', pendingPayment);
+      
       if (pendingPayment) {
+        console.log('CentralizedPaymentSystem - Returning: Payment Submitted (Waiting for Approval)');
         return 'Payment Submitted (Waiting for Approval)';
       }
 
-      // Check for downloaded payment
-      const downloadedPayment = await checkDownloadedPayment(templateId);
-      if (downloadedPayment) {
-        return 'Download PDF (PKR 100) - New Download';
+      // Check for previous downloads to show appropriate message
+      const previousDownload = await checkDownloadedPayment(templateId);
+      console.log('CentralizedPaymentSystem - checkDownloadedPayment result:', previousDownload);
+      
+      if (previousDownload) {
+        console.log('CentralizedPaymentSystem - Returning: Download PDF (PKR 100) - New Payment Required');
+        return 'Download PDF (PKR 100) - New Payment Required';
       }
 
       // No payment found
+      console.log('CentralizedPaymentSystem - Returning: Download PDF (PKR 100)');
       return 'Download PDF (PKR 100)';
     } catch (error) {
       console.error('Error getting download button text:', error);
@@ -295,6 +488,25 @@ const CentralizedPaymentSystem = ({
   return (
     <>
       <div style={{ textAlign: 'center', marginTop: '20px' }}>
+        {debug && (
+          <div style={{
+            backgroundColor: '#f8f9fa',
+            border: '1px solid #dee2e6',
+            borderRadius: '4px',
+            padding: '10px',
+            marginBottom: '10px',
+            fontSize: '12px',
+            textAlign: 'left'
+          }}>
+            <strong>Debug Info:</strong><br/>
+            Button Text: {buttonText}<br/>
+            Loading: {isLoading.toString()}<br/>
+            Admin User: {isAdminUser.toString()}<br/>
+            User Email: {userEmail || 'Not set'}<br/>
+            Template ID: {templateId}
+          </div>
+        )}
+        
         <button
           onClick={handleDownloadClick}
           disabled={isLoading || isDownloading}

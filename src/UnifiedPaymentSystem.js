@@ -16,6 +16,73 @@ const UnifiedPaymentSystem = ({
   const [isDownloading, setIsDownloading] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [userEmail, setUserEmail] = useState(null);
+
+  // Get current user email
+  useEffect(() => {
+    const getCurrentUser = async () => {
+      try {
+        const { data: { user } } = await import('./supabase').then(m => m.default.auth.getUser());
+        if (user?.email) {
+          setUserEmail(user.email);
+        }
+      } catch (error) {
+        console.error('Error getting current user:', error);
+      }
+    };
+    
+    getCurrentUser();
+  }, []);
+
+  // Set up real-time subscription for payment updates
+  useEffect(() => {
+    if (!userEmail || !templateId) return;
+
+    console.log('UnifiedPaymentSystem - Setting up real-time subscription for:', { userEmail, templateId });
+    
+    const handlePaymentUpdate = async (payload) => {
+      console.log('UnifiedPaymentSystem - Real-time update received:', payload);
+      
+      // Update button text immediately when payment status changes
+      try {
+        const newButtonText = await CleanPaymentService.getUserButtonText(templateId);
+        setButtonText(newButtonText);
+        console.log('UnifiedPaymentSystem - Button text updated via real-time:', newButtonText);
+        
+        // Check for pending payment to show banner
+        const pendingPayment = await CleanPaymentService.checkUserPendingPayment(templateId);
+        setHasPendingPayment(!!pendingPayment);
+        
+        // Show notification for status changes
+        if (payload.table === 'payments' && payload.eventType === 'UPDATE') {
+          const newStatus = payload.new.status;
+          const oldStatus = payload.old.status;
+          
+          if (oldStatus === 'pending' && newStatus === 'approved') {
+            toast.success('🎉 Your payment has been approved! You can now download your CV.');
+          } else if (oldStatus === 'pending' && newStatus === 'rejected') {
+            toast.error('❌ Your payment was rejected. Please contact support.');
+          }
+        }
+      } catch (error) {
+        console.error('UnifiedPaymentSystem - Error updating button text from real-time update:', error);
+      }
+    };
+
+    // Subscribe to real-time updates
+    const subscription = CleanPaymentService.subscribeToPaymentUpdates(
+      userEmail, 
+      templateId, 
+      handlePaymentUpdate
+    );
+
+    // Cleanup subscription on unmount
+    return () => {
+      if (subscription) {
+        CleanPaymentService.unsubscribeFromPaymentUpdates(userEmail, templateId);
+      }
+    };
+  }, [userEmail, templateId]);
 
   // Update button text and check payment status
   useEffect(() => {
@@ -32,12 +99,6 @@ const UnifiedPaymentSystem = ({
           setIsAdminUser(isAdmin);
           console.log('UnifiedPaymentSystem - Admin status updated:', isAdmin);
         }
-        
-        // Don't update button text while loading
-        if (isLoading) {
-          setButtonText('Loading...');
-          return;
-        }
 
         if (isAdmin) {
           // Admin user - always free download
@@ -49,6 +110,7 @@ const UnifiedPaymentSystem = ({
         // Regular user - check payment status
         const buttonText = await CleanPaymentService.getUserButtonText(templateId);
         setButtonText(buttonText);
+        console.log('UnifiedPaymentSystem - Button text updated:', buttonText);
         
         // Check for pending payment to show banner
         const pendingPayment = await CleanPaymentService.checkUserPendingPayment(templateId);
@@ -60,32 +122,39 @@ const UnifiedPaymentSystem = ({
       }
     };
 
-    // Initial call with delay to avoid conflicts
-    const initialTimeout = setTimeout(() => {
+    // Initial call immediately if we have user email
+    if (userEmail) {
       console.log('UnifiedPaymentSystem - Initial payment system check for template:', templateId);
       updateButtonText();
-    }, 1000);
+    }
     
-    // Set up periodic refresh every 10 seconds
+    // Set up periodic refresh as fallback (less frequent since we have real-time)
     const interval = setInterval(() => {
-      console.log('UnifiedPaymentSystem - Periodic payment system check for template:', templateId);
-      updateButtonText();
-    }, 10000);
+      if (userEmail) {
+        console.log('UnifiedPaymentSystem - Periodic payment system check for template:', templateId);
+        updateButtonText();
+      }
+    }, 30000); // 30 seconds as fallback
     
     return () => {
-      clearTimeout(initialTimeout);
       clearInterval(interval);
     };
-  }, [isAdminUser, isLoading, templateId]);
+  }, [isAdminUser, userEmail, templateId]);
 
-  // Set loading to false after initial setup
+  // Set loading to false after initial setup and user email is available
   useEffect(() => {
-    const timer = setTimeout(() => {
+    if (userEmail) {
+      // Set loading to false immediately when we have user email
       setIsLoading(false);
-    }, 1500);
-    
-    return () => clearTimeout(timer);
-  }, []);
+    } else {
+      // Set loading to false after a short delay if no user email
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+      }, 2000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [userEmail]);
 
   const handleDownloadClick = async () => {
     console.log('UnifiedPaymentSystem - Download button clicked for template:', templateId);

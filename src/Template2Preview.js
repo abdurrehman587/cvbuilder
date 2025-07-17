@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Template2PDF from './Template2PDF';
 
+
 const sectionList = [
   { key: 'objective', title: 'Objective' },
   { key: 'education', title: 'Education' },
@@ -157,6 +158,8 @@ const Template2Preview = ({ formData }) => {
           }
         `}
       </style>
+
+      
       <div className="template-container" style={{ width: '210mm', marginBottom: '20px' }}>
         <div
           className="template-controls"

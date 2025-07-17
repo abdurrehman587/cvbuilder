@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Template3PDF from './Template3PDF';
 
+
 const sectionList = [
   { key: 'objective', title: 'Objective' },
   { key: 'education', title: 'Education' },
@@ -137,6 +138,8 @@ const Template3Preview = ({ formData, formHeight }) => {
           }
         `}
       </style>
+
+      
       <div className="template-container" style={{ width: '210mm', marginBottom: '20px' }}>
         <div
           className="template-controls"

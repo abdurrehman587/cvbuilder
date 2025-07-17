@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import PropTypes from 'prop-types';
+import CentralizedPaymentSystem from './CentralizedPaymentSystem';
 
 const europassLogoUrl = '/europass_logo.png'; // Use local logo from public folder
 
@@ -48,6 +49,40 @@ const Template5PDF = ({ formData, visibleSections = [] }) => {
   } = formData;
   const dateOfBirth = getDateOfBirth(formData);
 
+  const generatePDF = async () => {
+    if (!containerRef.current) {
+      alert('Preview content is not available for PDF generation');
+      return;
+    }
+
+    try {
+      const html2pdf = await import('html2pdf.js');
+      const html2pdfInstance = html2pdf.default;
+
+      await html2pdfInstance()
+        .set({
+          margin: 10,
+          filename: `${formData.name || 'CV'}_template5.pdf`,
+          image: { type: 'png', quality: 0.98 },
+          html2canvas: {
+            scale: 3,
+            useCORS: true,
+            letterRendering: 1,
+            backgroundColor: null,
+            scrollY: 0,
+          },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+          pagebreak: { mode: ['css', 'legacy'] },
+        })
+        .from(containerRef.current)
+        .save();
+      
+    } catch (error) {
+      console.error('PDF generation failed:', error);
+      alert('Failed to generate PDF. Please try again.');
+    }
+  };
+
   const renderCustomSections = (customSections) => {
     console.log('Template5PDF - renderCustomSections called with:', customSections);
     
@@ -92,7 +127,8 @@ const Template5PDF = ({ formData, visibleSections = [] }) => {
   };
 
   return (
-    <div ref={containerRef} style={{ fontFamily: 'Arial, sans-serif', background: '#fff', color: '#222', padding: '16px 32px 32px 32px', maxWidth: 900, margin: '0 auto' }}>
+    <>
+      <div ref={containerRef} style={{ fontFamily: 'Arial, sans-serif', background: '#fff', color: '#222', padding: '16px 32px 32px 32px', maxWidth: 900, margin: '0 auto' }}>
       {/* Header */}
       <div style={{ position: 'relative', borderBottom: '2px solid #bbb', paddingBottom: 16, marginBottom: 24, minHeight: 120 }}>
         <img src={europassLogoUrl} alt="Europass Logo" style={{ position: 'absolute', top: -45, right: -30, width: 320, height: 'auto', zIndex: 2 }} />
@@ -223,6 +259,14 @@ const Template5PDF = ({ formData, visibleSections = [] }) => {
         )}
       </div>
     </div>
+    
+    {/* Centralized Payment and Download System */}
+    <CentralizedPaymentSystem
+      templateId="template5"
+      templateName="Template 5"
+      onDownload={generatePDF}
+    />
+  </>
   );
 };
 
