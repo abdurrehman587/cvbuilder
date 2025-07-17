@@ -73,7 +73,7 @@ export class PaymentService {
         .from('payments')
         .insert(paymentRecord)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('PaymentService - Error submitting payment:', error);
@@ -278,7 +278,7 @@ export class PaymentService {
           payment_id: paymentId
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (downloadError) {
         console.error('Error recording download:', downloadError);
@@ -457,7 +457,7 @@ export class PaymentService {
         .update({ status })
         .eq('id', paymentId)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error updating payment status:', error);

@@ -797,3 +797,35 @@ img {
     outline-offset: 2px !important;
   }
 } 
+
+/* Mobile Template Grid Responsiveness */
+@media (max-width: 768px) {
+  .mobile-template-grid {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+    padding: 0 15px !important;
+  }
+  
+  .mobile-template-card {
+    min-height: 600px !important;
+  }
+  
+  .mobile-template-image {
+    height: 500px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .mobile-template-grid {
+    gap: 16px !important;
+    padding: 0 10px !important;
+  }
+  
+  .mobile-template-card {
+    min-height: 550px !important;
+  }
+  
+  .mobile-template-image {
+    height: 450px !important;
+  }
+} 

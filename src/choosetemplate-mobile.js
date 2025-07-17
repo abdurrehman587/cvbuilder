@@ -150,16 +150,18 @@ const ChooseTemplateMobile = ({ user }) => {
         </p>
       </div>
 
-      <div style={{
+      <div className="mobile-template-grid" style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-        gap: '20px',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+        gap: '24px',
         maxWidth: '1200px',
-        margin: '0 auto'
+        margin: '0 auto',
+        padding: '0 10px'
       }}>
         {templates.map((template) => (
           <div
             key={template.id}
+            className="mobile-template-card"
             onClick={() => handleTemplateSelect(template)}
             style={{
               background: 'white',
@@ -181,9 +183,9 @@ const ChooseTemplateMobile = ({ user }) => {
               e.currentTarget.style.borderColor = 'transparent';
             }}
           >
-            <div style={{
+            <div className="mobile-template-image" style={{
               width: '100%',
-              height: '200px',
+              height: '500px',
               background: '#e5e7eb',
               borderRadius: '8px',
               marginBottom: '15px',
@@ -234,14 +236,6 @@ const ChooseTemplateMobile = ({ user }) => {
             }}>
               {template.name}
             </h3>
-            <p style={{
-              fontSize: '14px',
-              color: '#6b7280',
-              margin: 0,
-              textAlign: 'center'
-            }}>
-              Professional and clean design
-            </p>
           </div>
         ))}
       </div>

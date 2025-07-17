@@ -74,7 +74,7 @@ const CentralizedPaymentSystem = ({
       }
     };
 
-    // Subscribe to real-time updates
+    // Subscribe to real-time updates with error handling
     const newSubscription = supabase
       .channel(`payment-updates-${userEmail}-${templateId}`)
       .on(
@@ -97,7 +97,24 @@ const CentralizedPaymentSystem = ({
         },
         handlePaymentUpdate
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('CentralizedPaymentSystem - Subscription status:', status);
+        if (status === 'CHANNEL_ERROR') {
+          console.warn('CentralizedPaymentSystem - WebSocket connection failed, falling back to polling');
+          // Fallback to polling every 30 seconds
+          const pollInterval = setInterval(async () => {
+            try {
+              const newButtonText = await getDownloadButtonText(templateId, isAdminUser);
+              setButtonText(newButtonText);
+            } catch (error) {
+              console.error('CentralizedPaymentSystem - Polling error:', error);
+            }
+          }, 30000);
+          
+          // Clean up polling on unmount
+          return () => clearInterval(pollInterval);
+        }
+      });
 
     setSubscription(newSubscription);
 
@@ -202,20 +219,40 @@ const CentralizedPaymentSystem = ({
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       if (!user?.email) return null;
 
-      const { data, error } = await supabase
-        .from('payments')
-        .select('*')
-        .eq('user_email', user.email)
-        .eq('template_id', templateId)
-        .eq('status', 'pending')
-        .single();
+      // Retry mechanism for 406 errors
+      let retries = 3;
+      while (retries > 0) {
+        try {
+          const { data, error } = await supabase
+            .from('payments')
+            .select('*')
+            .eq('user_email', user.email)
+            .eq('template_id', templateId)
+            .eq('status', 'pending')
+            .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error checking pending payment:', error);
-        return null;
+          if (error && error.code !== 'PGRST116') {
+            if (error.code === '406' && retries > 1) {
+              console.warn(`CentralizedPaymentSystem - 406 error, retrying... (${retries} attempts left)`);
+              retries--;
+              await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+              continue;
+            }
+            console.error('Error checking pending payment:', error);
+            return null;
+          }
+
+          return data;
+        } catch (retryError) {
+          if (retries > 1) {
+            console.warn(`CentralizedPaymentSystem - Query error, retrying... (${retries} attempts left)`, retryError);
+            retries--;
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            continue;
+          }
+          throw retryError;
+        }
       }
-
-      return data;
     } catch (error) {
       console.error('Error checking pending payment:', error);
       return null;
@@ -227,47 +264,67 @@ const CentralizedPaymentSystem = ({
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       if (!user?.email) return null;
 
-      // Check for approved payment that hasn't been used yet
-      // Since is_used column doesn't exist, we'll use cv_downloads table to check if payment was used
-      const { data, error } = await supabase
-        .from('payments')
-        .select('*')
-        .eq('user_email', user.email)
-        .eq('template_id', templateId)
-        .eq('status', 'approved')
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
+      // Retry mechanism for 406 errors
+      let retries = 3;
+      while (retries > 0) {
+        try {
+          // Check for approved payment that hasn't been used yet
+          // Since is_used column doesn't exist, we'll use cv_downloads table to check if payment was used
+          const { data, error } = await supabase
+            .from('payments')
+            .select('*')
+            .eq('user_email', user.email)
+            .eq('template_id', templateId)
+            .eq('status', 'approved')
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error checking approved payment:', error);
-        return null;
+          if (error && error.code !== 'PGRST116') {
+            if (error.code === '406' && retries > 1) {
+              console.warn(`CentralizedPaymentSystem - 406 error, retrying... (${retries} attempts left)`);
+              retries--;
+              await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+              continue;
+            }
+            console.error('Error checking approved payment:', error);
+            return null;
+          }
+
+          if (!data) {
+            return null;
+          }
+
+          // Check if this payment has been used by looking in cv_downloads table
+          const { data: downloads, error: downloadError } = await supabase
+            .from('cv_downloads')
+            .select('*')
+            .eq('payment_id', data.id);
+
+          if (downloadError) {
+            console.error('Error checking downloads:', downloadError);
+            return null;
+          }
+
+          // If no downloads found for this payment, it's unused
+          if (!downloads || downloads.length === 0) {
+            console.log('CentralizedPaymentSystem - checkApprovedPayment result:', data);
+            return data;
+          }
+
+          // Payment has been used, return null
+          console.log('CentralizedPaymentSystem - Payment has been used, returning null');
+          return null;
+        } catch (retryError) {
+          if (retries > 1) {
+            console.warn(`CentralizedPaymentSystem - Query error, retrying... (${retries} attempts left)`, retryError);
+            retries--;
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            continue;
+          }
+          throw retryError;
+        }
       }
-
-      if (!data) {
-        return null;
-      }
-
-      // Check if this payment has been used by looking in cv_downloads table
-      const { data: downloads, error: downloadError } = await supabase
-        .from('cv_downloads')
-        .select('*')
-        .eq('payment_id', data.id);
-
-      if (downloadError) {
-        console.error('Error checking downloads:', downloadError);
-        return null;
-      }
-
-      // If no downloads found for this payment, it's unused
-      if (!downloads || downloads.length === 0) {
-        console.log('CentralizedPaymentSystem - checkApprovedPayment result:', data);
-        return data;
-      }
-
-      // Payment has been used, return null
-      console.log('CentralizedPaymentSystem - Payment has been used, returning null');
-      return null;
     } catch (error) {
       console.error('Error checking approved payment:', error);
       return null;
@@ -335,7 +392,7 @@ const CentralizedPaymentSystem = ({
         .update({ status: 'downloaded' })
         .eq('id', paymentId)
         .select()
-        .single();
+        .maybeSingle();
 
       if (updateError) {
         console.error('Error updating payment status:', updateError);
@@ -352,7 +409,7 @@ const CentralizedPaymentSystem = ({
           downloaded_at: new Date().toISOString()
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (downloadError) {
         console.error('Error recording download:', downloadError);

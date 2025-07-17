@@ -7,9 +7,7 @@ import Template4Preview from './Template4Preview';
 import Template5Preview from './Template5Preview';
 import Template6Preview from './Template6Preview';
 import Template7Preview from './Template7Preview';
-import Template8Preview from './Template8Preview';
-import Template9Preview from './Template9Preview';
-import Template10Preview from './Template10Preview';
+
 
 
 const ChooseTemplate = ({ user, initialCV, newAdminCV }) => {
@@ -57,7 +55,7 @@ const ChooseTemplate = ({ user, initialCV, newAdminCV }) => {
 
 
 
-  const templates = Array.from({ length: 10 }, (_, i) => ({
+  const templates = Array.from({ length: 7 }, (_, i) => ({
     name: `Template ${i + 1}`,
     imageUrl: `/templates/template${i + 1}.jpg`,
   }));
@@ -70,9 +68,6 @@ const ChooseTemplate = ({ user, initialCV, newAdminCV }) => {
     'Template 5': Template5Preview,
     'Template 6': Template6Preview,
     'Template 7': Template7Preview,
-    'Template 8': Template8Preview,
-    'Template 9': Template9Preview,
-    'Template 10': Template10Preview,
   };
 
 
@@ -772,7 +767,33 @@ const ChooseTemplate = ({ user, initialCV, newAdminCV }) => {
                         objectFit: 'cover', 
                         padding: '0',
                       }}
+                      onError={(e) => {
+                        console.log(`Template image failed to load: ${template.imageUrl}`);
+                        e.target.style.display = 'none';
+                        // Show a placeholder instead
+                        const placeholder = e.target.nextSibling;
+                        if (placeholder) {
+                          placeholder.style.display = 'flex';
+                        }
+                      }}
                     />
+                    <div
+                      style={{
+                        display: 'none',
+                        width: '100%',
+                        height: '100%',
+                        backgroundColor: '#f1f5f9',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        flexDirection: 'column',
+                        color: '#64748b',
+                        fontSize: '16px',
+                        fontWeight: '500',
+                      }}
+                    >
+                      <div style={{ fontSize: '24px', marginBottom: '8px' }}>📄</div>
+                      {template.name}
+                    </div>
                     
                     {/* Overlay with Template Name and Button */}
                     <div
