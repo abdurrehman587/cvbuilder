@@ -1,5 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import Form from "./Form";
+import Template1Preview from "./Template1Preview";
+import Template2Preview from "./Template2Preview";
+import Template3Preview from "./Template3Preview";
+import Template4Preview from "./Template4Preview";
+import Template5Preview from "./Template5Preview";
+import Template6Preview from "./Template6Preview";
+import Template7Preview from "./Template7Preview";
 import supabase from "./supabase";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -56,6 +63,16 @@ const ChooseTemplateMobile = ({ user }) => {
     { id: 7, name: "Template 7", image: "/templates/template7.jpg" },
   ];
 
+  const TemplateComponentsMap = {
+    'Template 1': Template1Preview,
+    'Template 2': Template2Preview,
+    'Template 3': Template3Preview,
+    'Template 4': Template4Preview,
+    'Template 5': Template5Preview,
+    'Template 6': Template6Preview,
+    'Template 7': Template7Preview,
+  };
+
   const handleTemplateSelect = (template) => {
     setSelectedTemplate(template);
     setShowForm(true);
@@ -75,6 +92,8 @@ const ChooseTemplateMobile = ({ user }) => {
   };
 
   if (showForm) {
+    const PreviewComponent = TemplateComponentsMap[selectedTemplate.name];
+    
     return (
       <div style={{ 
         minHeight: '100vh', 
@@ -96,14 +115,24 @@ const ChooseTemplateMobile = ({ user }) => {
         >
           ← Back to Templates
         </button>
+        
+        {/* Form Section */}
         <div style={{
           background: 'white',
           borderRadius: '12px',
           padding: '20px',
           boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-          height: 'calc(100vh - 120px)',
-          overflowY: 'auto',
+          marginBottom: '20px',
         }}>
+          <h2 style={{
+            fontSize: '20px',
+            fontWeight: '600',
+            color: '#1f2937',
+            marginBottom: '15px',
+            textAlign: 'center'
+          }}>
+            Fill Your CV Details
+          </h2>
           <Form 
             key={initialCV ? `cv-${initialCV.id}` : 'new-cv'}
             ref={formRef}
@@ -118,6 +147,50 @@ const ChooseTemplateMobile = ({ user }) => {
             newAdminCV={newAdminCV}
             initialCV={initialCV}
           />
+        </div>
+
+        {/* Preview Section */}
+        <div style={{
+          background: 'white',
+          borderRadius: '12px',
+          padding: '20px',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          marginBottom: '20px',
+        }}>
+          <h2 style={{
+            fontSize: '20px',
+            fontWeight: '600',
+            color: '#1f2937',
+            marginBottom: '15px',
+            textAlign: 'center'
+          }}>
+            {selectedTemplate.name} Preview
+          </h2>
+          {PreviewComponent && formData ? (
+            <div style={{
+              border: '1px solid #e5e7eb',
+              borderRadius: '8px',
+              overflow: 'hidden',
+              background: '#f9fafb'
+            }}>
+              <PreviewComponent formData={formData} />
+            </div>
+          ) : (
+            <div style={{
+              height: '400px',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              color: '#6b7280',
+              fontSize: '16px',
+              fontStyle: 'italic',
+              background: '#f9fafb',
+              borderRadius: '8px',
+              border: '1px solid #e5e7eb'
+            }}>
+              Fill out the form above to see a live preview
+            </div>
+          )}
         </div>
       </div>
     );
