@@ -202,18 +202,128 @@ const ChooseTemplateMobile = ({ user }) => {
       background: '#f5f6fa',
       padding: '20px'
     }}>
+      {/* Landing Section */}
+      <div style={{
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        borderRadius: '16px',
+        padding: '30px 20px',
+        marginBottom: '30px',
+        color: 'white',
+        textAlign: 'center',
+        boxShadow: '0 10px 25px rgba(102, 126, 234, 0.3)'
+      }}>
+        <h1 style={{
+          fontSize: '32px',
+          fontWeight: 'bold',
+          marginBottom: '8px',
+          textShadow: '0 2px 4px rgba(0,0,0,0.1)'
+        }}>
+          Make CV by Yourself
+        </h1>
+        <p style={{
+          fontSize: '18px',
+          marginBottom: '20px',
+          opacity: 0.9
+        }}>
+          📝 Fill the form and<br />
+          Get Your CV Ready
+        </p>
+        
+        {/* Features Grid */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(2, 1fr)',
+          gap: '12px',
+          marginTop: '25px'
+        }}>
+          <div style={{
+            background: 'rgba(255,255,255,0.1)',
+            padding: '12px 8px',
+            borderRadius: '8px',
+            fontSize: '14px',
+            fontWeight: '500'
+          }}>
+            ✓ Simple step-by-step process
+          </div>
+          <div style={{
+            background: 'rgba(255,255,255,0.1)',
+            padding: '12px 8px',
+            borderRadius: '8px',
+            fontSize: '14px',
+            fontWeight: '500'
+          }}>
+            ✓ Live results
+          </div>
+          <div style={{
+            background: 'rgba(255,255,255,0.1)',
+            padding: '12px 8px',
+            borderRadius: '8px',
+            fontSize: '14px',
+            fontWeight: '500'
+          }}>
+            ✓ High Quality PDF
+          </div>
+          <div style={{
+            background: 'rgba(255,255,255,0.1)',
+            padding: '12px 8px',
+            borderRadius: '8px',
+            fontSize: '14px',
+            fontWeight: '500'
+          }}>
+            ✓ Auto Save
+          </div>
+          <div style={{
+            background: 'rgba(255,255,255,0.1)',
+            padding: '12px 8px',
+            borderRadius: '8px',
+            fontSize: '14px',
+            fontWeight: '500'
+          }}>
+            ✓ No complex editing
+          </div>
+          <div style={{
+            background: 'rgba(255,255,255,0.1)',
+            padding: '12px 8px',
+            borderRadius: '8px',
+            fontSize: '14px',
+            fontWeight: '500'
+          }}>
+            ✓ 10+ Professional templates
+          </div>
+          <div style={{
+            background: 'rgba(255,255,255,0.1)',
+            padding: '12px 8px',
+            borderRadius: '8px',
+            fontSize: '14px',
+            fontWeight: '500'
+          }}>
+            ✓ Mobile Friendly
+          </div>
+          <div style={{
+            background: 'rgba(255,255,255,0.1)',
+            padding: '12px 8px',
+            borderRadius: '8px',
+            fontSize: '14px',
+            fontWeight: '500'
+          }}>
+            ✓ Trusted by thousands
+          </div>
+        </div>
+      </div>
+
+      {/* Template Selection Section */}
       <div style={{
         textAlign: 'center',
         marginBottom: '30px'
       }}>
-        <h1 style={{
-          fontSize: '28px',
+        <h2 style={{
+          fontSize: '24px',
           fontWeight: 'bold',
           color: '#1f2937',
           marginBottom: '10px'
         }}>
           Choose Your CV Template
-        </h1>
+        </h2>
         <p style={{
           fontSize: '16px',
           color: '#6b7280',
