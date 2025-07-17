@@ -1382,36 +1382,65 @@ const LanguagesSection = ({
 }) => (
   <div style={{ marginBottom: '1.5rem' }}>
     <h3 style={{ fontWeight: 700, fontSize: '1.25rem', marginBottom: 8, color: '#374151' }}>Languages</h3>
+    
+    {/* Fixed Languages */}
     <div className="languages-list">
       {(fixedLanguages || []).map(language => (
-        <label key={language}>
+        <label key={language} className="language-checkbox-label">
           <input
             type="checkbox"
             checked={languages.includes(language)}
             onChange={() => onLanguageChange(language)}
+            className="language-checkbox"
           />
-          {language}
+          <span className="language-text">{language}</span>
         </label>
       ))}
     </div>
-    {(customLanguages || []).length > 0 && (customLanguages || []).map((lang, idx) => (
-      <div key={idx} className="custom-language-entry">
-        <input
-          type="checkbox"
-          checked={lang.selected}
-          onChange={() => onCustomLanguageCheckboxChange(idx)}
-        />
-        <input
-          type="text"
-          value={lang.name}
-          onChange={(e) => onCustomLanguageChange(idx, e.target.value)}
-          placeholder="Add language"
-        />
-        <button onClick={() => onRemoveCustomLanguage(idx)} type="button" className="remove-btn" title="Remove language">
-          Remove
-        </button>
+    
+    {/* Custom Languages */}
+    {(customLanguages || []).length > 0 && (
+      <div className="custom-languages-container">
+        <h4 style={{ 
+          fontSize: '1rem', 
+          fontWeight: '600', 
+          marginBottom: '12px', 
+          color: '#4b5563',
+          marginTop: '16px'
+        }}>
+          Custom Languages
+        </h4>
+        {(customLanguages || []).map((lang, idx) => (
+          <div key={idx} className="custom-language-entry">
+            <div className="custom-language-checkbox-container">
+              <input
+                type="checkbox"
+                checked={lang.selected}
+                onChange={() => onCustomLanguageCheckboxChange(idx)}
+                className="language-checkbox"
+              />
+              <span className="language-text">Selected</span>
+            </div>
+            <input
+              type="text"
+              value={lang.name}
+              onChange={(e) => onCustomLanguageChange(idx, e.target.value)}
+              placeholder="Add language"
+              className="custom-language-input"
+            />
+            <button 
+              onClick={() => onRemoveCustomLanguage(idx)} 
+              type="button" 
+              className="remove-btn custom-language-remove-btn" 
+              title="Remove language"
+            >
+              Remove
+            </button>
+          </div>
+        ))}
       </div>
-    ))}
+    )}
+    
     <button onClick={onAddCustomLanguage} type="button" className="add-btn">
       Add Language
     </button>

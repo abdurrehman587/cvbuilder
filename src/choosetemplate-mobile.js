@@ -191,9 +191,39 @@ const ChooseTemplateMobile = ({ user }) => {
               alignItems: 'center',
               justifyContent: 'center',
               fontSize: '18px',
-              color: '#6b7280'
+              color: '#6b7280',
+              overflow: 'hidden',
+              position: 'relative'
             }}>
-              {template.name} Preview
+              <img
+                src={template.image}
+                alt={`${template.name} Preview`}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  borderRadius: '8px'
+                }}
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'flex';
+                }}
+              />
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                display: 'none',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '18px',
+                color: '#6b7280',
+                background: '#e5e7eb'
+              }}>
+                {template.name} Preview
+              </div>
             </div>
             <h3 style={{
               fontSize: '18px',

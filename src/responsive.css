@@ -694,8 +694,10 @@ img {
 /* Languages Section Responsiveness */
 @media (max-width: 768px) {
   .languages-list {
-    flex-direction: column !important;
-    gap: 8px !important;
+    flex-direction: row !important;
+    gap: 6px !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
   }
   
   .custom-language-entry {
