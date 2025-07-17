@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import supabase from './supabase';
 import SignupSignIn from './SignupSignIn';
 import ChooseTemplate from './choosetemplate';
+import ChooseTemplateMobile from './choosetemplate-mobile';
+import useIsMobile from './useIsMobile';
 import DatabaseSetupCheck from './DatabaseSetupCheck';
 import PrintCV from './PrintCV';
 import APITest from './APITest';
@@ -96,6 +98,7 @@ const App = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     console.log('App component mounted');
@@ -524,7 +527,12 @@ const App = () => {
         <span className="mobile-hidden">Sign Out</span>
       </button>
 
-              <ChooseTemplate user={user} />
+      {/* Render appropriate template selection based on device type */}
+      {isMobile ? (
+        <ChooseTemplateMobile user={user} />
+      ) : (
+        <ChooseTemplate user={user} />
+      )}
     </div>
   );
 };
