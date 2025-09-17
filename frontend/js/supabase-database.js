@@ -117,10 +117,14 @@ class SupabaseDatabaseManager {
             if (userRole === 'shopkeeper') {
                 // Get dynamic table name from user data
                 const users = JSON.parse(localStorage.getItem('cvBuilder_users') || '[]');
+                console.log('All users in localStorage:', users);
                 const user = users.find(u => u.id === userId);
+                console.log('Found user for ID', userId, ':', user);
                 tableName = user?.tableName;
+                console.log('Table name from user data:', tableName);
                 
                 if (!tableName) {
+                    console.error('Shopkeeper table not found for user:', user);
                     throw new Error('Shopkeeper table not found. Please contact support.');
                 }
             } else if (userRole === 'user') {
@@ -321,7 +325,13 @@ class SupabaseDatabaseManager {
             return data[0];
         } catch (error) {
             console.error('Error in saveCV:', error);
-            return null;
+            console.error('Error details:', {
+                message: error.message,
+                code: error.code,
+                details: error.details,
+                hint: error.hint
+            });
+            throw error; // Re-throw to get more details
         }
     }
 
