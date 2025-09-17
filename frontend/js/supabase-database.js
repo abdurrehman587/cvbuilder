@@ -115,42 +115,9 @@ class SupabaseDatabaseManager {
             // Determine which table to use based on user role
             let tableName;
             if (userRole === 'shopkeeper') {
-                // Get dynamic table name from user data
-                const users = JSON.parse(localStorage.getItem('cvBuilder_users') || '[]');
-                console.log('All users in localStorage:', users);
-                const user = users.find(u => u.id === userId);
-                console.log('Found user for ID', userId, ':', user);
-                console.log('User object keys:', Object.keys(user));
-                console.log('User tableName property:', user?.tableName);
-                console.log('User shopName property:', user?.shopName);
-                tableName = user?.tableName;
-                console.log('Table name from user data:', tableName);
-                
-                if (!tableName) {
-                    // Fallback: generate table name from shop name
-                    const shopName = user?.shopName;
-                    if (shopName) {
-                        tableName = shopName.toLowerCase().replace(/[^a-z0-9]/g, '_') + '_cvs';
-                        console.log('Generated table name from shop name:', tableName);
-                        // Update user object with the generated table name
-                        user.tableName = tableName;
-                        const updatedUsers = users.map(u => u.id === userId ? user : u);
-                        localStorage.setItem('cvBuilder_users', JSON.stringify(updatedUsers));
-                        console.log('Updated user object with table name');
-                        
-                        // Create the table if it doesn't exist
-                        console.log('Attempting to create table:', tableName);
-                        const createResult = await this.createShopkeeperTable(tableName, shopName);
-                        if (!createResult.success) {
-                            console.error('Failed to create table:', createResult.error);
-                            throw new Error(`Failed to create shopkeeper table: ${createResult.error}`);
-                        }
-                        console.log('Table creation completed successfully');
-                    } else {
-                        console.error('Shopkeeper table not found for user:', user);
-                        throw new Error('Shopkeeper table not found. Please contact support.');
-                    }
-                }
+                // Use the existing shopkeeper_cvs table for all shopkeepers
+                tableName = 'shopkeeper_cvs';
+                console.log('Using shopkeeper_cvs table for shopkeeper CVs');
             } else if (userRole === 'user') {
                 tableName = this.userTableName;
             } else {
@@ -159,36 +126,21 @@ class SupabaseDatabaseManager {
             
             console.log('Selected table:', tableName);
             
-            // Verify table exists for shopkeepers
-            if (userRole === 'shopkeeper') {
-                const tableExists = await this.verifyTableExists(tableName);
-                if (!tableExists) {
-                    console.error(`Table ${tableName} does not exist, attempting to create it...`);
-                    // Get user data to get shop name
-                    const users = JSON.parse(localStorage.getItem('cvBuilder_users') || '[]');
-                    const currentUser = users.find(u => u.id === userId);
-                    const shopName = currentUser?.shopName || 'Unknown Shop';
-                    console.log('Creating table with shop name:', shopName);
-                    const createResult = await this.createShopkeeperTable(tableName, shopName);
-                    if (!createResult.success) {
-                        console.error(`Failed to create table ${tableName}: ${createResult.error}`);
-                        console.log('Falling back to localStorage for CV storage');
-                        // Continue with localStorage fallback instead of throwing error
-                    } else if (createResult.fallback) {
-                        console.log('Using localStorage fallback for table:', tableName);
-                    }
-                }
-            }
-            
             // Map to the appropriate table structure
             const fullName = cvData.personalInfo?.fullName || cvData.name || 'Untitled CV';
             
             // Create record based on table type
             let cvRecord;
             if (userRole === 'shopkeeper') {
-                // For dynamic shopkeeper table
+                // Get shop name from user data
+                const users = JSON.parse(localStorage.getItem('cvBuilder_users') || '[]');
+                const user = users.find(u => u.id === userId);
+                const shopName = user?.shopName || 'Unknown Shop';
+                
+                // For shopkeeper_cvs table
                 cvRecord = {
                     shopkeeper_id: userId,
+                    shop_name: shopName,
                     cv_name: fullName,
                     name: fullName,
                     email: cvData.personalInfo?.email || cvData.email || '',
@@ -287,15 +239,6 @@ class SupabaseDatabaseManager {
             }
 
             console.log('Attempting to insert CV record:', cvRecord);
-            
-            // For shopkeepers, check if we should use localStorage fallback
-            if (userRole === 'shopkeeper') {
-                const tableExists = await this.verifyTableExists(tableName);
-                if (!tableExists) {
-                    console.log('Table does not exist in Supabase, using localStorage fallback');
-                    return await this.saveCVToLocalStorage(cvRecord, userId, userRole);
-                }
-            }
             
             // First, let's test if the table exists by trying to select from it
             console.log('Testing table access for:', tableName);
@@ -639,16 +582,14 @@ class SupabaseDatabaseManager {
         try {
             console.log(`Creating shopkeeper table: ${tableName} for shop: ${shopName}`);
             
-            // Since exec_sql is not available, we'll use a different approach
-            // We'll try to insert a test record to see if the table exists
-            // If it fails, we'll fall back to localStorage
-            
-            console.log('exec_sql not available, falling back to localStorage approach');
-            return await this.createShopkeeperTableFallback(tableName, shopName);
+            // Since exec_sql is not available, we'll use the existing shopkeeper_cvs table
+            // and add a shop_name column to distinguish between different shops
+            console.log('Using existing shopkeeper_cvs table with shop_name filtering');
+            return { success: true, tableName: 'shopkeeper_cvs', fallback: false };
             
         } catch (error) {
             console.error('Error in createShopkeeperTable:', error);
-            return await this.createShopkeeperTableFallback(tableName, shopName);
+            return { success: false, error: error.message };
         }
     }
     
@@ -741,15 +682,9 @@ class SupabaseDatabaseManager {
             // Determine which table to use based on user role
             let tableName;
             if (userRole === 'shopkeeper') {
-                // Get dynamic table name from user data
-                const users = JSON.parse(localStorage.getItem('cvBuilder_users') || '[]');
-                const user = users.find(u => u.id === userId);
-                tableName = user?.tableName;
-                
-                if (!tableName) {
-                    throw new Error('Shopkeeper table not found. Please contact support.');
-                }
-                console.log('Using table for shopkeeper:', tableName, 'User table name:', user?.tableName);
+                // Use the existing shopkeeper_cvs table
+                tableName = 'shopkeeper_cvs';
+                console.log('Using shopkeeper_cvs table for shopkeeper CVs');
             } else if (userRole === 'user') {
                 tableName = this.userTableName;
             } else {
