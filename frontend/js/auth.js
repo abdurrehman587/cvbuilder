@@ -263,16 +263,32 @@ class AuthSystem {
                 if (this.config.features?.emailConfirmation && user.requiresEmailConfirmation) {
                     this.showMessage('Account created successfully! Please check your email and click the confirmation link to activate your account.', 'success');
                     this.showEmailConfirmationMessage(email);
+                    
+                    // For shopkeepers with email confirmation, also show toaster and switch to login
+                    if (type === 'shopkeeper') {
+                        setTimeout(() => {
+                            this.showToaster('Account created! Please check your email and then sign in.', 'success');
+                            this.switchToLogin('shopkeeper');
+                        }, 3000);
+                    }
                 } else {
-                    this.showMessage('Account created successfully! Redirecting...', 'success');
-                    this.showRedirectOverlay();
-                    setTimeout(() => {
-                        if (type === 'shopkeeper') {
-                            window.location.href = 'shopkeeper-dashboard.html';
-                        } else {
+                    // Show success message with toaster
+                    this.showToaster('Account created successfully!', 'success');
+                    
+                    // For shopkeepers, redirect to sign-in page after a delay
+                    if (type === 'shopkeeper') {
+                        setTimeout(() => {
+                            this.showMessage('Please sign in with your new account credentials.', 'info');
+                            // Switch to login form
+                            this.switchToLogin('shopkeeper');
+                        }, 2000);
+                    } else {
+                        // For regular users, redirect to main page
+                        this.showRedirectOverlay();
+                        setTimeout(() => {
                             window.location.href = 'index.html';
-                        }
-                    }, 1500);
+                        }, 1500);
+                    }
                 }
             } else {
                 this.showMessage('Failed to create account. Please try again.', 'error');
@@ -635,6 +651,114 @@ class AuthSystem {
         if (activeForm) {
             activeForm.insertBefore(messageDiv, activeForm.firstChild);
         }
+    }
+
+    showToaster(message, type = 'success') {
+        // Remove any existing toasters
+        const existingToasters = document.querySelectorAll('.toaster');
+        existingToasters.forEach(toaster => toaster.remove());
+        
+        const toaster = document.createElement('div');
+        toaster.className = `toaster toaster-${type}`;
+        toaster.innerHTML = `
+            <div class="toaster-content">
+                <span class="toaster-icon">${type === 'success' ? '✅' : '❌'}</span>
+                <span class="toaster-message">${message}</span>
+                <button class="toaster-close" onclick="this.parentElement.parentElement.remove()">×</button>
+            </div>
+        `;
+        
+        // Add toaster styles
+        toaster.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${type === 'success' ? '#28a745' : '#dc3545'};
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 10000;
+            max-width: 400px;
+            animation: slideInRight 0.3s ease-out;
+        `;
+        
+        // Add animation keyframes
+        if (!document.querySelector('#toaster-styles')) {
+            const style = document.createElement('style');
+            style.id = 'toaster-styles';
+            style.textContent = `
+                @keyframes slideInRight {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+                .toaster-content {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                }
+                .toaster-icon {
+                    font-size: 18px;
+                }
+                .toaster-message {
+                    flex: 1;
+                    font-weight: 500;
+                }
+                .toaster-close {
+                    background: none;
+                    border: none;
+                    color: white;
+                    font-size: 20px;
+                    cursor: pointer;
+                    padding: 0;
+                    width: 24px;
+                    height: 24px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 50%;
+                    transition: background-color 0.2s;
+                }
+                .toaster-close:hover {
+                    background-color: rgba(255, 255, 255, 0.2);
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        document.body.appendChild(toaster);
+        
+        // Auto-remove after 4 seconds
+        setTimeout(() => {
+            if (toaster.parentElement) {
+                toaster.style.animation = 'slideInRight 0.3s ease-out reverse';
+                setTimeout(() => toaster.remove(), 300);
+            }
+        }, 4000);
+    }
+
+    switchToLogin(type) {
+        // Hide all forms
+        const allForms = document.querySelectorAll('.login-form');
+        allForms.forEach(form => form.style.display = 'none');
+        
+        // Show the specific login form
+        const loginForm = document.getElementById(`${type}LoginForm`);
+        if (loginForm) {
+            loginForm.style.display = 'block';
+        }
+        
+        // Update the active tab
+        const allTabs = document.querySelectorAll('.auth-tab');
+        allTabs.forEach(tab => tab.classList.remove('active'));
+        
+        const activeTab = document.querySelector(`[data-tab="${type}"]`);
+        if (activeTab) {
+            activeTab.classList.add('active');
+        }
+        
+        // Clear any existing messages
+        this.clearMessages();
     }
 
     clearMessages() {
