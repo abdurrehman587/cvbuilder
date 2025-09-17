@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopkeeper Dashboard - CV Builder</title>
+    <link rel="stylesheet" href="css/shopkeeper-dashboard.css?v=2">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/supabase-database.js"></script>
+    <script src="js/auth.js"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div class="header-content">
+                <h1>🏪 Shopkeeper Dashboard</h1>
+            </div>
+            <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+        </header>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <!-- Simple Stats -->
+            <div class="simple-stats">
+                <span class="download-count">Total CVs Downloads: <strong id="totalDownloads">0</strong></span>
+            </div>
+            
+            <div class="options-grid">
+                <!-- Make New CV Option -->
+                <div class="option-card" id="makeNewCV">
+                    <div class="option-icon">📝</div>
+                    <h3>Make a New CV</h3>
+                    <p>Create a new CV from scratch</p>
+                    <button class="option-btn" onclick="goToCVBuilder()">Start Building</button>
+                </div>
+
+                <!-- View All CVs Option -->
+                <div class="option-card" id="viewAllCVs">
+                    <div class="option-icon">📋</div>
+                    <h3>View All CVs</h3>
+                    <p>See all CVs in the database</p>
+                    <button class="option-btn" onclick="showAllCVs()">View All</button>
+                </div>
+            </div>
+
+            
+
+            <!-- All CVs Display -->
+            <div class="all-cvs-section" id="allCVsSection" style="display: none;">
+                <div class="section-header">
+                    <h3>📋 All CVs in Database</h3>
+                </div>
+                
+                <!-- Live Search -->
+                <div class="live-search-section">
+                    <h4>🔍 Live Search</h4>
+                    <div class="search-inputs">
+                        <div class="search-input-group">
+                            <label for="liveSearchName">Search by Name:</label>
+                            <input type="text" id="liveSearchName" placeholder="Enter name to search..." oninput="performLiveSearch()">
+                        </div>
+                        <div class="search-input-group">
+                            <label for="liveSearchMobile">Search by Mobile:</label>
+                            <input type="tel" id="liveSearchMobile" placeholder="Enter mobile to search..." oninput="performLiveSearch()">
+                        </div>
+                        <div class="search-actions">
+                            <button class="btn btn-secondary" onclick="clearLiveSearch()">Clear</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="cvs-stats" id="cvsStats"></div>
+                <div class="all-cvs-list" id="allCVsList"></div>
+            </div>
+
+        </main>
+    </div>
+
+
+    <script src="js/shopkeeper-dashboard.js"></script>
+</body>
+</html>

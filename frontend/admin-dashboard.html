@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - CV Builder</title>
+    <link rel="stylesheet" href="css/admin-dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/supabase-database.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Admin Dashboard</h1>
+            <p>Manage CVs and User Data</p>
+        </div>
+
+        <div class="dashboard-content">
+            <div class="options-grid">
+                <!-- Make New CV Option -->
+                <div class="option-card" id="makeNewCV">
+                    <div class="option-icon">📝</div>
+                    <h3>Make a New CV</h3>
+                    <p>Create a new CV from scratch</p>
+                    <button class="option-btn" onclick="goToCVBuilder()">Start Building</button>
+                </div>
+
+                <!-- View All CVs Option -->
+                <div class="option-card" id="viewAllCVs">
+                    <div class="option-icon">📋</div>
+                    <h3>View All CVs</h3>
+                    <p>See all CVs in the database</p>
+                    <button class="option-btn" onclick="showAllCVs()">View All</button>
+                </div>
+
+                <!-- Manage Shopkeepers Option -->
+                <div class="option-card" id="manageShopkeepers">
+                    <div class="option-icon">🏪</div>
+                    <h3>Manage Shopkeepers</h3>
+                    <p>Add, edit, and monitor shopkeepers</p>
+                    <button class="option-btn" onclick="adminDashboard.showShopkeepers()">Manage</button>
+                </div>
+            </div>
+
+
+            <!-- All CVs Display -->
+            <div class="all-cvs-section" id="allCVsSection" style="display: none;">
+                <div class="section-header">
+                    <h3>📋 All CVs in Database</h3>
+                </div>
+                
+                <!-- Live Search -->
+                <div class="live-search-section">
+                    <h4>🔍 Live Search</h4>
+                    <div class="search-inputs">
+                        <div class="search-input-group">
+                            <label for="liveSearchName">Search by Name:</label>
+                            <input type="text" id="liveSearchName" placeholder="Enter name to search..." oninput="performLiveSearch()">
+                        </div>
+                        <div class="search-input-group">
+                            <label for="liveSearchMobile">Search by Mobile:</label>
+                            <input type="tel" id="liveSearchMobile" placeholder="Enter mobile to search..." oninput="performLiveSearch()">
+                        </div>
+                        <div class="search-actions">
+                            <button class="btn btn-secondary" onclick="clearLiveSearch()">Clear</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="cvs-stats" id="cvsStats"></div>
+                <div class="all-cvs-list" id="allCVsList"></div>
+            </div>
+
+            <!-- Shopkeepers Management Section -->
+            <div class="shopkeepers-section" id="shopkeepersSection" style="display: none;">
+                <div class="section-header">
+                    <h3>🏪 Shopkeepers Management</h3>
+                    <div class="section-actions">
+                        <button class="btn btn-primary" onclick="adminDashboard.showAddShopkeeperForm()">Add New Shopkeeper</button>
+                    </div>
+                </div>
+                
+                <!-- Add Shopkeeper Form -->
+                <div class="add-shopkeeper-form" id="addShopkeeperForm" style="display: none;">
+                    <h4>Add New Shopkeeper</h4>
+                    <form id="shopkeeperForm">
+                        <div class="form-group">
+                            <label for="shopkeeperName">Full Name:</label>
+                            <input type="text" id="shopkeeperName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="shopkeeperEmail">Email:</label>
+                            <input type="email" id="shopkeeperEmail" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="shopkeeperPassword">Password:</label>
+                            <input type="password" id="shopkeeperPassword" required minlength="6">
+                        </div>
+                        <div class="form-group">
+                            <label for="shopkeeperPhone">Phone:</label>
+                            <input type="tel" id="shopkeeperPhone">
+                        </div>
+                        <div class="form-group">
+                            <label for="shopkeeperAddress">Address:</label>
+                            <textarea id="shopkeeperAddress" rows="3"></textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Add Shopkeeper</button>
+                            <button type="button" class="btn btn-secondary" onclick="adminDashboard.hideAddShopkeeperForm()">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="shopkeepers-stats" id="shopkeepersStats"></div>
+                <div class="shopkeepers-list" id="shopkeepersList"></div>
+            </div>
+
+            <!-- User Info and Logout -->
+            <div class="user-info">
+                <div class="user-details">
+                    <span id="adminName">Admin User</span>
+                    <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/database.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/admin-dashboard.js"></script>
+</body>
+</html>

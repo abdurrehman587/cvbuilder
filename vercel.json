@@ -1,0 +1,35 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "frontend/**/*",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/auth",
+      "dest": "/frontend/auth.html"
+    },
+    {
+      "src": "/admin",
+      "dest": "/frontend/admin-dashboard.html"
+    },
+    {
+      "src": "/shopkeeper",
+      "dest": "/frontend/shopkeeper-dashboard.html"
+    },
+    {
+      "src": "/email-confirmation",
+      "dest": "/frontend/email-confirmation.html"
+    },
+    {
+      "src": "/",
+      "dest": "/frontend/auth.html"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/frontend/$1"
+    }
+  ]
+}

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV Builder - Multi-User Login</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📄</text></svg>">
+    <link rel="shortcut icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📄</text></svg>">
+    <link rel="stylesheet" href="css/auth.css?v=3">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/supabase-database.js"></script>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-header">
+            <h1>✨ Professional CV Builder ✨</h1>
+            <p>Choose your login type to access the CV builder</p>
+        </div>
+
+        <!-- Login Type Selection -->
+        <div class="login-type-selector">
+            <div class="login-type-card" data-type="user">
+                <div class="login-icon">👤</div>
+                <h3>Regular User</h3>
+                <p>Create and manage your personal CVs</p>
+                <button class="btn btn-outline" onclick="selectLoginType('user')">Login as User</button>
+            </div>
+            
+            <div class="login-type-card" data-type="shopkeeper">
+                <div class="login-icon">🏪</div>
+                <h3>Shopkeeper</h3>
+                <p>Manage CVs for your business</p>
+                <button class="btn btn-outline" onclick="selectLoginType('shopkeeper')">Login as Shopkeeper</button>
+            </div>
+            
+            <div class="login-type-card" data-type="admin">
+                <div class="login-icon">👑</div>
+                <h3>Admin</h3>
+                <p>Full system access and management</p>
+                <button class="btn btn-outline" onclick="selectLoginType('admin')">Login as Admin</button>
+            </div>
+        </div>
+
+        <!-- Login Forms Container -->
+        <div class="login-forms-container" id="loginFormsContainer" style="display: none;">
+            <div class="login-form-header">
+                <h2 id="loginFormTitle">Sign In</h2>
+                <p id="loginFormSubtitle">Access your account</p>
+                <button class="back-btn" onclick="showLoginTypeSelector()">← Back to Login Types</button>
+            </div>
+
+            <!-- User Login/Signup Form -->
+            <div id="userLoginForm" class="login-form" style="display: none;">
+                <div class="form-tabs">
+                    <button class="tab-btn" onclick="switchUserTab('login')">Sign In</button>
+                    <button class="tab-btn active" onclick="switchUserTab('signup')">Sign Up</button>
+                </div>
+                
+                <!-- User Login -->
+                <div id="userLoginTab" class="form-tab-content" style="display: none;">
+                    <form id="userLoginFormElement">
+                        <div class="form-group">
+                            <label for="userEmail">Email</label>
+                            <input type="email" id="userEmail" required placeholder="Enter your email">
+                        </div>
+                        <div class="form-group">
+                            <label for="userPassword">Password</label>
+                            <input type="password" id="userPassword" required placeholder="Enter your password">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Sign In as User</button>
+                    </form>
+                    <div class="form-switch">
+                        <div class="switch-divider">
+                            <span>or</span>
+                        </div>
+                        <button type="button" class="btn btn-outline switch-btn" onclick="switchUserTab('signup')">
+                            Create New Account
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- User Signup -->
+                <div id="userSignupTab" class="form-tab-content">
+                    <form id="userSignupFormElement">
+                        <div class="form-group">
+                            <label for="signupName">Full Name</label>
+                            <input type="text" id="signupName" required placeholder="Enter your full name">
+                        </div>
+                        <div class="form-group">
+                            <label for="signupEmail">Email</label>
+                            <input type="email" id="signupEmail" required placeholder="Enter your email">
+                        </div>
+                        <div class="form-group">
+                            <label for="signupPassword">Password</label>
+                            <input type="password" id="signupPassword" required placeholder="Create a password" minlength="6">
+                        </div>
+                        <div class="form-group">
+                            <label for="signupConfirmPassword">Confirm Password</label>
+                            <input type="password" id="signupConfirmPassword" required placeholder="Confirm your password" minlength="6">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Create Account</button>
+                    </form>
+                    <div class="form-switch">
+                        <div class="switch-divider">
+                            <span>or</span>
+                        </div>
+                        <button type="button" class="btn btn-outline switch-btn" onclick="switchUserTab('login')">
+                            Already have an account? Sign In
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shopkeeper Login Form -->
+            <div id="shopkeeperLoginForm" class="login-form" style="display: none;">
+                <div class="form-tabs">
+                    <button class="tab-btn active" onclick="switchShopkeeperTab('login')">Sign In</button>
+                    <button class="tab-btn" onclick="switchShopkeeperTab('signup')">Sign Up</button>
+                </div>
+                
+                <!-- Shopkeeper Sign In -->
+                <div id="shopkeeperSigninTab" class="form-tab-content">
+                    <form id="shopkeeperLoginFormElement">
+                        <div class="form-group">
+                            <label for="shopkeeperEmail">Email</label>
+                            <input type="email" id="shopkeeperEmail" required placeholder="Enter your email">
+                        </div>
+                        <div class="form-group">
+                            <label for="shopkeeperPassword">Password</label>
+                            <input type="password" id="shopkeeperPassword" required placeholder="Enter your password">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Sign In as Shopkeeper</button>
+                    </form>
+                    <div class="form-switch">
+                        <div class="switch-divider">
+                            <span>or</span>
+                        </div>
+                        <button type="button" class="btn btn-outline switch-btn" onclick="switchShopkeeperTab('signup')">
+                            Don't have an account? Sign up here
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Shopkeeper Sign Up -->
+                <div id="shopkeeperSignupTab" class="form-tab-content" style="display: none;">
+                    <form id="shopkeeperSignupFormElement">
+                        <div class="form-group">
+                            <label for="shopkeeperSignupName">Full Name</label>
+                            <input type="text" id="shopkeeperSignupName" required placeholder="Enter your full name">
+                        </div>
+                        <div class="form-group">
+                            <label for="shopkeeperSignupShop">Shop Name</label>
+                            <input type="text" id="shopkeeperSignupShop" required placeholder="Enter your shop name">
+                        </div>
+                        <div class="form-group">
+                            <label for="shopkeeperSignupEmail">Email</label>
+                            <input type="email" id="shopkeeperSignupEmail" required placeholder="Enter your email">
+                        </div>
+                        <div class="form-group">
+                            <label for="shopkeeperSignupPassword">Password</label>
+                            <input type="password" id="shopkeeperSignupPassword" required placeholder="Create a password" minlength="6">
+                        </div>
+                        <div class="form-group">
+                            <label for="shopkeeperSignupConfirmPassword">Confirm Password</label>
+                            <input type="password" id="shopkeeperSignupConfirmPassword" required placeholder="Confirm your password" minlength="6">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Create Shopkeeper Account</button>
+                    </form>
+                    <div class="form-switch">
+                        <div class="switch-divider">
+                            <span>or</span>
+                        </div>
+                        <button type="button" class="btn btn-outline switch-btn" onclick="switchShopkeeperTab('login')">
+                            Already have an account? Sign In
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Login Form -->
+            <div id="adminLoginForm" class="login-form" style="display: none;">
+                <form id="adminLoginFormElement">
+                    <div class="form-group">
+                        <label for="adminEmail">Email</label>
+                        <input type="email" id="adminEmail" required placeholder="Enter your email">
+                    </div>
+                    <div class="form-group">
+                        <label for="adminPassword">Password</label>
+                        <input type="password" id="adminPassword" required placeholder="Enter your password">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Sign In as Admin</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="auth-footer">
+            <p>© 2024 Professional CV Builder. All rights reserved.</p>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+</body>
+</html>

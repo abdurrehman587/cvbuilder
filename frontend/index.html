@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional CV Builder</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/supabase-database.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+        </header>
+
+        <!-- Template Switcher and Save Controls -->
+        <div class="back-to-templates">
+            <div class="template-switcher">
+                <span class="template-label">Switch Template:</span>
+                <button id="switchToTemplate1" class="template-btn active" data-template="classic">Template 1</button>
+                <button id="switchToTemplate2" class="template-btn" data-template="modern">Template 2</button>
+                <button id="switchToTemplate3" class="template-btn" data-template="minimalist">Template 3</button>
+            </div>
+            <button id="manualSaveBtn" class="manual-save-btn" title="Save manually">💾 Save Now</button>
+        </div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Form Section -->
+            <section class="form-section">
+                <!-- Personal Information -->
+                <div class="form-group">
+                    <h3 class="section-header active" data-section="contact">📋 Contact Information ▼</h3>
+                    <div class="section-content contact-section">
+                        <div class="form-row">
+                            <label for="profilePic">Profile Picture:</label>
+                            <input type="file" id="profilePic" accept="image/*">
+                        </div>
+                        <div class="form-row">
+                            <label for="fullName">Full Name:</label>
+                            <input type="text" id="fullName" placeholder="Enter your full name">
+                        </div>
+                        <div class="form-row">
+                            <label>Phone Numbers:</label>
+                            <div id="phoneList">
+                                <div class="phone-item">
+                                    <input type="tel" class="phone" placeholder="Enter your phone number">
+                                    <button type="button" class="remove-btn" onclick="this.parentElement.remove(); cvBuilder.updatePreview();">×</button>
+                                </div>
+                            </div>
+                            <button type="button" class="add-btn" onclick="cvBuilder.addPhone()">+ Add Phone Number</button>
+                        </div>
+                        <div class="form-row">
+                            <label for="email">Email:</label>
+                            <input type="email" id="email" placeholder="Enter your email">
+                        </div>
+                        <div class="form-row">
+                            <label for="address">Address:</label>
+                            <input type="text" id="address" placeholder="Enter your address">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Professional Summary -->
+                <div class="form-group">
+                    <h3 class="section-header" data-section="summary">💼 Professional Summary ▼</h3>
+                    <div class="section-content summary-section" style="display: none;">
+                        <div class="form-row">
+                            <label for="summary">Summary:</label>
+                            <textarea id="summary" rows="4" placeholder="Describe your professional background and goals">My aim is to achieve the responsible position in a professional working environment. Hence I am looking forward to a dynamically growing and progressive organization where my potential and skills, I have developed from my education, can be efficiently utilized and rewarded accordingly.</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Education -->
+                <div class="form-group">
+                    <h3 class="section-header" data-section="education">🎓 Education ▼</h3>
+                    <div class="section-content education-section" style="display: none;">
+                        <div id="educationList">
+                            <div class="education-item">
+                                <div class="form-row">
+                                    <label>Degree:</label>
+                                    <input type="text" class="degree" placeholder="">
+                                </div>
+                                <div class="form-row">
+                                    <label>Institution:</label>
+                                    <input type="text" class="institution" placeholder="">
+                                </div>
+                                <div class="form-row">
+                                    <label>Year:</label>
+                                    <input type="text" class="year" placeholder="">
+                                </div>
+                                <div class="form-row">
+                                    <label>Grade/GPA:</label>
+                                    <input type="text" class="grade" placeholder="">
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" id="addEducation" class="btn btn-add">➕ Add Education</button>
+                    </div>
+                </div>
+
+                <!-- Work Experience -->
+                <div class="form-group">
+                    <h3 class="section-header" data-section="experience">💼 Work Experience ▼</h3>
+                    <div class="section-content experience-section" style="display: none;">
+                        <div id="experienceList">
+                            <div class="experience-item">
+                                <div class="form-row">
+                                    <label>Job Title:</label>
+                                    <input type="text" class="jobTitle" placeholder="">
+                                </div>
+                                <div class="form-row">
+                                    <label>Company:</label>
+                                    <input type="text" class="company" placeholder="">
+                                </div>
+                                <div class="form-row">
+                                    <label>Duration:</label>
+                                    <input type="text" class="duration" placeholder="">
+                                </div>
+                                <div class="form-row">
+                                    <label>Description:</label>
+                                    <textarea class="description" rows="3" placeholder=""></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" id="addExperience" class="btn btn-add">➕ Add Experience</button>
+                    </div>
+                </div>
+
+                <!-- Certifications -->
+                <div class="form-group">
+                    <h3 class="section-header" data-section="certifications">🏆 Certifications ▼</h3>
+                    <div class="section-content certifications-section" style="display: none;">
+                        <div class="form-row">
+                            <label>Certifications:</label>
+                        </div>
+                        <div id="certificationsList">
+                            <div class="certification-item">
+                                <input type="text" class="certification" placeholder="e.g., AWS Certified Solutions Architect">
+                                <button type="button" class="remove-btn" onclick="this.parentElement.remove(); cvBuilder.updatePreview();">×</button>
+                            </div>
+                        </div>
+                        <button type="button" id="addCertification" class="btn btn-add">➕ Add Certification</button>
+                    </div>
+                </div>
+
+                <!-- Skills -->
+                <div class="form-group">
+                    <h3 class="section-header" data-section="skills">🚀 Skills ▼</h3>
+                    <div class="section-content skills-section" style="display: none;">
+                        <div id="skillsList">
+                            <div class="skill-item">
+                                <div class="form-row">
+                                    <label>Skill:</label>
+                                    <input type="text" class="skill" value="Communication Skills">
+                                </div>
+                            </div>
+                            <div class="skill-item">
+                                <div class="form-row">
+                                    <label>Skill:</label>
+                                    <input type="text" class="skill" value="Time Management">
+                                </div>
+                            </div>
+                            <div class="skill-item">
+                                <div class="form-row">
+                                    <label>Skill:</label>
+                                    <input type="text" class="skill" value="Hardworking">
+                                </div>
+                            </div>
+                            <div class="skill-item">
+                                <div class="form-row">
+                                    <label>Skill:</label>
+                                    <input type="text" class="skill" value="Accurate Planning">
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" id="addSkill" class="btn btn-add">➕ Add Skill</button>
+                    </div>
+                </div>
+
+                <!-- Other Information -->
+                <div class="form-group">
+                    <h3 class="section-header" data-section="other">ℹ️ Other Information ▼</h3>
+                    <div class="section-content other-section" style="display: none;">
+                        <div id="otherInfoList">
+                            <div class="other-info-item">
+                                <div class="form-row">
+                                    <label>Father's Name:</label>
+                                    <input type="text" class="fatherName" placeholder="Enter father's name">
+                                </div>
+                                <div class="form-row">
+                                    <label>Husband's Name:</label>
+                                    <input type="text" class="husbandName" placeholder="Enter husband's name">
+                                </div>
+                                <div class="form-row">
+                                    <label>CNIC:</label>
+                                    <input type="text" class="cnic" placeholder="12345-1234567-1">
+                                </div>
+                                <div class="form-row">
+                                    <label>Date of Birth:</label>
+                                    <input type="text" class="dateOfBirth" placeholder="e.g., 15-03-1990">
+                                </div>
+                                <div class="form-row">
+                                    <label>Marital Status:</label>
+                                    <select class="maritalStatus">
+                                        <option value="">Select status</option>
+                                        <option value="Single">Single</option>
+                                        <option value="Married">Married</option>
+                                        <option value="Divorced">Divorced</option>
+                                        <option value="Widowed">Widowed</option>
+                                    </select>
+                                </div>
+                                <div class="form-row">
+                                    <label>Religion:</label>
+                                    <select class="religion">
+                                        <option value="">Select religion</option>
+                                        <option value="Islam">Islam</option>
+                                        <option value="Christianity">Christianity</option>
+                                        <option value="Hinduism">Hinduism</option>
+                                        <option value="Sikhism">Sikhism</option>
+                                        <option value="Buddhism">Buddhism</option>
+                                        <option value="Judaism">Judaism</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" id="addOtherInfo" class="btn btn-add">➕ Add More Information</button>
+                    </div>
+                </div>
+
+                <!-- Languages -->
+                <div class="form-group">
+                    <h3 class="section-header" data-section="languages">🌐 Languages ▼</h3>
+                    <div class="section-content languages-section" style="display: none;">
+                        <div id="languagesList">
+                            <div class="language-item">
+                                <button type="button" class="remove-btn" onclick="this.parentElement.remove(); cvBuilder.updatePreview();">×</button>
+                                <div class="form-row language-inputs-row">
+                                    <div class="input-group">
+                                        <label>Language:</label>
+                                        <input type="text" class="language" value="English">
+                                    </div>
+                                    <div class="input-group">
+                                        <label>Level/Detail:</label>
+                                        <input type="text" class="languageLevel" placeholder="e.g., Native, Fluent, Intermediate" value="Native">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="language-item">
+                                <button type="button" class="remove-btn" onclick="this.parentElement.remove(); cvBuilder.updatePreview();">×</button>
+                                <div class="form-row language-inputs-row">
+                                    <div class="input-group">
+                                        <label>Language:</label>
+                                        <input type="text" class="language" value="Urdu">
+                                    </div>
+                                    <div class="input-group">
+                                        <label>Level/Detail:</label>
+                                        <input type="text" class="languageLevel" placeholder="e.g., Native, Fluent, Intermediate" value="Fluent">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="language-item">
+                                <button type="button" class="remove-btn" onclick="this.parentElement.remove(); cvBuilder.updatePreview();">×</button>
+                                <div class="form-row language-inputs-row">
+                                    <div class="input-group">
+                                        <label>Language:</label>
+                                        <input type="text" class="language" value="Punjabi">
+                                    </div>
+                                    <div class="input-group">
+                                        <label>Level/Detail:</label>
+                                        <input type="text" class="languageLevel" placeholder="e.g., Native, Fluent, Intermediate" value="Conversational">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" id="addLanguage" class="btn btn-add">➕ Add Language</button>
+                    </div>
+                </div>
+
+                <!-- Hobbies -->
+                <div class="form-group">
+                    <h3 class="section-header" data-section="hobbies">🎯 Hobbies ▼</h3>
+                    <div class="section-content hobbies-section" style="display: none;">
+                        <div id="hobbiesList">
+                        </div>
+                        <button type="button" id="addHobby" class="btn btn-add">➕ Add Hobby</button>
+                    </div>
+                </div>
+
+                <!-- Custom Sections -->
+                <div class="form-group">
+                    <h3 class="section-header" data-section="custom">✨ Custom Sections ▼</h3>
+                    <div class="section-content custom-section" style="display: none;">
+                        <div id="customSectionsList">
+                            <div class="custom-section-item">
+                                <div class="form-row">
+                                    <label>Section Heading:</label>
+                                    <input type="text" class="customSectionHeading" placeholder="e.g., Certifications, Awards, Projects">
+                                </div>
+                                <div class="custom-items-wrapper">
+                                    <div class="custom-item">
+                                        <input type="text" class="customItemValue" placeholder="Enter item">
+                                        <button type="button" class="remove-custom-item-btn" onclick="this.parentElement.remove(); cvBuilder.updatePreview();">×</button>
+                                    </div>
+                                </div>
+                                <button type="button" class="add-custom-item-btn" onclick="cvBuilder.addCustomItem(this)">➕ Add Item</button>
+                            </div>
+                        </div>
+                        <button type="button" id="addCustomSection" class="btn btn-add">➕ Add Custom Section</button>
+                    </div>
+                </div>
+
+                <!-- References -->
+                <div class="form-group">
+                    <h3 class="section-header" data-section="references">📞 References ▼</h3>
+                    <div class="section-content references-section" style="display: none;">
+                        <div id="referencesList">
+                            <div class="reference-item">
+                                <input type="text" class="reference" placeholder="e.g., References would be furnished on demand." value="References would be furnished on demand.">
+                                <button type="button" class="remove-btn" onclick="this.parentElement.remove(); cvBuilder.updatePreview();">×</button>
+                            </div>
+                        </div>
+                        <button type="button" id="addReference" class="btn btn-add">➕ Add Reference</button>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- Preview Section -->
+            <section class="preview-section">
+                <div id="cvPreview" class="cv-preview">
+                    <div class="cv-header">
+                        <div class="profile-pic">
+                            <img id="profileImage" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgdmlld0JveD0iMCAwIDEyMCAxMjAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMjAiIGhlaWdodD0iMTIwIiByeD0iNjAiIGZpbGw9IiNGM0Y0RjYiLz4KPHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTMwIDMwQzMzLjMxMzcgMzAgMzYgMjcuMzEzNyAzNiAyNEMzNiAyMC42ODYzIDMzLjMxMzcgMTggMzAgMThDMjYuNjg2MyAxOCAyNCAyMC42ODYzIDI0IDI0QzI0IDI3LjMxMzcgMjYuNjg2MyAzMCAzMCAzMFoiIGZpbGw9IiM5Q0EzQUYiLz4KPHBhdGggZD0iTTQ4IDQyQzQ4IDQ2LjQxODMgNDQuNDE4MyA1MCA0MCA1MEgyMEMxNS41ODE3IDUwIDEyIDQ2LjQxODMgMTIgNDJWMzZIMTJWNDJaIiBmaWxsPSIjOUNBM0FGIi8+Cjwvc3ZnPgo8L3N2Zz4K" alt="Profile">
+                        </div>
+                        <div class="personal-info">
+                            <h1 id="previewName">Your Name</h1>
+                            <div class="contact-info">
+                                <div id="previewPhone" class="contact-item"></div>
+                                <div id="previewEmail" class="contact-item"></div>
+                                <div id="previewAddress" class="contact-item"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="cv-section" id="summary-section">
+                        <div class="section-header-preview">
+                            <h3>💼 Professional Summary</h3>
+                            <button type="button" class="remove-section-btn" onclick="cvBuilder.removeSection('summary')" title="Remove this section">×</button>
+                        </div>
+                        <p id="previewSummary">Your professional summary will appear here...</p>
+                    </div>
+                    
+                    <div class="cv-section" id="education-section">
+                        <div class="section-header-preview">
+                            <h3>🎓 Education</h3>
+                            <button type="button" class="remove-section-btn" onclick="cvBuilder.removeSection('education')" title="Remove this section">×</button>
+                        </div>
+                        <div id="previewEducation"></div>
+                    </div>
+                    
+                    <div class="cv-section" id="experience-section">
+                        <div class="section-header-preview">
+                            <h3>💼 Work Experience</h3>
+                            <button type="button" class="remove-section-btn" onclick="cvBuilder.removeSection('experience')" title="Remove this section">×</button>
+                        </div>
+                        <div id="previewExperience"></div>
+                    </div>
+                    
+                    <div class="cv-section" id="certifications-section">
+                        <div class="section-header-preview">
+                            <h3>🏆 Certifications</h3>
+                            <button type="button" class="remove-section-btn" onclick="cvBuilder.removeSection('certifications')" title="Remove this section">×</button>
+                        </div>
+                        <div id="previewCertifications"></div>
+                    </div>
+                    
+                    <div class="cv-section" id="skills-section">
+                        <div class="section-header-preview">
+                            <h3>🚀 Skills</h3>
+                            <button type="button" class="remove-section-btn" onclick="cvBuilder.removeSection('skills')" title="Remove this section">×</button>
+                        </div>
+                        <div id="previewSkills"></div>
+                    </div>
+                    
+                    <div class="cv-section" id="other-section">
+                        <div class="section-header-preview">
+                            <h3>ℹ️ Other Information</h3>
+                            <button type="button" class="remove-section-btn" onclick="cvBuilder.removeSection('other')" title="Remove this section">×</button>
+                        </div>
+                        <div id="previewOtherInfo"></div>
+                    </div>
+                    
+                    <div class="cv-section" id="languages-section">
+                        <div class="section-header-preview">
+                            <h3>🌐 Languages</h3>
+                            <button type="button" class="remove-section-btn" onclick="cvBuilder.removeSection('languages')" title="Remove this section">×</button>
+                        </div>
+                        <div id="previewLanguages"></div>
+                    </div>
+                    
+                    <div class="cv-section" id="hobbies-section">
+                        <div class="section-header-preview">
+                            <h3>🎯 Hobbies</h3>
+                            <button type="button" class="remove-section-btn" onclick="cvBuilder.removeSection('hobbies')" title="Remove this section">×</button>
+                        </div>
+                        <div id="previewHobbies"></div>
+                    </div>
+                    
+                    <div class="cv-section" id="custom-section">
+                        <div class="section-header-preview">
+                            <h3>✨ Custom Sections</h3>
+                            <button type="button" class="remove-section-btn" onclick="cvBuilder.removeSection('custom')" title="Remove this section">×</button>
+                        </div>
+                        <div id="previewCustomSections"></div>
+                    </div>
+                    
+                    <div class="cv-section" id="references-section">
+                        <div class="section-header-preview">
+                            <h3>📞 References</h3>
+                            <button type="button" class="remove-section-btn" onclick="cvBuilder.removeSection('references')" title="Remove this section">×</button>
+                        </div>
+                        <div id="previewReferences"></div>
+                    </div>
+                </div>
+                
+                
+                <!-- Download CV Button -->
+                <div class="download-section">
+                    <button id="downloadCV" class="btn btn-download">📄 Download CV as PDF</button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="js/database.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/cv-builder.js"></script>
+    <script>
+        // Check authentication before loading the CV builder
+        document.addEventListener('DOMContentLoaded', () => {
+            // Wait for AuthSystem to be available
+            if (typeof AuthSystem === 'undefined') {
+                setTimeout(() => {
+                    checkAuthAndLoad();
+                }, 100);
+            } else {
+                checkAuthAndLoad();
+            }
+            
+            // Function to navigate to admin dashboard
+            window.goToAdminDashboard = function() {
+                console.log('Navigating to admin dashboard...');
+                window.location.href = 'admin-dashboard.html';
+            };
+
+            function checkAuthAndLoad() {
+                if (!AuthSystem.isAuthenticated()) {
+                    window.location.href = 'auth.html';
+                    return;
+                }
+                
+                // Show user info in header
+                const user = AuthSystem.getCurrentUser();
+                if (user) {
+                    const header = document.querySelector('.header');
+                    const userInfo = document.createElement('div');
+                    userInfo.className = 'user-info';
+                    userInfo.innerHTML = `
+                    <div class="user-details">
+                        ${user.role === 'admin' ? '<span class="admin-badge">Admin</span>' : ''}
+                        ${user.role === 'shopkeeper' ? '<span class="shopkeeper-badge">Shopkeeper</span>' : ''}
+                        ${user.role === 'admin' ? '<button class="dashboard-btn" id="adminDashboardBtn">📊 Dashboard</button>' : ''}
+                        ${user.role === 'shopkeeper' ? '<button class="dashboard-btn" id="shopkeeperDashboardBtn">🏪 Dashboard</button>' : ''}
+                        <button onclick="AuthSystem.logout()" class="logout-btn">Logout</button>
+                    </div>
+                `;
+                    header.appendChild(userInfo);
+                    
+                    // Add event listener for admin dashboard button
+                    if (user.role === 'admin') {
+                        const dashboardBtn = document.getElementById('adminDashboardBtn');
+                        if (dashboardBtn) {
+                            dashboardBtn.addEventListener('click', function() {
+                                console.log('Admin dashboard button clicked');
+                                window.location.href = 'admin-dashboard.html';
+                            });
+                        }
+                    }
+                    
+                    // Add event listener for shopkeeper dashboard button
+                    if (user.role === 'shopkeeper') {
+                        const dashboardBtn = document.getElementById('shopkeeperDashboardBtn');
+                        if (dashboardBtn) {
+                            dashboardBtn.addEventListener('click', function() {
+                                console.log('Shopkeeper dashboard button clicked');
+                                window.location.href = 'shopkeeper-dashboard.html';
+                            });
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
