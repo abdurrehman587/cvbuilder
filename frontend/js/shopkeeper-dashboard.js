@@ -38,6 +38,25 @@ class ShopkeeperDashboard {
         console.log('User shop name:', this.currentUser ? this.currentUser.shopName : 'N/A');
         console.log('User object keys:', this.currentUser ? Object.keys(this.currentUser) : 'N/A');
         
+        // Additional debugging for shop name
+        console.log('=== SHOP NAME DEBUG ===');
+        console.log('Current user shopName property:', this.currentUser?.shopName);
+        console.log('Current user shopName type:', typeof this.currentUser?.shopName);
+        console.log('Current user shopName truthy:', !!this.currentUser?.shopName);
+        
+        // Check localStorage users
+        const users = JSON.parse(localStorage.getItem('cvBuilder_users') || '[]');
+        const userFromStorage = users.find(u => u.id === this.currentUser?.id);
+        console.log('User from localStorage:', userFromStorage);
+        console.log('User from localStorage shopName:', userFromStorage?.shopName);
+        
+        // Check if we need to get shop name from localStorage
+        if (!this.currentUser?.shopName && userFromStorage?.shopName) {
+            console.log('Updating current user with shop name from localStorage');
+            this.currentUser.shopName = userFromStorage.shopName;
+        }
+        console.log('=== END SHOP NAME DEBUG ===');
+        
         if (!this.currentUser || this.currentUser.role !== 'shopkeeper') {
             console.log('Access denied - not a shopkeeper');
             alert('Access denied. Shopkeeper privileges required.');
