@@ -118,7 +118,11 @@ class SupabaseDatabaseManager {
                 // Get dynamic table name from user data
                 const users = JSON.parse(localStorage.getItem('cvBuilder_users') || '[]');
                 const user = users.find(u => u.id === userId);
-                tableName = user?.tableName || this.shopkeeperTableName;
+                tableName = user?.tableName;
+                
+                if (!tableName) {
+                    throw new Error('Shopkeeper table not found. Please contact support.');
+                }
             } else if (userRole === 'user') {
                 tableName = this.userTableName;
             } else {
@@ -334,7 +338,11 @@ class SupabaseDatabaseManager {
                 // Get dynamic table name from user data
                 const users = JSON.parse(localStorage.getItem('cvBuilder_users') || '[]');
                 const user = users.find(u => u.id === userId);
-                tableName = user?.tableName || this.shopkeeperTableName;
+                tableName = user?.tableName;
+                
+                if (!tableName) {
+                    throw new Error('Shopkeeper table not found. Please contact support.');
+                }
             } else if (userRole === 'user') {
                 tableName = this.userTableName;
             } else {
@@ -463,7 +471,11 @@ class SupabaseDatabaseManager {
                 // Get dynamic table name from user data
                 const users = JSON.parse(localStorage.getItem('cvBuilder_users') || '[]');
                 const user = users.find(u => u.id === userId);
-                tableName = user?.tableName || this.shopkeeperTableName;
+                tableName = user?.tableName;
+                
+                if (!tableName) {
+                    throw new Error('Shopkeeper table not found. Please contact support.');
+                }
             } else if (userRole === 'user') {
                 tableName = this.userTableName;
             } else {
@@ -526,7 +538,11 @@ class SupabaseDatabaseManager {
                 // Get dynamic table name from user data
                 const users = JSON.parse(localStorage.getItem('cvBuilder_users') || '[]');
                 const user = users.find(u => u.id === userId);
-                tableName = user?.tableName || this.shopkeeperTableName;
+                tableName = user?.tableName;
+                
+                if (!tableName) {
+                    throw new Error('Shopkeeper table not found. Please contact support.');
+                }
                 console.log('Using table for shopkeeper:', tableName, 'User table name:', user?.tableName);
             } else if (userRole === 'user') {
                 tableName = this.userTableName;

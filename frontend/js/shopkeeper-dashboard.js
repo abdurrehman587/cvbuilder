@@ -83,6 +83,25 @@ class ShopkeeperDashboard {
         console.log('=== END UPDATE DASHBOARD TITLE DEBUG ===');
     }
 
+    getShopkeeperTableName() {
+        if (!this.currentUser) {
+            console.error('No current user found');
+            return null;
+        }
+        
+        // Get the table name from user data
+        const users = JSON.parse(localStorage.getItem('cvBuilder_users') || '[]');
+        const user = users.find(u => u.id === this.currentUser.id);
+        
+        if (user && user.tableName) {
+            console.log('Found shopkeeper table name:', user.tableName);
+            return user.tableName;
+        }
+        
+        console.error('Shopkeeper table name not found for user:', this.currentUser);
+        return null;
+    }
+
     setupEventListeners() {
         // Search form submission
         const searchForm = document.getElementById('searchName');
@@ -465,9 +484,15 @@ class ShopkeeperDashboard {
                 throw new Error('Database manager not available');
             }
             
+            // Get the shopkeeper table name
+            const tableName = this.getShopkeeperTableName();
+            if (!tableName) {
+                throw new Error('Shopkeeper table not found');
+            }
+            
             // Delete from dynamic shopkeeper table
             const { error } = await window.supabaseDatabaseManager.supabase
-                .from(this.getShopkeeperTableName())
+                .from(tableName)
                 .delete()
                 .eq('id', cvId);
             
