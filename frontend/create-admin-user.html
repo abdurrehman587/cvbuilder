@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Admin User - CV Builder</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+        input[type="email"], input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .btn:hover {
+            opacity: 0.9;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border: 1px solid #bee5eb;
+        }
+        .credentials {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            border-left: 4px solid #28a745;
+            margin: 20px 0;
+        }
+        .credentials h3 {
+            margin-top: 0;
+            color: #28a745;
+        }
+        .credentials p {
+            margin: 5px 0;
+            font-family: monospace;
+            background: #e9ecef;
+            padding: 5px 10px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>👑 Create Admin User</h1>
+        
+        <div class="info">
+            <strong>📋 Instructions:</strong>
+            <ol>
+                <li>Fill in the admin credentials below</li>
+                <li>Click "Create Admin User"</li>
+                <li>Use these credentials to login as admin</li>
+                <li>Admin users have full system access</li>
+            </ol>
+        </div>
+
+        <form id="adminForm">
+            <div class="form-group">
+                <label for="adminEmail">Admin Email:</label>
+                <input type="email" id="adminEmail" value="admin@cvbuilder.com" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="adminPassword">Admin Password:</label>
+                <input type="password" id="adminPassword" value="admin123456" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="adminName">Admin Name:</label>
+                <input type="text" id="adminName" value="System Administrator" required>
+            </div>
+            
+            <button type="submit" class="btn">Create Admin User</button>
+        </form>
+
+        <div id="result"></div>
+
+        <div class="credentials" id="credentials" style="display: none;">
+            <h3>✅ Admin User Created Successfully!</h3>
+            <p><strong>Email:</strong> <span id="createdEmail"></span></p>
+            <p><strong>Password:</strong> <span id="createdPassword"></span></p>
+            <p><strong>Role:</strong> Admin</p>
+            <p><strong>Access:</strong> Full system access</p>
+        </div>
+
+        <div class="info">
+            <strong>🔐 Default Admin Credentials:</strong>
+            <p><strong>Email:</strong> admin@cvbuilder.com</p>
+            <p><strong>Password:</strong> admin123456</p>
+            <p><strong>Note:</strong> You can change these credentials after creating the admin user.</p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script>
+        document.getElementById('adminForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('adminEmail').value;
+            const password = document.getElementById('adminPassword').value;
+            const name = document.getElementById('adminName').value;
+            
+            const resultDiv = document.getElementById('result');
+            const credentialsDiv = document.getElementById('credentials');
+            
+            try {
+                resultDiv.innerHTML = '<div class="info">Creating admin user...</div>';
+                
+                // Create admin user in Supabase
+                const { data, error } = await window.supabaseDatabaseManager.supabase.auth.signUp({
+                    email: email,
+                    password: password,
+                    options: {
+                        data: {
+                            name: name,
+                            role: 'admin'
+                        }
+                    }
+                });
+                
+                if (error) {
+                    throw error;
+                }
+                
+                if (data.user) {
+                    // Update user metadata to set role as admin
+                    const { error: updateError } = await window.supabaseDatabaseManager.supabase.auth.updateUser({
+                        data: {
+                            role: 'admin',
+                            name: name
+                        }
+                    });
+                    
+                    if (updateError) {
+                        console.warn('Could not update user metadata:', updateError);
+                    }
+                    
+                    // Show success message
+                    resultDiv.innerHTML = '<div class="success">✅ Admin user created successfully!</div>';
+                    
+                    // Show credentials
+                    document.getElementById('createdEmail').textContent = email;
+                    document.getElementById('createdPassword').textContent = password;
+                    credentialsDiv.style.display = 'block';
+                    
+                    // Store in localStorage for immediate use
+                    const adminUser = {
+                        id: data.user.id,
+                        email: email,
+                        name: name,
+                        role: 'admin',
+                        created_at: new Date().toISOString()
+                    };
+                    
+                    // Store in localStorage
+                    const users = JSON.parse(localStorage.getItem('cvBuilder_users') || '[]');
+                    users.push(adminUser);
+                    localStorage.setItem('cvBuilder_users', JSON.stringify(users));
+                    
+                    console.log('Admin user created and stored:', adminUser);
+                    
+                } else {
+                    throw new Error('User creation failed');
+                }
+                
+            } catch (error) {
+                console.error('Error creating admin user:', error);
+                resultDiv.innerHTML = `<div class="error">❌ Error creating admin user: ${error.message}</div>`;
+            }
+        });
+    </script>
+</body>
+</html>
