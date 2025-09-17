@@ -72,6 +72,10 @@
       "dest": "/frontend/test-cv-tables.html"
     },
     {
+      "src": "/fix-user-cvs-final",
+      "dest": "/frontend/fix-user-cvs-final.html"
+    },
+    {
       "src": "/",
       "dest": "/frontend/auth.html"
     },
