@@ -28,6 +28,10 @@
       "dest": "/frontend/fix-user-role.html"
     },
     {
+      "src": "/create-admin-simple",
+      "dest": "/frontend/create-admin-simple.html"
+    },
+    {
       "src": "/",
       "dest": "/frontend/auth.html"
     },
