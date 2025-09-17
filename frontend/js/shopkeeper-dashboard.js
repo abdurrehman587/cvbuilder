@@ -46,6 +46,27 @@ class ShopkeeperDashboard {
         // Shopkeeper authenticated successfully
         console.log('Shopkeeper authenticated:', this.currentUser.name);
         console.log('=== END SHOPKEEPER AUTH CHECK ===');
+        
+        // Update dashboard title with shop name
+        this.updateDashboardTitle();
+    }
+
+    updateDashboardTitle() {
+        if (this.currentUser && this.currentUser.shopName) {
+            const shopName = this.currentUser.shopName;
+            const dashboardTitle = document.getElementById('dashboardTitle');
+            const pageTitle = document.getElementById('pageTitle');
+            
+            if (dashboardTitle) {
+                dashboardTitle.textContent = `🏪 ${shopName} Dashboard`;
+            }
+            
+            if (pageTitle) {
+                pageTitle.textContent = `${shopName} Dashboard - CV Builder`;
+            }
+            
+            console.log(`Dashboard title updated to: ${shopName} Dashboard`);
+        }
     }
 
     setupEventListeners() {

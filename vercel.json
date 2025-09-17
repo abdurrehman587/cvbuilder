@@ -24,6 +24,10 @@
       "dest": "/frontend/email-confirmation.html"
     },
     {
+      "src": "/fix-user-role",
+      "dest": "/frontend/fix-user-role.html"
+    },
+    {
       "src": "/",
       "dest": "/frontend/auth.html"
     },
