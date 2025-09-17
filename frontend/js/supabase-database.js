@@ -966,36 +966,42 @@ class SupabaseDatabaseManager {
     }
 
     // CV download tracking methods
-    async trackCVDownload(shopkeeperId, cvId, downloadType = 'pdf') {
+    async trackCVDownload(shopkeeperId, cvId, downloadType = 'pdf', fileSizeKB = null) {
         try {
             if (!this.isSupabaseAvailable()) {
                 console.warn('Supabase not available for download tracking');
                 return false;
             }
 
-            // For now, just log the download since cv_downloads table doesn't exist yet
-            console.log('CV Download tracked:', { shopkeeperId, cvId, downloadType });
-            return true;
+            console.log('Tracking CV Download:', { shopkeeperId, cvId, downloadType, fileSizeKB });
 
-            // TODO: Uncomment this once cv_downloads table is created
-            /*
+            const downloadData = {
+                shopkeeper_id: shopkeeperId,
+                cv_id: cvId,
+                download_type: downloadType,
+                downloaded_at: new Date().toISOString(),
+                file_size_kb: fileSizeKB,
+                ip_address: null, // Could be added if needed
+                user_agent: navigator.userAgent
+            };
+
             const { data, error } = await this.supabase
                 .from('cv_downloads')
-                .insert([{
-                    shopkeeper_id: shopkeeperId,
-                    cv_id: cvId,
-                    download_type: downloadType,
-                    downloaded_at: new Date().toISOString()
-                }])
+                .insert([downloadData])
                 .select();
 
             if (error) {
                 console.error('Error tracking CV download:', error);
+                // If table doesn't exist, create it automatically
+                if (error.code === 'PGRST116' || error.message.includes('relation "cv_downloads" does not exist')) {
+                    console.log('cv_downloads table does not exist. Please run the SQL script to create it.');
+                    return false;
+                }
                 return false;
             }
 
+            console.log('Download tracked successfully:', data[0]);
             return data[0];
-            */
         } catch (error) {
             console.error('Error in trackCVDownload:', error);
             return false;
@@ -1049,16 +1055,8 @@ class SupabaseDatabaseManager {
                 return { totalDownloads: 0, uniqueCVs: 0 };
             }
 
-            // For now, return mock stats since the cv_downloads table doesn't exist yet
-            // This will be updated once the database tables are properly set up
-            console.log('Returning mock stats for shopkeeper:', shopkeeperId);
-            return {
-                totalDownloads: 0,
-                uniqueCVs: 0
-            };
+            console.log('Getting stats for shopkeeper:', shopkeeperId);
 
-            // TODO: Uncomment this once cv_downloads table is created
-            /*
             const { data, error } = await this.supabase
                 .from('cv_downloads')
                 .select('*')
@@ -1066,17 +1064,20 @@ class SupabaseDatabaseManager {
 
             if (error) {
                 console.error('Error getting shopkeeper stats:', error);
+                if (error.code === 'PGRST116' || error.message.includes('relation "cv_downloads" does not exist')) {
+                    console.log('cv_downloads table does not exist. Please run the SQL script to create it.');
+                }
                 return { totalDownloads: 0, uniqueCVs: 0 };
             }
 
             const totalDownloads = data.length;
             const uniqueCVs = new Set(data.map(d => d.cv_id)).size;
 
+            console.log('Shopkeeper stats:', { totalDownloads, uniqueCVs });
             return {
                 totalDownloads,
                 uniqueCVs
             };
-            */
         } catch (error) {
             console.error('Error in getShopkeeperStats:', error);
             return { totalDownloads: 0, uniqueCVs: 0 };

@@ -2868,16 +2868,21 @@ class CVBuilder {
                 const success = await window.supabaseDatabaseManager.trackCVDownload(
                     currentUser.id,
                     currentCVId,
-                    downloadType
+                    downloadType,
+                    fileSizeKB
                 );
                 
                 if (success) {
                     console.log('Download tracked successfully for shopkeeper:', currentUser.name);
+                    // Show success message with download count
+                    this.showDownloadSuccess(fileSizeKB, quality);
                 } else {
                     console.error('Failed to track download');
+                    this.showDownloadSuccess(fileSizeKB, quality);
                 }
             } else {
                 console.warn('Database manager not available for download tracking');
+                this.showDownloadSuccess(fileSizeKB, quality);
             }
         } catch (error) {
             console.error('Error tracking download:', error);
