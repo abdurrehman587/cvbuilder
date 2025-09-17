@@ -250,8 +250,14 @@ class AuthSystem {
         }
 
         if (!this.isValidEmail(email)) {
-            this.showMessage('Please enter a valid email address', 'error');
+            this.showMessage('Please enter a valid email address. Check for typos and ensure the email format is correct.', 'error');
             return;
+        }
+        
+        // Check for common email typos and suggest corrections
+        const suggestions = this.suggestEmailCorrections(email);
+        if (suggestions.length > 0) {
+            this.showMessage(`Did you mean: ${suggestions.join(' or ')}?`, 'info');
         }
 
         this.setLoading(true, 'signup');
@@ -452,7 +458,14 @@ class AuthSystem {
                     });
 
                     if (error) {
-                        throw new Error(`Registration failed: ${error.message}`);
+                        // Provide more specific error messages
+                        if (error.message.includes('Email address') && error.message.includes('invalid')) {
+                            throw new Error('Please enter a valid email address. Check for typos and ensure the email format is correct.');
+                        } else if (error.message.includes('already registered')) {
+                            throw new Error('An account with this email already exists. Please use a different email or try signing in.');
+                        } else {
+                            throw new Error(`Registration failed: ${error.message}`);
+                        }
                     }
 
                     console.log('User registered in Supabase successfully:', data);
@@ -530,8 +543,43 @@ class AuthSystem {
     }
 
     isValidEmail(email) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(email);
+        // More comprehensive email validation
+        const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+        
+        if (!emailRegex.test(email)) {
+            return false;
+        }
+        
+        // Additional checks
+        if (email.length > 254) {
+            return false;
+        }
+        
+        const parts = email.split('@');
+        if (parts[0].length > 64) {
+            return false;
+        }
+        
+        return true;
+    }
+
+    suggestEmailCorrections(email) {
+        const suggestions = [];
+        const commonTypos = {
+            'compsing': 'composing',
+            'gmail': 'gmail.com',
+            'yahoo': 'yahoo.com',
+            'hotmail': 'hotmail.com',
+            'outlook': 'outlook.com'
+        };
+        
+        for (const [typo, correction] of Object.entries(commonTypos)) {
+            if (email.includes(typo)) {
+                suggestions.push(email.replace(typo, correction));
+            }
+        }
+        
+        return suggestions;
     }
 
     checkAuthStatus() {
