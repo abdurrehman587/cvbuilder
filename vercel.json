@@ -64,6 +64,10 @@
       "dest": "/frontend/simple-user-cvs-test.html"
     },
     {
+      "src": "/check-tables",
+      "dest": "/frontend/check-tables.html"
+    },
+    {
       "src": "/",
       "dest": "/frontend/auth.html"
     },
