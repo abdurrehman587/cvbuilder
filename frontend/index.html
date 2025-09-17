@@ -33,10 +33,8 @@
         }
         
         .user-info {
-            position: absolute;
-            right: 20px;
-            top: 50%;
-            transform: translateY(-50%);
+            display: flex;
+            align-items: center;
         }
         
         .user-details {
@@ -141,8 +139,12 @@
             <div class="header-content">
                 <h1 id="pageTitle">Professional CV Builder</h1>
                 <div id="userInfo" class="user-info" style="display: none;">
-                    <span id="userRole" class="user-role"></span>
-                    <span id="shopName" class="shop-name" style="display: none;"></span>
+                    <div class="user-details">
+                        <span id="userRole" class="user-role"></span>
+                        <span id="shopName" class="shop-name" style="display: none;"></span>
+                        <button id="dashboardBtn" class="dashboard-btn" style="display: none;">🏪 Dashboard</button>
+                        <button onclick="AuthSystem.logout()" class="logout-btn">Logout</button>
+                    </div>
                 </div>
             </div>
         </header>
@@ -608,38 +610,38 @@
                         document.title = 'Admin - CV Builder';
                     }
                     
-                    const header = document.querySelector('.header');
-                    const userInfo = document.createElement('div');
-                    userInfo.className = 'user-info';
-                    userInfo.innerHTML = `
-                    <div class="user-details">
-                        ${user.role === 'admin' ? '<span class="admin-badge">Admin</span>' : ''}
-                        ${user.role === 'shopkeeper' ? `<span class="shopkeeper-badge">${user.shopName || 'Shopkeeper'}</span>` : ''}
-                        ${user.role === 'admin' ? '<button class="dashboard-btn" id="adminDashboardBtn">📊 Dashboard</button>' : ''}
-                        ${user.role === 'shopkeeper' ? '<button class="dashboard-btn" id="shopkeeperDashboardBtn">🏪 Dashboard</button>' : ''}
-                        <button onclick="AuthSystem.logout()" class="logout-btn">Logout</button>
-                    </div>
-                `;
-                    header.appendChild(userInfo);
+                    // Show user info
+                    const userInfo = document.getElementById('userInfo');
+                    const userRole = document.getElementById('userRole');
+                    const shopName = document.getElementById('shopName');
+                    const dashboardBtn = document.getElementById('dashboardBtn');
                     
-                    // Add event listener for admin dashboard button
-                    if (user.role === 'admin') {
-                        const dashboardBtn = document.getElementById('adminDashboardBtn');
-                        if (dashboardBtn) {
-                            dashboardBtn.addEventListener('click', function() {
-                                console.log('Admin dashboard button clicked');
-                                window.location.href = 'admin-dashboard.html';
-                            });
+                    if (userInfo) {
+                        userInfo.style.display = 'flex';
+                        
+                        if (userRole) {
+                            if (user.role === 'admin') {
+                                userRole.className = 'admin-badge';
+                                userRole.textContent = 'Admin';
+                            } else if (user.role === 'shopkeeper') {
+                                userRole.className = 'shopkeeper-badge';
+                                userRole.textContent = user.shopName || 'Shopkeeper';
+                            }
                         }
-                    }
-                    
-                    // Add event listener for shopkeeper dashboard button
-                    if (user.role === 'shopkeeper') {
-                        const dashboardBtn = document.getElementById('shopkeeperDashboardBtn');
+                        
+                        if (user.role === 'shopkeeper' && user.shopName && shopName) {
+                            shopName.style.display = 'block';
+                            shopName.textContent = `🏪 ${user.shopName}`;
+                        }
+                        
                         if (dashboardBtn) {
-                            dashboardBtn.addEventListener('click', function() {
-                                console.log('Shopkeeper dashboard button clicked');
-                                window.location.href = 'shopkeeper-dashboard.html';
+                            dashboardBtn.style.display = 'block';
+                            dashboardBtn.addEventListener('click', () => {
+                                if (user.role === 'shopkeeper') {
+                                    window.location.href = 'shopkeeper-dashboard.html';
+                                } else if (user.role === 'admin') {
+                                    window.location.href = 'admin-dashboard.html';
+                                }
                             });
                         }
                     }
