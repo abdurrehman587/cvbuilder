@@ -35,6 +35,8 @@ class ShopkeeperDashboard {
         this.currentUser = AuthSystem.getCurrentUser();
         console.log('Current user:', this.currentUser);
         console.log('User role:', this.currentUser ? this.currentUser.role : 'N/A');
+        console.log('User shop name:', this.currentUser ? this.currentUser.shopName : 'N/A');
+        console.log('User object keys:', this.currentUser ? Object.keys(this.currentUser) : 'N/A');
         
         if (!this.currentUser || this.currentUser.role !== 'shopkeeper') {
             console.log('Access denied - not a shopkeeper');
@@ -76,9 +78,29 @@ class ShopkeeperDashboard {
             
             console.log(`Dashboard title updated to: ${shopName} Dashboard`);
         } else {
-            console.log('No shop name found, keeping default title');
-            console.log('User object:', this.currentUser);
-            console.log('Shop name value:', this.currentUser ? this.currentUser.shopName : 'undefined');
+            console.log('No shop name found, trying to get from localStorage...');
+            // Try to get shop name from localStorage
+            const users = JSON.parse(localStorage.getItem('cvBuilder_users') || '[]');
+            const user = users.find(u => u.id === this.currentUser?.id);
+            if (user && user.shopName) {
+                console.log('Found shop name in localStorage:', user.shopName);
+                const dashboardTitle = document.getElementById('dashboardTitle');
+                const pageTitle = document.getElementById('pageTitle');
+                
+                if (dashboardTitle) {
+                    dashboardTitle.textContent = `🏪 ${user.shopName} Dashboard`;
+                    console.log('Dashboard title updated to:', dashboardTitle.textContent);
+                }
+                
+                if (pageTitle) {
+                    pageTitle.textContent = `${user.shopName} Dashboard - CV Builder`;
+                    console.log('Page title updated to:', pageTitle.textContent);
+                }
+            } else {
+                console.log('No shop name found, keeping default title');
+                console.log('User object:', this.currentUser);
+                console.log('Shop name value:', this.currentUser ? this.currentUser.shopName : 'undefined');
+            }
         }
         console.log('=== END UPDATE DASHBOARD TITLE DEBUG ===');
     }
