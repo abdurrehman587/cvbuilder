@@ -164,7 +164,11 @@ class SupabaseDatabaseManager {
                 const tableExists = await this.verifyTableExists(tableName);
                 if (!tableExists) {
                     console.error(`Table ${tableName} does not exist, attempting to create it...`);
-                    const shopName = user?.shopName || 'Unknown Shop';
+                    // Get user data to get shop name
+                    const users = JSON.parse(localStorage.getItem('cvBuilder_users') || '[]');
+                    const currentUser = users.find(u => u.id === userId);
+                    const shopName = currentUser?.shopName || 'Unknown Shop';
+                    console.log('Creating table with shop name:', shopName);
                     const createResult = await this.createShopkeeperTable(tableName, shopName);
                     if (!createResult.success) {
                         throw new Error(`Failed to create or verify table ${tableName}: ${createResult.error}`);
