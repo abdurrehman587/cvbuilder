@@ -44,6 +44,14 @@
       "dest": "/frontend/debug-auth-method.html"
     },
     {
+      "src": "/create-user-cvs-table",
+      "dest": "/frontend/create-user-cvs-table.html"
+    },
+    {
+      "src": "/debug-cv-save",
+      "dest": "/frontend/debug-cv-save.html"
+    },
+    {
       "src": "/",
       "dest": "/frontend/auth.html"
     },

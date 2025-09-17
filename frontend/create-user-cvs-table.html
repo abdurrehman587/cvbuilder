@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create User CVs Table</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .step {
+            background: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #007bff;
+            margin: 15px 0;
+        }
+        .step h4 {
+            margin-top: 0;
+            color: #007bff;
+        }
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .sql-code {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+            overflow-x: auto;
+            border: 1px solid #dee2e6;
+        }
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            margin: 10px 5px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        .copy-btn {
+            background: #28a745;
+        }
+        .copy-btn:hover {
+            background: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📝 Create User CVs Table</h1>
+        
+        <div class="warning">
+            <strong>⚠️ Issue:</strong> Regular users' CV data is not being saved because the `user_cvs` table doesn't exist in your Supabase database.
+        </div>
+        
+        <div class="step">
+            <h4>📋 Step 1: Create user_cvs Table</h4>
+            <p>This SQL will create the `user_cvs` table that regular users need to save their CV data.</p>
+        </div>
+
+        <h3>🗄️ SQL Code to Create user_cvs Table:</h3>
+        <div class="sql-code" id="sqlCode">
+-- Create user_cvs table for regular users
+CREATE TABLE public.user_cvs (
+    id BIGSERIAL PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    cv_name VARCHAR(255),
+    name VARCHAR(255),
+    email VARCHAR(255),
+    phone TEXT,
+    address TEXT,
+    objective TEXT,
+    image_url TEXT,
+    education JSONB DEFAULT '[]',
+    work_experience JSONB DEFAULT '[]',
+    skills JSONB DEFAULT '[]',
+    certifications JSONB DEFAULT '[]',
+    projects JSONB DEFAULT '[]',
+    languages JSONB DEFAULT '[]',
+    hobbies JSONB DEFAULT '[]',
+    cv_references JSONB DEFAULT '[]',
+    other_information JSONB DEFAULT '[]',
+    custom_sections JSONB DEFAULT '[]',
+    template VARCHAR(50) DEFAULT 'classic',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create indexes for better performance
+CREATE INDEX idx_user_cvs_user_id ON public.user_cvs(user_id);
+CREATE INDEX idx_user_cvs_name ON public.user_cvs(name);
+CREATE INDEX idx_user_cvs_email ON public.user_cvs(email);
+CREATE INDEX idx_user_cvs_created_at ON public.user_cvs(created_at);
+
+-- Enable Row Level Security (RLS)
+ALTER TABLE public.user_cvs ENABLE ROW LEVEL SECURITY;
+
+-- Policy: Users can only see their own CVs
+CREATE POLICY "Users can view their own CVs" ON public.user_cvs
+    FOR SELECT USING (auth.uid()::text = user_id);
+
+-- Policy: Users can insert their own CVs
+CREATE POLICY "Users can insert their own CVs" ON public.user_cvs
+    FOR INSERT WITH CHECK (auth.uid()::text = user_id);
+
+-- Policy: Users can update their own CVs
+CREATE POLICY "Users can update their own CVs" ON public.user_cvs
+    FOR UPDATE USING (auth.uid()::text = user_id);
+
+-- Policy: Users can delete their own CVs
+CREATE POLICY "Users can delete their own CVs" ON public.user_cvs
+    FOR DELETE USING (auth.uid()::text = user_id);
+
+-- Policy: Admins can view all user CVs
+CREATE POLICY "Admins can view all user CVs" ON public.user_cvs
+    FOR SELECT USING (
+        EXISTS (
+            SELECT 1 FROM auth.users
+            WHERE auth.users.id = auth.uid()
+            AND auth.users.raw_user_meta_data->>'role' = 'admin'
+        )
+    );
+
+-- Verify the table was created
+SELECT 
+    table_name, 
+    column_name, 
+    data_type, 
+    is_nullable
+FROM information_schema.columns 
+WHERE table_name = 'user_cvs' 
+ORDER BY ordinal_position;
+        </div>
+
+        <button class="button copy-btn" onclick="copySQL()">📋 Copy SQL Code</button>
+        <button class="button" onclick="window.open('https://supabase.com/dashboard', '_blank')">
+            Open Supabase Dashboard
+        </button>
+
+        <div class="step">
+            <h4>✅ Step 2: Test User CV Saving</h4>
+            <p>After creating the table, test that regular users can save their CV data.</p>
+            <button class="button" onclick="window.open('/auth', '_blank')">
+                Go to Login Page
+            </button>
+        </div>
+
+        <div class="success">
+            <strong>💡 What This Fixes:</strong>
+            <ul>
+                <li>Creates the missing `user_cvs` table</li>
+                <li>Sets up proper Row Level Security (RLS) policies</li>
+                <li>Allows regular users to save their CV data</li>
+                <li>Ensures users can only access their own CVs</li>
+                <li>Allows admins to view all user CVs</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function copySQL() {
+            const sqlCode = document.getElementById('sqlCode').textContent;
+            navigator.clipboard.writeText(sqlCode).then(() => {
+                alert('SQL code copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy SQL code: ', err);
+                alert('Failed to copy SQL code. Please copy manually.');
+            });
+        }
+    </script>
+</body>
+</html>

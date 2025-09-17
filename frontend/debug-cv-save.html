@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug CV Save Functionality</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .debug-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #007bff;
+        }
+        .debug-section h3 {
+            margin-top: 0;
+            color: #007bff;
+        }
+        .info-box {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+            overflow-x: auto;
+            border: 1px solid #dee2e6;
+            margin: 10px 0;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            margin: 10px 5px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        .test-section {
+            background: #e7f3ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #17a2b8;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="text"], input[type="email"], select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Debug CV Save Functionality</h1>
+        
+        <div class="debug-section">
+            <h3>📊 Current User Status</h3>
+            <div id="userStatus" class="info-box">Loading...</div>
+        </div>
+
+        <div class="debug-section">
+            <h3>🗄️ Database Tables Status</h3>
+            <div id="tableStatus" class="info-box">Loading...</div>
+        </div>
+
+        <div class="test-section">
+            <h3>🧪 Test CV Save</h3>
+            <p>Test saving CV data for different user roles:</p>
+            
+            <form id="testForm">
+                <div class="form-group">
+                    <label for="testRole">User Role:</label>
+                    <select id="testRole" required>
+                        <option value="user">Regular User</option>
+                        <option value="shopkeeper">Shopkeeper</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="testUserId">User ID:</label>
+                    <input type="text" id="testUserId" placeholder="Enter user ID" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="testCVName">CV Name:</label>
+                    <input type="text" id="testCVName" value="Test CV" required>
+                </div>
+                
+                <button type="submit" class="button">Test CV Save</button>
+            </form>
+            
+            <div id="testResult" class="result"></div>
+        </div>
+
+        <div class="debug-section">
+            <h3>📋 CV Save Debug Information</h3>
+            <div id="debugInfo" class="info-box">Run a test to see debug information...</div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/supabase-database.js"></script>
+    <script>
+        // Initialize Supabase
+        const supabaseUrl = 'https://poqarsztryrdlliwjhgx.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBvcWFyc3p0cnlyZGxsaXdqaGd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAwNTE0NzUsImV4cCI6MjA2NTYyNzQ3NX0.3fkTjLRdfTdIne_uE-m3GoNbu2mxREBlYrraRGX81_4';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        // Load current user status
+        function loadUserStatus() {
+            const isAuthenticated = localStorage.getItem('cvBuilder_auth') === 'true';
+            const currentUser = JSON.parse(localStorage.getItem('cvBuilder_user') || 'null');
+            
+            let status = `Authentication Status: ${isAuthenticated ? '✅ Authenticated' : '❌ Not Authenticated'}\n`;
+            
+            if (currentUser) {
+                status += `\nCurrent User:\n`;
+                status += `- ID: ${currentUser.id}\n`;
+                status += `- Name: ${currentUser.name}\n`;
+                status += `- Email: ${currentUser.email}\n`;
+                status += `- Role: ${currentUser.role}\n`;
+                status += `- Supabase ID: ${currentUser.supabaseId || 'None'}\n`;
+            } else {
+                status += `\nNo current user found. Please login first.`;
+            }
+            
+            document.getElementById('userStatus').textContent = status;
+        }
+
+        // Load table status
+        async function loadTableStatus() {
+            const tables = ['user_cvs', 'shopkeeper_cvs', 'admin_cvs'];
+            let status = `Database Tables Status:\n\n`;
+            
+            for (const table of tables) {
+                try {
+                    const { data, error } = await supabase
+                        .from(table)
+                        .select('*')
+                        .limit(1);
+                    
+                    if (error) {
+                        status += `${table}: ❌ Error - ${error.message}\n`;
+                    } else {
+                        status += `${table}: ✅ Exists and accessible\n`;
+                    }
+                } catch (err) {
+                    status += `${table}: ❌ Error - ${err.message}\n`;
+                }
+            }
+            
+            document.getElementById('tableStatus').textContent = status;
+        }
+
+        // Test CV save
+        document.getElementById('testForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const role = document.getElementById('testRole').value;
+            const userId = document.getElementById('testUserId').value;
+            const cvName = document.getElementById('testCVName').value;
+            const resultDiv = document.getElementById('testResult');
+            const debugDiv = document.getElementById('debugInfo');
+            
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<div class="info">Testing CV save...</div>';
+            
+            try {
+                // Create test CV data
+                const testCVData = {
+                    personalInfo: {
+                        fullName: cvName,
+                        email: 'test@example.com',
+                        phone: '123-456-7890',
+                        address: '123 Test St, Test City',
+                        summary: 'Test CV for debugging'
+                    },
+                    experience: [
+                        {
+                            company: 'Test Company',
+                            position: 'Test Position',
+                            duration: '2020-2024',
+                            description: 'Test job description'
+                        }
+                    ],
+                    education: [
+                        {
+                            institution: 'Test University',
+                            degree: 'Test Degree',
+                            year: '2020'
+                        }
+                    ],
+                    skills: ['JavaScript', 'HTML', 'CSS'],
+                    name: cvName
+                };
+
+                console.log('Testing CV save with:', { role, userId, cvName });
+                
+                // Initialize database manager if not already done
+                if (!window.supabaseDatabaseManager) {
+                    window.supabaseDatabaseManager = new SupabaseDatabaseManager();
+                    await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for initialization
+                }
+
+                // Test CV save
+                const result = await window.supabaseDatabaseManager.saveCV(testCVData, userId, role);
+                
+                let resultText = `CV Save Test Results:\n\n`;
+                resultText += `Role: ${role}\n`;
+                resultText += `User ID: ${userId}\n`;
+                resultText += `CV Name: ${cvName}\n\n`;
+                
+                if (result) {
+                    resultText += `✅ CV Save Successful!\n`;
+                    resultText += `Result: ${JSON.stringify(result, null, 2)}\n`;
+                    resultDiv.innerHTML = `<div class="success">${resultText}</div>`;
+                } else {
+                    resultText += `❌ CV Save Failed - No result returned\n`;
+                    resultDiv.innerHTML = `<div class="error">${resultText}</div>`;
+                }
+
+                // Debug information
+                let debugText = `Debug Information:\n\n`;
+                debugText += `Table Used: ${role === 'user' ? 'user_cvs' : role === 'shopkeeper' ? 'shopkeeper_cvs' : 'admin_cvs'}\n`;
+                debugText += `Supabase Available: ${window.supabaseDatabaseManager ? 'Yes' : 'No'}\n`;
+                debugText += `Test CV Data: ${JSON.stringify(testCVData, null, 2)}\n`;
+                
+                debugDiv.textContent = debugText;
+
+            } catch (error) {
+                console.error('CV save test error:', error);
+                resultDiv.innerHTML = `<div class="error">❌ Test Error: ${error.message}</div>`;
+                
+                let debugText = `Debug Information:\n\n`;
+                debugText += `Error: ${error.message}\n`;
+                debugText += `Stack: ${error.stack}\n`;
+                debugDiv.textContent = debugText;
+            }
+        });
+
+        // Load debug information on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadUserStatus();
+            loadTableStatus();
+        });
+    </script>
+</body>
+</html>
