@@ -32,6 +32,10 @@
       "dest": "/frontend/create-admin-simple.html"
     },
     {
+      "src": "/create-admin-local",
+      "dest": "/frontend/create-admin-local.html"
+    },
+    {
       "src": "/",
       "dest": "/frontend/auth.html"
     },

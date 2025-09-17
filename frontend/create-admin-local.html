@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Admin User - LocalStorage Method</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="text"], input[type="email"], input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .credentials {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .credentials h3 {
+            margin-top: 0;
+            color: #28a745;
+        }
+        .credentials p {
+            margin: 5px 0;
+            font-family: monospace;
+            background: #f8f9fa;
+            padding: 5px 10px;
+            border-radius: 3px;
+        }
+        .step {
+            background: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #007bff;
+            margin: 15px 0;
+        }
+        .step h4 {
+            margin-top: 0;
+            color: #007bff;
+        }
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>👑 Create Admin User - LocalStorage Method</h1>
+        
+        <div class="warning">
+            <strong>⚠️ Important:</strong> This creates an admin user in localStorage only. 
+            This is useful for testing when email confirmation is enabled in Supabase.
+        </div>
+        
+        <div class="step">
+            <h4>📋 Step 1: Create Admin User in localStorage</h4>
+            <p>This will create an admin user that can be used for testing without email confirmation.</p>
+        </div>
+
+        <form id="adminForm">
+            <div class="form-group">
+                <label for="adminEmail">Admin Email:</label>
+                <input type="email" id="adminEmail" value="admin@cvbuilder.com" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="adminPassword">Admin Password:</label>
+                <input type="password" id="adminPassword" value="admin123456" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="adminName">Admin Name:</label>
+                <input type="text" id="adminName" value="System Administrator" required>
+            </div>
+            
+            <button type="submit" id="createBtn">Create Admin User in localStorage</button>
+        </form>
+
+        <div id="result" class="result"></div>
+        
+        <div id="credentials" class="credentials" style="display: none;">
+            <h3>🔐 Admin Credentials Created:</h3>
+            <p><strong>Email:</strong> <span id="createdEmail"></span></p>
+            <p><strong>Password:</strong> <span id="createdPassword"></span></p>
+            <p><strong>Role:</strong> Admin</p>
+            <p><strong>Storage:</strong> localStorage (for testing)</p>
+        </div>
+
+        <div class="step">
+            <h4>✅ Step 2: Test Login</h4>
+            <p>After creating the admin user, go to the login page and test the credentials.</p>
+            <button onclick="window.open('/auth', '_blank')" style="background: #28a745; margin-top: 10px;">
+                Go to Login Page
+            </button>
+        </div>
+
+        <div class="step">
+            <h4>🔧 Step 3: Check localStorage</h4>
+            <p>You can verify the admin user was created by checking localStorage in your browser's developer tools.</p>
+            <button onclick="checkLocalStorage()" style="background: #17a2b8; margin-top: 10px;">
+                Check localStorage
+            </button>
+            <div id="localStorageInfo" style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 5px; display: none;">
+                <pre id="localStorageData"></pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('adminForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('adminEmail').value;
+            const password = document.getElementById('adminPassword').value;
+            const name = document.getElementById('adminName').value;
+            
+            const resultDiv = document.getElementById('result');
+            const credentialsDiv = document.getElementById('credentials');
+            const createBtn = document.getElementById('createBtn');
+            
+            try {
+                createBtn.disabled = true;
+                createBtn.textContent = 'Creating admin user...';
+                resultDiv.innerHTML = '<div class="info">Creating admin user in localStorage...</div>';
+                resultDiv.style.display = 'block';
+                
+                // Create admin user data
+                const adminUser = {
+                    id: 'admin_' + Date.now(),
+                    name: name,
+                    email: email,
+                    password: password,
+                    role: 'admin',
+                    shopName: null,
+                    createdAt: new Date().toISOString(),
+                    supabaseId: null, // No Supabase ID for localStorage users
+                    isLocalStorage: true
+                };
+                
+                // Get existing users from localStorage
+                const users = JSON.parse(localStorage.getItem('cvBuilder_users') || '[]');
+                
+                // Check if user already exists
+                const existingUserIndex = users.findIndex(u => u.email === email);
+                
+                if (existingUserIndex >= 0) {
+                    // Update existing user
+                    users[existingUserIndex] = adminUser;
+                    console.log('Updated existing admin user in localStorage');
+                } else {
+                    // Add new user
+                    users.push(adminUser);
+                    console.log('Added new admin user to localStorage');
+                }
+                
+                // Save users back to localStorage
+                localStorage.setItem('cvBuilder_users', JSON.stringify(users));
+                localStorage.setItem('cvBuilder_auth', 'true');
+                localStorage.setItem('cvBuilder_user', JSON.stringify(adminUser));
+                
+                // Show success message
+                resultDiv.innerHTML = '<div class="success">✅ Admin user created successfully in localStorage!</div>';
+                
+                // Show credentials
+                document.getElementById('createdEmail').textContent = email;
+                document.getElementById('createdPassword').textContent = password;
+                credentialsDiv.style.display = 'block';
+                
+                console.log('Admin user created:', adminUser);
+                
+            } catch (error) {
+                console.error('Error creating admin user:', error);
+                resultDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            } finally {
+                createBtn.disabled = false;
+                createBtn.textContent = 'Create Admin User in localStorage';
+            }
+        });
+        
+        function checkLocalStorage() {
+            const users = JSON.parse(localStorage.getItem('cvBuilder_users') || '[]');
+            const currentUser = JSON.parse(localStorage.getItem('cvBuilder_user') || 'null');
+            const auth = localStorage.getItem('cvBuilder_auth');
+            
+            const info = {
+                'cvBuilder_users': users,
+                'cvBuilder_user': currentUser,
+                'cvBuilder_auth': auth
+            };
+            
+            document.getElementById('localStorageData').textContent = JSON.stringify(info, null, 2);
+            document.getElementById('localStorageInfo').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
