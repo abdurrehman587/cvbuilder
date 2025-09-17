@@ -68,6 +68,10 @@
       "dest": "/frontend/check-tables.html"
     },
     {
+      "src": "/test-cv-tables",
+      "dest": "/frontend/test-cv-tables.html"
+    },
+    {
       "src": "/",
       "dest": "/frontend/auth.html"
     },

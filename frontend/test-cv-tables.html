@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test CV Tables</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            background: #e7f3ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #17a2b8;
+        }
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            margin: 10px 5px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .info-box {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+            overflow-x: auto;
+            border: 1px solid #dee2e6;
+            margin: 10px 0;
+        }
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test CV Tables</h1>
+        
+        <div class="warning">
+            <strong>⚠️ Note:</strong> System table queries (like information_schema) are not accessible through Supabase REST API due to security restrictions. This is normal behavior.
+        </div>
+        
+        <div class="test-section">
+            <h3>Test 1: Check admin_cvs table</h3>
+            <button class="button" onclick="testAdminCvs()">Test admin_cvs</button>
+            <div id="adminCvsResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Test 2: Check shopkeeper_cvs table</h3>
+            <button class="button" onclick="testShopkeeperCvs()">Test shopkeeper_cvs</button>
+            <div id="shopkeeperCvsResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Test 3: Check user_cvs table</h3>
+            <button class="button" onclick="testUserCvs()">Test user_cvs</button>
+            <div id="userCvsResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Test 4: Try to insert into user_cvs</h3>
+            <button class="button" onclick="testUserCvsInsert()">Test Insert into user_cvs</button>
+            <div id="userCvsInsertResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Solution: Create user_cvs table</h3>
+            <button class="button" onclick="showCreateUserCvsSQL()">Show Create SQL</button>
+            <div id="createUserCvsResult" class="result"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Initialize Supabase
+        const supabaseUrl = 'https://poqarsztryrdlliwjhgx.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBvcWFyc3p0cnlyZGxsaXdqaGd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAwNTE0NzUsImV4cCI6MjA2NTYyNzQ3NX0.3fkTjLRdfTdIne_uE-m3GoNbu2mxREBlYrraRGX81_4';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        // Test admin_cvs
+        async function testAdminCvs() {
+            const resultDiv = document.getElementById('adminCvsResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<div class="info">Testing admin_cvs table...</div>';
+
+            try {
+                const { data, error } = await supabase
+                    .from('admin_cvs')
+                    .select('*')
+                    .limit(1);
+
+                if (error) {
+                    resultDiv.innerHTML = `<div class="error">❌ admin_cvs Error: ${error.message}</div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="success">✅ admin_cvs table works! Found ${data.length} records.</div>`;
+                }
+            } catch (err) {
+                resultDiv.innerHTML = `<div class="error">❌ Exception: ${err.message}</div>`;
+            }
+        }
+
+        // Test shopkeeper_cvs
+        async function testShopkeeperCvs() {
+            const resultDiv = document.getElementById('shopkeeperCvsResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<div class="info">Testing shopkeeper_cvs table...</div>';
+
+            try {
+                const { data, error } = await supabase
+                    .from('shopkeeper_cvs')
+                    .select('*')
+                    .limit(1);
+
+                if (error) {
+                    resultDiv.innerHTML = `<div class="error">❌ shopkeeper_cvs Error: ${error.message}</div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="success">✅ shopkeeper_cvs table works! Found ${data.length} records.</div>`;
+                }
+            } catch (err) {
+                resultDiv.innerHTML = `<div class="error">❌ Exception: ${err.message}</div>`;
+            }
+        }
+
+        // Test user_cvs
+        async function testUserCvs() {
+            const resultDiv = document.getElementById('userCvsResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<div class="info">Testing user_cvs table...</div>';
+
+            try {
+                const { data, error } = await supabase
+                    .from('user_cvs')
+                    .select('*')
+                    .limit(1);
+
+                if (error) {
+                    resultDiv.innerHTML = `<div class="error">❌ user_cvs Error: ${error.message}<br><br>This confirms the table either doesn't exist or has structural issues.</div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="success">✅ user_cvs table works! Found ${data.length} records.</div>`;
+                }
+            } catch (err) {
+                resultDiv.innerHTML = `<div class="error">❌ Exception: ${err.message}</div>`;
+            }
+        }
+
+        // Test user_cvs insert
+        async function testUserCvsInsert() {
+            const resultDiv = document.getElementById('userCvsInsertResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<div class="info">Testing insert into user_cvs...</div>';
+
+            try {
+                const { data, error } = await supabase
+                    .from('user_cvs')
+                    .insert([{
+                        user_id: 'test_user_123',
+                        name: 'Test CV',
+                        email: 'test@example.com'
+                    }])
+                    .select();
+
+                if (error) {
+                    resultDiv.innerHTML = `<div class="error">❌ Insert Error: ${error.message}<br><br>This confirms the table structure is wrong or missing.</div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="success">✅ Insert successful! Data: ${JSON.stringify(data, null, 2)}</div>`;
+                }
+            } catch (err) {
+                resultDiv.innerHTML = `<div class="error">❌ Exception: ${err.message}</div>`;
+            }
+        }
+
+        // Show create user_cvs SQL
+        function showCreateUserCvsSQL() {
+            const resultDiv = document.getElementById('createUserCvsResult');
+            resultDiv.style.display = 'block';
+
+            const createSQL = `-- Create user_cvs table
+-- Run this in your Supabase SQL Editor
+
+-- Drop table if it exists (be careful!)
+DROP TABLE IF EXISTS public.user_cvs CASCADE;
+
+-- Create user_cvs table with proper structure
+CREATE TABLE public.user_cvs (
+    id BIGSERIAL PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    cv_name VARCHAR(255),
+    name VARCHAR(255),
+    email VARCHAR(255),
+    phone TEXT,
+    address TEXT,
+    objective TEXT,
+    image_url TEXT,
+    education JSONB DEFAULT '[]',
+    work_experience JSONB DEFAULT '[]',
+    skills JSONB DEFAULT '[]',
+    certifications JSONB DEFAULT '[]',
+    projects JSONB DEFAULT '[]',
+    languages JSONB DEFAULT '[]',
+    hobbies JSONB DEFAULT '[]',
+    cv_references JSONB DEFAULT '[]',
+    other_information JSONB DEFAULT '[]',
+    custom_sections JSONB DEFAULT '[]',
+    template VARCHAR(50) DEFAULT 'classic',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create indexes for better performance
+CREATE INDEX idx_user_cvs_user_id ON public.user_cvs(user_id);
+CREATE INDEX idx_user_cvs_name ON public.user_cvs(name);
+CREATE INDEX idx_user_cvs_email ON public.user_cvs(email);
+CREATE INDEX idx_user_cvs_created_at ON public.user_cvs(created_at);
+
+-- Enable Row Level Security (RLS)
+ALTER TABLE public.user_cvs ENABLE ROW LEVEL SECURITY;
+
+-- Create RLS policies
+CREATE POLICY "Users can view their own CVs" ON public.user_cvs
+    FOR SELECT USING (auth.uid()::text = user_id);
+
+CREATE POLICY "Users can insert their own CVs" ON public.user_cvs
+    FOR INSERT WITH CHECK (auth.uid()::text = user_id);
+
+CREATE POLICY "Users can update their own CVs" ON public.user_cvs
+    FOR UPDATE USING (auth.uid()::text = user_id);
+
+CREATE POLICY "Users can delete their own CVs" ON public.user_cvs
+    FOR DELETE USING (auth.uid()::text = user_id);
+
+-- Policy for admins to view all user CVs
+CREATE POLICY "Admins can view all user CVs" ON public.user_cvs
+    FOR SELECT USING (
+        EXISTS (
+            SELECT 1 FROM auth.users
+            WHERE auth.users.id = auth.uid()
+            AND auth.users.raw_user_meta_data->>'role' = 'admin'
+        )
+    );
+
+-- Test the table with a sample insert
+INSERT INTO public.user_cvs (user_id, name, email, cv_name) 
+VALUES ('test_user_123', 'Test CV', 'test@example.com', 'Test CV');
+
+-- Verify the table works
+SELECT * FROM public.user_cvs WHERE user_id = 'test_user_123';
+
+-- Clean up test data
+DELETE FROM public.user_cvs WHERE user_id = 'test_user_123';`;
+
+            resultDiv.innerHTML = `<div class="info-box">${createSQL}</div>`;
+        }
+    </script>
+</body>
+</html>
