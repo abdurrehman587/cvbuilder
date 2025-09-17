@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Database Fix</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        .button:hover {
+            background: #45a049;
+        }
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .success {
+            background: #e8f5e8;
+            color: #2e7d32;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .info {
+            background: #e3f2fd;
+            color: #1565c0;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Test Database Fix</h1>
+        <p>This page tests if the database column error has been fixed.</p>
+        
+        <div id="result"></div>
+        
+        <button class="button" onclick="testUserCvsTable()">Test user_cvs Table Access</button>
+        <button class="button" onclick="testCVSave()">Test CV Save (with user role)</button>
+        <button class="button" onclick="testCVSearch()">Test CV Search (with user role)</button>
+        
+        <div class="info">
+            <h3>What this tests:</h3>
+            <ul>
+                <li>✅ Checks if user_cvs table is accessible</li>
+                <li>✅ Tests saving CV data with user role (should use user_id column)</li>
+                <li>✅ Tests searching CVs with user role (should filter by user_id)</li>
+                <li>✅ Verifies no more "user_email does not exist" errors</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Include Supabase and database files -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/supabase-database.js"></script>
+
+    <script>
+        async function testUserCvsTable() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<div class="info">Testing user_cvs table access...</div>';
+            
+            try {
+                if (window.supabaseDatabaseManager) {
+                    const result = await window.supabaseDatabaseManager.testUserCVsTable();
+                    if (result.success) {
+                        resultDiv.innerHTML = `<div class="success">✅ user_cvs table is accessible! Found ${result.data.length} records.</div>`;
+                    } else {
+                        resultDiv.innerHTML = `<div class="error">❌ user_cvs table error: ${result.error}</div>`;
+                    }
+                } else {
+                    resultDiv.innerHTML = '<div class="error">❌ Database manager not available</div>';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Test error: ${error.message}</div>`;
+            }
+        }
+
+        async function testCVSave() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<div class="info">Testing CV save with user role...</div>';
+            
+            try {
+                if (window.supabaseDatabaseManager) {
+                    // Create test CV data
+                    const testCVData = {
+                        personalInfo: {
+                            fullName: "Test User",
+                            email: "test@example.com",
+                            phones: [{ phone: "1234567890" }],
+                            address: "Test Address",
+                            summary: "Test summary"
+                        },
+                        education: [],
+                        experience: [],
+                        skills: [{ skill: "Test Skill" }],
+                        languages: [{ language: "English", level: "Fluent" }],
+                        hobbies: [],
+                        customSections: [],
+                        otherInfo: [],
+                        references: [{ reference: "Test reference" }]
+                    };
+                    
+                    const testUserId = "test-user-" + Date.now();
+                    const result = await window.supabaseDatabaseManager.saveCV(testCVData, testUserId, 'user');
+                    
+                    if (result) {
+                        resultDiv.innerHTML = `<div class="success">✅ CV saved successfully! ID: ${result.id}<br><br>This confirms the user_id column fix is working.</div>`;
+                    } else {
+                        resultDiv.innerHTML = '<div class="error">❌ CV save failed</div>';
+                    }
+                } else {
+                    resultDiv.innerHTML = '<div class="error">❌ Database manager not available</div>';
+                }
+            } catch (error) {
+                if (error.message.includes('user_email')) {
+                    resultDiv.innerHTML = `<div class="error">❌ Still getting user_email error: ${error.message}<br><br>The fix may not be complete.</div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="error">❌ CV save error: ${error.message}</div>`;
+                }
+            }
+        }
+
+        async function testCVSearch() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<div class="info">Testing CV search with user role...</div>';
+            
+            try {
+                if (window.supabaseDatabaseManager) {
+                    const testUserId = "test-user-" + Date.now();
+                    const result = await window.supabaseDatabaseManager.searchCVs(null, null, null, 'user', testUserId);
+                    
+                    resultDiv.innerHTML = `<div class="success">✅ CV search completed successfully! Found ${result.length} CVs.<br><br>This confirms the user_id filtering is working.</div>`;
+                } else {
+                    resultDiv.innerHTML = '<div class="error">❌ Database manager not available</div>';
+                }
+            } catch (error) {
+                if (error.message.includes('user_email')) {
+                    resultDiv.innerHTML = `<div class="error">❌ Still getting user_email error: ${error.message}<br><br>The fix may not be complete.</div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="error">❌ CV search error: ${error.message}</div>`;
+                }
+            }
+        }
+    </script>
+</body>
+</html>

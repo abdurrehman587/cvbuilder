@@ -169,7 +169,7 @@ class SupabaseDatabaseManager {
             } else if (userRole === 'user') {
                 // For user_cvs table - match the actual table structure
                 cvRecord = {
-                    user_email: userId, // Changed from user_id to user_email
+                    user_id: userId, // Correct column name is user_id
                     name: fullName,
                     email: cvData.personalInfo?.email || cvData.email || '',
                     cv_name: fullName // Add cv_name field
@@ -261,7 +261,7 @@ class SupabaseDatabaseManager {
             if (userRole === 'shopkeeper') {
                 uniqueField = 'shopkeeper_id';
             } else if (userRole === 'user') {
-                uniqueField = 'user_email';
+                uniqueField = 'user_id';
             } else {
                 uniqueField = 'admin_email';
             }
@@ -386,7 +386,7 @@ class SupabaseDatabaseManager {
             } else if (userRole === 'user') {
                 // For user_cvs table - match the actual table structure
                 updateData = {
-                    user_email: userId, // Changed from user_id to user_email
+                    user_id: userId, // Correct column name is user_id
                     cv_name: fullName,
                     name: fullName,
                     email: cvData.personalInfo?.email || cvData.email || '',
@@ -698,9 +698,9 @@ class SupabaseDatabaseManager {
                 query = query.eq('shopkeeper_id', userId);
                 console.log('Filtering shopkeeper CVs by shopkeeper_id:', userId);
             } else if (userRole === 'user' && userId) {
-                // Filter by user_email for users
-                query = query.eq('user_email', userId);
-                console.log('Filtering user CVs by user_email:', userId);
+                // Filter by user_id for users
+                query = query.eq('user_id', userId);
+                console.log('Filtering user CVs by user_id:', userId);
             }
 
             if (name) {
