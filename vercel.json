@@ -36,6 +36,10 @@
       "dest": "/frontend/create-admin-proper.html"
     },
     {
+      "src": "/fix-admin-user",
+      "dest": "/frontend/fix-admin-user.html"
+    },
+    {
       "src": "/",
       "dest": "/frontend/auth.html"
     },
