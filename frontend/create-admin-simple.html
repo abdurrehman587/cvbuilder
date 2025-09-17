@@ -162,10 +162,13 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/supabase-config.js"></script>
     <script>
-        // Initialize Supabase
-        const supabase = window.supabaseDatabaseManager.supabase;
+        // Initialize Supabase directly
+        const supabaseUrl = 'https://poqarsztryrdlliwjhgx.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBvcWFyc3p0cnlyZGxsaXdqaGd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAwNTE0NzUsImV4cCI6MjA2NTYyNzQ3NX0.3fkTjLRdfTdIne_uE-m3GoNbu2mxREBlYrraRGX81_4';
+        
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        console.log('Supabase initialized successfully');
         
         document.getElementById('adminForm').addEventListener('submit', async (e) => {
             e.preventDefault();
