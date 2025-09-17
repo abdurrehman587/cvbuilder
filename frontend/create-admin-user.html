@@ -194,6 +194,32 @@
                         console.warn('Could not update user metadata:', updateError);
                     }
                     
+                    // Create initial admin CV record in admin_cvs table
+                    try {
+                        const { error: cvError } = await window.supabaseDatabaseManager.supabase
+                            .from('admin_cvs')
+                            .insert([{
+                                user_id: data.user.id,
+                                cv_data: {},
+                                personal_info: {
+                                    name: name,
+                                    email: email,
+                                    role: 'admin'
+                                },
+                                full_name: name,
+                                email: email,
+                                template: 'classic'
+                            }]);
+                        
+                        if (cvError) {
+                            console.warn('Could not create admin CV record:', cvError);
+                        } else {
+                            console.log('Admin CV record created successfully');
+                        }
+                    } catch (cvErr) {
+                        console.warn('Error creating admin CV record:', cvErr);
+                    }
+                    
                     // Show success message
                     resultDiv.innerHTML = '<div class="success">✅ Admin user created successfully!</div>';
                     
