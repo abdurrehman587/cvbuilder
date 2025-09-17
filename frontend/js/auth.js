@@ -332,11 +332,33 @@ class AuthSystem {
                     
                     // Get user metadata
                     const userData = data.user?.user_metadata || {};
-                    const userRole = userData.role || 'user';
+                    let userRole = userData.role || 'user';
                     
-                    // Check if the role matches expected role
+                    // If role is missing or incorrect, try to get it from localStorage
                     if (userRole !== expectedRole) {
-                        throw new Error(`Invalid role. Expected ${expectedRole}, got ${userRole}`);
+                        console.log('Role mismatch, checking localStorage for correct role...');
+                        const users = this.getUsers();
+                        const localUser = users.find(u => u.email === email);
+                        if (localUser && localUser.role === expectedRole) {
+                            console.log('Found correct role in localStorage, updating user metadata...');
+                            userRole = localUser.role;
+                            
+                            // Update user metadata in Supabase
+                            try {
+                                await window.supabaseDatabaseManager.supabase.auth.updateUser({
+                                    data: {
+                                        role: userRole,
+                                        name: userData.name || localUser.name,
+                                        shopName: userData.shopName || localUser.shopName
+                                    }
+                                });
+                                console.log('User metadata updated successfully');
+                            } catch (updateError) {
+                                console.error('Failed to update user metadata:', updateError);
+                            }
+                        } else {
+                            throw new Error(`Invalid role. Expected ${expectedRole}, got ${userRole}. Please contact support if this persists.`);
+                        }
                     }
 
                     const user = {
@@ -580,6 +602,44 @@ class AuthSystem {
         }
         
         return suggestions;
+    }
+
+    // Method to fix user role for existing users
+    async fixUserRole(email, correctRole) {
+        try {
+            if (!window.supabaseDatabaseManager || !window.supabaseDatabaseManager.supabase) {
+                throw new Error('Database connection not available');
+            }
+
+            // Get current user
+            const { data: { user }, error: userError } = await window.supabaseDatabaseManager.supabase.auth.getUser();
+            if (userError || !user) {
+                throw new Error('User not authenticated');
+            }
+
+            if (user.email !== email) {
+                throw new Error('Email does not match current user');
+            }
+
+            // Update user metadata
+            const { error: updateError } = await window.supabaseDatabaseManager.supabase.auth.updateUser({
+                data: {
+                    role: correctRole,
+                    name: user.user_metadata?.name || email.split('@')[0],
+                    shopName: user.user_metadata?.shopName || null
+                }
+            });
+
+            if (updateError) {
+                throw new Error(`Failed to update role: ${updateError.message}`);
+            }
+
+            console.log(`User role updated to ${correctRole} for ${email}`);
+            return true;
+        } catch (error) {
+            console.error('Error fixing user role:', error);
+            throw error;
+        }
     }
 
     checkAuthStatus() {
