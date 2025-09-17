@@ -38,6 +38,7 @@
         .user-info {
             display: flex;
             align-items: center;
+            gap: 12px;
         }
         
         .user-details {
@@ -49,6 +50,49 @@
             border-radius: 22px;
             backdrop-filter: blur(10px);
             height: 40px;
+        }
+        
+        .cv-saved-notification {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 18px;
+            font-size: 11px;
+            font-weight: 500;
+            box-shadow: 0 2px 6px rgba(76, 175, 80, 0.3);
+            height: 28px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+        }
+        
+        .save-indicator {
+            display: flex;
+            align-items: center;
+        }
+        
+        .save-status {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 18px;
+            font-size: 11px;
+            font-weight: 500;
+            box-shadow: 0 2px 6px rgba(76, 175, 80, 0.3);
+            height: 28px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+        }
+        
+        .save-status.unsaved {
+            background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+            box-shadow: 0 2px 6px rgba(255, 152, 0, 0.3);
+        }
+        
+        .save-status.loading {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+            box-shadow: 0 2px 6px rgba(33, 150, 243, 0.3);
         }
         
         .shopkeeper-badge {

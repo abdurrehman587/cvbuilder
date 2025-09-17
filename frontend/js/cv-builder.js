@@ -4806,13 +4806,13 @@ class CVBuilder {
             indicator.id = 'saveIndicator';
             indicator.className = 'save-indicator';
             
-            // Add to header
-            const header = document.querySelector('.header');
-            if (header) {
-                header.appendChild(indicator);
-                console.log('Save indicator added to header');
+            // Add to user-info container for proper alignment
+            const userInfo = document.getElementById('userInfo');
+            if (userInfo) {
+                userInfo.appendChild(indicator);
+                console.log('Save indicator added to user-info');
             } else {
-                console.error('Header not found for save indicator');
+                console.error('User info container not found for save indicator');
             }
         }
         
