@@ -120,12 +120,27 @@ class SupabaseDatabaseManager {
                 console.log('All users in localStorage:', users);
                 const user = users.find(u => u.id === userId);
                 console.log('Found user for ID', userId, ':', user);
+                console.log('User object keys:', Object.keys(user));
+                console.log('User tableName property:', user?.tableName);
+                console.log('User shopName property:', user?.shopName);
                 tableName = user?.tableName;
                 console.log('Table name from user data:', tableName);
                 
                 if (!tableName) {
-                    console.error('Shopkeeper table not found for user:', user);
-                    throw new Error('Shopkeeper table not found. Please contact support.');
+                    // Fallback: generate table name from shop name
+                    const shopName = user?.shopName;
+                    if (shopName) {
+                        tableName = shopName.toLowerCase().replace(/[^a-z0-9]/g, '_') + '_cvs';
+                        console.log('Generated table name from shop name:', tableName);
+                        // Update user object with the generated table name
+                        user.tableName = tableName;
+                        const updatedUsers = users.map(u => u.id === userId ? user : u);
+                        localStorage.setItem('cvBuilder_users', JSON.stringify(updatedUsers));
+                        console.log('Updated user object with table name');
+                    } else {
+                        console.error('Shopkeeper table not found for user:', user);
+                        throw new Error('Shopkeeper table not found. Please contact support.');
+                    }
                 }
             } else if (userRole === 'user') {
                 tableName = this.userTableName;
