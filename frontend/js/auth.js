@@ -366,6 +366,7 @@ class AuthSystem {
                         name: userData.name || email.split('@')[0],
                         email: email,
                         role: userRole,
+                        shopName: userData.shopName || null,
                         supabaseId: data.user.id,
                         createdAt: data.user.created_at
                     };

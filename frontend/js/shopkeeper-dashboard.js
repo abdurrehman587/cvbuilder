@@ -52,21 +52,35 @@ class ShopkeeperDashboard {
     }
 
     updateDashboardTitle() {
+        console.log('=== UPDATE DASHBOARD TITLE DEBUG ===');
+        console.log('Current user:', this.currentUser);
+        console.log('Shop name:', this.currentUser ? this.currentUser.shopName : 'N/A');
+        
         if (this.currentUser && this.currentUser.shopName) {
             const shopName = this.currentUser.shopName;
             const dashboardTitle = document.getElementById('dashboardTitle');
             const pageTitle = document.getElementById('pageTitle');
             
+            console.log('Dashboard title element:', dashboardTitle);
+            console.log('Page title element:', pageTitle);
+            
             if (dashboardTitle) {
                 dashboardTitle.textContent = `🏪 ${shopName} Dashboard`;
+                console.log('Dashboard title updated to:', dashboardTitle.textContent);
             }
             
             if (pageTitle) {
                 pageTitle.textContent = `${shopName} Dashboard - CV Builder`;
+                console.log('Page title updated to:', pageTitle.textContent);
             }
             
             console.log(`Dashboard title updated to: ${shopName} Dashboard`);
+        } else {
+            console.log('No shop name found, keeping default title');
+            console.log('User object:', this.currentUser);
+            console.log('Shop name value:', this.currentUser ? this.currentUser.shopName : 'undefined');
         }
+        console.log('=== END UPDATE DASHBOARD TITLE DEBUG ===');
     }
 
     setupEventListeners() {
