@@ -342,14 +342,8 @@ class SupabaseDatabaseManager {
             // Determine which table to use based on user role
             let tableName;
             if (userRole === 'shopkeeper') {
-                // Get dynamic table name from user data
-                const users = JSON.parse(localStorage.getItem('cvBuilder_users') || '[]');
-                const user = users.find(u => u.id === userId);
-                tableName = user?.tableName;
-                
-                if (!tableName) {
-                    throw new Error('Shopkeeper table not found. Please contact support.');
-                }
+                // Use shopkeeper_cvs table for all shopkeepers
+                tableName = 'shopkeeper_cvs';
             } else if (userRole === 'user') {
                 tableName = this.userTableName;
             } else {
