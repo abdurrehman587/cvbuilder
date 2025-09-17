@@ -137,6 +137,9 @@ class SupabaseDatabaseManager {
                         const updatedUsers = users.map(u => u.id === userId ? user : u);
                         localStorage.setItem('cvBuilder_users', JSON.stringify(updatedUsers));
                         console.log('Updated user object with table name');
+                        
+                        // Create the table if it doesn't exist
+                        await this.createShopkeeperTable(tableName, shopName);
                     } else {
                         console.error('Shopkeeper table not found for user:', user);
                         throw new Error('Shopkeeper table not found. Please contact support.');
@@ -546,6 +549,94 @@ class SupabaseDatabaseManager {
         } catch (error) {
             console.error('Error in getAllCVs:', error);
             return [];
+        }
+    }
+
+    async createShopkeeperTable(tableName, shopName) {
+        try {
+            console.log(`Creating shopkeeper table: ${tableName} for shop: ${shopName}`);
+            
+            const createTableSQL = `
+                CREATE TABLE IF NOT EXISTS public.${tableName} (
+                    id SERIAL PRIMARY KEY,
+                    shopkeeper_id UUID NOT NULL,
+                    shop_name VARCHAR(255) NOT NULL,
+                    cv_data JSONB NOT NULL,
+                    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+                    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+                );
+                
+                -- Create RLS policy
+                ALTER TABLE public.${tableName} ENABLE ROW LEVEL SECURITY;
+                
+                -- Policy for shopkeeper to access their own CVs
+                CREATE POLICY IF NOT EXISTS "${tableName}_shopkeeper_policy" ON public.${tableName}
+                    FOR ALL USING (shopkeeper_id = auth.uid());
+            `;
+            
+            const { data, error } = await this.supabase.rpc('exec_sql', { sql: createTableSQL });
+            
+            if (error) {
+                console.error('Error creating shopkeeper table:', error);
+                // Try alternative approach
+                console.log('Trying alternative table creation...');
+                return await this.createShopkeeperTableAlternative(tableName, shopName);
+            }
+            
+            console.log('Shopkeeper table created successfully:', tableName);
+            return { success: true, tableName };
+            
+        } catch (error) {
+            console.error('Error in createShopkeeperTable:', error);
+            return await this.createShopkeeperTableAlternative(tableName, shopName);
+        }
+    }
+    
+    async createShopkeeperTableAlternative(tableName, shopName) {
+        try {
+            console.log(`Creating shopkeeper table using alternative method: ${tableName}`);
+            
+            // Create a temporary function to execute the SQL
+            const createFunctionSQL = `
+                CREATE OR REPLACE FUNCTION create_shopkeeper_table(table_name text, shop_name text)
+                RETURNS void AS $$
+                BEGIN
+                    EXECUTE format('CREATE TABLE IF NOT EXISTS public.%I (
+                        id SERIAL PRIMARY KEY,
+                        shopkeeper_id UUID NOT NULL,
+                        shop_name VARCHAR(255) NOT NULL,
+                        cv_data JSONB NOT NULL,
+                        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+                        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+                    )', table_name);
+                    
+                    EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY', table_name);
+                    
+                    EXECUTE format('CREATE POLICY IF NOT EXISTS "%s_shopkeeper_policy" ON public.%I
+                        FOR ALL USING (shopkeeper_id = auth.uid())', table_name, table_name);
+                END;
+                $$ LANGUAGE plpgsql;
+                
+                SELECT create_shopkeeper_table('${tableName}', '${shopName}');
+                
+                DROP FUNCTION create_shopkeeper_table(text, text);
+            `;
+            
+            const { data, error } = await this.supabase.rpc('exec_sql', { sql: createFunctionSQL });
+            
+            if (error) {
+                console.error('Alternative table creation failed:', error);
+                console.log('Table creation failed, but continuing with save attempt...');
+                return { success: false, error: error.message };
+            }
+            
+            console.log('Shopkeeper table created successfully using alternative method:', tableName);
+            return { success: true, tableName };
+            
+        } catch (error) {
+            console.error('Error in createShopkeeperTableAlternative:', error);
+            console.log('Table creation failed, but continuing with save attempt...');
+            return { success: false, error: error.message };
         }
     }
 
