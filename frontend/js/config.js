@@ -21,6 +21,7 @@ window.CV_BUILDER_CONFIG = {
     // Feature Flags
     features: {
         emailConfirmation: true, // Enable email confirmation for production
+        emailConfirmationBypassForAdmin: true, // Bypass email confirmation for admin users
         localStorageFallback: true, // Keep true for development
         dynamicTables: true,
         adminPanel: true

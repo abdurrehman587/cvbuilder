@@ -520,7 +520,11 @@ class AuthSystem {
                     console.log('=== END SIGNUP DEBUG ===');
                     
                     // Check if email confirmation is required
+                    // Bypass email confirmation for admin users
+                    const isAdmin = role === 'admin';
                     const requiresEmailConfirmation = this.config.features?.emailConfirmation && 
+                        !this.config.features?.emailConfirmationBypassForAdmin && 
+                        !isAdmin &&
                         data.user && !data.user.email_confirmed_at;
                     
                     return {
