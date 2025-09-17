@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Troubleshoot RLS Policies</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .sql-code {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .success {
+            background: #e8f5e8;
+            color: #2e7d32;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .info {
+            background: #e3f2fd;
+            color: #1565c0;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .warning {
+            background: #fff3e0;
+            color: #e65100;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .copy-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        .copy-btn:hover {
+            background: #45a049;
+        }
+        .test-btn {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        .test-btn:hover {
+            background: #1976D2;
+        }
+        .step {
+            background: #f8f9fa;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Troubleshoot RLS Policies</h1>
+        
+        <div class="error">
+            <h3>❌ Current Issue:</h3>
+            <p><strong>permission denied for table users</strong></p>
+            <p>This suggests the RLS policies are not working correctly or there's an authentication issue.</p>
+        </div>
+
+        <div class="step">
+            <h3>Step 1: Check Current User Authentication</h3>
+            <button class="test-btn" onclick="checkUserAuth()">Check User Auth</button>
+            <div id="authResult"></div>
+        </div>
+
+        <div class="step">
+            <h3>Step 2: Test Table Access Without RLS</h3>
+            <p>Let's temporarily disable RLS to see if the table itself is accessible:</p>
+            <div class="sql-code" id="disableRLS">
+-- Temporarily disable RLS for testing
+ALTER TABLE public.user_cvs DISABLE ROW LEVEL SECURITY;
+
+-- Test if we can access the table now
+SELECT * FROM public.user_cvs LIMIT 1;
+            </div>
+            <button class="copy-btn" onclick="copySQL('disableRLS')">Copy SQL</button>
+            <button class="test-btn" onclick="testTableWithoutRLS()">Test Table Access</button>
+            <div id="tableTestResult"></div>
+        </div>
+
+        <div class="step">
+            <h3>Step 3: Fix RLS Policies</h3>
+            <p>If the table works without RLS, the issue is with the policies. Let's create simpler, more permissive policies:</p>
+            <div class="sql-code" id="fixRLS">
+-- Re-enable RLS
+ALTER TABLE public.user_cvs ENABLE ROW LEVEL SECURITY;
+
+-- Drop all existing policies
+DROP POLICY IF EXISTS "Users can view their own CVs" ON public.user_cvs;
+DROP POLICY IF EXISTS "Users can insert their own CVs" ON public.user_cvs;
+DROP POLICY IF EXISTS "Users can update their own CVs" ON public.user_cvs;
+DROP POLICY IF EXISTS "Users can delete their own CVs" ON public.user_cvs;
+DROP POLICY IF EXISTS "Admins can view all user CVs" ON public.user_cvs;
+
+-- Create simpler, more permissive policies
+CREATE POLICY "Allow all for authenticated users" ON public.user_cvs
+    FOR ALL USING (auth.role() = 'authenticated');
+
+-- Alternative: Allow all operations for now (for testing)
+-- CREATE POLICY "Allow all operations" ON public.user_cvs
+--     FOR ALL USING (true);
+
+-- Test the policies
+SELECT * FROM public.user_cvs LIMIT 1;
+            </div>
+            <button class="copy-btn" onclick="copySQL('fixRLS')">Copy SQL</button>
+            <button class="test-btn" onclick="testWithFixedRLS()">Test Fixed RLS</button>
+            <div id="rlsTestResult"></div>
+        </div>
+
+        <div class="step">
+            <h3>Step 4: Test CV Save</h3>
+            <p>Once RLS is fixed, test if CV saving works:</p>
+            <button class="test-btn" onclick="testCVSave()">Test CV Save</button>
+            <div id="cvSaveResult"></div>
+        </div>
+
+        <div class="warning">
+            <h3>⚠️ Important Notes:</h3>
+            <ul>
+                <li><strong>Step 2:</strong> Only disable RLS temporarily for testing</li>
+                <li><strong>Step 3:</strong> The simplified policy allows all authenticated users - this is for testing only</li>
+                <li><strong>Security:</strong> Once everything works, we can create more restrictive policies</li>
+                <li><strong>Backup:</strong> Make sure to re-enable RLS after testing</li>
+            </ul>
+        </div>
+
+        <div class="info">
+            <h3>🔍 Debugging Information:</h3>
+            <p>If the issue persists, check:</p>
+            <ul>
+                <li>User authentication status in Supabase</li>
+                <li>User role and permissions</li>
+                <li>Table ownership and grants</li>
+                <li>Supabase logs for detailed error messages</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Include Supabase and database files -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/supabase-database.js"></script>
+
+    <script>
+        function copySQL(elementId) {
+            const sqlCode = document.getElementById(elementId).textContent;
+            navigator.clipboard.writeText(sqlCode).then(() => {
+                alert('SQL code copied to clipboard!');
+            });
+        }
+
+        async function checkUserAuth() {
+            const resultDiv = document.getElementById('authResult');
+            resultDiv.innerHTML = '<div class="info">Checking user authentication...</div>';
+            
+            try {
+                if (window.supabaseConfig && window.supabaseConfig.getClient()) {
+                    const supabase = window.supabaseConfig.getClient();
+                    const { data: { user }, error } = await supabase.auth.getUser();
+                    
+                    if (error) {
+                        resultDiv.innerHTML = `<div class="error">❌ Auth Error: ${error.message}</div>`;
+                    } else if (user) {
+                        resultDiv.innerHTML = `<div class="success">✅ User authenticated: ${user.email}<br>User ID: ${user.id}<br>Role: ${user.user_metadata?.role || 'user'}</div>`;
+                    } else {
+                        resultDiv.innerHTML = `<div class="error">❌ No user authenticated</div>`;
+                    }
+                } else {
+                    resultDiv.innerHTML = '<div class="error">❌ Supabase client not available</div>';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        async function testTableWithoutRLS() {
+            const resultDiv = document.getElementById('tableTestResult');
+            resultDiv.innerHTML = '<div class="info">Testing table access without RLS...</div>';
+            
+            try {
+                if (window.supabaseDatabaseManager) {
+                    const result = await window.supabaseDatabaseManager.testUserCVsTable();
+                    if (result.success) {
+                        resultDiv.innerHTML = `<div class="success">✅ Table accessible! Found ${result.data.length} records.<br><br>This means the table exists and is accessible. The issue is with RLS policies.</div>`;
+                    } else {
+                        resultDiv.innerHTML = `<div class="error">❌ Table still not accessible: ${result.error}</div>`;
+                    }
+                } else {
+                    resultDiv.innerHTML = '<div class="error">❌ Database manager not available</div>';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        async function testWithFixedRLS() {
+            const resultDiv = document.getElementById('rlsTestResult');
+            resultDiv.innerHTML = '<div class="info">Testing with fixed RLS policies...</div>';
+            
+            try {
+                if (window.supabaseDatabaseManager) {
+                    const result = await window.supabaseDatabaseManager.testUserCVsTable();
+                    if (result.success) {
+                        resultDiv.innerHTML = `<div class="success">✅ RLS policies fixed! Table accessible with ${result.data.length} records.<br><br>You can now test CV saving.</div>`;
+                    } else {
+                        resultDiv.innerHTML = `<div class="error">❌ RLS still not working: ${result.error}</div>`;
+                    }
+                } else {
+                    resultDiv.innerHTML = '<div class="error">❌ Database manager not available</div>';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        async function testCVSave() {
+            const resultDiv = document.getElementById('cvSaveResult');
+            resultDiv.innerHTML = '<div class="info">Testing CV save...</div>';
+            
+            try {
+                if (window.supabaseDatabaseManager) {
+                    const testCVData = {
+                        personalInfo: {
+                            fullName: "Test User " + Date.now(),
+                            email: "test@example.com",
+                            phones: [{ phone: "1234567890" }],
+                            address: "Test Address",
+                            summary: "Test summary for verification"
+                        },
+                        education: [],
+                        experience: [],
+                        skills: [{ skill: "Test Skill" }],
+                        languages: [{ language: "English", level: "Fluent" }],
+                        hobbies: [],
+                        customSections: [],
+                        otherInfo: [],
+                        references: [{ reference: "Test reference" }]
+                    };
+                    
+                    const testUserId = "test-user-" + Date.now();
+                    const result = await window.supabaseDatabaseManager.saveCV(testCVData, testUserId, 'user');
+                    
+                    if (result) {
+                        resultDiv.innerHTML = `<div class="success">✅ CV save successful! ID: ${result.id}<br><br>The permission error has been resolved!</div>`;
+                    } else {
+                        resultDiv.innerHTML = '<div class="error">❌ CV save failed</div>';
+                    }
+                } else {
+                    resultDiv.innerHTML = '<div class="error">❌ Database manager not available</div>';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ CV save error: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>
