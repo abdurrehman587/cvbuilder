@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple User CVs Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            background: #e7f3ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #17a2b8;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="text"], input[type="email"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            margin: 10px 5px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .info-box {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+            overflow-x: auto;
+            border: 1px solid #dee2e6;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Simple User CVs Test</h1>
+        
+        <div class="test-section">
+            <h3>Test 1: Check if user_cvs table exists and is accessible</h3>
+            <button class="button" onclick="testTableAccess()">Test Table Access</button>
+            <div id="tableTestResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Test 2: Try to insert a simple record</h3>
+            <form id="insertForm">
+                <div class="form-group">
+                    <label for="userId">User ID:</label>
+                    <input type="text" id="userId" value="test_user_123" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="cvName">CV Name:</label>
+                    <input type="text" id="cvName" value="Test CV" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" value="test@example.com" required>
+                </div>
+                
+                <button type="submit" class="button">Test Insert</button>
+            </form>
+            <div id="insertResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Test 3: Try different column combinations</h3>
+            <button class="button" onclick="testMinimalInsert()">Test Minimal Insert</button>
+            <div id="minimalResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Test 4: Check what columns actually exist</h3>
+            <button class="button" onclick="testColumnDetection()">Detect Columns</button>
+            <div id="columnResult" class="result"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Initialize Supabase
+        const supabaseUrl = 'https://poqarsztryrdlliwjhgx.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBvcWFyc3p0cnlyZGxsaXdqaGd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAwNTE0NzUsImV4cCI6MjA2NTYyNzQ3NX0.3fkTjLRdfTdIne_uE-m3GoNbu2mxREBlYrraRGX81_4';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        // Test 1: Check table access
+        async function testTableAccess() {
+            const resultDiv = document.getElementById('tableTestResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<div class="info">Testing table access...</div>';
+
+            try {
+                // Try to select from user_cvs table
+                const { data, error } = await supabase
+                    .from('user_cvs')
+                    .select('*')
+                    .limit(1);
+
+                if (error) {
+                    resultDiv.innerHTML = `<div class="error">❌ Table Access Error: ${error.message}</div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="success">✅ Table is accessible! Found ${data.length} records.</div>`;
+                }
+            } catch (err) {
+                resultDiv.innerHTML = `<div class="error">❌ Exception: ${err.message}</div>`;
+            }
+        }
+
+        // Test 2: Insert form
+        document.getElementById('insertForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const userId = document.getElementById('userId').value;
+            const cvName = document.getElementById('cvName').value;
+            const email = document.getElementById('email').value;
+            const resultDiv = document.getElementById('insertResult');
+            
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<div class="info">Testing insert...</div>';
+
+            try {
+                // Try to insert with all possible columns
+                const { data, error } = await supabase
+                    .from('user_cvs')
+                    .insert([{
+                        user_id: userId,
+                        cv_name: cvName,
+                        name: cvName,
+                        email: email,
+                        phone: '123-456-7890',
+                        address: '123 Test St',
+                        objective: 'Test objective',
+                        created_at: new Date().toISOString(),
+                        updated_at: new Date().toISOString()
+                    }])
+                    .select();
+
+                if (error) {
+                    resultDiv.innerHTML = `<div class="error">❌ Insert Error: ${error.message}</div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="success">✅ Insert successful! Data: ${JSON.stringify(data, null, 2)}</div>`;
+                }
+            } catch (err) {
+                resultDiv.innerHTML = `<div class="error">❌ Exception: ${err.message}</div>`;
+            }
+        });
+
+        // Test 3: Minimal insert
+        async function testMinimalInsert() {
+            const resultDiv = document.getElementById('minimalResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<div class="info">Testing minimal insert...</div>';
+
+            try {
+                // Try with just the most basic columns
+                const { data, error } = await supabase
+                    .from('user_cvs')
+                    .insert([{
+                        user_id: 'minimal_test_123',
+                        name: 'Minimal Test CV'
+                    }])
+                    .select();
+
+                if (error) {
+                    resultDiv.innerHTML = `<div class="error">❌ Minimal Insert Error: ${error.message}</div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="success">✅ Minimal insert successful! Data: ${JSON.stringify(data, null, 2)}</div>`;
+                }
+            } catch (err) {
+                resultDiv.innerHTML = `<div class="error">❌ Exception: ${err.message}</div>`;
+            }
+        }
+
+        // Test 4: Column detection
+        async function testColumnDetection() {
+            const resultDiv = document.getElementById('columnResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<div class="info">Detecting columns...</div>';
+
+            try {
+                // Try to select specific columns to see which ones exist
+                const columnsToTest = [
+                    'id', 'user_id', 'cv_name', 'name', 'email', 'phone', 
+                    'address', 'objective', 'created_at', 'updated_at'
+                ];
+
+                let results = 'Column Detection Results:\n\n';
+                
+                for (const column of columnsToTest) {
+                    try {
+                        const { data, error } = await supabase
+                            .from('user_cvs')
+                            .select(column)
+                            .limit(1);
+
+                        if (error) {
+                            results += `${column}: ❌ Error - ${error.message}\n`;
+                        } else {
+                            results += `${column}: ✅ Exists\n`;
+                        }
+                    } catch (err) {
+                        results += `${column}: ❌ Exception - ${err.message}\n`;
+                    }
+                }
+
+                resultDiv.innerHTML = `<div class="info">${results}</div>`;
+            } catch (err) {
+                resultDiv.innerHTML = `<div class="error">❌ Detection Exception: ${err.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>

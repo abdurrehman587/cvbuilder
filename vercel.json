@@ -60,6 +60,10 @@
       "dest": "/frontend/fix-user-cvs-table.html"
     },
     {
+      "src": "/simple-user-cvs-test",
+      "dest": "/frontend/simple-user-cvs-test.html"
+    },
+    {
       "src": "/",
       "dest": "/frontend/auth.html"
     },
