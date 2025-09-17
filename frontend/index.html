@@ -5,6 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Professional CV Builder</title>
     <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .nav-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .nav-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+    </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase-config.js"></script>
     <script src="js/supabase-database.js"></script>
@@ -23,7 +47,10 @@
                 <button id="switchToTemplate2" class="template-btn" data-template="modern">Template 2</button>
                 <button id="switchToTemplate3" class="template-btn" data-template="minimalist">Template 3</button>
             </div>
-            <button id="manualSaveBtn" class="manual-save-btn" title="Save manually">💾 Save Now</button>
+            <div class="nav-controls">
+                <button id="goToDashboard" class="nav-btn" title="Go to Dashboard">🏪 Dashboard</button>
+                <button id="manualSaveBtn" class="manual-save-btn" title="Save manually">💾 Save Now</button>
+            </div>
         </div>
 
         <!-- Main Content -->
@@ -458,6 +485,21 @@
                 console.log('Navigating to admin dashboard...');
                 window.location.href = 'admin-dashboard.html';
             };
+            
+            // Add dashboard navigation button
+            const goToDashboardBtn = document.getElementById('goToDashboard');
+            if (goToDashboardBtn) {
+                goToDashboardBtn.addEventListener('click', () => {
+                    const currentUser = AuthSystem.getCurrentUser();
+                    if (currentUser && currentUser.role === 'shopkeeper') {
+                        window.location.href = 'shopkeeper-dashboard.html';
+                    } else if (currentUser && currentUser.role === 'admin') {
+                        window.location.href = 'admin-dashboard.html';
+                    } else {
+                        alert('Dashboard not available for your role');
+                    }
+                });
+            }
 
             function checkAuthAndLoad() {
                 if (!AuthSystem.isAuthenticated()) {
