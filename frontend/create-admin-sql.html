@@ -136,19 +136,49 @@ INSERT INTO auth.users (
 
 -- Create admin CV record in admin_cvs table
 INSERT INTO admin_cvs (
-    user_id,
-    cv_data,
-    personal_info,
-    full_name,
+    admin_email,
+    cv_name,
+    name,
     email,
-    template
+    phone,
+    address,
+    objective,
+    image_url,
+    education,
+    work_experience,
+    skills,
+    certifications,
+    projects,
+    languages,
+    hobbies,
+    cv_references,
+    other_information,
+    custom_sections,
+    template,
+    created_at,
+    updated_at
 ) VALUES (
-    (SELECT id FROM auth.users WHERE email = 'admin@cvbuilder.com'),
-    '{}',
-    '{"name": "System Administrator", "email": "admin@cvbuilder.com", "role": "admin"}',
+    'admin@cvbuilder.com',
+    'System Administrator',
     'System Administrator',
     'admin@cvbuilder.com',
-    'classic'
+    '',
+    '',
+    'System Administrator Account',
+    null,
+    '[]',
+    '[]',
+    '[]',
+    '[]',
+    '[]',
+    '[]',
+    '[]',
+    '[]',
+    '[]',
+    '[]',
+    'classic',
+    NOW(),
+    NOW()
 );
 
 -- Verify the admin user was created

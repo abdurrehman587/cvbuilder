@@ -199,16 +199,27 @@
                         const { error: cvError } = await window.supabaseDatabaseManager.supabase
                             .from('admin_cvs')
                             .insert([{
-                                user_id: data.user.id,
-                                cv_data: {},
-                                personal_info: {
-                                    name: name,
-                                    email: email,
-                                    role: 'admin'
-                                },
-                                full_name: name,
+                                admin_email: email,
+                                cv_name: name,
+                                name: name,
                                 email: email,
-                                template: 'classic'
+                                phone: '',
+                                address: '',
+                                objective: 'System Administrator Account',
+                                image_url: null,
+                                education: '[]',
+                                work_experience: '[]',
+                                skills: '[]',
+                                certifications: '[]',
+                                projects: '[]',
+                                languages: '[]',
+                                hobbies: '[]',
+                                cv_references: '[]',
+                                other_information: '[]',
+                                custom_sections: '[]',
+                                template: 'classic',
+                                created_at: new Date().toISOString(),
+                                updated_at: new Date().toISOString()
                             }]);
                         
                         if (cvError) {
