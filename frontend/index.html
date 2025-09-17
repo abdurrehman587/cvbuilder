@@ -629,9 +629,9 @@
                             }
                         }
                         
-                        if (user.role === 'shopkeeper' && user.shopName && shopName) {
-                            shopName.style.display = 'block';
-                            shopName.textContent = `🏪 ${user.shopName}`;
+                        // Hide the separate shop name span since it's already in the badge
+                        if (shopName) {
+                            shopName.style.display = 'none';
                         }
                         
                         if (dashboardBtn) {
