@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify user_cvs Table Creation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .success {
+            background: #e8f5e8;
+            color: #2e7d32;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .info {
+            background: #e3f2fd;
+            color: #1565c0;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .test-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        .test-btn:hover {
+            background: #45a049;
+        }
+        .test-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✅ Verify user_cvs Table Creation</h1>
+        
+        <div class="success">
+            <h3>🎉 SQL Script Executed Successfully!</h3>
+            <p>The <code>user_cvs</code> table has been created with proper permissions. Now let's verify everything is working correctly.</p>
+        </div>
+
+        <div id="testResults"></div>
+        
+        <button class="test-btn" onclick="runAllTests()">Run All Tests</button>
+        <button class="test-btn" onclick="testTableAccess()">Test Table Access</button>
+        <button class="test-btn" onclick="testCVSave()">Test CV Save</button>
+        <button class="test-btn" onclick="testCVSearch()">Test CV Search</button>
+
+        <div class="info">
+            <h3>What these tests verify:</h3>
+            <ul>
+                <li>✅ <strong>Table Access:</strong> Confirms the user_cvs table is accessible</li>
+                <li>✅ <strong>CV Save:</strong> Tests saving CV data with user role</li>
+                <li>✅ <strong>CV Search:</strong> Tests searching CVs with user role</li>
+                <li>✅ <strong>Permissions:</strong> Verifies RLS policies are working correctly</li>
+            </ul>
+        </div>
+
+        <div class="info">
+            <h3>Next Steps:</h3>
+            <ol>
+                <li>Run the tests above to verify everything is working</li>
+                <li>If all tests pass, go back to your CV Builder</li>
+                <li>Try saving some CV data - it should work without errors now</li>
+                <li>The permission denied error should be completely resolved</li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- Include Supabase and database files -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/supabase-database.js"></script>
+
+    <script>
+        let testResults = [];
+
+        function addTestResult(testName, success, message, details = null) {
+            testResults.push({ testName, success, message, details });
+            updateResultsDisplay();
+        }
+
+        function updateResultsDisplay() {
+            const resultsDiv = document.getElementById('testResults');
+            let html = '<h3>Test Results:</h3>';
+            
+            testResults.forEach(result => {
+                const statusClass = result.success ? 'success' : 'error';
+                const statusIcon = result.success ? '✅' : '❌';
+                html += `<div class="${statusClass}">${statusIcon} <strong>${result.testName}:</strong> ${result.message}</div>`;
+                if (result.details) {
+                    html += `<div style="margin-left: 20px; font-size: 12px; color: #666;">${result.details}</div>`;
+                }
+            });
+            
+            resultsDiv.innerHTML = html;
+        }
+
+        async function testTableAccess() {
+            addTestResult('Table Access', false, 'Testing...');
+            
+            try {
+                if (window.supabaseDatabaseManager) {
+                    const result = await window.supabaseDatabaseManager.testUserCVsTable();
+                    if (result.success) {
+                        addTestResult('Table Access', true, `Success! Found ${result.data.length} records in user_cvs table.`);
+                    } else {
+                        addTestResult('Table Access', false, `Failed: ${result.error}`);
+                    }
+                } else {
+                    addTestResult('Table Access', false, 'Database manager not available');
+                }
+            } catch (error) {
+                addTestResult('Table Access', false, `Error: ${error.message}`);
+            }
+        }
+
+        async function testCVSave() {
+            addTestResult('CV Save', false, 'Testing...');
+            
+            try {
+                if (window.supabaseDatabaseManager) {
+                    // Create test CV data
+                    const testCVData = {
+                        personalInfo: {
+                            fullName: "Test User " + Date.now(),
+                            email: "test@example.com",
+                            phones: [{ phone: "1234567890" }],
+                            address: "Test Address",
+                            summary: "Test summary for verification"
+                        },
+                        education: [],
+                        experience: [],
+                        skills: [{ skill: "Test Skill" }],
+                        languages: [{ language: "English", level: "Fluent" }],
+                        hobbies: [],
+                        customSections: [],
+                        otherInfo: [],
+                        references: [{ reference: "Test reference" }]
+                    };
+                    
+                    const testUserId = "test-user-" + Date.now();
+                    const result = await window.supabaseDatabaseManager.saveCV(testCVData, testUserId, 'user');
+                    
+                    if (result) {
+                        addTestResult('CV Save', true, `Success! CV saved with ID: ${result.id}`);
+                    } else {
+                        addTestResult('CV Save', false, 'Failed to save CV');
+                    }
+                } else {
+                    addTestResult('CV Save', false, 'Database manager not available');
+                }
+            } catch (error) {
+                if (error.message.includes('permission denied')) {
+                    addTestResult('CV Save', false, `Permission error: ${error.message}`, 'The table may not have been created properly or RLS policies are incorrect.');
+                } else if (error.message.includes('user_email')) {
+                    addTestResult('CV Save', false, `Column error: ${error.message}`, 'The database code may still be using the old column name.');
+                } else {
+                    addTestResult('CV Save', false, `Error: ${error.message}`);
+                }
+            }
+        }
+
+        async function testCVSearch() {
+            addTestResult('CV Search', false, 'Testing...');
+            
+            try {
+                if (window.supabaseDatabaseManager) {
+                    const testUserId = "test-user-" + Date.now();
+                    const result = await window.supabaseDatabaseManager.searchCVs(null, null, null, 'user', testUserId);
+                    
+                    addTestResult('CV Search', true, `Success! Search completed. Found ${result.length} CVs.`);
+                } else {
+                    addTestResult('CV Search', false, 'Database manager not available');
+                }
+            } catch (error) {
+                if (error.message.includes('permission denied')) {
+                    addTestResult('CV Search', false, `Permission error: ${error.message}`, 'The table may not have been created properly or RLS policies are incorrect.');
+                } else {
+                    addTestResult('CV Search', false, `Error: ${error.message}`);
+                }
+            }
+        }
+
+        async function runAllTests() {
+            testResults = [];
+            addTestResult('All Tests', false, 'Running all tests...');
+            
+            await testTableAccess();
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+            await testCVSave();
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+            await testCVSearch();
+            
+            // Check if all tests passed
+            const allPassed = testResults.every(result => result.success);
+            if (allPassed) {
+                addTestResult('All Tests', true, 'All tests passed! The user_cvs table is working correctly.');
+            } else {
+                addTestResult('All Tests', false, 'Some tests failed. Check individual test results above.');
+            }
+        }
+    </script>
+</body>
+</html>
