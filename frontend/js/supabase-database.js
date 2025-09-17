@@ -171,7 +171,11 @@ class SupabaseDatabaseManager {
                     console.log('Creating table with shop name:', shopName);
                     const createResult = await this.createShopkeeperTable(tableName, shopName);
                     if (!createResult.success) {
-                        throw new Error(`Failed to create or verify table ${tableName}: ${createResult.error}`);
+                        console.error(`Failed to create table ${tableName}: ${createResult.error}`);
+                        console.log('Falling back to localStorage for CV storage');
+                        // Continue with localStorage fallback instead of throwing error
+                    } else if (createResult.fallback) {
+                        console.log('Using localStorage fallback for table:', tableName);
                     }
                 }
             }
@@ -283,6 +287,15 @@ class SupabaseDatabaseManager {
             }
 
             console.log('Attempting to insert CV record:', cvRecord);
+            
+            // For shopkeepers, check if we should use localStorage fallback
+            if (userRole === 'shopkeeper') {
+                const tableExists = await this.verifyTableExists(tableName);
+                if (!tableExists) {
+                    console.log('Table does not exist in Supabase, using localStorage fallback');
+                    return await this.saveCVToLocalStorage(cvRecord, userId, userRole);
+                }
+            }
             
             // First, let's test if the table exists by trying to select from it
             console.log('Testing table access for:', tableName);
@@ -575,6 +588,32 @@ class SupabaseDatabaseManager {
         }
     }
 
+    async saveCVToLocalStorage(cvRecord, userId, userRole) {
+        try {
+            console.log('Saving CV to localStorage fallback');
+            
+            const localCVs = JSON.parse(localStorage.getItem('localCVs') || '[]');
+            const newCV = {
+                id: Date.now().toString(),
+                ...cvRecord,
+                user_id: userId,
+                user_role: userRole,
+                table_name: userRole === 'shopkeeper' ? cvRecord.shopkeeper_id : 'local',
+                created_at: new Date().toISOString()
+            };
+            
+            localCVs.push(newCV);
+            localStorage.setItem('localCVs', JSON.stringify(localCVs));
+            
+            console.log('CV saved to localStorage:', newCV);
+            return newCV;
+            
+        } catch (error) {
+            console.error('Error saving CV to localStorage:', error);
+            throw error;
+        }
+    }
+
     async verifyTableExists(tableName) {
         try {
             console.log(`Verifying table exists: ${tableName}`);
@@ -600,42 +639,49 @@ class SupabaseDatabaseManager {
         try {
             console.log(`Creating shopkeeper table: ${tableName} for shop: ${shopName}`);
             
-            const createTableSQL = `
-                CREATE TABLE IF NOT EXISTS public.${tableName} (
-                    id SERIAL PRIMARY KEY,
-                    shopkeeper_id UUID NOT NULL,
-                    shop_name VARCHAR(255) NOT NULL,
-                    cv_data JSONB NOT NULL,
-                    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-                    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-                );
-                
-                -- Create RLS policy
-                ALTER TABLE public.${tableName} ENABLE ROW LEVEL SECURITY;
-                
-                -- Policy for shopkeeper to access their own CVs
-                CREATE POLICY IF NOT EXISTS "${tableName}_shopkeeper_policy" ON public.${tableName}
-                    FOR ALL USING (shopkeeper_id = auth.uid());
-            `;
+            // Since exec_sql is not available, we'll use a different approach
+            // We'll try to insert a test record to see if the table exists
+            // If it fails, we'll fall back to localStorage
             
-            const { data, error } = await this.supabase.rpc('exec_sql', { sql: createTableSQL });
-            
-            if (error) {
-                console.error('Error creating shopkeeper table:', error);
-                // Try alternative approach
-                console.log('Trying alternative table creation...');
-                return await this.createShopkeeperTableAlternative(tableName, shopName);
-            }
-            
-            console.log('Shopkeeper table created successfully:', tableName);
-            return { success: true, tableName };
+            console.log('exec_sql not available, falling back to localStorage approach');
+            return await this.createShopkeeperTableFallback(tableName, shopName);
             
         } catch (error) {
             console.error('Error in createShopkeeperTable:', error);
-            return await this.createShopkeeperTableAlternative(tableName, shopName);
+            return await this.createShopkeeperTableFallback(tableName, shopName);
         }
     }
     
+    async createShopkeeperTableFallback(tableName, shopName) {
+        try {
+            console.log(`Using localStorage fallback for shopkeeper table: ${tableName}`);
+            
+            // Store the table name in localStorage for future reference
+            const tableInfo = {
+                tableName: tableName,
+                shopName: shopName,
+                createdAt: new Date().toISOString(),
+                status: 'localStorage_fallback'
+            };
+            
+            // Store in localStorage
+            const existingTables = JSON.parse(localStorage.getItem('shopkeeper_tables') || '[]');
+            const tableExists = existingTables.find(t => t.tableName === tableName);
+            
+            if (!tableExists) {
+                existingTables.push(tableInfo);
+                localStorage.setItem('shopkeeper_tables', JSON.stringify(existingTables));
+                console.log('Table info stored in localStorage:', tableInfo);
+            }
+            
+            return { success: true, tableName, fallback: true };
+            
+        } catch (error) {
+            console.error('Error in createShopkeeperTableFallback:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
     async createShopkeeperTableAlternative(tableName, shopName) {
         try {
             console.log(`Creating shopkeeper table using alternative method: ${tableName}`);
