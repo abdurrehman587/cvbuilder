@@ -6,27 +6,52 @@
     <title>Professional CV Builder</title>
     <link rel="stylesheet" href="css/styles.css">
     <style>
-        .nav-controls {
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 0;
+            margin-bottom: 20px;
+            border-radius: 0 0 15px 15px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
             display: flex;
-            gap: 10px;
+            justify-content: space-between;
             align-items: center;
         }
         
-        .nav-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.3s ease;
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
         }
         
-        .nav-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 5px;
+        }
+        
+        .user-role {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        
+        .shop-name {
+            background: rgba(255, 255, 255, 0.3);
+            padding: 6px 16px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -37,6 +62,13 @@
     <div class="container">
         <!-- Header -->
         <header class="header">
+            <div class="header-content">
+                <h1 id="pageTitle">Professional CV Builder</h1>
+                <div id="userInfo" class="user-info" style="display: none;">
+                    <span id="userRole" class="user-role"></span>
+                    <span id="shopName" class="shop-name" style="display: none;"></span>
+                </div>
+            </div>
         </header>
 
         <!-- Template Switcher and Save Controls -->
@@ -47,10 +79,7 @@
                 <button id="switchToTemplate2" class="template-btn" data-template="modern">Template 2</button>
                 <button id="switchToTemplate3" class="template-btn" data-template="minimalist">Template 3</button>
             </div>
-            <div class="nav-controls">
-                <button id="goToDashboard" class="nav-btn" title="Go to Dashboard">🏪 Dashboard</button>
-                <button id="manualSaveBtn" class="manual-save-btn" title="Save manually">💾 Save Now</button>
-            </div>
+            <button id="manualSaveBtn" class="manual-save-btn" title="Save manually">💾 Save Now</button>
         </div>
 
         <!-- Main Content -->
@@ -486,20 +515,6 @@
                 window.location.href = 'admin-dashboard.html';
             };
             
-            // Add dashboard navigation button
-            const goToDashboardBtn = document.getElementById('goToDashboard');
-            if (goToDashboardBtn) {
-                goToDashboardBtn.addEventListener('click', () => {
-                    const currentUser = AuthSystem.getCurrentUser();
-                    if (currentUser && currentUser.role === 'shopkeeper') {
-                        window.location.href = 'shopkeeper-dashboard.html';
-                    } else if (currentUser && currentUser.role === 'admin') {
-                        window.location.href = 'admin-dashboard.html';
-                    } else {
-                        alert('Dashboard not available for your role');
-                    }
-                });
-            }
 
             function checkAuthAndLoad() {
                 if (!AuthSystem.isAuthenticated()) {
@@ -510,13 +525,20 @@
                 // Show user info in header
                 const user = AuthSystem.getCurrentUser();
                 if (user) {
+                    // Update page title with shop name
+                    if (user.role === 'shopkeeper' && user.shopName) {
+                        document.title = `${user.shopName} - CV Builder`;
+                    } else if (user.role === 'admin') {
+                        document.title = 'Admin - CV Builder';
+                    }
+                    
                     const header = document.querySelector('.header');
                     const userInfo = document.createElement('div');
                     userInfo.className = 'user-info';
                     userInfo.innerHTML = `
                     <div class="user-details">
                         ${user.role === 'admin' ? '<span class="admin-badge">Admin</span>' : ''}
-                        ${user.role === 'shopkeeper' ? '<span class="shopkeeper-badge">Shopkeeper</span>' : ''}
+                        ${user.role === 'shopkeeper' ? `<span class="shopkeeper-badge">${user.shopName || 'Shopkeeper'}</span>` : ''}
                         ${user.role === 'admin' ? '<button class="dashboard-btn" id="adminDashboardBtn">📊 Dashboard</button>' : ''}
                         ${user.role === 'shopkeeper' ? '<button class="dashboard-btn" id="shopkeeperDashboardBtn">🏪 Dashboard</button>' : ''}
                         <button onclick="AuthSystem.logout()" class="logout-btn">Logout</button>
