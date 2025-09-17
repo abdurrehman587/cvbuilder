@@ -477,50 +477,8 @@ class AuthSystem {
                     users.push(newUser);
                     localStorage.setItem('cvBuilder_users', JSON.stringify(users));
 
-                    // Create initial record in shopkeeper_cvs table for shopkeepers
-                    if (role === 'shopkeeper' && window.supabaseDatabaseManager) {
-                        try {
-                            console.log('Creating initial shopkeeper_cvs record...');
-                            const initialCVRecord = {
-                                shopkeeper_id: newUser.id,
-                                cv_name: `${name} - Initial CV`,
-                                name: name,
-                                email: email,
-                                phone: '',
-                                address: '',
-                                objective: `Welcome to ${shopName}! This is your initial CV record.`,
-                                image_url: null,
-                                education: [],
-                                work_experience: [],
-                                skills: [],
-                                certifications: [],
-                                projects: [],
-                                languages: [],
-                                hobbies: [],
-                                cv_references: [],
-                                other_information: [],
-                                custom_sections: [],
-                                template: 'classic',
-                                created_at: new Date().toISOString(),
-                                updated_at: new Date().toISOString()
-                            };
-
-                            const { data: cvData, error: cvError } = await window.supabaseDatabaseManager.supabase
-                                .from('shopkeeper_cvs')
-                                .insert([initialCVRecord])
-                                .select();
-
-                            if (cvError) {
-                                console.error('Error creating initial shopkeeper_cvs record:', cvError);
-                                // Don't fail signup if this fails, just log it
-                            } else {
-                                console.log('Initial shopkeeper_cvs record created successfully:', cvData[0]);
-                            }
-                        } catch (cvError) {
-                            console.error('Error creating initial shopkeeper_cvs record:', cvError);
-                            // Don't fail signup if this fails, just log it
-                        }
-                    }
+                    // No need to create initial record in shopkeeper_cvs table
+                    // All shopkeeper data will be saved to their individual shop table
 
                     console.log('User created successfully:', newUser);
                     console.log('=== END SIGNUP DEBUG ===');
@@ -946,8 +904,8 @@ class AuthSystem {
                 console.log('Table name stored in user data:', tableName);
             }
 
-            // Also create a record in the main shopkeeper_cvs table for this shopkeeper
-            await this.createInitialShopkeeperRecord(userId, shopName, tableName);
+            // No need to create record in main shopkeeper_cvs table
+            // All data will be saved to the individual shop table
 
         } catch (error) {
             console.error('Error in createShopkeeperTable:', error);
@@ -956,51 +914,6 @@ class AuthSystem {
         }
     }
 
-    // Helper method to create initial record in main shopkeeper_cvs table
-    async createInitialShopkeeperRecord(userId, shopName, tableName) {
-        try {
-            if (!window.supabaseDatabaseManager || !window.supabaseDatabaseManager.supabase) {
-                return;
-            }
-
-            const initialRecord = {
-                shopkeeper_id: userId,
-                cv_name: `${shopName} - Shop Setup`,
-                name: shopName,
-                email: '', // Will be filled by the user
-                phone: '',
-                address: '',
-                objective: `Welcome to ${shopName}! This is your shop's CV management system.`,
-                image_url: null,
-                education: [],
-                work_experience: [],
-                skills: [],
-                certifications: [],
-                projects: [],
-                languages: [],
-                hobbies: [],
-                cv_references: [],
-                other_information: [],
-                custom_sections: [],
-                template: 'classic',
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
-            };
-
-            const { data, error } = await window.supabaseDatabaseManager.supabase
-                .from('shopkeeper_cvs')
-                .insert([initialRecord])
-                .select();
-
-            if (error) {
-                console.error('Error creating initial shopkeeper record:', error);
-            } else {
-                console.log('Initial shopkeeper record created:', data[0]);
-            }
-        } catch (error) {
-            console.error('Error in createInitialShopkeeperRecord:', error);
-        }
-    }
 }
 
 // Global functions for HTML onclick events

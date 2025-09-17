@@ -2,7 +2,6 @@
 class SupabaseDatabaseManager {
     constructor() {
         this.adminTableName = 'admin_cvs';
-        this.shopkeeperTableName = 'shopkeeper_cvs';
         this.userTableName = 'user_cvs';
         this.supabase = null;
         this.init();
@@ -134,7 +133,7 @@ class SupabaseDatabaseManager {
             // Create record based on table type
             let cvRecord;
             if (userRole === 'shopkeeper') {
-                // For shopkeeper_cvs table
+                // For dynamic shopkeeper table
                 cvRecord = {
                     shopkeeper_id: userId,
                     cv_name: fullName,
@@ -348,7 +347,7 @@ class SupabaseDatabaseManager {
             // Create update data based on table type
             let updateData;
             if (userRole === 'shopkeeper') {
-                // For shopkeeper_cvs table
+                // For dynamic shopkeeper table
                 updateData = {
                     shopkeeper_id: userId,
                     cv_name: fullName,
@@ -565,33 +564,11 @@ class SupabaseDatabaseManager {
             if (error) {
                 console.error('Error searching CVs in', tableName, ':', error);
                 
-                // If it's a shopkeeper and the dynamic table doesn't exist, fall back to main table
+                // If it's a shopkeeper and the dynamic table doesn't exist, return empty array
                 if (userRole === 'shopkeeper' && error.message.includes('relation') && error.message.includes('does not exist')) {
-                    console.log('Dynamic table not found, falling back to main shopkeeper_cvs table');
-                    const fallbackQuery = this.supabase
-                        .from(this.shopkeeperTableName)
-                        .select('*')
-                        .eq('shopkeeper_id', userId);
-                    
-                    if (name) {
-                        fallbackQuery.ilike('name', `%${name}%`);
-                    }
-                    if (mobile) {
-                        fallbackQuery.ilike('phone', `%${mobile}%`);
-                    }
-                    if (template) {
-                        fallbackQuery.eq('template', template);
-                    }
-                    
-                    const { data: fallbackData, error: fallbackError } = await fallbackQuery.order('created_at', { ascending: false });
-                    
-                    if (fallbackError) {
-                        console.error('Fallback query also failed:', fallbackError);
-                        throw new Error(`Database search failed: ${fallbackError.message}`);
-                    }
-                    
-                    console.log(`Found ${fallbackData.length} CVs in fallback table for ${userRole} ${userId}`);
-                    return fallbackData;
+                    console.log('Dynamic shopkeeper table not found');
+                    console.log('This shopkeeper may not have created any CVs yet, or the table was not created properly');
+                    return []; // Return empty array instead of falling back
                 }
                 
                 console.error('Full error object:', error);

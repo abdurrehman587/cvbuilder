@@ -430,9 +430,9 @@ class ShopkeeperDashboard {
                 throw new Error('Database manager not available');
             }
             
-            // Delete from shopkeeper_cvs table
+            // Delete from dynamic shopkeeper table
             const { error } = await window.supabaseDatabaseManager.supabase
-                .from('shopkeeper_cvs')
+                .from(this.getShopkeeperTableName())
                 .delete()
                 .eq('id', cvId);
             

@@ -37,7 +37,6 @@ window.CV_BUILDER_CONFIG = {
     // Database Tables
     tables: {
         userCvs: 'user_cvs',
-        shopkeeperCvs: 'shopkeeper_cvs',
         adminCvs: 'admin_cvs'
     }
 };
