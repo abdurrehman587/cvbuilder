@@ -466,6 +466,10 @@ class SupabaseDatabaseManager {
 
     async getCVById(cvId, userRole = 'admin') {
         try {
+            console.log('=== GET CV BY ID DEBUG ===');
+            console.log('CV ID:', cvId);
+            console.log('User Role:', userRole);
+            
             if (!this.isSupabaseAvailable()) {
                 console.warn('Supabase not available, checking localStorage');
                 const localCVs = JSON.parse(localStorage.getItem('localCVs') || '[]');
@@ -475,19 +479,16 @@ class SupabaseDatabaseManager {
             // Determine which table to use based on user role
             let tableName;
             if (userRole === 'shopkeeper') {
-                // Get dynamic table name from user data
-                const users = JSON.parse(localStorage.getItem('cvBuilder_users') || '[]');
-                const user = users.find(u => u.id === userId);
-                tableName = user?.tableName;
-                
-                if (!tableName) {
-                    throw new Error('Shopkeeper table not found. Please contact support.');
-                }
+                // Use the existing shopkeeper_cvs table
+                tableName = 'shopkeeper_cvs';
             } else if (userRole === 'user') {
                 tableName = this.userTableName;
             } else {
                 tableName = this.adminTableName;
             }
+
+            console.log('Using table:', tableName);
+            console.log('Searching for CV with ID:', cvId);
 
             const { data, error } = await this.supabase
                 .from(tableName)
@@ -500,6 +501,8 @@ class SupabaseDatabaseManager {
                 return null;
             }
 
+            console.log('CV found:', data);
+            console.log('=== END GET CV BY ID DEBUG ===');
             return data;
         } catch (error) {
             console.error('Error in getCVById:', error);
