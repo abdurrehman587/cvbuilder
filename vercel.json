@@ -52,6 +52,10 @@
       "dest": "/frontend/debug-cv-save.html"
     },
     {
+      "src": "/debug-user-cvs-table",
+      "dest": "/frontend/debug-user-cvs-table.html"
+    },
+    {
       "src": "/",
       "dest": "/frontend/auth.html"
     },
