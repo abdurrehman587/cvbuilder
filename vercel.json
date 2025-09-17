@@ -40,6 +40,10 @@
       "dest": "/frontend/fix-admin-user.html"
     },
     {
+      "src": "/debug-auth-method",
+      "dest": "/frontend/debug-auth-method.html"
+    },
+    {
       "src": "/",
       "dest": "/frontend/auth.html"
     },
