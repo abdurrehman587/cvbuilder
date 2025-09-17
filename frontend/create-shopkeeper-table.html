@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Shopkeeper Table</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .sql-code {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+        .instructions {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .button {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        .button:hover {
+            background: #45a049;
+        }
+        .copy-btn {
+            background: #2196F3;
+        }
+        .copy-btn:hover {
+            background: #1976D2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Create Shopkeeper Table in Supabase</h1>
+        
+        <div class="instructions">
+            <h3>Instructions:</h3>
+            <ol>
+                <li>Go to your Supabase Dashboard</li>
+                <li>Navigate to the SQL Editor</li>
+                <li>Copy the SQL code below</li>
+                <li>Paste it into the SQL Editor</li>
+                <li>Click "Run" to execute the SQL</li>
+            </ol>
+        </div>
+
+        <h3>SQL Code to Create the Table:</h3>
+        <div class="sql-code" id="sqlCode">CREATE TABLE public.shopkeeper_cvs (
+    id SERIAL PRIMARY KEY,
+    shopkeeper_id UUID NOT NULL,
+    shop_name VARCHAR(255) NOT NULL,
+    cv_name VARCHAR(255),
+    name VARCHAR(255),
+    email VARCHAR(255),
+    phone TEXT,
+    address TEXT,
+    objective TEXT,
+    image_url TEXT,
+    education JSONB DEFAULT '[]',
+    work_experience JSONB DEFAULT '[]',
+    skills JSONB DEFAULT '[]',
+    certifications JSONB DEFAULT '[]',
+    projects JSONB DEFAULT '[]',
+    languages JSONB DEFAULT '[]',
+    hobbies JSONB DEFAULT '[]',
+    cv_references JSONB DEFAULT '[]',
+    other_information JSONB DEFAULT '[]',
+    custom_sections JSONB DEFAULT '[]',
+    template VARCHAR(50) DEFAULT 'classic',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Enable Row Level Security
+ALTER TABLE public.shopkeeper_cvs ENABLE ROW LEVEL SECURITY;
+
+-- Create policy for shopkeepers to access their own CVs
+CREATE POLICY "shopkeeper_cvs_policy" ON public.shopkeeper_cvs
+    FOR ALL USING (shopkeeper_id = auth.uid());</div>
+
+        <button class="button copy-btn" onclick="copySQL()">Copy SQL Code</button>
+        <button class="button" onclick="window.open('https://supabase.com/dashboard', '_blank')">Open Supabase Dashboard</button>
+
+        <div class="instructions">
+            <h3>After Creating the Table:</h3>
+            <p>Once you've created the table in Supabase, your CV saving should work perfectly! The table will store all shopkeeper CVs with proper security policies.</p>
+        </div>
+    </div>
+
+    <script>
+        function copySQL() {
+            const sqlCode = document.getElementById('sqlCode').textContent;
+            navigator.clipboard.writeText(sqlCode).then(function() {
+                alert('SQL code copied to clipboard!');
+            }, function(err) {
+                console.error('Could not copy text: ', err);
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = sqlCode;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('SQL code copied to clipboard!');
+            });
+        }
+    </script>
+</body>
+</html>
