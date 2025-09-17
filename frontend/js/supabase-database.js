@@ -139,7 +139,13 @@ class SupabaseDatabaseManager {
                         console.log('Updated user object with table name');
                         
                         // Create the table if it doesn't exist
-                        await this.createShopkeeperTable(tableName, shopName);
+                        console.log('Attempting to create table:', tableName);
+                        const createResult = await this.createShopkeeperTable(tableName, shopName);
+                        if (!createResult.success) {
+                            console.error('Failed to create table:', createResult.error);
+                            throw new Error(`Failed to create shopkeeper table: ${createResult.error}`);
+                        }
+                        console.log('Table creation completed successfully');
                     } else {
                         console.error('Shopkeeper table not found for user:', user);
                         throw new Error('Shopkeeper table not found. Please contact support.');
@@ -152,6 +158,19 @@ class SupabaseDatabaseManager {
             }
             
             console.log('Selected table:', tableName);
+            
+            // Verify table exists for shopkeepers
+            if (userRole === 'shopkeeper') {
+                const tableExists = await this.verifyTableExists(tableName);
+                if (!tableExists) {
+                    console.error(`Table ${tableName} does not exist, attempting to create it...`);
+                    const shopName = user?.shopName || 'Unknown Shop';
+                    const createResult = await this.createShopkeeperTable(tableName, shopName);
+                    if (!createResult.success) {
+                        throw new Error(`Failed to create or verify table ${tableName}: ${createResult.error}`);
+                    }
+                }
+            }
             
             // Map to the appropriate table structure
             const fullName = cvData.personalInfo?.fullName || cvData.name || 'Untitled CV';
@@ -549,6 +568,27 @@ class SupabaseDatabaseManager {
         } catch (error) {
             console.error('Error in getAllCVs:', error);
             return [];
+        }
+    }
+
+    async verifyTableExists(tableName) {
+        try {
+            console.log(`Verifying table exists: ${tableName}`);
+            const { data, error } = await this.supabase
+                .from(tableName)
+                .select('id')
+                .limit(1);
+            
+            if (error) {
+                console.log(`Table ${tableName} does not exist or is not accessible:`, error.message);
+                return false;
+            }
+            
+            console.log(`Table ${tableName} exists and is accessible`);
+            return true;
+        } catch (error) {
+            console.log(`Error verifying table ${tableName}:`, error.message);
+            return false;
         }
     }
 
