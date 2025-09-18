@@ -711,14 +711,20 @@
                         }
                         
                         if (dashboardBtn) {
-                            dashboardBtn.style.display = 'block';
-                            dashboardBtn.addEventListener('click', () => {
-                                if (user.role === 'shopkeeper') {
-                                    window.location.href = 'shopkeeper-dashboard.html';
-                                } else if (user.role === 'admin') {
-                                    window.location.href = 'admin-dashboard.html';
-                                }
-                            });
+                            // Only show dashboard button for admin and shopkeeper users
+                            if (user.role === 'admin' || user.role === 'shopkeeper') {
+                                dashboardBtn.style.display = 'block';
+                                dashboardBtn.addEventListener('click', () => {
+                                    if (user.role === 'shopkeeper') {
+                                        window.location.href = 'shopkeeper-dashboard.html';
+                                    } else if (user.role === 'admin') {
+                                        window.location.href = 'admin-dashboard.html';
+                                    }
+                                });
+                            } else {
+                                // Hide dashboard button for regular users
+                                dashboardBtn.style.display = 'none';
+                            }
                         }
                     }
                 }
