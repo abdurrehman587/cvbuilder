@@ -618,7 +618,7 @@ class CVBuilder {
                     <!-- Left Column -->
                     <div class="template-3-left-column">
                         <!-- Certifications Card -->
-                        <div class="template-3-card" id="certifications-section" style="display: none;">
+                        <div class="template-3-card" id="certifications-section">
                             <div class="template-3-card-header">
                                 <span class="template-3-card-icon">🏆</span>
                                 <h3>Certifications</h3>
@@ -2100,7 +2100,6 @@ class CVBuilder {
 
     updateCertificationsPreview() {
         const certificationsContainer = document.getElementById('previewCertifications');
-        const certificationsSection = document.querySelector('.cv-section#certifications-section');
         
         if (!certificationsContainer) {
             return;
@@ -2112,6 +2111,19 @@ class CVBuilder {
         const hasCertifications = this.cvData.certifications.some(cert => 
             cert.certification && cert.certification.trim() !== ''
         );
+        
+        // Check template type
+        const selectedTemplate = sessionStorage.getItem('selectedTemplate') || 'classic';
+        
+        // Get the correct section selector based on template
+        let certificationsSection;
+        if (selectedTemplate === 'minimalist') {
+            // Template 3 uses .template-3-card with id certifications-section
+            certificationsSection = document.querySelector('.template-3-card#certifications-section');
+        } else {
+            // Template 1 & 2 use .cv-section with id certifications-section
+            certificationsSection = document.querySelector('.cv-section#certifications-section');
+        }
         
         if (!hasCertifications) {
             // Hide the section if no certifications
@@ -2132,9 +2144,6 @@ class CVBuilder {
         if (certificationsSection) {
             certificationsSection.style.display = 'block';
         }
-        
-        // Check template type
-        const selectedTemplate = sessionStorage.getItem('selectedTemplate') || 'classic';
         
         // For Template 2, ensure the section is visible when there are certifications
         if (selectedTemplate === 'modern' && hasCertifications) {
