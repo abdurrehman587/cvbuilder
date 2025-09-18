@@ -3,7 +3,6 @@ class AuthSystem {
     constructor() {
         this.currentUser = null;
         this.currentLoginType = null;
-        this.config = window.CV_BUILDER_CONFIG || {};
         this.init();
     }
 
@@ -250,14 +249,8 @@ class AuthSystem {
         }
 
         if (!this.isValidEmail(email)) {
-            this.showMessage('Please enter a valid email address. Check for typos and ensure the email format is correct.', 'error');
+            this.showMessage('Please enter a valid email address', 'error');
             return;
-        }
-        
-        // Check for common email typos and suggest corrections
-        const suggestions = this.suggestEmailCorrections(email);
-        if (suggestions.length > 0) {
-            this.showMessage(`Did you mean: ${suggestions.join(' or ')}?`, 'info');
         }
 
         this.setLoading(true, 'signup');
@@ -265,37 +258,15 @@ class AuthSystem {
         try {
             const user = await this.signup(name, email, password, type, shopName);
             if (user) {
-                // Check if email confirmation is required
-                if (this.config.features?.emailConfirmation && user.requiresEmailConfirmation) {
-                    this.showMessage('Account created successfully! Please check your email and click the confirmation link to activate your account.', 'success');
-                    this.showEmailConfirmationMessage(email);
-                    
-                    // For shopkeepers with email confirmation, also show toaster and switch to login
+                this.showMessage('Account created successfully! Redirecting...', 'success');
+                this.showRedirectOverlay();
+                setTimeout(() => {
                     if (type === 'shopkeeper') {
-                        setTimeout(() => {
-                            this.showToaster('Account created! Please check your email and then sign in.', 'success');
-                            this.switchToLogin('shopkeeper');
-                        }, 3000);
-                    }
-                } else {
-                    // Show success message with toaster
-                    this.showToaster('Account created successfully!', 'success');
-                    
-                    // For shopkeepers, redirect to sign-in page after a delay
-                    if (type === 'shopkeeper') {
-                        setTimeout(() => {
-                            this.showMessage('Please sign in with your new account credentials.', 'info');
-                            // Switch to login form
-                            this.switchToLogin('shopkeeper');
-                        }, 2000);
+                        window.location.href = 'shopkeeper-dashboard.html';
                     } else {
-                        // For regular users, redirect to main page
-                        this.showRedirectOverlay();
-                        setTimeout(() => {
-                            window.location.href = 'index.html';
-                        }, 1500);
+                        window.location.href = 'index.html';
                     }
-                }
+                }, 1500);
             } else {
                 this.showMessage('Failed to create account. Please try again.', 'error');
             }
@@ -332,33 +303,11 @@ class AuthSystem {
                     
                     // Get user metadata
                     const userData = data.user?.user_metadata || {};
-                    let userRole = userData.role || 'user';
+                    const userRole = userData.role || 'user';
                     
-                    // If role is missing or incorrect, try to get it from localStorage
+                    // Check if the role matches expected role
                     if (userRole !== expectedRole) {
-                        console.log('Role mismatch, checking localStorage for correct role...');
-                        const users = this.getUsers();
-                        const localUser = users.find(u => u.email === email);
-                        if (localUser && localUser.role === expectedRole) {
-                            console.log('Found correct role in localStorage, updating user metadata...');
-                            userRole = localUser.role;
-                            
-                            // Update user metadata in Supabase
-                            try {
-                                await window.supabaseDatabaseManager.supabase.auth.updateUser({
-                                    data: {
-                                        role: userRole,
-                                        name: userData.name || localUser.name,
-                                        shopName: userData.shopName || localUser.shopName
-                                    }
-                                });
-                                console.log('User metadata updated successfully');
-                            } catch (updateError) {
-                                console.error('Failed to update user metadata:', updateError);
-                            }
-                        } else {
-                            throw new Error(`Invalid role. Expected ${expectedRole}, got ${userRole}. Please contact support if this persists.`);
-                        }
+                        throw new Error(`Invalid role. Expected ${expectedRole}, got ${userRole}`);
                     }
 
                     const user = {
@@ -366,7 +315,6 @@ class AuthSystem {
                         name: userData.name || email.split('@')[0],
                         email: email,
                         role: userRole,
-                        shopName: userData.shopName || null,
                         supabaseId: data.user.id,
                         createdAt: data.user.created_at
                     };
@@ -377,33 +325,11 @@ class AuthSystem {
                     localStorage.setItem('cvBuilder_auth', 'true');
                     
                     console.log('✅ User signed in successfully via Supabase:', user.name, 'Role:', user.role);
-                    return user;
+                    return { success: true, user: user };
 
                 } catch (supabaseError) {
                     console.error('Supabase authentication error:', supabaseError);
-                    
-                    // If email not confirmed, try to use localStorage fallback
-                    if (supabaseError.message && supabaseError.message.includes('Email not confirmed')) {
-                        console.log('Email not confirmed, trying localStorage fallback...');
-                        
-                        // Check if user exists in localStorage
-                        const users = this.getUsers();
-                        const localUser = users.find(u => u.email === email && u.password === password && u.role === expectedRole);
-                        
-                        if (localUser) {
-                            console.log('Found user in localStorage, using fallback authentication');
-                            this.currentUser = localUser;
-                            localStorage.setItem('cvBuilder_user', JSON.stringify(localUser));
-                            localStorage.setItem('cvBuilder_auth', 'true');
-                            console.log('✅ User signed in successfully via localStorage fallback:', localUser.name, 'Role:', localUser.role);
-                            return localUser;
-                        } else {
-                            console.log('No matching user found in localStorage');
-                            throw new Error('Invalid email or password');
-                        }
-                    }
-                    
-                    throw supabaseError;
+                    return { success: false, error: supabaseError.message };
                 }
             } else {
                 // Fallback to localStorage authentication
@@ -418,14 +344,14 @@ class AuthSystem {
                     localStorage.setItem('cvBuilder_user', JSON.stringify(user));
                     localStorage.setItem('cvBuilder_auth', 'true');
                     console.log('✅ User signed in successfully via localStorage:', user.name, 'Role:', user.role);
-                    return user;
+                    return { success: true, user: user };
                 } else {
-                    throw new Error('Invalid email or password');
+                    return { success: false, error: 'Invalid email or password' };
                 }
             }
         } catch (error) {
             console.error('Signin error:', error);
-            throw error;
+            return { success: false, error: error.message };
         }
     }
 
@@ -481,14 +407,7 @@ class AuthSystem {
                     });
 
                     if (error) {
-                        // Provide more specific error messages
-                        if (error.message.includes('Email address') && error.message.includes('invalid')) {
-                            throw new Error('Please enter a valid email address. Check for typos and ensure the email format is correct.');
-                        } else if (error.message.includes('already registered')) {
-                            throw new Error('An account with this email already exists. Please use a different email or try signing in.');
-                        } else {
-                            throw new Error(`Registration failed: ${error.message}`);
-                        }
+                        throw new Error(`Registration failed: ${error.message}`);
                     }
 
                     console.log('User registered in Supabase successfully:', data);
@@ -513,24 +432,54 @@ class AuthSystem {
                     users.push(newUser);
                     localStorage.setItem('cvBuilder_users', JSON.stringify(users));
 
-                    // No need to create initial record in shopkeeper_cvs table
-                    // All shopkeeper data will be saved to their individual shop table
+                    // Create initial record in shopkeeper_cvs table for shopkeepers
+                    if (role === 'shopkeeper' && window.supabaseDatabaseManager) {
+                        try {
+                            console.log('Creating initial shopkeeper_cvs record...');
+                            const initialCVRecord = {
+                                shopkeeper_id: newUser.id,
+                                cv_name: `${name} - Initial CV`,
+                                name: name,
+                                email: email,
+                                phone: '',
+                                address: '',
+                                objective: `Welcome to ${shopName}! This is your initial CV record.`,
+                                image_url: null,
+                                education: [],
+                                work_experience: [],
+                                skills: [],
+                                certifications: [],
+                                projects: [],
+                                languages: [],
+                                hobbies: [],
+                                cv_references: [],
+                                other_information: [],
+                                custom_sections: [],
+                                template: 'classic',
+                                created_at: new Date().toISOString(),
+                                updated_at: new Date().toISOString()
+                            };
+
+                            const { data: cvData, error: cvError } = await window.supabaseDatabaseManager.supabase
+                                .from('shopkeeper_cvs')
+                                .insert([initialCVRecord])
+                                .select();
+
+                            if (cvError) {
+                                console.error('Error creating initial shopkeeper_cvs record:', cvError);
+                                // Don't fail signup if this fails, just log it
+                            } else {
+                                console.log('Initial shopkeeper_cvs record created successfully:', cvData[0]);
+                            }
+                        } catch (cvError) {
+                            console.error('Error creating initial shopkeeper_cvs record:', cvError);
+                            // Don't fail signup if this fails, just log it
+                        }
+                    }
 
                     console.log('User created successfully:', newUser);
                     console.log('=== END SIGNUP DEBUG ===');
-                    
-                    // Check if email confirmation is required
-                    // Bypass email confirmation for admin users
-                    const isAdmin = role === 'admin';
-                    const requiresEmailConfirmation = this.config.features?.emailConfirmation && 
-                        !this.config.features?.emailConfirmationBypassForAdmin && 
-                        !isAdmin &&
-                        data.user && !data.user.email_confirmed_at;
-                    
-                    return {
-                        ...newUser,
-                        requiresEmailConfirmation: requiresEmailConfirmation
-                    };
+                    return newUser;
 
                 } catch (supabaseError) {
                     console.error('Supabase registration failed:', supabaseError);
@@ -555,12 +504,7 @@ class AuthSystem {
 
                 console.log('User created successfully (localStorage only):', newUser);
                 console.log('=== END SIGNUP DEBUG ===');
-                
-                // For localStorage fallback, no email confirmation required
-                return {
-                    ...newUser,
-                    requiresEmailConfirmation: false
-                };
+                return newUser;
             }
 
         } catch (error) {
@@ -570,81 +514,8 @@ class AuthSystem {
     }
 
     isValidEmail(email) {
-        // More comprehensive email validation
-        const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
-        
-        if (!emailRegex.test(email)) {
-            return false;
-        }
-        
-        // Additional checks
-        if (email.length > 254) {
-            return false;
-        }
-        
-        const parts = email.split('@');
-        if (parts[0].length > 64) {
-            return false;
-        }
-        
-        return true;
-    }
-
-    suggestEmailCorrections(email) {
-        const suggestions = [];
-        const commonTypos = {
-            'compsing': 'composing',
-            'gmail': 'gmail.com',
-            'yahoo': 'yahoo.com',
-            'hotmail': 'hotmail.com',
-            'outlook': 'outlook.com'
-        };
-        
-        for (const [typo, correction] of Object.entries(commonTypos)) {
-            if (email.includes(typo)) {
-                suggestions.push(email.replace(typo, correction));
-            }
-        }
-        
-        return suggestions;
-    }
-
-    // Method to fix user role for existing users
-    async fixUserRole(email, correctRole) {
-        try {
-            if (!window.supabaseDatabaseManager || !window.supabaseDatabaseManager.supabase) {
-                throw new Error('Database connection not available');
-            }
-
-            // Get current user
-            const { data: { user }, error: userError } = await window.supabaseDatabaseManager.supabase.auth.getUser();
-            if (userError || !user) {
-                throw new Error('User not authenticated');
-            }
-
-            if (user.email !== email) {
-                throw new Error('Email does not match current user');
-            }
-
-            // Update user metadata
-            const { error: updateError } = await window.supabaseDatabaseManager.supabase.auth.updateUser({
-                data: {
-                    role: correctRole,
-                    name: user.user_metadata?.name || email.split('@')[0],
-                    shopName: user.user_metadata?.shopName || null
-                }
-            });
-
-            if (updateError) {
-                throw new Error(`Failed to update role: ${updateError.message}`);
-            }
-
-            console.log(`User role updated to ${correctRole} for ${email}`);
-            return true;
-        } catch (error) {
-            console.error('Error fixing user role:', error);
-            throw error;
-        }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
     }
 
     checkAuthStatus() {
@@ -688,148 +559,6 @@ class AuthSystem {
                 messageDiv.remove();
             }, 3000);
         }
-    }
-
-    showEmailConfirmationMessage(email) {
-        this.clearMessages();
-        
-        const messageDiv = document.createElement('div');
-        messageDiv.className = 'message success email-confirmation-message';
-        messageDiv.innerHTML = `
-            <div style="text-align: center; padding: 20px;">
-                <div style="font-size: 3em; margin-bottom: 15px;">📧</div>
-                <h3 style="margin-bottom: 15px; color: #28a745;">Check Your Email!</h3>
-                <p style="margin-bottom: 15px;">We've sent a confirmation link to:</p>
-                <p style="font-weight: bold; color: #007bff; margin-bottom: 20px;">${email}</p>
-                <p style="margin-bottom: 20px; color: #666;">
-                    Please click the link in the email to activate your account. 
-                    You can then sign in and start building your CV.
-                </p>
-                <div style="margin-top: 20px;">
-                    <button onclick="this.parentElement.parentElement.parentElement.remove()" 
-                            style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-right: 10px;">
-                        Close
-                    </button>
-                    <button onclick="window.location.href='auth.html'" 
-                            style="background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
-                        Back to Sign In
-                    </button>
-                </div>
-            </div>
-        `;
-        
-        const activeForm = document.querySelector('.login-form[style*="block"]');
-        if (activeForm) {
-            activeForm.insertBefore(messageDiv, activeForm.firstChild);
-        }
-    }
-
-    showToaster(message, type = 'success') {
-        // Remove any existing toasters
-        const existingToasters = document.querySelectorAll('.toaster');
-        existingToasters.forEach(toaster => toaster.remove());
-        
-        const toaster = document.createElement('div');
-        toaster.className = `toaster toaster-${type}`;
-        toaster.innerHTML = `
-            <div class="toaster-content">
-                <span class="toaster-icon">${type === 'success' ? '✅' : '❌'}</span>
-                <span class="toaster-message">${message}</span>
-                <button class="toaster-close" onclick="this.parentElement.parentElement.remove()">×</button>
-            </div>
-        `;
-        
-        // Add toaster styles
-        toaster.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: ${type === 'success' ? '#28a745' : '#dc3545'};
-            color: white;
-            padding: 15px 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            z-index: 10000;
-            max-width: 400px;
-            animation: slideInRight 0.3s ease-out;
-        `;
-        
-        // Add animation keyframes
-        if (!document.querySelector('#toaster-styles')) {
-            const style = document.createElement('style');
-            style.id = 'toaster-styles';
-            style.textContent = `
-                @keyframes slideInRight {
-                    from { transform: translateX(100%); opacity: 0; }
-                    to { transform: translateX(0); opacity: 1; }
-                }
-                .toaster-content {
-                    display: flex;
-                    align-items: center;
-                    gap: 10px;
-                }
-                .toaster-icon {
-                    font-size: 18px;
-                }
-                .toaster-message {
-                    flex: 1;
-                    font-weight: 500;
-                }
-                .toaster-close {
-                    background: none;
-                    border: none;
-                    color: white;
-                    font-size: 20px;
-                    cursor: pointer;
-                    padding: 0;
-                    width: 24px;
-                    height: 24px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    border-radius: 50%;
-                    transition: background-color 0.2s;
-                }
-                .toaster-close:hover {
-                    background-color: rgba(255, 255, 255, 0.2);
-                }
-            `;
-            document.head.appendChild(style);
-        }
-        
-        document.body.appendChild(toaster);
-        
-        // Auto-remove after 4 seconds
-        setTimeout(() => {
-            if (toaster.parentElement) {
-                toaster.style.animation = 'slideInRight 0.3s ease-out reverse';
-                setTimeout(() => toaster.remove(), 300);
-            }
-        }, 4000);
-    }
-
-    switchToLogin(type) {
-        // Hide all forms
-        const allForms = document.querySelectorAll('.login-form');
-        allForms.forEach(form => form.style.display = 'none');
-        
-        // Show the specific login form
-        const loginForm = document.getElementById(`${type}LoginForm`);
-        if (loginForm) {
-            loginForm.style.display = 'block';
-        }
-        
-        // Update the active tab
-        const allTabs = document.querySelectorAll('.auth-tab');
-        allTabs.forEach(tab => tab.classList.remove('active'));
-        
-        const activeTab = document.querySelector(`[data-tab="${type}"]`);
-        if (activeTab) {
-            activeTab.classList.add('active');
-        }
-        
-        // Clear any existing messages
-        this.clearMessages();
     }
 
     clearMessages() {
@@ -897,115 +626,56 @@ class AuthSystem {
         }
 
         try {
-            // Sanitize shop name for table name (remove spaces, special chars, limit length)
-            const sanitizedShopName = shopName.toLowerCase().replace(/[^a-z0-9]/g, '_').substring(0, 30);
-            const tableName = `shop_${sanitizedShopName}_cvs`;
+            // Sanitize shop name for table name (remove spaces, special chars)
+            const tableName = `shop_${shopName.toLowerCase().replace(/[^a-z0-9]/g, '_')}_cvs`;
             
             console.log(`Creating dynamic table: ${tableName} for shop: ${shopName}`);
             
-            // Method 1: Try using Supabase's SQL execution
-            try {
-                const createTableSQL = `
-                    CREATE TABLE IF NOT EXISTS ${tableName} (
-                        id BIGSERIAL PRIMARY KEY,
-                        shopkeeper_id TEXT NOT NULL,
-                        cv_name TEXT,
-                        name TEXT,
-                        email TEXT,
-                        phone TEXT,
-                        address TEXT,
-                        objective TEXT,
-                        image_url TEXT,
-                        education JSONB DEFAULT '[]'::jsonb,
-                        work_experience JSONB DEFAULT '[]'::jsonb,
-                        skills JSONB DEFAULT '[]'::jsonb,
-                        certifications JSONB DEFAULT '[]'::jsonb,
-                        projects JSONB DEFAULT '[]'::jsonb,
-                        languages JSONB DEFAULT '[]'::jsonb,
-                        hobbies JSONB DEFAULT '[]'::jsonb,
-                        cv_references JSONB DEFAULT '[]'::jsonb,
-                        other_information JSONB DEFAULT '[]'::jsonb,
-                        custom_sections JSONB DEFAULT '[]'::jsonb,
-                        template TEXT DEFAULT 'classic',
-                        created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
-                        updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
-                    );
-                `;
+            // Create table using SQL
+            const createTableSQL = `
+                CREATE TABLE IF NOT EXISTS ${tableName} (
+                    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+                    shopkeeper_id TEXT NOT NULL,
+                    name TEXT,
+                    email TEXT,
+                    phone TEXT,
+                    address TEXT,
+                    objective JSONB DEFAULT '[]'::jsonb,
+                    image_url TEXT,
+                    education JSONB DEFAULT '[]'::jsonb,
+                    work_experience JSONB DEFAULT '[]'::jsonb,
+                    skills JSONB DEFAULT '[]'::jsonb,
+                    certifications JSONB DEFAULT '[]'::jsonb,
+                    projects JSONB DEFAULT '[]'::jsonb,
+                    languages JSONB DEFAULT '[]'::jsonb,
+                    hobbies JSONB DEFAULT '[]'::jsonb,
+                    cv_references JSONB DEFAULT '[]'::jsonb,
+                    other_information JSONB DEFAULT '[]'::jsonb,
+                    custom_sections JSONB DEFAULT '[]'::jsonb,
+                    created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+                    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+                );
+            `;
 
-                // Try RPC method first
-                const { data, error } = await window.supabaseDatabaseManager.supabase.rpc('exec_sql', {
-                    sql: createTableSQL
-                });
+            const { data, error } = await window.supabaseDatabaseManager.supabase.rpc('exec_sql', {
+                sql: createTableSQL
+            });
 
-                if (error) {
-                    console.log('RPC method failed, trying alternative approach:', error.message);
-                    throw error;
-                }
-
-                console.log('Table created successfully via RPC:', tableName);
+            if (error) {
+                console.error('Error creating shopkeeper table:', error);
+                // Try alternative method using direct SQL execution
+                const { data: altData, error: altError } = await window.supabaseDatabaseManager.supabase
+                    .from('information_schema.tables')
+                    .select('*')
+                    .eq('table_name', tableName);
                 
-            } catch (rpcError) {
-                console.log('RPC method failed, trying direct SQL execution...');
-                
-                // Method 2: Try direct SQL execution using a different approach
-                try {
-                    // Create a temporary function to execute SQL
-                    const createFunctionSQL = `
-                        CREATE OR REPLACE FUNCTION create_shopkeeper_table(table_name TEXT)
-                        RETURNS TEXT AS $$
-                        BEGIN
-                            EXECUTE format('CREATE TABLE IF NOT EXISTS %I (
-                                id BIGSERIAL PRIMARY KEY,
-                                shopkeeper_id TEXT NOT NULL,
-                                cv_name TEXT,
-                                name TEXT,
-                                email TEXT,
-                                phone TEXT,
-                                address TEXT,
-                                objective TEXT,
-                                image_url TEXT,
-                                education JSONB DEFAULT ''[]''::jsonb,
-                                work_experience JSONB DEFAULT ''[]''::jsonb,
-                                skills JSONB DEFAULT ''[]''::jsonb,
-                                certifications JSONB DEFAULT ''[]''::jsonb,
-                                projects JSONB DEFAULT ''[]''::jsonb,
-                                languages JSONB DEFAULT ''[]''::jsonb,
-                                hobbies JSONB DEFAULT ''[]''::jsonb,
-                                cv_references JSONB DEFAULT ''[]''::jsonb,
-                                other_information JSONB DEFAULT ''[]''::jsonb,
-                                custom_sections JSONB DEFAULT ''[]''::jsonb,
-                                template TEXT DEFAULT ''classic'',
-                                created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
-                                updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
-                            )', table_name);
-                            RETURN 'Table created successfully';
-                        END;
-                        $$ LANGUAGE plpgsql;
-                    `;
-
-                    // Create the function
-                    await window.supabaseDatabaseManager.supabase.rpc('exec_sql', {
-                        sql: createFunctionSQL
-                    });
-
-                    // Use the function to create the table
-                    const { data: funcData, error: funcError } = await window.supabaseDatabaseManager.supabase.rpc('create_shopkeeper_table', {
-                        table_name: tableName
-                    });
-
-                    if (funcError) {
-                        throw funcError;
-                    }
-
-                    console.log('Table created successfully via function:', tableName);
-                    
-                } catch (funcError) {
-                    console.log('Function method failed, using fallback approach...');
-                    
-                    // Method 3: Fallback - just store the table name and continue
-                    console.log(`Table creation attempted: ${tableName} for shop: ${shopName}`);
-                    console.log('Note: Table will be created when first CV is saved');
+                if (altError) {
+                    console.log('Table creation attempted, but verification failed:', altError);
+                } else {
+                    console.log('Table created successfully:', tableName);
                 }
+            } else {
+                console.log('Table created successfully:', tableName);
             }
 
             // Store table name in user data for future reference
@@ -1014,19 +684,13 @@ class AuthSystem {
             if (userIndex !== -1) {
                 users[userIndex].tableName = tableName;
                 localStorage.setItem('cvBuilder_users', JSON.stringify(users));
-                console.log('Table name stored in user data:', tableName);
             }
-
-            // No need to create record in main shopkeeper_cvs table
-            // All data will be saved to the individual shop table
 
         } catch (error) {
             console.error('Error in createShopkeeperTable:', error);
             // Don't throw error as table creation is not critical for signup
-            console.log('Continuing with signup despite table creation error');
         }
     }
-
 }
 
 // Global functions for HTML onclick events
