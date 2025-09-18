@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test RLS Fix</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .success {
+            background: #e8f5e8;
+            color: #2e7d32;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .info {
+            background: #e3f2fd;
+            color: #1565c0;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .test-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        .test-btn:hover {
+            background: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test RLS Fix</h1>
+        
+        <div class="info">
+            <h3>Current Status:</h3>
+            <p>✅ Table exists and is accessible</p>
+            <p>✅ Column names are correct</p>
+            <p>❌ RLS policy is blocking inserts</p>
+            <p><strong>Error:</strong> "new row violates row-level security policy for table 'user_cvs'"</p>
+        </div>
+
+        <div id="testResults"></div>
+        
+        <button class="test-btn" onclick="testCVSave()">Test CV Save</button>
+        <button class="test-btn" onclick="testTableAccess()">Test Table Access</button>
+
+        <div class="info">
+            <h3>Next Steps:</h3>
+            <ol>
+                <li>Run one of the SQL scripts to fix the RLS policy</li>
+                <li>Test CV saving using the button above</li>
+                <li>If successful, the permission error should be resolved</li>
+            </ol>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/supabase-database.js"></script>
+
+    <script>
+        async function testCVSave() {
+            const resultDiv = document.getElementById('testResults');
+            resultDiv.innerHTML = '<div class="info">Testing CV save...</div>';
+            
+            try {
+                if (window.supabaseDatabaseManager) {
+                    const testCVData = {
+                        personalInfo: {
+                            fullName: "Test User " + Date.now(),
+                            email: "test@example.com",
+                            phones: [{ phone: "1234567890" }],
+                            address: "Test Address",
+                            summary: "Test summary for verification"
+                        },
+                        education: [],
+                        experience: [],
+                        skills: [{ skill: "Test Skill" }],
+                        languages: [{ language: "English", level: "Fluent" }],
+                        hobbies: [],
+                        customSections: [],
+                        otherInfo: [],
+                        references: [{ reference: "Test reference" }]
+                    };
+                    
+                    const testUserId = "test-user-" + Date.now();
+                    const result = await window.supabaseDatabaseManager.saveCV(testCVData, testUserId, 'user');
+                    
+                    if (result) {
+                        resultDiv.innerHTML = `<div class="success">🎉 SUCCESS! CV saved with ID: ${result.id}<br><br>The RLS policy fix worked! The permission error has been resolved.</div>`;
+                    } else {
+                        resultDiv.innerHTML = '<div class="error">❌ CV save failed - no result returned</div>';
+                    }
+                } else {
+                    resultDiv.innerHTML = '<div class="error">❌ Database manager not available</div>';
+                }
+            } catch (error) {
+                if (error.message.includes('violates row-level security policy')) {
+                    resultDiv.innerHTML = `<div class="error">❌ RLS Policy Error: ${error.message}<br><br>Please run the SQL script to fix the RLS policy first.</div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="error">❌ CV save error: ${error.message}</div>`;
+                }
+            }
+        }
+
+        async function testTableAccess() {
+            const resultDiv = document.getElementById('testResults');
+            resultDiv.innerHTML = '<div class="info">Testing table access...</div>';
+            
+            try {
+                if (window.supabaseDatabaseManager) {
+                    const result = await window.supabaseDatabaseManager.testUserCVsTable();
+                    if (result.success) {
+                        resultDiv.innerHTML = `<div class="success">✅ Table accessible! Found ${result.data.length} records.<br><br>Table access is working correctly.</div>`;
+                    } else {
+                        resultDiv.innerHTML = `<div class="error">❌ Table access failed: ${result.error}</div>`;
+                    }
+                } else {
+                    resultDiv.innerHTML = '<div class="error">❌ Database manager not available</div>';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Table access error: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>
