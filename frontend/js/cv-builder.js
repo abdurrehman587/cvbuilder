@@ -71,8 +71,10 @@ class CVBuilder {
         // Load saved data if available (before applying template)
         await this.loadSavedData();
         
-        // Load initial data from form fields (after loading saved data)
-        this.loadInitialData();
+        // Load initial data from form fields (only if not loading saved data)
+        if (!sessionStorage.getItem('currentCVId')) {
+            this.loadInitialData();
+        }
         console.log('Initial data loading completed');
         
         // Apply template styling (after loading data)
