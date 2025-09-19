@@ -4381,18 +4381,28 @@ class CVBuilder {
     }
 
     populateLanguagesFields() {
+        console.log('=== POPULATE LANGUAGES FIELDS DEBUG ===');
+        console.log('Current cvData.languages:', this.cvData.languages);
+        
         const languagesList = document.getElementById('languagesList');
-        if (!languagesList) return;
+        if (!languagesList) {
+            console.error('Languages list element not found!');
+            return;
+        }
 
         // Clear existing languages items
         languagesList.innerHTML = '';
+        console.log('Cleared existing languages items');
 
         // Add languages items from saved data
         if (this.cvData.languages && this.cvData.languages.length > 0) {
-            this.cvData.languages.forEach(lang => {
+            console.log('Adding languages from saved data:', this.cvData.languages);
+            this.cvData.languages.forEach((lang, index) => {
+                console.log(`Adding language item ${index + 1}:`, lang);
                 this.addLanguageItem(lang);
             });
         } else {
+            console.log('No saved languages data, adding defaults');
             // Add default languages with blank levels
             const defaultLanguages = [
                 { language: 'English', level: '' },
@@ -4403,6 +4413,7 @@ class CVBuilder {
                 this.addLanguageItem(lang);
             });
         }
+        console.log('=== END POPULATE LANGUAGES FIELDS DEBUG ===');
     }
 
     populateHobbiesFields() {
@@ -4477,6 +4488,11 @@ class CVBuilder {
     }
 
     addLanguageItem(languageData = null) {
+        console.log('=== ADD LANGUAGE ITEM DEBUG ===');
+        console.log('Language data received:', languageData);
+        console.log('Language value:', languageData?.language || '');
+        console.log('Level value:', languageData?.level || '');
+        
         const languagesList = document.getElementById('languagesList');
         const languageItem = document.createElement('div');
         languageItem.className = 'language-item';
@@ -4504,6 +4520,8 @@ class CVBuilder {
         });
 
         languagesList.appendChild(languageItem);
+        console.log('Language item added to DOM');
+        console.log('=== END ADD LANGUAGE ITEM DEBUG ===');
     }
 
     populateOtherInfoFields() {
