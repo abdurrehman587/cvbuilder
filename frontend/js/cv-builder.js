@@ -2273,26 +2273,21 @@ class CVBuilder {
         const selectedTemplate = sessionStorage.getItem('selectedTemplate') || 'classic';
         
         if (selectedTemplate === 'modern') {
-            // Template 2: Create language items for sidebar
+            // Template 2: Create language items like skills for sidebar
             const languagesList = document.createElement('div');
-            languagesList.className = 'template-2-languages-list';
+            languagesList.className = 'template-2-skills-list';
             
             this.cvData.languages.forEach(language => {
                 if (language.language && language.language.trim()) {
                     const languageItem = document.createElement('div');
-                    languageItem.className = 'template-2-language-item';
+                    languageItem.className = 'template-2-skill-item';
                     
-                    const languageName = document.createElement('span');
-                    languageName.textContent = language.language.toUpperCase();
-                    
+                    let displayText = language.language;
                     if (language.level && language.level.trim()) {
-                        const levelSpan = document.createElement('span');
-                        levelSpan.className = 'language-level';
-                        levelSpan.textContent = ` (${language.level})`;
-                        languageName.appendChild(levelSpan);
+                        displayText += ` (${language.level})`;
                     }
                     
-                    languageItem.appendChild(languageName);
+                    languageItem.textContent = displayText;
                     languagesList.appendChild(languageItem);
                 }
             });
