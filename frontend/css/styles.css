@@ -440,13 +440,13 @@ body {
 .cv-preview.template-2 .template-2-contact-item {
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 8px;
+    gap: 6px;
+    margin-bottom: 5px;
     color: black !important;
-    font-size: 0.75rem;
-    font-weight: 700;
-    padding: 6px 10px;
-    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 4px;
     transition: all 0.3s ease;
     position: relative;
 }
@@ -457,7 +457,7 @@ body {
 }
 
 .cv-preview.template-2 .template-2-contact-icon {
-    font-size: 1.8rem;
+    font-size: 1.3rem;
     color: #dc2626;
     font-weight: bold;
     position: relative;
@@ -471,8 +471,8 @@ body {
 }
 
 .cv-preview.template-2 .template-2-sidebar-section {
-    margin-bottom: 18px;
-    padding: 0 15px;
+    margin-bottom: 15px;
+    padding: 0 12px;
     position: relative;
     z-index: 2;
 }
