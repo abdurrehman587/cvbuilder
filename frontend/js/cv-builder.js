@@ -20,9 +20,9 @@ class CVBuilder {
                 { skill: 'Accurate Planning' }
             ],
             languages: [
-                { language: 'English' },
-                { language: 'Urdu' },
-                { language: 'Punjabi' }
+                { language: 'English', level: '' },
+                { language: 'Urdu', level: '' },
+                { language: 'Punjabi', level: '' }
             ],
             hobbies: [],
             customSections: [],
@@ -4119,9 +4119,9 @@ class CVBuilder {
                 { skill: 'Accurate Planning' }
             ],
             languages: [
-                { language: 'English' },
-                { language: 'Urdu' },
-                { language: 'Punjabi' }
+                { language: 'English', level: '' },
+                { language: 'Urdu', level: '' },
+                { language: 'Punjabi', level: '' }
             ],
             hobbies: [],
             customSections: [],
@@ -4386,11 +4386,11 @@ class CVBuilder {
                 this.addLanguageItem(lang);
             });
         } else {
-            // Add default languages
+            // Add default languages with blank levels
             const defaultLanguages = [
-                { language: 'English', level: 'Native' },
-                { language: 'Urdu', level: 'Fluent' },
-                { language: 'Punjabi', level: 'Conversational' }
+                { language: 'English', level: '' },
+                { language: 'Urdu', level: '' },
+                { language: 'Punjabi', level: '' }
             ];
             defaultLanguages.forEach(lang => {
                 this.addLanguageItem(lang);
