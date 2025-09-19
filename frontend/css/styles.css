@@ -470,6 +470,18 @@ body {
     color: #b91c1c;
 }
 
+/* Phone number specific styling for prominence */
+.cv-preview.template-2 .template-2-contact-item.phone-contact {
+    font-size: 0.85rem !important;
+    font-weight: 700 !important;
+}
+
+.cv-preview.template-2 .template-2-contact-item.phone-contact span:not(.template-2-contact-icon) {
+    font-size: 0.85rem !important;
+    font-weight: 700 !important;
+    color: #1f2937 !important;
+}
+
 .cv-preview.template-2 .template-2-sidebar-section {
     margin-bottom: 15px;
     padding: 0 12px;

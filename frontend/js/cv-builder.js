@@ -1791,7 +1791,7 @@ class CVBuilder {
                 if (this.cvData.personalInfo.phones && this.cvData.personalInfo.phones.length > 0) {
                     const phoneNumbers = this.cvData.personalInfo.phones.map(p => p.phone).join(', ');
                     const phoneItem = document.createElement('div');
-                    phoneItem.className = 'template-2-contact-item';
+                    phoneItem.className = 'template-2-contact-item phone-contact';
                     phoneItem.innerHTML = `
                         <span class="template-2-contact-icon">📱</span>
                         <span>${phoneNumbers}</span>
