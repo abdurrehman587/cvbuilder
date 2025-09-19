@@ -119,17 +119,39 @@ class AuthSystem {
     switchUserTab(tab) {
         const loginTab = document.getElementById('userLoginTab');
         const signupTab = document.getElementById('userSignupTab');
-        const loginBtn = document.querySelector('.tab-btn[onclick="switchUserTab(\'login\')"]');
-        const signupBtn = document.querySelector('.tab-btn[onclick="switchUserTab(\'signup\')"]');
+        const loginBtn = document.getElementById('userLoginTabBtn');
+        const signupBtn = document.getElementById('userSignupTabBtn');
         
         if (tab === 'login') {
-            loginTab.style.display = 'block';
-            signupTab.style.display = 'none';
+            // Hide signup tab with animation
+            signupTab.style.opacity = '0';
+            signupTab.style.transform = 'translateY(20px) scale(0.95)';
+            setTimeout(() => {
+                signupTab.style.display = 'none';
+                loginTab.style.display = 'block';
+                // Show login tab with animation
+                setTimeout(() => {
+                    loginTab.style.opacity = '1';
+                    loginTab.style.transform = 'translateY(0) scale(1)';
+                }, 50);
+            }, 200);
+            
             loginBtn.classList.add('active');
             signupBtn.classList.remove('active');
         } else if (tab === 'signup') {
-            loginTab.style.display = 'none';
-            signupTab.style.display = 'block';
+            // Hide login tab with animation
+            loginTab.style.opacity = '0';
+            loginTab.style.transform = 'translateY(20px) scale(0.95)';
+            setTimeout(() => {
+                loginTab.style.display = 'none';
+                signupTab.style.display = 'block';
+                // Show signup tab with animation
+                setTimeout(() => {
+                    signupTab.style.opacity = '1';
+                    signupTab.style.transform = 'translateY(0) scale(1)';
+                }, 50);
+            }, 200);
+            
             loginBtn.classList.remove('active');
             signupBtn.classList.add('active');
         }
@@ -142,17 +164,39 @@ class AuthSystem {
     switchShopkeeperTab(tab) {
         const loginTab = document.getElementById('shopkeeperSigninTab');
         const signupTab = document.getElementById('shopkeeperSignupTab');
-        const loginBtn = document.querySelector('.tab-btn[onclick="switchShopkeeperTab(\'login\')"]');
-        const signupBtn = document.querySelector('.tab-btn[onclick="switchShopkeeperTab(\'signup\')"]');
+        const loginBtn = document.getElementById('shopkeeperLoginTabBtn');
+        const signupBtn = document.getElementById('shopkeeperSignupTabBtn');
         
         if (tab === 'login') {
-            loginTab.style.display = 'block';
-            signupTab.style.display = 'none';
+            // Hide signup tab with animation
+            signupTab.style.opacity = '0';
+            signupTab.style.transform = 'translateY(20px) scale(0.95)';
+            setTimeout(() => {
+                signupTab.style.display = 'none';
+                loginTab.style.display = 'block';
+                // Show login tab with animation
+                setTimeout(() => {
+                    loginTab.style.opacity = '1';
+                    loginTab.style.transform = 'translateY(0) scale(1)';
+                }, 50);
+            }, 200);
+            
             loginBtn.classList.add('active');
             signupBtn.classList.remove('active');
         } else if (tab === 'signup') {
-            loginTab.style.display = 'none';
-            signupTab.style.display = 'block';
+            // Hide login tab with animation
+            loginTab.style.opacity = '0';
+            loginTab.style.transform = 'translateY(20px) scale(0.95)';
+            setTimeout(() => {
+                loginTab.style.display = 'none';
+                signupTab.style.display = 'block';
+                // Show signup tab with animation
+                setTimeout(() => {
+                    signupTab.style.opacity = '1';
+                    signupTab.style.transform = 'translateY(0) scale(1)';
+                }, 50);
+            }, 200);
+            
             loginBtn.classList.remove('active');
             signupBtn.classList.add('active');
         }
@@ -253,7 +297,7 @@ class AuthSystem {
             return;
         }
 
-        this.setLoading(true, 'signup');
+        this.setLoading(true, type === 'shopkeeper' ? 'shopkeeperSignup' : 'signup');
 
         try {
             const user = await this.signup(name, email, password, type, shopName);
@@ -274,7 +318,7 @@ class AuthSystem {
             console.error('Signup error:', error);
             this.showMessage(error.message || 'An error occurred during signup. Please try again.', 'error');
         } finally {
-            this.setLoading(false, 'signup');
+            this.setLoading(false, type === 'shopkeeper' ? 'shopkeeperSignup' : 'signup');
         }
     }
 
@@ -582,9 +626,12 @@ class AuthSystem {
         if (type === 'signup') {
             submitButton = document.querySelector('#userSignupFormElement .btn-primary');
             allInputs = document.querySelectorAll('#userSignupFormElement input');
+        } else if (type === 'shopkeeperSignup') {
+            submitButton = document.querySelector('#shopkeeperSignupFormElement .btn-primary');
+            allInputs = document.querySelectorAll('#shopkeeperSignupFormElement input');
         } else {
-            submitButton = document.querySelector(`#${type}LoginForm .btn-primary`);
-            allInputs = document.querySelectorAll(`#${type}LoginForm input`);
+            submitButton = document.querySelector(`#${type}LoginFormElement .btn-primary`);
+            allInputs = document.querySelectorAll(`#${type}LoginFormElement input`);
         }
         
         if (loading) {
@@ -592,11 +639,27 @@ class AuthSystem {
             submitButton.disabled = true;
             // Disable all inputs during loading
             allInputs.forEach(input => input.disabled = true);
+            
+            // Show loading text
+            const btnText = submitButton.querySelector('.btn-text');
+            const btnLoading = submitButton.querySelector('.btn-loading');
+            if (btnText && btnLoading) {
+                btnText.style.display = 'none';
+                btnLoading.style.display = 'block';
+            }
         } else {
             submitButton.classList.remove('loading');
             submitButton.disabled = false;
             // Re-enable all inputs
             allInputs.forEach(input => input.disabled = false);
+            
+            // Show normal text
+            const btnText = submitButton.querySelector('.btn-text');
+            const btnLoading = submitButton.querySelector('.btn-loading');
+            if (btnText && btnLoading) {
+                btnText.style.display = 'block';
+                btnLoading.style.display = 'none';
+            }
         }
     }
 

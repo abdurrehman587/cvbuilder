@@ -371,8 +371,8 @@ class AdminDashboard {
         // Delete CV directly without confirmation
         try {
             if (window.supabaseDatabaseManager) {
-                // Use Supabase database manager to delete CV
-                const success = await window.supabaseDatabaseManager.deleteCV(cvId);
+                // Use Supabase database manager to delete CV with admin role
+                const success = await window.supabaseDatabaseManager.deleteCV(cvId, 'admin');
                 
                 if (success) {
                     console.log(`CV deleted successfully: ${cvId}`);

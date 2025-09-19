@@ -504,20 +504,30 @@ class SupabaseDatabaseManager {
         }
     }
 
-    async getAllCVs() {
+    async getAllCVs(userRole = 'admin') {
         try {
             if (!this.isSupabaseAvailable()) {
                 console.warn('Supabase not available, returning localStorage CVs');
                 return JSON.parse(localStorage.getItem('localCVs') || '[]');
             }
 
+            // Determine which table to use based on user role
+            let tableName;
+            if (userRole === 'shopkeeper') {
+                tableName = 'shopkeeper_cvs';
+            } else if (userRole === 'user') {
+                tableName = this.userTableName;
+            } else {
+                tableName = this.adminTableName;
+            }
+
             const { data, error } = await this.supabase
-                .from(this.tableName)
+                .from(tableName)
                 .select('*')
                 .order('created_at', { ascending: false });
 
             if (error) {
-                console.error('Error getting all CVs:', error);
+                console.error('Error getting all CVs from', tableName, ':', error);
                 return [];
             }
 
@@ -755,23 +765,40 @@ class SupabaseDatabaseManager {
         return matches;
     }
 
-    async deleteCV(cvId) {
+    async deleteCV(cvId, userRole = 'admin') {
         try {
+            console.log('=== DELETE CV DEBUG ===');
+            console.log('CV ID to delete:', cvId);
+            console.log('User Role:', userRole);
+            
             if (!this.isSupabaseAvailable()) {
                 console.warn('Supabase not available for deletion');
                 return false;
             }
 
+            // Determine which table to use based on user role
+            let tableName;
+            if (userRole === 'shopkeeper') {
+                tableName = 'shopkeeper_cvs';
+            } else if (userRole === 'user') {
+                tableName = this.userTableName;
+            } else {
+                tableName = this.adminTableName;
+            }
+
+            console.log('Using table for deletion:', tableName);
+
             const { error } = await this.supabase
-                .from(this.tableName)
+                .from(tableName)
                 .delete()
                 .eq('id', cvId);
 
             if (error) {
-                console.error('Error deleting CV:', error);
+                console.error('Error deleting CV from', tableName, ':', error);
                 return false;
             }
 
+            console.log('CV deleted successfully from', tableName);
             return true;
         } catch (error) {
             console.error('Error in deleteCV:', error);

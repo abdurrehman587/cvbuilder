@@ -143,3 +143,8 @@ If you encounter issues:
 **Your CV Builder should now work perfectly on Vercel! 🎉**
 
 
+
+
+
+
+
