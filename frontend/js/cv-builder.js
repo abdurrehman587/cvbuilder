@@ -2376,15 +2376,15 @@ class CVBuilder {
                     }
                 }
                 
-                // Template 2: Create hobby items for sidebar
+                // Template 2: Create hobby items like skills for sidebar
                 const hobbiesList = document.createElement('div');
-                hobbiesList.className = 'template-2-hobbies-list';
+                hobbiesList.className = 'template-2-skills-list'; // Use skills list class
                 
                 this.cvData.hobbies.forEach(hobby => {
                     if (hobby.hobby && hobby.hobby.trim()) {
                         const hobbyItem = document.createElement('div');
-                        hobbyItem.className = 'template-2-hobby-item';
-                        hobbyItem.textContent = hobby.hobby.toUpperCase();
+                        hobbyItem.className = 'template-2-skill-item'; // Use skill item class
+                        hobbyItem.textContent = hobby.hobby; // Remove uppercase
                         hobbiesList.appendChild(hobbyItem);
                     }
                 });
