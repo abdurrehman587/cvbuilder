@@ -4003,6 +4003,18 @@ class CVBuilder {
                 // Reset to default data
                 this.resetToDefaultData();
                 
+                // Check if we need to force language defaults reset
+                const resetLanguageDefaults = sessionStorage.getItem('resetLanguageDefaults');
+                if (resetLanguageDefaults === 'true') {
+                    console.log('Forcing language defaults reset');
+                    this.cvData.languages = [
+                        { language: 'English', level: '' },
+                        { language: 'Urdu', level: '' },
+                        { language: 'Punjabi', level: '' }
+                    ];
+                    sessionStorage.removeItem('resetLanguageDefaults');
+                }
+                
                 // Populate form fields with default data
                 this.populateFormFields();
                 

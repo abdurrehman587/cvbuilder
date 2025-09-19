@@ -178,6 +178,9 @@ class AdminDashboard {
         // Set flag to indicate this is a new CV creation
         sessionStorage.setItem('createNewCV', 'true');
         
+        // Set flag to force language defaults reset
+        sessionStorage.setItem('resetLanguageDefaults', 'true');
+        
         // Set default template to classic
         sessionStorage.setItem('selectedTemplate', 'classic');
         
