@@ -517,7 +517,7 @@ body {
 
 .cv-preview.template-2 .template-2-section-icon {
     font-size: 1.6rem;
-    color: #059669;
+    color: #047857;
     font-weight: bold;
     position: relative;
     z-index: 10;
@@ -526,7 +526,7 @@ body {
 
 .cv-preview.template-2 .template-2-section-icon:hover {
     transform: scale(1.2);
-    color: #047857;
+    color: #065f46;
 }
 
 /* Right Main Content */
