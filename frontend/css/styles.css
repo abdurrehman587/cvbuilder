@@ -457,18 +457,27 @@ body {
 }
 
 .cv-preview.template-2 .template-2-contact-icon {
-    font-size: 1.0rem;
-    width: 24px;
-    height: 24px;
+    font-size: 1.4rem;
+    width: 32px;
+    height: 32px;
     text-align: center;
-    background: linear-gradient(135deg, #1e40af, #3b82f6);
+    background: linear-gradient(135deg, #dc2626, #ef4444);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 2px solid #1e3a8a;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    border: 3px solid #991b1b;
+    box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
     color: white;
+    font-weight: bold;
+    position: relative;
+    z-index: 10;
+    transition: all 0.3s ease;
+}
+
+.cv-preview.template-2 .template-2-contact-icon:hover {
+    transform: scale(1.1);
+    box-shadow: 0 8px 25px rgba(220, 38, 38, 0.6);
 }
 
 .cv-preview.template-2 .template-2-sidebar-section {
@@ -517,13 +526,27 @@ body {
 }
 
 .cv-preview.template-2 .template-2-section-icon {
-    font-size: 1rem;
-    background: linear-gradient(135deg, #1e40af, #3b82f6);
-    padding: 6px;
-    border-radius: 8px;
-    border: 2px solid #1e3a8a;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    font-size: 1.3rem;
+    background: linear-gradient(135deg, #059669, #10b981);
+    padding: 10px;
+    border-radius: 12px;
+    border: 3px solid #047857;
+    box-shadow: 0 6px 20px rgba(5, 150, 105, 0.4);
     color: white;
+    font-weight: bold;
+    position: relative;
+    z-index: 10;
+    min-width: 40px;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.cv-preview.template-2 .template-2-section-icon:hover {
+    transform: scale(1.1);
+    box-shadow: 0 8px 25px rgba(5, 150, 105, 0.6);
 }
 
 /* Right Main Content */
@@ -653,13 +676,27 @@ body {
 }
 
 .cv-preview.template-2 .template-2-main-icon {
-    font-size: 1.0rem;
-    background: linear-gradient(135deg, #1e40af, #3b82f6);
-    padding: 8px;
-    border-radius: 10px;
-    border: 2px solid #1e3a8a;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    font-size: 1.2rem;
+    background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+    padding: 12px;
+    border-radius: 15px;
+    border: 3px solid #6d28d9;
+    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
     color: white;
+    font-weight: bold;
+    position: relative;
+    z-index: 10;
+    min-width: 45px;
+    min-height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.cv-preview.template-2 .template-2-main-icon:hover {
+    transform: scale(1.1);
+    box-shadow: 0 8px 25px rgba(124, 58, 237, 0.6);
 }
 
 .cv-preview.template-2 .template-2-main-section p {
