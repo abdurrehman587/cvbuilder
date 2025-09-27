@@ -854,6 +854,111 @@ body {
     }
 }
 
+/* Print Media Queries for A4 Page Size */
+@media print {
+    @page {
+        size: A4;
+        margin: 0;
+    }
+    
+    body {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+    }
+    
+    /* Template 2 Print Styles */
+    .cv-preview.template-2 {
+        width: 100% !important;
+        height: 100vh !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+        overflow: visible !important;
+    }
+    
+    .cv-preview.template-2 .template-2-container {
+        width: 100% !important;
+        height: 100vh !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: flex !important;
+        flex-direction: row !important;
+    }
+    
+    .cv-preview.template-2 .template-2-sidebar {
+        width: 35% !important;
+        height: 100vh !important;
+        margin: 0 !important;
+        padding: 20px !important;
+        background: linear-gradient(135deg, #D2B48C 0%, #DEB887 50%, #D2B48C 100%) !important;
+        color: black !important;
+        overflow: visible !important;
+    }
+    
+    .cv-preview.template-2 .template-2-main-content {
+        width: 65% !important;
+        height: 100vh !important;
+        margin: 0 !important;
+        padding: 20px !important;
+        background: white !important;
+        color: #333 !important;
+        overflow: visible !important;
+    }
+    
+    /* Ensure proper font sizes for print */
+    .cv-preview.template-2 .template-2-header h1 {
+        font-size: 2.2rem !important;
+        line-height: 1.2 !important;
+    }
+    
+    .cv-preview.template-2 .template-2-main-title {
+        font-size: 1rem !important;
+        margin-bottom: 8px !important;
+    }
+    
+    .cv-preview.template-2 .template-2-main-section p {
+        font-size: 0.9rem !important;
+        line-height: 1.4 !important;
+    }
+    
+    .cv-preview.template-2 .template-2-sidebar-title {
+        font-size: 0.9rem !important;
+        margin-bottom: 6px !important;
+    }
+    
+    .template-2-skill-item {
+        font-size: 0.8rem !important;
+        padding: 3px 6px !important;
+        margin-bottom: 3px !important;
+    }
+    
+    /* Hide hover effects and transitions for print */
+    .cv-preview.template-2 * {
+        transition: none !important;
+        transform: none !important;
+    }
+    
+    .cv-preview.template-2 .template-2-main-section:hover {
+        transform: none !important;
+        box-shadow: none !important;
+    }
+    
+    /* Ensure proper spacing for print */
+    .cv-preview.template-2 .template-2-main-section {
+        margin-bottom: 15px !important;
+        padding: 12px 20px !important;
+        break-inside: avoid;
+    }
+    
+    .cv-preview.template-2 .template-2-sidebar-section {
+        margin-bottom: 12px !important;
+        padding: 0 8px !important;
+        break-inside: avoid;
+    }
+}
+
 /* User Info Styles */
 .user-info {
     position: absolute;

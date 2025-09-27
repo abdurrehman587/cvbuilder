@@ -3435,6 +3435,31 @@ class CVBuilder {
         const skills = this.cvData.skills;
         const languages = this.cvData.languages;
         const otherInfo = this.cvData.otherInfo;
+        const hobbies = this.cvData.hobbies;
+        const certifications = this.cvData.certifications;
+        const customSections = this.cvData.customSections;
+        const references = this.cvData.references;
+        
+        // Get selected template from sessionStorage or default to classic
+        const selectedTemplate = sessionStorage.getItem('selectedTemplate') || 'classic';
+        
+        // Generate different HTML based on template
+        if (selectedTemplate === 'modern') {
+            return this.generateTemplate2HTMLForDownload();
+        } else if (selectedTemplate === 'minimalist') {
+            return this.generateTemplate3HTMLForDownload();
+        } else {
+            return this.generateTemplate1HTMLForDownload();
+        }
+    }
+    
+    generateTemplate1HTMLForDownload() {
+        const personalInfo = this.cvData.personalInfo;
+        const education = this.cvData.education;
+        const experience = this.cvData.experience;
+        const skills = this.cvData.skills;
+        const languages = this.cvData.languages;
+        const otherInfo = this.cvData.otherInfo;
         
         return `<!DOCTYPE html>
 <html lang="en">
@@ -3636,8 +3661,100 @@ class CVBuilder {
         }
         
         @media print {
-            body { margin: 0; }
+            @page {
+                size: A4;
+                margin: 0;
+            }
+            
+            body { 
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+                height: 100% !important;
+            }
+            
             .cv-section { break-inside: avoid; }
+            
+            /* Template 2 Print Styles */
+            .template-2-container {
+                width: 100% !important;
+                height: 100vh !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                display: flex !important;
+                flex-direction: row !important;
+            }
+            
+            .template-2-sidebar {
+                width: 35% !important;
+                height: 100vh !important;
+                margin: 0 !important;
+                padding: 20px !important;
+                background: linear-gradient(135deg, #D2B48C 0%, #DEB887 50%, #D2B48C 100%) !important;
+                color: black !important;
+                overflow: visible !important;
+            }
+            
+            .template-2-main-content {
+                width: 65% !important;
+                height: 100vh !important;
+                margin: 0 !important;
+                padding: 20px !important;
+                background: white !important;
+                color: #333 !important;
+                overflow: visible !important;
+            }
+            
+            /* Ensure proper font sizes for print */
+            .template-2-header h1 {
+                font-size: 2.2rem !important;
+                line-height: 1.2 !important;
+            }
+            
+            .template-2-main-title {
+                font-size: 1rem !important;
+                margin-bottom: 8px !important;
+            }
+            
+            .template-2-main-section p {
+                font-size: 0.9rem !important;
+                line-height: 1.4 !important;
+            }
+            
+            .template-2-sidebar-title {
+                font-size: 0.9rem !important;
+                margin-bottom: 6px !important;
+            }
+            
+            .template-2-skill-item {
+                font-size: 0.8rem !important;
+                padding: 3px 6px !important;
+                margin-bottom: 3px !important;
+            }
+            
+            /* Hide hover effects and transitions for print */
+            .template-2 * {
+                transition: none !important;
+                transform: none !important;
+            }
+            
+            .template-2-main-section:hover {
+                transform: none !important;
+                box-shadow: none !important;
+            }
+            
+            /* Ensure proper spacing for print */
+            .template-2-main-section {
+                margin-bottom: 15px !important;
+                padding: 12px 20px !important;
+                break-inside: avoid;
+            }
+            
+            .template-2-sidebar-section {
+                margin-bottom: 12px !important;
+                padding: 0 8px !important;
+                break-inside: avoid;
+            }
         }
     </style>
 </head>
@@ -3825,6 +3942,571 @@ class CVBuilder {
                 ).join('')}
             </ul>
         </div>` : ''}
+    </div>
+</body>
+</html>`;
+    }
+    
+    generateTemplate2HTMLForDownload() {
+        const personalInfo = this.cvData.personalInfo;
+        const education = this.cvData.education;
+        const experience = this.cvData.experience;
+        const skills = this.cvData.skills;
+        const languages = this.cvData.languages;
+        const otherInfo = this.cvData.otherInfo;
+        const hobbies = this.cvData.hobbies;
+        const certifications = this.cvData.certifications;
+        const customSections = this.cvData.customSections;
+        const references = this.cvData.references;
+        
+        return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV - ${personalInfo.fullName || 'Resume'}</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: white;
+            color: #333;
+        }
+        
+        .template-2-container {
+            display: flex;
+            min-height: 100vh;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .template-2-sidebar {
+            width: 35%;
+            background: linear-gradient(135deg, #D2B48C 0%, #DEB887 50%, #D2B48C 100%);
+            color: black;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .template-2-main-content {
+            width: 65%;
+            background: white;
+            color: #333;
+            padding: 20px;
+        }
+        
+        .template-2-profile-pic {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            margin: 0 auto 20px auto;
+            overflow: hidden;
+            border: 4px solid #8B4513;
+        }
+        
+        .template-2-profile-pic img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .template-2-contact-section {
+            margin-bottom: 20px;
+        }
+        
+        .template-2-contact-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-size: 0.8rem;
+            color: black;
+        }
+        
+        .template-2-contact-icon {
+            font-size: 1.2rem;
+            color: #dc2626;
+        }
+        
+        .template-2-sidebar-section {
+            margin-bottom: 20px;
+        }
+        
+        .template-2-sidebar-title {
+            color: black;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .template-2-section-icon {
+            font-size: 1.2rem;
+            color: #047857;
+        }
+        
+        .template-2-skills-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        
+        .template-2-skill-item {
+            font-size: 0.8rem;
+            color: black;
+            font-weight: 500;
+            padding: 4px 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .template-2-header {
+            text-align: right;
+            margin-bottom: 25px;
+            padding: 20px 0 15px 0;
+        }
+        
+        .template-2-header h1 {
+            color: #8B4513;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0 0 8px 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .template-2-main-section {
+            margin-bottom: 20px;
+            padding: 15px 25px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 12px;
+            border: 1px solid rgba(139, 69, 19, 0.1);
+        }
+        
+        .template-2-main-title {
+            color: #8B4513;
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .template-2-main-icon {
+            font-size: 1.2rem;
+            color: #7c3aed;
+        }
+        
+        .template-2-main-section p {
+            color: #333;
+            line-height: 1.4;
+            margin: 0;
+            text-align: justify;
+            font-size: 0.85rem;
+        }
+        
+        .template-2-experience-item,
+        .template-2-education-item {
+            margin-bottom: 15px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #E0E0E0;
+        }
+        
+        .template-2-experience-item:last-child,
+        .template-2-education-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        
+        .template-2-experience-header,
+        .template-2-education-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        
+        .template-2-experience-header h4,
+        .template-2-education-header h4 {
+            font-size: 1.0rem;
+            font-weight: 600;
+            color: #8B4513;
+            margin: 0;
+        }
+        
+        .template-2-date {
+            font-size: 0.8rem;
+            color: #666;
+            background: #F5F5F5;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+        
+        .template-2-company,
+        .template-2-school {
+            font-size: 0.9rem;
+            color: #555;
+            margin: 0 0 6px 0;
+            font-weight: 500;
+        }
+        
+        .template-2-achievements {
+            margin: 0;
+            padding-left: 12px;
+        }
+        
+        .template-2-achievements li {
+            font-size: 0.75rem;
+            color: #333;
+            margin-bottom: 3px;
+            line-height: 1.5;
+        }
+        
+        @media print {
+            @page {
+                size: A4;
+                margin: 0;
+            }
+            
+            body {
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+                height: 100% !important;
+            }
+            
+            .template-2-container {
+                width: 100% !important;
+                height: 100vh !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                display: flex !important;
+                flex-direction: row !important;
+            }
+            
+            .template-2-sidebar {
+                width: 35% !important;
+                height: 100vh !important;
+                margin: 0 !important;
+                padding: 20px !important;
+                background: linear-gradient(135deg, #D2B48C 0%, #DEB887 50%, #D2B48C 100%) !important;
+                color: black !important;
+                overflow: visible !important;
+            }
+            
+            .template-2-main-content {
+                width: 65% !important;
+                height: 100vh !important;
+                margin: 0 !important;
+                padding: 20px !important;
+                background: white !important;
+                color: #333 !important;
+                overflow: visible !important;
+            }
+            
+            .template-2-header h1 {
+                font-size: 2.2rem !important;
+                line-height: 1.2 !important;
+            }
+            
+            .template-2-main-title {
+                font-size: 1rem !important;
+                margin-bottom: 8px !important;
+            }
+            
+            .template-2-main-section p {
+                font-size: 0.9rem !important;
+                line-height: 1.4 !important;
+            }
+            
+            .template-2-sidebar-title {
+                font-size: 0.9rem !important;
+                margin-bottom: 6px !important;
+            }
+            
+            .template-2-skill-item {
+                font-size: 0.8rem !important;
+                padding: 3px 6px !important;
+                margin-bottom: 3px !important;
+            }
+            
+            .template-2-main-section {
+                margin-bottom: 15px !important;
+                padding: 12px 20px !important;
+                break-inside: avoid;
+            }
+            
+            .template-2-sidebar-section {
+                margin-bottom: 12px !important;
+                padding: 0 8px !important;
+                break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="template-2-container">
+        <!-- Left Sidebar -->
+        <div class="template-2-sidebar">
+            <!-- Profile Picture -->
+            <div class="template-2-profile-pic">
+                ${personalInfo.profilePicture ? 
+                    `<img src="${personalInfo.profilePicture}" alt="Profile">` : 
+                    '<div style="width:100%;height:100%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;font-size:50px;color:#9ca3af;">👤</div>'
+                }
+            </div>
+
+            <!-- Contact Information -->
+            <div class="template-2-contact-section">
+                ${personalInfo.phones && personalInfo.phones.length > 0 ? `
+                    <div class="template-2-contact-item">
+                        <span class="template-2-contact-icon">📱</span>
+                        <span>${personalInfo.phones.map(p => p.phone).join(', ')}</span>
+                    </div>
+                ` : ''}
+                ${personalInfo.email ? `
+                    <div class="template-2-contact-item">
+                        <span class="template-2-contact-icon">📧</span>
+                        <span>${personalInfo.email}</span>
+                    </div>
+                ` : ''}
+                ${personalInfo.address ? `
+                    <div class="template-2-contact-item">
+                        <span class="template-2-contact-icon">📍</span>
+                        <span>${personalInfo.address}</span>
+                    </div>
+                ` : ''}
+            </div>
+
+            <!-- Skills Section -->
+            <div class="template-2-sidebar-section">
+                <h3 class="template-2-sidebar-title">
+                    <span class="template-2-section-icon">⚙️</span>
+                    Skills
+                </h3>
+                <div class="template-2-skills-list">
+                    ${skills.length > 0 ? 
+                        skills.map(skill => 
+                            skill.skill && skill.skill.trim() ? 
+                            `<div class="template-2-skill-item">${skill.skill}</div>` : ''
+                        ).join('') : 
+                        '<div class="template-2-skill-item">Add your skills</div>'
+                    }
+                </div>
+            </div>
+
+            <!-- Languages Section -->
+            <div class="template-2-sidebar-section">
+                <h3 class="template-2-sidebar-title">
+                    <span class="template-2-section-icon">🌐</span>
+                    Languages
+                </h3>
+                <div class="template-2-skills-list">
+                    ${languages.length > 0 ? 
+                        languages.map(language => {
+                            if (language.language && language.language.trim()) {
+                                let displayText = language.language;
+                                if (language.level && language.level.trim()) {
+                                    displayText += ` (${language.level})`;
+                                }
+                                return `<div class="template-2-skill-item">${displayText}</div>`;
+                            }
+                            return '';
+                        }).join('') : 
+                        '<div class="template-2-skill-item">Add your languages</div>'
+                    }
+                </div>
+            </div>
+
+            <!-- Hobbies Section -->
+            <div class="template-2-sidebar-section">
+                <h3 class="template-2-sidebar-title">
+                    <span class="template-2-section-icon">🎯</span>
+                    Hobbies
+                </h3>
+                <div class="template-2-skills-list">
+                    ${hobbies.length > 0 ? 
+                        hobbies.map(hobby => 
+                            hobby.hobby && hobby.hobby.trim() ? 
+                            `<div class="template-2-skill-item">${hobby.hobby}</div>` : ''
+                        ).join('') : 
+                        '<div class="template-2-skill-item">Add your hobbies</div>'
+                    }
+                </div>
+            </div>
+
+            <!-- Other Information Section -->
+            <div class="template-2-sidebar-section">
+                <h3 class="template-2-sidebar-title">
+                    <span class="template-2-section-icon">ℹ️</span>
+                    Other Information
+                </h3>
+                <div class="template-2-skills-list">
+                    ${otherInfo.length > 0 ? 
+                        otherInfo.map(info => {
+                            if (info.fatherName && info.fatherName.trim()) {
+                                return `<div class="template-2-skill-item">Father: ${info.fatherName}</div>`;
+                            }
+                            if (info.husbandName && info.husbandName.trim()) {
+                                return `<div class="template-2-skill-item">Husband: ${info.husbandName}</div>`;
+                            }
+                            if (info.cnic && info.cnic.trim()) {
+                                return `<div class="template-2-skill-item">CNIC: ${info.cnic}</div>`;
+                            }
+                            if (info.dateOfBirth && info.dateOfBirth.trim()) {
+                                return `<div class="template-2-skill-item">DOB: ${info.dateOfBirth}</div>`;
+                            }
+                            if (info.maritalStatus && info.maritalStatus.trim()) {
+                                return `<div class="template-2-skill-item">Status: ${info.maritalStatus}</div>`;
+                            }
+                            if (info.religion && info.religion.trim()) {
+                                return `<div class="template-2-skill-item">Religion: ${info.religion}</div>`;
+                            }
+                            if (info.fieldName && info.fieldValue && info.fieldName.trim() && info.fieldValue.trim()) {
+                                return `<div class="template-2-skill-item">${info.fieldName}: ${info.fieldValue}</div>`;
+                            }
+                            return '';
+                        }).join('') : 
+                        '<div class="template-2-skill-item">Add other information</div>'
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Main Content -->
+        <div class="template-2-main-content">
+            <!-- Header with Name -->
+            <div class="template-2-header">
+                <h1>${personalInfo.fullName || 'YOUR NAME HERE'}</h1>
+            </div>
+
+            <!-- Profile Section -->
+            <div class="template-2-main-section">
+                <h3 class="template-2-main-title">
+                    <span class="template-2-main-icon">👤</span>
+                    Profile
+                </h3>
+                <p>${personalInfo.summary || 'Your professional summary will appear here...'}</p>
+            </div>
+
+            <!-- Education Section -->
+            <div class="template-2-main-section">
+                <h3 class="template-2-main-title">
+                    <span class="template-2-main-icon">🎓</span>
+                    Education
+                </h3>
+                ${education.length > 0 ? 
+                    education.map(edu => `
+                        <div class="template-2-education-item">
+                            <div class="template-2-education-header">
+                                <h4>${edu.degree || 'Degree'}</h4>
+                                <span class="template-2-date">${edu.year || 'Year'}</span>
+                            </div>
+                            <div class="template-2-school">${edu.institution || 'Institution'}</div>
+                            ${edu.grade ? `<div class="template-2-achievements"><ul><li>Grade: ${edu.grade}</li></ul></div>` : ''}
+                        </div>
+                    `).join('') : 
+                    '<p>Add your educational background</p>'
+                }
+            </div>
+
+            <!-- Work Experience Section -->
+            <div class="template-2-main-section">
+                <h3 class="template-2-main-title">
+                    <span class="template-2-main-icon">💼</span>
+                    Work Experience
+                </h3>
+                ${experience.length > 0 ? 
+                    experience.map(exp => `
+                        <div class="template-2-experience-item">
+                            <div class="template-2-experience-header">
+                                <h4>${exp.jobTitle || 'Job Title'}</h4>
+                                <span class="template-2-date">${exp.duration || 'Duration'}</span>
+                            </div>
+                            <div class="template-2-company">${exp.company || 'Company'}</div>
+                            ${exp.description ? `
+                                <div class="template-2-achievements">
+                                    <ul>
+                                        ${exp.description.split('\n').filter(line => line.trim()).map(line => `<li>${line.trim()}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `).join('') : 
+                    '<p>Add your work experience</p>'
+                }
+            </div>
+
+            <!-- Certifications Section -->
+            ${certifications.length > 0 ? `
+            <div class="template-2-main-section">
+                <h3 class="template-2-main-title">
+                    <span class="template-2-main-icon">🏆</span>
+                    Certifications
+                </h3>
+                <div class="template-2-achievements">
+                    <ul>
+                        ${certifications.map(cert => 
+                            cert.certification && cert.certification.trim() ? 
+                            `<li>${cert.certification}</li>` : ''
+                        ).join('')}
+                    </ul>
+                </div>
+            </div>
+            ` : ''}
+
+            <!-- Custom Sections -->
+            ${customSections.length > 0 ? `
+            <div class="template-2-main-section">
+                <h3 class="template-2-main-title">
+                    <span class="template-2-main-icon">✨</span>
+                    Custom Sections
+                </h3>
+                ${customSections.map(section => `
+                    <div class="template-2-main-section">
+                        <h4 style="color: #8B4513; font-size: 0.9rem; margin-bottom: 8px;">${section.heading || 'Section'}</h4>
+                        <div class="template-2-achievements">
+                            <ul>
+                                ${section.items ? section.items.map(item => 
+                                    item.value && item.value.trim() ? `<li>${item.value}</li>` : ''
+                                ).join('') : ''}
+                            </ul>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+            ` : ''}
+
+            <!-- References Section -->
+            ${references.length > 0 ? `
+            <div class="template-2-main-section">
+                <h3 class="template-2-main-title">
+                    <span class="template-2-main-icon">📞</span>
+                    References
+                </h3>
+                <div class="template-2-achievements">
+                    <ul>
+                        ${references.map(ref => 
+                            ref.reference && ref.reference.trim() ? 
+                            `<li>${ref.reference}</li>` : ''
+                        ).join('')}
+                    </ul>
+                </div>
+            </div>
+            ` : ''}
+        </div>
     </div>
 </body>
 </html>`;
