@@ -529,6 +529,17 @@ class CVBuilder {
                             <!-- Hobbies will be populated here -->
                         </div>
                     </div>
+
+                    <!-- Other Information Section -->
+                    <div class="template-2-sidebar-section">
+                        <h3 class="template-2-sidebar-title">
+                            <span class="template-2-section-icon">ℹ️</span>
+                            Other Information
+                        </h3>
+                        <div class="template-2-other-info-list" id="previewOtherInfo">
+                            <!-- Other information will be populated here -->
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Right Main Content -->
@@ -2604,69 +2615,161 @@ class CVBuilder {
         }
         otherInfoContainer.innerHTML = '';
         
-        if (this.cvData.otherInfo.length === 0) {
-            otherInfoContainer.innerHTML = '<p style="color: #6b7280; font-style: italic;">Add additional information to complete your CV</p>';
-            return;
-        }
+        // Check if we're using Template 2 (modern)
+        const selectedTemplate = sessionStorage.getItem('selectedTemplate') || 'classic';
         
-        // Create a compact display for other information
-        const infoWrapper = document.createElement('div');
-        infoWrapper.className = 'other-info-wrapper';
-        
-        this.cvData.otherInfo.forEach(info => {
-            if (info.fatherName || info.husbandName || info.cnic || info.dateOfBirth || info.maritalStatus || info.religion) {
-                // Standard fields
-                if (info.fatherName) {
-                    const infoItem = document.createElement('div');
-                    infoItem.className = 'other-info-item-preview';
-                    infoItem.innerHTML = `<strong>Father's Name:</strong> ${info.fatherName}`;
-                    infoWrapper.appendChild(infoItem);
+        if (selectedTemplate === 'modern') {
+            // For Template 2, find the other info sidebar section
+            const otherInfoSidebarSection = otherInfoContainer.closest('.template-2-sidebar-section');
+            
+            // Check if there are any other info items with actual content
+            const hasOtherInfo = this.cvData.otherInfo.some(info => 
+                (info.fatherName && info.fatherName.trim()) ||
+                (info.husbandName && info.husbandName.trim()) ||
+                (info.cnic && info.cnic.trim()) ||
+                (info.dateOfBirth && info.dateOfBirth.trim()) ||
+                (info.maritalStatus && info.maritalStatus.trim()) ||
+                (info.religion && info.religion.trim()) ||
+                (info.fieldName && info.fieldValue && info.fieldName.trim() && info.fieldValue.trim())
+            );
+            
+            if (!hasOtherInfo) {
+                // Hide the entire other info sidebar section if no data
+                if (otherInfoSidebarSection) {
+                    otherInfoSidebarSection.style.display = 'none';
+                    this.hiddenSections.add('otherInfo');
                 }
-                
-                if (info.husbandName) {
-                    const infoItem = document.createElement('div');
-                    infoItem.className = 'other-info-item-preview';
-                    infoItem.innerHTML = `<strong>Husband's Name:</strong> ${info.husbandName}`;
-                    infoWrapper.appendChild(infoItem);
+                return;
+            } else {
+                // Show the other info sidebar section if there is data
+                if (otherInfoSidebarSection) {
+                    otherInfoSidebarSection.style.display = 'block';
+                    this.hiddenSections.delete('otherInfo');
                 }
-                
-                if (info.cnic) {
-                    const infoItem = document.createElement('div');
-                    infoItem.className = 'other-info-item-preview';
-                    infoItem.innerHTML = `<strong>CNIC:</strong> ${info.cnic}`;
-                    infoWrapper.appendChild(infoItem);
-                }
-                
-                if (info.dateOfBirth) {
-                    const infoItem = document.createElement('div');
-                    infoItem.className = 'other-info-item-preview';
-                    infoItem.innerHTML = `<strong>Date of Birth:</strong> ${info.dateOfBirth}`;
-                    infoWrapper.appendChild(infoItem);
-                }
-                
-                if (info.maritalStatus) {
-                    const infoItem = document.createElement('div');
-                    infoItem.className = 'other-info-item-preview';
-                    infoItem.innerHTML = `<strong>Marital Status:</strong> ${info.maritalStatus}`;
-                    infoWrapper.appendChild(infoItem);
-                }
-                
-                if (info.religion) {
-                    const infoItem = document.createElement('div');
-                    infoItem.className = 'other-info-item-preview';
-                    infoItem.innerHTML = `<strong>Religion:</strong> ${info.religion}`;
-                    infoWrapper.appendChild(infoItem);
-                }
-            } else if (info.fieldName && info.fieldValue) {
-                // Custom fields
-                const infoItem = document.createElement('div');
-                infoItem.className = 'other-info-item-preview';
-                infoItem.innerHTML = `<strong>${info.fieldName}:</strong> ${info.fieldValue}`;
-                infoWrapper.appendChild(infoItem);
             }
-        });
-        
-        otherInfoContainer.appendChild(infoWrapper);
+            
+            // Template 2: Create other info items like skills for sidebar
+            const otherInfoList = document.createElement('div');
+            otherInfoList.className = 'template-2-skills-list'; // Use skills list class for consistency
+            
+            this.cvData.otherInfo.forEach(info => {
+                if (info.fatherName && info.fatherName.trim()) {
+                    const infoItem = document.createElement('div');
+                    infoItem.className = 'template-2-skill-item'; // Use skill item class
+                    infoItem.textContent = `Father: ${info.fatherName}`;
+                    otherInfoList.appendChild(infoItem);
+                }
+                
+                if (info.husbandName && info.husbandName.trim()) {
+                    const infoItem = document.createElement('div');
+                    infoItem.className = 'template-2-skill-item';
+                    infoItem.textContent = `Husband: ${info.husbandName}`;
+                    otherInfoList.appendChild(infoItem);
+                }
+                
+                if (info.cnic && info.cnic.trim()) {
+                    const infoItem = document.createElement('div');
+                    infoItem.className = 'template-2-skill-item';
+                    infoItem.textContent = `CNIC: ${info.cnic}`;
+                    otherInfoList.appendChild(infoItem);
+                }
+                
+                if (info.dateOfBirth && info.dateOfBirth.trim()) {
+                    const infoItem = document.createElement('div');
+                    infoItem.className = 'template-2-skill-item';
+                    infoItem.textContent = `DOB: ${info.dateOfBirth}`;
+                    otherInfoList.appendChild(infoItem);
+                }
+                
+                if (info.maritalStatus && info.maritalStatus.trim()) {
+                    const infoItem = document.createElement('div');
+                    infoItem.className = 'template-2-skill-item';
+                    infoItem.textContent = `Status: ${info.maritalStatus}`;
+                    otherInfoList.appendChild(infoItem);
+                }
+                
+                if (info.religion && info.religion.trim()) {
+                    const infoItem = document.createElement('div');
+                    infoItem.className = 'template-2-skill-item';
+                    infoItem.textContent = `Religion: ${info.religion}`;
+                    otherInfoList.appendChild(infoItem);
+                }
+                
+                if (info.fieldName && info.fieldValue && info.fieldName.trim() && info.fieldValue.trim()) {
+                    const infoItem = document.createElement('div');
+                    infoItem.className = 'template-2-skill-item';
+                    infoItem.textContent = `${info.fieldName}: ${info.fieldValue}`;
+                    otherInfoList.appendChild(infoItem);
+                }
+            });
+            
+            otherInfoContainer.appendChild(otherInfoList);
+        } else {
+            // For other templates, use the original logic
+            if (this.cvData.otherInfo.length === 0) {
+                otherInfoContainer.innerHTML = '<p style="color: #6b7280; font-style: italic;">Add additional information to complete your CV</p>';
+                return;
+            }
+            
+            // Create a compact display for other information
+            const infoWrapper = document.createElement('div');
+            infoWrapper.className = 'other-info-wrapper';
+            
+            this.cvData.otherInfo.forEach(info => {
+                if (info.fatherName || info.husbandName || info.cnic || info.dateOfBirth || info.maritalStatus || info.religion) {
+                    // Standard fields
+                    if (info.fatherName) {
+                        const infoItem = document.createElement('div');
+                        infoItem.className = 'other-info-item-preview';
+                        infoItem.innerHTML = `<strong>Father's Name:</strong> ${info.fatherName}`;
+                        infoWrapper.appendChild(infoItem);
+                    }
+                    
+                    if (info.husbandName) {
+                        const infoItem = document.createElement('div');
+                        infoItem.className = 'other-info-item-preview';
+                        infoItem.innerHTML = `<strong>Husband's Name:</strong> ${info.husbandName}`;
+                        infoWrapper.appendChild(infoItem);
+                    }
+                    
+                    if (info.cnic) {
+                        const infoItem = document.createElement('div');
+                        infoItem.className = 'other-info-item-preview';
+                        infoItem.innerHTML = `<strong>CNIC:</strong> ${info.cnic}`;
+                        infoWrapper.appendChild(infoItem);
+                    }
+                    
+                    if (info.dateOfBirth) {
+                        const infoItem = document.createElement('div');
+                        infoItem.className = 'other-info-item-preview';
+                        infoItem.innerHTML = `<strong>Date of Birth:</strong> ${info.dateOfBirth}`;
+                        infoWrapper.appendChild(infoItem);
+                    }
+                    
+                    if (info.maritalStatus) {
+                        const infoItem = document.createElement('div');
+                        infoItem.className = 'other-info-item-preview';
+                        infoItem.innerHTML = `<strong>Marital Status:</strong> ${info.maritalStatus}`;
+                        infoWrapper.appendChild(infoItem);
+                    }
+                    
+                    if (info.religion) {
+                        const infoItem = document.createElement('div');
+                        infoItem.className = 'other-info-item-preview';
+                        infoItem.innerHTML = `<strong>Religion:</strong> ${info.religion}`;
+                        infoWrapper.appendChild(infoItem);
+                    }
+                } else if (info.fieldName && info.fieldValue) {
+                    // Custom fields
+                    const infoItem = document.createElement('div');
+                    infoItem.className = 'other-info-item-preview';
+                    infoItem.innerHTML = `<strong>${info.fieldName}:</strong> ${info.fieldValue}`;
+                    infoWrapper.appendChild(infoItem);
+                }
+            });
+            
+            otherInfoContainer.appendChild(infoWrapper);
+        }
     }
 
     updateReferencesPreview() {
