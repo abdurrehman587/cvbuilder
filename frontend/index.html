@@ -736,15 +736,26 @@
                 // Show user info in header
                 const user = AuthSystem.getCurrentUser();
                 if (user) {
-                    // Redirect admin and shopkeeper users to their respective dashboards
-                    if (user.role === 'admin') {
-                        console.log('Admin user detected, redirecting to admin dashboard');
-                        window.location.href = 'admin-dashboard.html';
-                        return;
-                    } else if (user.role === 'shopkeeper') {
-                        console.log('Shopkeeper user detected, redirecting to shopkeeper dashboard');
-                        window.location.href = 'shopkeeper-dashboard.html';
-                        return;
+                    // Check if user is trying to open/edit a specific CV
+                    const currentCVId = sessionStorage.getItem('currentCVId');
+                    const createNewCV = sessionStorage.getItem('createNewCV');
+                    
+                    // Allow admin/shopkeeper users to access CV builder if they have a CV ID or are creating new CV
+                    if (currentCVId || createNewCV === 'true') {
+                        console.log('Admin/Shopkeeper user accessing CV builder with CV ID:', currentCVId);
+                        console.log('Create new CV flag:', createNewCV);
+                        // Allow access to CV builder - don't redirect
+                    } else {
+                        // Redirect admin and shopkeeper users to their respective dashboards
+                        if (user.role === 'admin') {
+                            console.log('Admin user detected, redirecting to admin dashboard');
+                            window.location.href = 'admin-dashboard.html';
+                            return;
+                        } else if (user.role === 'shopkeeper') {
+                            console.log('Shopkeeper user detected, redirecting to shopkeeper dashboard');
+                            window.location.href = 'shopkeeper-dashboard.html';
+                            return;
+                        }
                     }
                     // Update page title with shop name
                     if (user.role === 'shopkeeper' && user.shopName) {
