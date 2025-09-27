@@ -36,6 +36,7 @@ class CVBuilder {
         this.lastSaved = null;
         this.hasUnsavedChanges = false;
         this.hiddenSections = new Set(); // Track which sections are hidden
+        this.isSaving = false; // Prevent multiple simultaneous saves
         
         this.init().catch(error => {
             console.error('Error during CVBuilder initialization:', error);
@@ -4580,30 +4581,30 @@ class CVBuilder {
             clearInterval(this.autoSaveInterval);
         }
         
-        // Save every 10 seconds
+        // Save every 30 seconds (increased from 10 seconds)
         this.autoSaveInterval = setInterval(() => {
-            console.log('Auto-save check - hasUnsavedChanges:', this.hasUnsavedChanges);
-            if (this.hasUnsavedChanges) {
+            console.log('Auto-save check - hasUnsavedChanges:', this.hasUnsavedChanges, 'isSaving:', this.isSaving);
+            if (this.hasUnsavedChanges && !this.isSaving) {
                 console.log('Auto-saving data...');
                 this.saveData();
             } else {
-                console.log('No unsaved changes, skipping auto-save');
+                console.log('No unsaved changes or save in progress, skipping auto-save');
             }
-        }, 10000); // 10 seconds
+        }, 30000); // Increased from 10000ms to 30000ms
         
         console.log('Auto-save interval started with ID:', this.autoSaveInterval);
 
         // Save when user leaves the page
         window.addEventListener('beforeunload', () => {
             console.log('Page unloading - saving data if needed');
-            if (this.hasUnsavedChanges) {
+            if (this.hasUnsavedChanges && !this.isSaving) {
                 this.saveDataSilently();
             }
         });
 
         // Save when page becomes hidden (tab switch, minimize, etc.)
         document.addEventListener('visibilitychange', () => {
-            if (document.hidden && this.hasUnsavedChanges) {
+            if (document.hidden && this.hasUnsavedChanges && !this.isSaving) {
                 console.log('Page hidden - saving data');
                 this.saveDataSilently();
             }
@@ -4611,19 +4612,19 @@ class CVBuilder {
 
         // Save when window loses focus
         window.addEventListener('blur', () => {
-            if (this.hasUnsavedChanges) {
+            if (this.hasUnsavedChanges && !this.isSaving) {
                 console.log('Window lost focus - saving data');
                 this.saveDataSilently();
             }
         });
 
-        // Additional save trigger every 30 seconds regardless of changes (backup)
+        // Additional save trigger every 60 seconds regardless of changes (backup) - increased from 30 seconds
         setInterval(() => {
-            if (this.hasUnsavedChanges) {
+            if (this.hasUnsavedChanges && !this.isSaving) {
                 console.log('Backup save triggered');
                 this.saveDataSilently();
             }
-        }, 30000); // 30 seconds
+        }, 60000); // Increased from 30000ms to 60000ms
     }
 
     stopAutoSave() {
@@ -4635,6 +4636,15 @@ class CVBuilder {
     }
 
     async saveData() {
+        // Prevent multiple simultaneous saves
+        if (this.isSaving) {
+            console.log('Save already in progress, skipping...');
+            return;
+        }
+        
+        this.isSaving = true;
+        console.log('Starting save operation...');
+        
         try {
             // Collect current form data
             this.collectFormData();
@@ -4731,6 +4741,10 @@ class CVBuilder {
             } else {
                 alert('Save failed: ' + error.message);
             }
+        } finally {
+            // Always release the save lock
+            this.isSaving = false;
+            console.log('Save operation completed, lock released');
         }
     }
 
@@ -4780,6 +4794,15 @@ class CVBuilder {
     }
 
     saveDataSilently() {
+        // Prevent multiple simultaneous saves
+        if (this.isSaving) {
+            console.log('Save already in progress, skipping silent save...');
+            return;
+        }
+        
+        this.isSaving = true;
+        console.log('Starting silent save operation...');
+        
         try {
             // Collect current form data
             this.collectFormData();
@@ -4825,6 +4848,10 @@ class CVBuilder {
             
         } catch (error) {
             console.error('Error saving data silently:', error);
+        } finally {
+            // Always release the save lock
+            this.isSaving = false;
+            console.log('Silent save operation completed, lock released');
         }
     }
 
@@ -5581,14 +5608,14 @@ class CVBuilder {
         this.hasUnsavedChanges = true;
         this.updateSaveIndicator('unsaved');
         
-        // Force save after 2 seconds of inactivity (debounced save)
+        // Force save after 5 seconds of inactivity (debounced save) - increased from 2 seconds
         clearTimeout(this.debouncedSave);
         this.debouncedSave = setTimeout(() => {
-            if (this.hasUnsavedChanges) {
+            if (this.hasUnsavedChanges && !this.isSaving) {
                 console.log('Debounced save triggered');
                 this.saveData();
             }
-        }, 2000);
+        }, 5000); // Increased from 2000ms to 5000ms
     }
 
     // Force save method for critical moments
