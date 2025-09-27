@@ -736,6 +736,16 @@
                 // Show user info in header
                 const user = AuthSystem.getCurrentUser();
                 if (user) {
+                    // Redirect admin and shopkeeper users to their respective dashboards
+                    if (user.role === 'admin') {
+                        console.log('Admin user detected, redirecting to admin dashboard');
+                        window.location.href = 'admin-dashboard.html';
+                        return;
+                    } else if (user.role === 'shopkeeper') {
+                        console.log('Shopkeeper user detected, redirecting to shopkeeper dashboard');
+                        window.location.href = 'shopkeeper-dashboard.html';
+                        return;
+                    }
                     // Update page title with shop name
                     if (user.role === 'shopkeeper' && user.shopName) {
                         document.title = `${user.shopName} - CV Builder`;
