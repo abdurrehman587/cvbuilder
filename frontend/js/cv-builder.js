@@ -597,6 +597,17 @@ class CVBuilder {
                             <!-- Custom sections will be populated here -->
                         </div>
                     </div>
+
+                    <!-- References Section -->
+                    <div class="template-2-main-section" style="${(!this.cvData.references || this.cvData.references.length === 0) ? 'display: none;' : ''}">
+                        <h3 class="template-2-main-title">
+                            <span class="template-2-main-icon">📞</span>
+                            References
+                        </h3>
+                        <div id="previewReferences">
+                            <!-- References will be populated here -->
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
@@ -2778,24 +2789,72 @@ class CVBuilder {
         
         referencesContainer.innerHTML = '';
         
-        if (this.cvData.references && this.cvData.references.length > 0) {
+        // Check if we're using Template 2 (modern)
+        const selectedTemplate = sessionStorage.getItem('selectedTemplate') || 'classic';
+        
+        if (selectedTemplate === 'modern') {
+            // For Template 2, find the references main section
+            const referencesMainSection = referencesContainer.closest('.template-2-main-section');
+            
+            // Check if there are any references with actual content
+            const hasReferences = this.cvData.references && this.cvData.references.length > 0 && 
+                this.cvData.references.some(ref => ref.reference && ref.reference.trim());
+            
+            if (!hasReferences) {
+                // Hide the entire references main section if no data
+                if (referencesMainSection) {
+                    referencesMainSection.style.display = 'none';
+                    this.hiddenSections.add('references');
+                }
+                return;
+            } else {
+                // Show the references main section if there is data
+                if (referencesMainSection) {
+                    referencesMainSection.style.display = 'block';
+                    this.hiddenSections.delete('references');
+                }
+            }
+            
+            // Template 2: Create references list for main content
             const referencesList = document.createElement('ul');
+            referencesList.className = 'template-2-achievements';
             referencesList.style.margin = '0';
-            referencesList.style.paddingLeft = '20px';
-            referencesList.style.color = '#374151';
-            referencesList.style.fontSize = '14px';
-            referencesList.style.lineHeight = '1.5';
+            referencesList.style.paddingLeft = '12px';
             
             this.cvData.references.forEach(ref => {
                 if (ref.reference && ref.reference.trim()) {
                     const listItem = document.createElement('li');
                     listItem.textContent = ref.reference;
-                    listItem.style.marginBottom = '0px';
+                    listItem.style.fontSize = '0.75rem';
+                    listItem.style.color = '#333';
+                    listItem.style.marginBottom = '3px';
+                    listItem.style.lineHeight = '1.5';
                     referencesList.appendChild(listItem);
                 }
             });
             
             referencesContainer.appendChild(referencesList);
+        } else {
+            // For other templates, use the original logic
+            if (this.cvData.references && this.cvData.references.length > 0) {
+                const referencesList = document.createElement('ul');
+                referencesList.style.margin = '0';
+                referencesList.style.paddingLeft = '20px';
+                referencesList.style.color = '#374151';
+                referencesList.style.fontSize = '14px';
+                referencesList.style.lineHeight = '1.5';
+                
+                this.cvData.references.forEach(ref => {
+                    if (ref.reference && ref.reference.trim()) {
+                        const listItem = document.createElement('li');
+                        listItem.textContent = ref.reference;
+                        listItem.style.marginBottom = '0px';
+                        referencesList.appendChild(listItem);
+                    }
+                });
+                
+                referencesContainer.appendChild(referencesList);
+            }
         }
     }
 
