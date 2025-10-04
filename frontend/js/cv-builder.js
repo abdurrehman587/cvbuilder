@@ -2947,6 +2947,8 @@ class CVBuilder {
             tempContainer.style.color = '#333';
             tempContainer.style.visibility = 'visible';
             tempContainer.style.opacity = '1';
+            tempContainer.style.maxWidth = '800px';
+            tempContainer.style.margin = '0 auto';
             
             // Clone the preview content
             const clonedPreview = previewElement.cloneNode(true);
@@ -3049,8 +3051,8 @@ class CVBuilder {
         let currentY = 0;
         let currentPage = null;
 
-        // Get all sections that can be split
-        const sections = Array.from(container.querySelectorAll('.cv-section, .template-2-main-section, .template-2-sidebar-section'));
+        // Get all sections that can be split, preserving order
+        const sections = Array.from(container.querySelectorAll('.cv-section, .template-2-main-section, .template-2-sidebar-section, .cv-header, .template-2-container'));
         
         for (const section of sections) {
             // Create a temporary container to measure section height
@@ -3061,6 +3063,9 @@ class CVBuilder {
             tempSection.style.width = `${pageWidth - (margin * 2)}px`;
             tempSection.style.visibility = 'visible';
             tempSection.style.opacity = '1';
+            tempSection.style.fontSize = '14px'; // Ensure consistent font size
+            tempSection.style.lineHeight = '1.4';
+            tempSection.style.fontFamily = 'Arial, sans-serif';
             
             document.body.appendChild(tempSection);
             
@@ -3071,13 +3076,9 @@ class CVBuilder {
             document.body.removeChild(tempSection);
 
             // Check if section fits on current page
-            if (currentY + sectionHeight > contentHeight) {
+            if (currentY + sectionHeight > contentHeight && currentPage) {
                 // Section doesn't fit, start new page
-                if (currentPage) {
-                    pages.push(currentPage);
-                }
-                
-                // Create new page
+                pages.push(currentPage);
                 currentPage = this.createPageContainer(pageWidth, pageHeight, margin);
                 currentY = 0;
             }
@@ -3090,9 +3091,18 @@ class CVBuilder {
             const clonedSection = section.cloneNode(true);
             clonedSection.style.position = 'relative';
             clonedSection.style.top = `${currentY}px`;
+            clonedSection.style.width = '100%';
+            clonedSection.style.fontSize = '14px';
+            clonedSection.style.lineHeight = '1.4';
+            clonedSection.style.fontFamily = 'Arial, sans-serif';
+            clonedSection.style.color = '#333';
+            
+            // Ensure proper styling for headers and sections
+            this.applyPDFStyles(clonedSection);
+            
             currentPage.appendChild(clonedSection);
             
-            currentY += sectionHeight + 20; // Add some spacing between sections
+            currentY += sectionHeight + 15; // Add some spacing between sections
         }
 
         // Add the last page if it has content
@@ -3116,6 +3126,82 @@ class CVBuilder {
         page.style.position = 'relative';
         page.style.overflow = 'hidden';
         return page;
+    }
+
+    applyPDFStyles(element) {
+        // Apply consistent styling to maintain the clean CV design
+        const style = element.style;
+        
+        // Ensure consistent font family and size
+        style.fontFamily = 'Arial, sans-serif';
+        style.fontSize = '14px';
+        style.lineHeight = '1.4';
+        style.color = '#333';
+        
+        // Style section headers
+        const headers = element.querySelectorAll('h1, h2, h3, .section-title, .cv-section h3');
+        headers.forEach(header => {
+            header.style.fontWeight = 'bold';
+            header.style.fontSize = '16px';
+            header.style.textTransform = 'uppercase';
+            header.style.marginBottom = '8px';
+            header.style.marginTop = '15px';
+            header.style.color = '#000';
+        });
+        
+        // Style contact information
+        const contactInfo = element.querySelectorAll('.contact-info, .personal-info');
+        contactInfo.forEach(contact => {
+            contact.style.fontSize = '12px';
+            contact.style.lineHeight = '1.3';
+            contact.style.marginBottom = '10px';
+        });
+        
+        // Style job titles and company names
+        const jobTitles = element.querySelectorAll('.job-title, .jobTitle');
+        jobTitles.forEach(title => {
+            title.style.fontWeight = 'bold';
+            title.style.fontSize = '14px';
+            title.style.marginBottom = '2px';
+        });
+        
+        const companies = element.querySelectorAll('.company, .institution');
+        companies.forEach(company => {
+            company.style.fontSize = '13px';
+            company.style.fontWeight = 'normal';
+            company.style.marginBottom = '2px';
+        });
+        
+        // Style descriptions and lists
+        const descriptions = element.querySelectorAll('.description, p, li');
+        descriptions.forEach(desc => {
+            desc.style.fontSize = '12px';
+            desc.style.lineHeight = '1.4';
+            desc.style.marginBottom = '3px';
+        });
+        
+        // Style dates and durations
+        const dates = element.querySelectorAll('.duration, .year');
+        dates.forEach(date => {
+            date.style.fontSize = '12px';
+            date.style.fontStyle = 'italic';
+            date.style.color = '#666';
+        });
+        
+        // Ensure proper spacing
+        const sections = element.querySelectorAll('.cv-section, .experience-item, .education-item');
+        sections.forEach(section => {
+            section.style.marginBottom = '15px';
+            section.style.paddingBottom = '10px';
+        });
+        
+        // Style horizontal lines
+        const hrElements = element.querySelectorAll('hr');
+        hrElements.forEach(hr => {
+            hr.style.border = 'none';
+            hr.style.borderTop = '1px solid #000';
+            hr.style.margin = '8px 0';
+        });
     }
 
     async trackDownload(downloadType = 'pdf') {
