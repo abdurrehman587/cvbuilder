@@ -4889,9 +4889,11 @@ class CVBuilder {
                 this.updatePreview();
                 this.updateSaveIndicator('new');
                 
-                // Clear the flag after everything is set up
-                sessionStorage.removeItem('createNewCV');
-                console.log('Cleared createNewCV flag after setup');
+                // Clear the flag after everything is set up and page is fully loaded
+                setTimeout(() => {
+                    sessionStorage.removeItem('createNewCV');
+                    console.log('Cleared createNewCV flag after setup and delay');
+                }, 500); // Wait 500ms before clearing the flag
                 return;
             }
             

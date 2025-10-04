@@ -728,17 +728,29 @@
             
 
             function checkAuthAndLoad() {
+                console.log('=== CHECK AUTH AND LOAD DEBUG ===');
+                console.log('AuthSystem available:', typeof AuthSystem !== 'undefined');
+                
                 if (!AuthSystem.isAuthenticated()) {
+                    console.log('User not authenticated, redirecting to auth page');
                     window.location.href = 'auth.html';
                     return;
                 }
                 
                 // Show user info in header
                 const user = AuthSystem.getCurrentUser();
+                console.log('Current user:', user);
+                console.log('User role:', user ? user.role : 'N/A');
+                
                 if (user) {
                     // Check if user is trying to open/edit a specific CV
                     const currentCVId = sessionStorage.getItem('currentCVId');
                     const createNewCV = sessionStorage.getItem('createNewCV');
+                    
+                    console.log('SessionStorage values:');
+                    console.log('- currentCVId:', currentCVId);
+                    console.log('- createNewCV:', createNewCV);
+                    console.log('- All sessionStorage keys:', Object.keys(sessionStorage));
                     
                     // Allow admin/shopkeeper users to access CV builder if they have a CV ID or are creating new CV
                     if (currentCVId || createNewCV === 'true') {
@@ -747,17 +759,32 @@
                         console.log('Allowing access to CV builder - no redirect');
                         // Allow access to CV builder - don't redirect
                     } else {
-                        // Redirect admin and shopkeeper users to their respective dashboards
-                        if (user.role === 'admin') {
-                            console.log('Admin user detected, redirecting to admin dashboard');
-                            window.location.href = 'admin-dashboard.html';
-                            return;
-                        } else if (user.role === 'shopkeeper') {
-                            console.log('Shopkeeper user detected, redirecting to shopkeeper dashboard');
-                            window.location.href = 'shopkeeper-dashboard.html';
-                            return;
-                        }
+                        // Add a small delay to allow CV Builder to process flags
+                        console.log('No CV flags detected, will check again in 100ms...');
+                        setTimeout(() => {
+                            const currentCVIdCheck = sessionStorage.getItem('currentCVId');
+                            const createNewCVCheck = sessionStorage.getItem('createNewCV');
+                            
+                            console.log('Delayed check - currentCVId:', currentCVIdCheck, 'createNewCV:', createNewCVCheck);
+                            
+                            if (currentCVIdCheck || createNewCVCheck === 'true') {
+                                console.log('CV flags detected in delayed check, allowing access');
+                                return;
+                            }
+                            
+                            // Redirect admin and shopkeeper users to their respective dashboards
+                            if (user.role === 'admin') {
+                                console.log('Admin user detected, redirecting to admin dashboard');
+                                window.location.href = 'admin-dashboard.html';
+                                return;
+                            } else if (user.role === 'shopkeeper') {
+                                console.log('Shopkeeper user detected, redirecting to shopkeeper dashboard');
+                                window.location.href = 'shopkeeper-dashboard.html';
+                                return;
+                            }
+                        }, 100);
                     }
+                    console.log('=== END CHECK AUTH AND LOAD DEBUG ===');
                     // Update page title with shop name
                     if (user.role === 'shopkeeper' && user.shopName) {
                         document.title = `${user.shopName} - CV Builder`;
