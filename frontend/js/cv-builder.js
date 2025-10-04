@@ -2948,6 +2948,7 @@ class CVBuilder {
             tempContainer.style.width = '210mm'; // A4 width in mm
             tempContainer.style.backgroundColor = 'white';
             tempContainer.style.padding = '0';
+            tempContainer.style.margin = '0';
             tempContainer.style.fontFamily = 'Arial, sans-serif';
             tempContainer.style.fontSize = '16px'; // Increased base font size for better print quality
             tempContainer.style.lineHeight = '1.4';
@@ -2955,7 +2956,7 @@ class CVBuilder {
             tempContainer.style.visibility = 'visible';
             tempContainer.style.opacity = '1';
             tempContainer.style.maxWidth = '210mm';
-            tempContainer.style.margin = '0 auto';
+            tempContainer.style.boxSizing = 'border-box';
             
             // Clone the preview content
             const clonedPreview = previewElement.cloneNode(true);
@@ -3036,11 +3037,11 @@ class CVBuilder {
             const heightRatio = pdfHeight / imgHeight;
             const ratio = Math.min(widthRatio, heightRatio); // Use min to ensure content fits within page
             
-            // Position with small margin to prevent text cutoff
-            const imgX = 2; // Small left margin
-            const imgY = 2; // Small top margin
-            const finalWidth = (imgWidth * ratio) - 4; // Account for margins
-            const finalHeight = (imgHeight * ratio) - 4; // Account for margins
+            // Position to cover complete page (no margins)
+            const imgX = 0; // No left margin
+            const imgY = 0; // No top margin
+            const finalWidth = imgWidth * ratio; // Full width
+            const finalHeight = imgHeight * ratio; // Full height
 
             // Check if content fits on one page
             if (finalHeight <= pdfHeight) {
@@ -3085,10 +3086,13 @@ class CVBuilder {
     applyTemplate2PDFStylesWithFontSizes(container) {
         // Ensure Template 2 styles are properly applied for PDF with minimum 12pt font sizes
         container.style.width = '210mm'; // A4 width
-        container.style.minHeight = '297mm'; // A4 height
+        container.style.height = '297mm'; // A4 height (fixed height for complete coverage)
         container.style.display = 'flex';
         container.style.fontFamily = 'Arial, sans-serif';
         container.style.fontSize = '16px'; // Base font size (12pt = 16px)
+        container.style.margin = '0';
+        container.style.padding = '0';
+        container.style.boxSizing = 'border-box';
         
         // Style the sidebar
         const sidebar = container.querySelector('.template-2-sidebar');
@@ -3097,8 +3101,10 @@ class CVBuilder {
             sidebar.style.background = 'linear-gradient(135deg, #D2B48C 0%, #DEB887 50%, #D2B48C 100%)';
             sidebar.style.color = 'black';
             sidebar.style.padding = '0';
+            sidebar.style.margin = '0';
             sidebar.style.display = 'flex';
             sidebar.style.flexDirection = 'column';
+            sidebar.style.boxSizing = 'border-box';
         }
         
         // Style the main content
@@ -3108,6 +3114,8 @@ class CVBuilder {
             mainContent.style.background = 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)';
             mainContent.style.color = '#333';
             mainContent.style.padding = '0';
+            mainContent.style.margin = '0';
+            mainContent.style.boxSizing = 'border-box';
         }
         
         // Apply minimum 12pt font sizes to all text elements
@@ -4057,11 +4065,11 @@ class CVBuilder {
             const heightRatio = pdfHeight / imgHeight;
             const ratio = Math.min(widthRatio, heightRatio); // Use min to ensure content fits within page
             
-            // Position with small margin to prevent text cutoff
-            const imgX = 2; // Small left margin
-            const imgY = 2; // Small top margin
-            const finalWidth = (imgWidth * ratio) - 4; // Account for margins
-            const finalHeight = (imgHeight * ratio) - 4; // Account for margins
+            // Position to cover complete page (no margins)
+            const imgX = 0; // No left margin
+            const imgY = 0; // No top margin
+            const finalWidth = imgWidth * ratio; // Full width
+            const finalHeight = imgHeight * ratio; // Full height
 
             const imgData = pageCanvas.toDataURL('image/jpeg', 1.0);
             pdf.addImage(imgData, 'JPEG', imgX, imgY, finalWidth, finalHeight, undefined, 'FAST');
