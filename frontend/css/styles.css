@@ -307,7 +307,7 @@ body {
     font-weight: 300;
 }
 
-/* Template 2 - Modern Two-Column Design - PDF-First Approach */
+/* Template 2 - Modern Two-Column Design - Print-Optimized */
 .cv-preview.template-2 {
     background: white !important;
     color: #333 !important;
@@ -316,8 +316,8 @@ body {
     margin: 0 !important;
     width: 100% !important;
     min-height: 100vh !important;
-    font-size: 14px !important; /* Match PDF font size */
-    line-height: 1.4 !important; /* Match PDF line height */
+    font-size: 16px !important; /* Minimum 12pt for print readability */
+    line-height: 1.4 !important;
 }
 
 /* Remove container padding for Template 2 */
@@ -445,7 +445,7 @@ body {
     gap: 6px;
     margin-bottom: 5px;
     color: black !important;
-    font-size: 8px !important; /* Match PDF font size */
+    font-size: 16px !important; /* 12pt minimum for print readability */
     font-weight: 600;
     padding: 4px 8px;
     border-radius: 4px;
@@ -506,7 +506,7 @@ body {
 
 .cv-preview.template-2 .template-2-sidebar-title {
     color: black !important;
-    font-size: 10px !important; /* Match PDF font size */
+    font-size: 16px !important; /* 12pt minimum for print readability */
     font-weight: 600;
     margin-bottom: 8px;
     display: flex;
@@ -600,7 +600,7 @@ body {
 
 .cv-preview.template-2 .template-2-header h1 {
     color: #8B4513 !important;
-    font-size: 18px !important; /* Match PDF font size */
+    font-size: 24px !important; /* 18pt for main name */
     font-weight: 700;
     margin: 0 0 8px 0;
     text-transform: uppercase;
@@ -609,7 +609,7 @@ body {
 
 .cv-preview.template-2 .template-2-header h2 {
     color: #8B4513 !important;
-    font-size: 12px !important; /* Match PDF font size */
+    font-size: 18px !important; /* 13.5pt for subtitle */
     font-weight: 400;
     margin: 0;
     text-transform: uppercase;
@@ -646,7 +646,7 @@ body {
 
 .cv-preview.template-2 .template-2-main-title {
     color: #8B4513 !important;
-    font-size: 12px !important; /* Match PDF font size */
+    font-size: 18px !important; /* 13.5pt for main section titles */
     font-weight: 600;
     margin-bottom: 10px;
     display: flex;
@@ -688,7 +688,7 @@ body {
     line-height: 1.4;
     margin: 0;
     text-align: justify;
-    font-size: 10px !important; /* Match PDF font size */
+    font-size: 16px !important; /* 12pt minimum for print readability */
 }
 
 /* Skills in Sidebar - Print Friendly */
@@ -699,7 +699,7 @@ body {
 }
 
 .template-2-skill-item {
-    font-size: 8px !important; /* Match PDF font size */
+    font-size: 16px !important; /* 12pt minimum for print readability */
     color: black;
     font-weight: 500;
     padding: 4px 8px;
@@ -730,7 +730,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 8px !important; /* Match PDF font size */
+    font-size: 16px !important; /* 12pt minimum for print readability */
     color: black;
 }
 
@@ -745,7 +745,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 8px !important; /* Match PDF font size */
+    font-size: 16px !important; /* 12pt minimum for print readability */
     color: black;
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
     padding: 5px 10px;
@@ -799,7 +799,7 @@ body {
 
 .template-2-experience-header h4,
 .template-2-education-header h4 {
-    font-size: 10px !important; /* Match PDF font size */
+    font-size: 18px !important; /* 13.5pt for job titles */
     font-weight: 600;
     color: #8B4513;
     margin: 0;

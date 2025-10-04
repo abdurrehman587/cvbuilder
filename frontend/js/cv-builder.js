@@ -2930,19 +2930,312 @@ class CVBuilder {
 
     async generateMultiPagePDF() {
         try {
+            // Show loading state
+            const downloadBtn = document.getElementById('downloadCV');
+            const originalText = downloadBtn.innerHTML;
+            downloadBtn.innerHTML = '⏳ Generating PDF...';
+            downloadBtn.disabled = true;
+
+            // Get the preview element
+            const previewElement = document.getElementById('cvPreview');
             const selectedTemplate = sessionStorage.getItem('selectedTemplate') || 'classic';
             
-            // Use PDF-first approach - generate PDF directly from data
+            // Create a temporary container with the exact preview content
+            const tempContainer = document.createElement('div');
+            tempContainer.style.position = 'absolute';
+            tempContainer.style.left = '-9999px';
+            tempContainer.style.top = '0';
+            tempContainer.style.width = '800px';
+            tempContainer.style.backgroundColor = 'white';
+            tempContainer.style.padding = '0';
+            tempContainer.style.fontFamily = 'Arial, sans-serif';
+            tempContainer.style.fontSize = '16px'; // Increased base font size for better print quality
+            tempContainer.style.lineHeight = '1.4';
+            tempContainer.style.color = '#333';
+            tempContainer.style.visibility = 'visible';
+            tempContainer.style.opacity = '1';
+            tempContainer.style.maxWidth = '800px';
+            tempContainer.style.margin = '0 auto';
+            
+            // Clone the preview content
+            const clonedPreview = previewElement.cloneNode(true);
+            
+            // Apply inline styles to match the preview exactly
+            this.applyInlineStyles(clonedPreview);
+            
+            tempContainer.appendChild(clonedPreview);
+            document.body.appendChild(tempContainer);
+
+            // Wait for content to render
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            // Calculate page dimensions
+            const pageWidth = 800; // A4 width in pixels at 96 DPI
+            const pageHeight = 1123; // A4 height in pixels at 96 DPI
+            const margin = 0; // No margin to preserve Template 2 design
+
+            // For Template 2, we need to handle the two-column layout differently
             if (selectedTemplate === 'modern') {
-                await this.generateTemplate2PDFDirect();
+                await this.generateTemplate2PDFWithCanvas(tempContainer, pageWidth, pageHeight);
             } else {
-                await this.generateClassicPDFDirect();
+                // For other templates, use the regular multi-page approach
+                const pages = await this.splitContentIntoPages(tempContainer, pageWidth, pageHeight, 20);
+                await this.generateRegularPDF(pages, pageWidth, pageHeight);
             }
+
+            // Clean up
+            document.body.removeChild(tempContainer);
 
         } catch (error) {
             console.error('Error generating PDF:', error);
             throw error;
         }
+    }
+
+    async generateTemplate2PDFWithCanvas(container, pageWidth, pageHeight) {
+        try {
+            // Get the template-2-container
+            const template2Container = container.querySelector('.template-2-container');
+            if (!template2Container) {
+                throw new Error('Template 2 container not found');
+            }
+
+            // Apply Template 2 specific styles for PDF with proper font sizes
+            this.applyTemplate2PDFStylesWithFontSizes(template2Container);
+
+            // Generate canvas for the entire Template 2 layout
+            const canvas = await html2canvas(template2Container, {
+                scale: 3, // Increased scale for better quality
+                useCORS: true,
+                backgroundColor: '#ffffff',
+                width: pageWidth,
+                height: template2Container.scrollHeight,
+                logging: false,
+                allowTaint: true,
+                foreignObjectRendering: false,
+                removeContainer: false,
+                imageTimeout: 15000
+            });
+
+            // Create PDF
+            const pdf = new jspdf.jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4',
+                compress: true
+            });
+
+            // Calculate dimensions
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            const imgWidth = canvas.width;
+            const imgHeight = canvas.height;
+            const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+            const imgX = (pdfWidth - imgWidth * ratio) / 2;
+            const imgY = 0;
+
+            // Check if content fits on one page
+            if (imgHeight * ratio <= pdfHeight) {
+                // Single page - add image directly
+                const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                pdf.addImage(imgData, 'JPEG', imgX, imgY, imgWidth * ratio, imgHeight * ratio, undefined, 'FAST');
+            } else {
+                // Multi-page - split the content
+                await this.splitTemplate2IntoPagesWithCanvas(template2Container, pdf, pageWidth, pageHeight);
+            }
+
+            // Set PDF properties
+            pdf.setProperties({
+                title: `CV - ${this.cvData.personalInfo.fullName || 'Resume'}`,
+                subject: 'Curriculum Vitae',
+                author: this.cvData.personalInfo.fullName || 'CV Builder',
+                creator: 'CV Builder App',
+                producer: 'CV Builder App'
+            });
+
+            // Generate filename
+            const timestamp = new Date().toISOString().slice(0, 10);
+            const fileName = `CV_${this.cvData.personalInfo.fullName?.replace(/\s+/g, '_') || 'Resume'}_${timestamp}.pdf`;
+            
+            // Download PDF
+            pdf.save(fileName);
+
+            // Log success
+            const pdfOutput = pdf.output('datauristring');
+            const fileSizeKB = Math.round(pdfOutput.length * 0.75 / 1024);
+            console.log(`Template 2 PDF generated successfully - File size: ~${fileSizeKB} KB`);
+            
+            // Show success message
+            this.showDownloadSuccess(fileSizeKB, 'Template 2');
+
+        } catch (error) {
+            console.error('Error generating Template 2 PDF:', error);
+            throw error;
+        }
+    }
+
+    applyTemplate2PDFStylesWithFontSizes(container) {
+        // Ensure Template 2 styles are properly applied for PDF with minimum 12pt font sizes
+        container.style.width = '800px';
+        container.style.minHeight = '100vh';
+        container.style.display = 'flex';
+        container.style.fontFamily = 'Arial, sans-serif';
+        container.style.fontSize = '16px'; // Base font size (12pt = 16px)
+        
+        // Style the sidebar
+        const sidebar = container.querySelector('.template-2-sidebar');
+        if (sidebar) {
+            sidebar.style.width = '35%';
+            sidebar.style.background = 'linear-gradient(135deg, #D2B48C 0%, #DEB887 50%, #D2B48C 100%)';
+            sidebar.style.color = 'black';
+            sidebar.style.padding = '0';
+            sidebar.style.display = 'flex';
+            sidebar.style.flexDirection = 'column';
+        }
+        
+        // Style the main content
+        const mainContent = container.querySelector('.template-2-main-content');
+        if (mainContent) {
+            mainContent.style.width = '65%';
+            mainContent.style.background = 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)';
+            mainContent.style.color = '#333';
+            mainContent.style.padding = '0';
+        }
+        
+        // Apply minimum 12pt font sizes to all text elements
+        this.applyMinimumFontSizes(container);
+    }
+
+    applyMinimumFontSizes(container) {
+        // Set minimum font sizes for print readability (12pt = 16px)
+        const elements = container.querySelectorAll('*');
+        elements.forEach(element => {
+            const computedStyle = window.getComputedStyle(element);
+            const currentFontSize = parseFloat(computedStyle.fontSize);
+            
+            // Set minimum font size to 12pt (16px)
+            if (currentFontSize < 16) {
+                element.style.fontSize = '16px';
+            }
+        });
+        
+        // Specific font size adjustments for Template 2
+        const headers = container.querySelectorAll('h1, h2, h3, .template-2-header h1, .template-2-header h2');
+        headers.forEach(header => {
+            if (header.tagName === 'H1' || header.classList.contains('template-2-header')) {
+                header.style.fontSize = '24px'; // 18pt for main name
+            } else if (header.tagName === 'H2') {
+                header.style.fontSize = '18px'; // 13.5pt for subtitle
+            } else {
+                header.style.fontSize = '20px'; // 15pt for section headers
+            }
+        });
+        
+        // Sidebar content
+        const sidebarTitles = container.querySelectorAll('.template-2-sidebar-title');
+        sidebarTitles.forEach(title => {
+            title.style.fontSize = '16px'; // 12pt minimum
+        });
+        
+        const sidebarItems = container.querySelectorAll('.template-2-contact-item, .template-2-skill-item, .template-2-language-item, .template-2-hobby-item');
+        sidebarItems.forEach(item => {
+            item.style.fontSize = '16px'; // 12pt minimum
+        });
+        
+        // Main content
+        const mainTitles = container.querySelectorAll('.template-2-main-title');
+        mainTitles.forEach(title => {
+            title.style.fontSize = '18px'; // 13.5pt for main section titles
+        });
+        
+        const mainContent = container.querySelectorAll('.template-2-main-section p, .template-2-main-section div');
+        mainContent.forEach(content => {
+            content.style.fontSize = '16px'; // 12pt minimum
+        });
+        
+        // Experience and education items
+        const experienceItems = container.querySelectorAll('.template-2-experience-item, .template-2-education-item');
+        experienceItems.forEach(item => {
+            const headers = item.querySelectorAll('h4, .template-2-experience-header h4, .template-2-education-header h4');
+            headers.forEach(header => {
+                header.style.fontSize = '18px'; // 13.5pt for job titles
+            });
+            
+            const descriptions = item.querySelectorAll('p, .description');
+            descriptions.forEach(desc => {
+                desc.style.fontSize = '16px'; // 12pt minimum
+            });
+        });
+    }
+
+    async splitTemplate2IntoPagesWithCanvas(container, pdf, pageWidth, pageHeight) {
+        // For Template 2, we'll create pages that maintain the two-column layout
+        const sidebar = container.querySelector('.template-2-sidebar');
+        const mainContent = container.querySelector('.template-2-main-content');
+        
+        if (!sidebar || !mainContent) {
+            throw new Error('Template 2 sidebar or main content not found');
+        }
+
+        // Create a page with the full layout
+        const pageContainer = document.createElement('div');
+        pageContainer.style.width = '800px';
+        pageContainer.style.height = '1123px';
+        pageContainer.style.display = 'flex';
+        pageContainer.style.fontFamily = 'Arial, sans-serif';
+        pageContainer.style.position = 'relative';
+        pageContainer.style.overflow = 'hidden';
+        
+        // Clone sidebar and main content
+        const clonedSidebar = sidebar.cloneNode(true);
+        const clonedMainContent = mainContent.cloneNode(true);
+        
+        // Apply styles
+        clonedSidebar.style.width = '35%';
+        clonedSidebar.style.height = '100%';
+        clonedMainContent.style.width = '65%';
+        clonedMainContent.style.height = '100%';
+        
+        // Apply minimum font sizes
+        this.applyMinimumFontSizes(clonedSidebar);
+        this.applyMinimumFontSizes(clonedMainContent);
+        
+        pageContainer.appendChild(clonedSidebar);
+        pageContainer.appendChild(clonedMainContent);
+        
+        document.body.appendChild(pageContainer);
+        
+        // Wait for rendering
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // Generate canvas
+        const canvas = await html2canvas(pageContainer, {
+            scale: 3, // High quality
+            useCORS: true,
+            backgroundColor: '#ffffff',
+            width: 800,
+            height: 1123,
+            logging: false,
+            allowTaint: true,
+            foreignObjectRendering: false,
+            removeContainer: false,
+            imageTimeout: 15000
+        });
+        
+        // Clean up
+        document.body.removeChild(pageContainer);
+        
+        // Add to PDF
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        const imgWidth = canvas.width;
+        const imgHeight = canvas.height;
+        const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+        const imgX = (pdfWidth - imgWidth * ratio) / 2;
+        const imgY = 0;
+        
+        const imgData = canvas.toDataURL('image/jpeg', 1.0);
+        pdf.addImage(imgData, 'JPEG', imgX, imgY, imgWidth * ratio, imgHeight * ratio, undefined, 'FAST');
     }
 
     async generateTemplate2PDFDirect() {
