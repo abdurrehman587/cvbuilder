@@ -2945,7 +2945,7 @@ class CVBuilder {
             tempContainer.style.position = 'absolute';
             tempContainer.style.left = '-9999px';
             tempContainer.style.top = '0';
-            tempContainer.style.width = '800px';
+            tempContainer.style.width = '210mm'; // A4 width in mm
             tempContainer.style.backgroundColor = 'white';
             tempContainer.style.padding = '0';
             tempContainer.style.fontFamily = 'Arial, sans-serif';
@@ -2954,7 +2954,7 @@ class CVBuilder {
             tempContainer.style.color = '#333';
             tempContainer.style.visibility = 'visible';
             tempContainer.style.opacity = '1';
-            tempContainer.style.maxWidth = '800px';
+            tempContainer.style.maxWidth = '210mm';
             tempContainer.style.margin = '0 auto';
             
             // Clone the preview content
@@ -2969,9 +2969,9 @@ class CVBuilder {
             // Wait for content to render
             await new Promise(resolve => setTimeout(resolve, 100));
 
-            // Calculate page dimensions
-            const pageWidth = 800; // A4 width in pixels at 96 DPI
-            const pageHeight = 1123; // A4 height in pixels at 96 DPI
+            // Calculate page dimensions for A4
+            const pageWidth = 794; // A4 width in pixels at 96 DPI (210mm)
+            const pageHeight = 1123; // A4 height in pixels at 96 DPI (297mm)
             const margin = 0; // No margin to preserve Template 2 design
 
             // For Template 2, we need to handle the two-column layout differently
@@ -3025,20 +3025,28 @@ class CVBuilder {
                 compress: true
             });
 
-            // Calculate dimensions
+            // Calculate dimensions for full page coverage
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pdfHeight = pdf.internal.pageSize.getHeight();
             const imgWidth = canvas.width;
             const imgHeight = canvas.height;
-            const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-            const imgX = (pdfWidth - imgWidth * ratio) / 2;
+            
+            // Calculate ratio to fill the entire page width
+            const widthRatio = pdfWidth / imgWidth;
+            const heightRatio = pdfHeight / imgHeight;
+            const ratio = Math.max(widthRatio, heightRatio); // Use max to ensure full coverage
+            
+            // Position to fill the entire page (no margins)
+            const imgX = 0;
             const imgY = 0;
+            const finalWidth = imgWidth * ratio;
+            const finalHeight = imgHeight * ratio;
 
             // Check if content fits on one page
-            if (imgHeight * ratio <= pdfHeight) {
-                // Single page - add image directly
+            if (finalHeight <= pdfHeight) {
+                // Single page - add image directly to fill full page
                 const imgData = canvas.toDataURL('image/jpeg', 1.0);
-                pdf.addImage(imgData, 'JPEG', imgX, imgY, imgWidth * ratio, imgHeight * ratio, undefined, 'FAST');
+                pdf.addImage(imgData, 'JPEG', imgX, imgY, finalWidth, finalHeight, undefined, 'FAST');
             } else {
                 // Multi-page - split the content
                 await this.splitTemplate2IntoPagesWithCanvas(template2Container, pdf, pageWidth, pageHeight);
@@ -3076,8 +3084,8 @@ class CVBuilder {
 
     applyTemplate2PDFStylesWithFontSizes(container) {
         // Ensure Template 2 styles are properly applied for PDF with minimum 12pt font sizes
-        container.style.width = '800px';
-        container.style.minHeight = '100vh';
+        container.style.width = '210mm'; // A4 width
+        container.style.minHeight = '297mm'; // A4 height
         container.style.display = 'flex';
         container.style.fontFamily = 'Arial, sans-serif';
         container.style.fontSize = '16px'; // Base font size (12pt = 16px)
@@ -3179,8 +3187,8 @@ class CVBuilder {
 
         // Create a page with the full layout
         const pageContainer = document.createElement('div');
-        pageContainer.style.width = '800px';
-        pageContainer.style.height = '1123px';
+        pageContainer.style.width = '210mm'; // A4 width
+        pageContainer.style.height = '297mm'; // A4 height
         pageContainer.style.display = 'flex';
         pageContainer.style.fontFamily = 'Arial, sans-serif';
         pageContainer.style.position = 'relative';
@@ -3213,8 +3221,8 @@ class CVBuilder {
             scale: 3, // High quality
             useCORS: true,
             backgroundColor: '#ffffff',
-            width: 800,
-            height: 1123,
+            width: 794, // A4 width in pixels
+            height: 1123, // A4 height in pixels
             logging: false,
             allowTaint: true,
             foreignObjectRendering: false,
@@ -3230,12 +3238,19 @@ class CVBuilder {
         const pdfHeight = pdf.internal.pageSize.getHeight();
         const imgWidth = canvas.width;
         const imgHeight = canvas.height;
-        const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-        const imgX = (pdfWidth - imgWidth * ratio) / 2;
+        // Calculate ratio to fill the entire page width
+        const widthRatio = pdfWidth / imgWidth;
+        const heightRatio = pdfHeight / imgHeight;
+        const ratio = Math.max(widthRatio, heightRatio); // Use max to ensure full coverage
+        
+        // Position to fill the entire page (no margins)
+        const imgX = 0;
         const imgY = 0;
+        const finalWidth = imgWidth * ratio;
+        const finalHeight = imgHeight * ratio;
         
         const imgData = canvas.toDataURL('image/jpeg', 1.0);
-        pdf.addImage(imgData, 'JPEG', imgX, imgY, imgWidth * ratio, imgHeight * ratio, undefined, 'FAST');
+        pdf.addImage(imgData, 'JPEG', imgX, imgY, finalWidth, finalHeight, undefined, 'FAST');
     }
 
     async generateTemplate2PDFDirect() {
@@ -3863,7 +3878,7 @@ class CVBuilder {
             if (imgHeight * ratio <= pdfHeight) {
                 // Single page - add image directly
                 const imgData = canvas.toDataURL('image/jpeg', 1.0);
-                pdf.addImage(imgData, 'JPEG', imgX, imgY, imgWidth * ratio, imgHeight * ratio, undefined, 'FAST');
+                pdf.addImage(imgData, 'JPEG', imgX, imgY, finalWidth, finalHeight, undefined, 'FAST');
             } else {
                 // Multi-page - split the content
                 await this.splitTemplate2IntoPages(template2Container, pdf, pageWidth, pageHeight);
@@ -3941,8 +3956,8 @@ class CVBuilder {
 
         // Create a page with the full layout
         const pageContainer = document.createElement('div');
-        pageContainer.style.width = '800px';
-        pageContainer.style.height = '1123px';
+        pageContainer.style.width = '210mm'; // A4 width
+        pageContainer.style.height = '297mm'; // A4 height
         pageContainer.style.display = 'flex';
         pageContainer.style.fontFamily = 'Arial, sans-serif';
         pageContainer.style.position = 'relative';
@@ -3971,8 +3986,8 @@ class CVBuilder {
             scale: 2.5,
             useCORS: true,
             backgroundColor: '#ffffff',
-            width: 800,
-            height: 1123,
+            width: 794, // A4 width in pixels
+            height: 1123, // A4 height in pixels
             logging: false,
             allowTaint: true,
             foreignObjectRendering: false,
@@ -3988,12 +4003,19 @@ class CVBuilder {
         const pdfHeight = pdf.internal.pageSize.getHeight();
         const imgWidth = canvas.width;
         const imgHeight = canvas.height;
-        const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-        const imgX = (pdfWidth - imgWidth * ratio) / 2;
+        // Calculate ratio to fill the entire page width
+        const widthRatio = pdfWidth / imgWidth;
+        const heightRatio = pdfHeight / imgHeight;
+        const ratio = Math.max(widthRatio, heightRatio); // Use max to ensure full coverage
+        
+        // Position to fill the entire page (no margins)
+        const imgX = 0;
         const imgY = 0;
+        const finalWidth = imgWidth * ratio;
+        const finalHeight = imgHeight * ratio;
         
         const imgData = canvas.toDataURL('image/jpeg', 1.0);
-        pdf.addImage(imgData, 'JPEG', imgX, imgY, imgWidth * ratio, imgHeight * ratio, undefined, 'FAST');
+        pdf.addImage(imgData, 'JPEG', imgX, imgY, finalWidth, finalHeight, undefined, 'FAST');
     }
 
     async generateRegularPDF(pages, pageWidth, pageHeight) {
@@ -4024,17 +4046,25 @@ class CVBuilder {
                 imageTimeout: 15000
             });
 
-            // Add image to PDF
+            // Add image to PDF with full page coverage
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pdfHeight = pdf.internal.pageSize.getHeight();
             const imgWidth = pageCanvas.width;
             const imgHeight = pageCanvas.height;
-            const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-            const imgX = (pdfWidth - imgWidth * ratio) / 2;
+            
+            // Calculate ratio to fill the entire page width
+            const widthRatio = pdfWidth / imgWidth;
+            const heightRatio = pdfHeight / imgHeight;
+            const ratio = Math.max(widthRatio, heightRatio); // Use max to ensure full coverage
+            
+            // Position to fill the entire page (no margins)
+            const imgX = 0;
             const imgY = 0;
+            const finalWidth = imgWidth * ratio;
+            const finalHeight = imgHeight * ratio;
 
             const imgData = pageCanvas.toDataURL('image/jpeg', 1.0);
-            pdf.addImage(imgData, 'JPEG', imgX, imgY, imgWidth * ratio, imgHeight * ratio, undefined, 'FAST');
+            pdf.addImage(imgData, 'JPEG', imgX, imgY, finalWidth, finalHeight, undefined, 'FAST');
         }
 
         // Set PDF properties
