@@ -2890,106 +2890,8 @@ class CVBuilder {
             downloadBtn.innerHTML = '⏳ Generating PDF...';
             downloadBtn.disabled = true;
 
-            // Get the preview element
-            const previewElement = document.getElementById('cvPreview');
-            
-            // Create a temporary container with the exact preview content
-            const tempContainer = document.createElement('div');
-            tempContainer.style.position = 'absolute';
-            tempContainer.style.left = '-9999px';
-            tempContainer.style.top = '0';
-            tempContainer.style.width = '800px';
-            tempContainer.style.backgroundColor = 'white';
-            tempContainer.style.padding = '20px';
-            tempContainer.style.fontFamily = 'Arial, sans-serif';
-            tempContainer.style.fontSize = '14px';
-            tempContainer.style.lineHeight = '1.4';
-            tempContainer.style.color = '#333';
-            tempContainer.style.visibility = 'visible';
-            tempContainer.style.opacity = '1';
-            
-            // Clone the preview content
-            const clonedPreview = previewElement.cloneNode(true);
-            
-            // Apply inline styles to match the preview exactly
-            this.applyInlineStyles(clonedPreview);
-            
-            tempContainer.appendChild(clonedPreview);
-            document.body.appendChild(tempContainer);
-
-            // Wait a bit for the content to render
-            await new Promise(resolve => setTimeout(resolve, 100));
-
-            // Generate PDF using html2canvas with improved settings
-            const canvas = await html2canvas(tempContainer, {
-                scale: 2.5, // Increased from 2 to 2.5 for better quality
-                useCORS: true,
-                backgroundColor: '#ffffff',
-                width: 800,
-                height: tempContainer.scrollHeight,
-                logging: false, // Disable logging for better performance
-                allowTaint: true,
-                foreignObjectRendering: false, // Disable for better compatibility
-                removeContainer: false,
-                imageTimeout: 15000,
-                onclone: (clonedDoc) => {
-                    // Ensure all styles are applied in the cloned document
-                    const clonedContainer = clonedDoc.querySelector('div');
-                    if (clonedContainer) {
-                        clonedContainer.style.backgroundColor = 'white';
-                        clonedContainer.style.color = '#333';
-                        clonedContainer.style.visibility = 'visible';
-                        clonedContainer.style.opacity = '1';
-                    }
-                }
-            });
-
-            // Remove temporary container
-            document.body.removeChild(tempContainer);
-
-            // Create PDF with optimized settings
-            const pdf = new jspdf.jsPDF({
-                orientation: 'portrait',
-                unit: 'mm',
-                format: 'a4',
-                compress: true // Enable compression
-            });
-
-            // Calculate dimensions
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = pdf.internal.pageSize.getHeight();
-            const imgWidth = canvas.width;
-            const imgHeight = canvas.height;
-            const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-            const imgX = (pdfWidth - imgWidth * ratio) / 2;
-            const imgY = 0;
-
-            // Check if canvas has content
-            if (canvas.width === 0 || canvas.height === 0) {
-                throw new Error('Canvas is empty - content not captured');
-            }
-            
-            // Convert to JPEG with optimized quality for better balance
-            const imgData = canvas.toDataURL('image/jpeg', 1.0); // JPEG with 100% quality for better quality
-            
-            // Add image to PDF with compression
-            pdf.addImage(imgData, 'JPEG', imgX, imgY, imgWidth * ratio, imgHeight * ratio, undefined, 'FAST');
-
-            // Additional PDF optimizations
-            pdf.setProperties({
-                title: `CV - ${this.cvData.personalInfo.fullName || 'Resume'}`,
-                subject: 'Curriculum Vitae',
-                author: this.cvData.personalInfo.fullName || 'CV Builder',
-                creator: 'CV Builder App',
-                producer: 'CV Builder App'
-            });
-
-            // Generate filename with timestamp for uniqueness
-            const timestamp = new Date().toISOString().slice(0, 10);
-            const fileName = `CV_${this.cvData.personalInfo.fullName?.replace(/\s+/g, '_') || 'Resume'}_${timestamp}.pdf`;
-            
-            // Download PDF
-            pdf.save(fileName);
+            // Generate multi-page PDF
+            await this.generateMultiPagePDF();
 
             // Track download if user is a shopkeeper
             await this.trackDownload('pdf');
@@ -2997,14 +2899,6 @@ class CVBuilder {
             // Reset button
             downloadBtn.innerHTML = originalText;
             downloadBtn.disabled = false;
-
-            // Log file size information
-            const pdfOutput = pdf.output('datauristring');
-            const fileSizeKB = Math.round(pdfOutput.length * 0.75 / 1024); // Approximate size in KB
-            console.log(`PDF generated successfully - File size: ~${fileSizeKB} KB`);
-            
-            // Show success message with file size and quality info
-            this.showDownloadSuccess(fileSizeKB, 'High Quality');
 
         } catch (error) {
             console.error('Error generating PDF:', error);
@@ -3032,6 +2926,196 @@ class CVBuilder {
                 alert('Error generating PDF. Please try again or check your browser compatibility.');
             }
         }
+    }
+
+    async generateMultiPagePDF() {
+        try {
+            // Get the preview element
+            const previewElement = document.getElementById('cvPreview');
+            
+            // Create a temporary container with the exact preview content
+            const tempContainer = document.createElement('div');
+            tempContainer.style.position = 'absolute';
+            tempContainer.style.left = '-9999px';
+            tempContainer.style.top = '0';
+            tempContainer.style.width = '800px';
+            tempContainer.style.backgroundColor = 'white';
+            tempContainer.style.padding = '20px';
+            tempContainer.style.fontFamily = 'Arial, sans-serif';
+            tempContainer.style.fontSize = '14px';
+            tempContainer.style.lineHeight = '1.4';
+            tempContainer.style.color = '#333';
+            tempContainer.style.visibility = 'visible';
+            tempContainer.style.opacity = '1';
+            
+            // Clone the preview content
+            const clonedPreview = previewElement.cloneNode(true);
+            
+            // Apply inline styles to match the preview exactly
+            this.applyInlineStyles(clonedPreview);
+            
+            tempContainer.appendChild(clonedPreview);
+            document.body.appendChild(tempContainer);
+
+            // Wait for content to render
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            // Calculate page dimensions
+            const pageWidth = 800; // A4 width in pixels at 96 DPI
+            const pageHeight = 1123; // A4 height in pixels at 96 DPI
+            const margin = 20;
+            const contentWidth = pageWidth - (margin * 2);
+            const contentHeight = pageHeight - (margin * 2);
+
+            // Split content into pages
+            const pages = await this.splitContentIntoPages(tempContainer, pageWidth, pageHeight, margin);
+
+            // Create PDF
+            const pdf = new jspdf.jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4',
+                compress: true
+            });
+
+            // Add each page to PDF
+            for (let i = 0; i < pages.length; i++) {
+                if (i > 0) {
+                    pdf.addPage();
+                }
+
+                const pageCanvas = await html2canvas(pages[i], {
+                    scale: 2.5,
+                    useCORS: true,
+                    backgroundColor: '#ffffff',
+                    width: pageWidth,
+                    height: pageHeight,
+                    logging: false,
+                    allowTaint: true,
+                    foreignObjectRendering: false,
+                    removeContainer: false,
+                    imageTimeout: 15000
+                });
+
+                // Add image to PDF
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
+                const imgWidth = pageCanvas.width;
+                const imgHeight = pageCanvas.height;
+                const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+                const imgX = (pdfWidth - imgWidth * ratio) / 2;
+                const imgY = 0;
+
+                const imgData = pageCanvas.toDataURL('image/jpeg', 1.0);
+                pdf.addImage(imgData, 'JPEG', imgX, imgY, imgWidth * ratio, imgHeight * ratio, undefined, 'FAST');
+            }
+
+            // Clean up
+            document.body.removeChild(tempContainer);
+
+            // Set PDF properties
+            pdf.setProperties({
+                title: `CV - ${this.cvData.personalInfo.fullName || 'Resume'}`,
+                subject: 'Curriculum Vitae',
+                author: this.cvData.personalInfo.fullName || 'CV Builder',
+                creator: 'CV Builder App',
+                producer: 'CV Builder App'
+            });
+
+            // Generate filename
+            const timestamp = new Date().toISOString().slice(0, 10);
+            const fileName = `CV_${this.cvData.personalInfo.fullName?.replace(/\s+/g, '_') || 'Resume'}_${timestamp}.pdf`;
+            
+            // Download PDF
+            pdf.save(fileName);
+
+            // Log success
+            const pdfOutput = pdf.output('datauristring');
+            const fileSizeKB = Math.round(pdfOutput.length * 0.75 / 1024);
+            console.log(`Multi-page PDF generated successfully - ${pages.length} pages, File size: ~${fileSizeKB} KB`);
+            
+            // Show success message
+            this.showDownloadSuccess(fileSizeKB, 'Multi-page');
+
+        } catch (error) {
+            console.error('Error generating multi-page PDF:', error);
+            throw error;
+        }
+    }
+
+    async splitContentIntoPages(container, pageWidth, pageHeight, margin) {
+        const pages = [];
+        const contentHeight = pageHeight - (margin * 2);
+        let currentY = 0;
+        let currentPage = null;
+
+        // Get all sections that can be split
+        const sections = Array.from(container.querySelectorAll('.cv-section, .template-2-main-section, .template-2-sidebar-section'));
+        
+        for (const section of sections) {
+            // Create a temporary container to measure section height
+            const tempSection = section.cloneNode(true);
+            tempSection.style.position = 'absolute';
+            tempSection.style.left = '-9999px';
+            tempSection.style.top = '0';
+            tempSection.style.width = `${pageWidth - (margin * 2)}px`;
+            tempSection.style.visibility = 'visible';
+            tempSection.style.opacity = '1';
+            
+            document.body.appendChild(tempSection);
+            
+            // Wait for rendering
+            await new Promise(resolve => setTimeout(resolve, 50));
+            
+            const sectionHeight = tempSection.offsetHeight;
+            document.body.removeChild(tempSection);
+
+            // Check if section fits on current page
+            if (currentY + sectionHeight > contentHeight) {
+                // Section doesn't fit, start new page
+                if (currentPage) {
+                    pages.push(currentPage);
+                }
+                
+                // Create new page
+                currentPage = this.createPageContainer(pageWidth, pageHeight, margin);
+                currentY = 0;
+            }
+
+            // Add section to current page
+            if (!currentPage) {
+                currentPage = this.createPageContainer(pageWidth, pageHeight, margin);
+            }
+
+            const clonedSection = section.cloneNode(true);
+            clonedSection.style.position = 'relative';
+            clonedSection.style.top = `${currentY}px`;
+            currentPage.appendChild(clonedSection);
+            
+            currentY += sectionHeight + 20; // Add some spacing between sections
+        }
+
+        // Add the last page if it has content
+        if (currentPage && currentPage.children.length > 0) {
+            pages.push(currentPage);
+        }
+
+        return pages;
+    }
+
+    createPageContainer(pageWidth, pageHeight, margin) {
+        const page = document.createElement('div');
+        page.style.width = `${pageWidth}px`;
+        page.style.height = `${pageHeight}px`;
+        page.style.backgroundColor = 'white';
+        page.style.padding = `${margin}px`;
+        page.style.fontFamily = 'Arial, sans-serif';
+        page.style.fontSize = '14px';
+        page.style.lineHeight = '1.4';
+        page.style.color = '#333';
+        page.style.position = 'relative';
+        page.style.overflow = 'hidden';
+        return page;
     }
 
     async trackDownload(downloadType = 'pdf') {
