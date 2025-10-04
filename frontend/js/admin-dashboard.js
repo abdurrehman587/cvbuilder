@@ -163,6 +163,9 @@ class AdminDashboard {
     }
 
     goToCVBuilder() {
+        console.log('=== GO TO CV BUILDER DEBUG ===');
+        console.log('Admin: Starting new CV creation process');
+        
         // Clear any existing edit mode to start fresh
         sessionStorage.removeItem('editUserId');
         
@@ -185,9 +188,14 @@ class AdminDashboard {
         sessionStorage.setItem('selectedTemplate', 'classic');
         
         console.log('Admin: Starting new CV creation - cleared all existing data');
+        console.log('createNewCV flag set to:', sessionStorage.getItem('createNewCV'));
+        console.log('resetLanguageDefaults flag set to:', sessionStorage.getItem('resetLanguageDefaults'));
+        console.log('selectedTemplate set to:', sessionStorage.getItem('selectedTemplate'));
+        console.log('About to redirect to index.html');
         
         // Redirect directly to CV builder
         window.location.href = 'index.html';
+        console.log('=== END GO TO CV BUILDER DEBUG ===');
     }
 
 

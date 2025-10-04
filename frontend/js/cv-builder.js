@@ -4862,7 +4862,7 @@ class CVBuilder {
             if (createNewCV === 'true') {
                 console.log('Creating new CV with default data');
                 console.log('Current CV ID before clearing:', sessionStorage.getItem('currentCVId'));
-                sessionStorage.removeItem('createNewCV'); // Clear the flag
+                // Don't clear the flag immediately - let the redirection logic check it first
                 
                 // Ensure no existing CV ID is set
                 sessionStorage.removeItem('currentCVId');
@@ -4888,6 +4888,10 @@ class CVBuilder {
                 
                 this.updatePreview();
                 this.updateSaveIndicator('new');
+                
+                // Clear the flag after everything is set up
+                sessionStorage.removeItem('createNewCV');
+                console.log('Cleared createNewCV flag after setup');
                 return;
             }
             
