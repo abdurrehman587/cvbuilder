@@ -949,6 +949,29 @@ class CVBuilder {
                     this.markAsChanged();
                     this.updatePreview();
                 });
+                
+                // Add Enter key functionality for description textareas
+                if (input.classList.contains('description')) {
+                    input.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const cursorPos = input.selectionStart;
+                            const textBefore = input.value.substring(0, cursorPos);
+                            const textAfter = input.value.substring(input.selectionEnd);
+                            
+                            // Add bullet point and new line
+                            const newText = textBefore + '\n• ' + textAfter;
+                            input.value = newText;
+                            
+                            // Set cursor position after the bullet point
+                            const newCursorPos = cursorPos + 3; // 3 characters for '\n• '
+                            input.setSelectionRange(newCursorPos, newCursorPos);
+                            
+                            this.markAsChanged();
+                            this.updatePreview();
+                        }
+                    });
+                }
             });
         });
 
@@ -5194,7 +5217,7 @@ class CVBuilder {
             </div>
             <div class="form-row">
                 <label>Description:</label>
-                <textarea class="description" placeholder="Describe your role and achievements">${experienceData?.description || ''}</textarea>
+                <textarea class="description" placeholder="Press Enter to add bullet points">${experienceData?.description || ''}</textarea>
             </div>
         `;
 
@@ -5205,6 +5228,29 @@ class CVBuilder {
                 this.markAsChanged();
                 this.updatePreview();
             });
+            
+            // Add Enter key functionality for description textareas
+            if (input.classList.contains('description')) {
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const cursorPos = input.selectionStart;
+                        const textBefore = input.value.substring(0, cursorPos);
+                        const textAfter = input.value.substring(input.selectionEnd);
+                        
+                        // Add bullet point and new line
+                        const newText = textBefore + '\n• ' + textAfter;
+                        input.value = newText;
+                        
+                        // Set cursor position after the bullet point
+                        const newCursorPos = cursorPos + 3; // 3 characters for '\n• '
+                        input.setSelectionRange(newCursorPos, newCursorPos);
+                        
+                        this.markAsChanged();
+                        this.updatePreview();
+                    }
+                });
+            }
         });
 
         experienceList.appendChild(experienceItem);
