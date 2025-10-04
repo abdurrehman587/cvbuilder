@@ -2930,58 +2930,596 @@ class CVBuilder {
 
     async generateMultiPagePDF() {
         try {
-            // Get the preview element
-            const previewElement = document.getElementById('cvPreview');
             const selectedTemplate = sessionStorage.getItem('selectedTemplate') || 'classic';
             
-            // Create a temporary container with the exact preview content
-            const tempContainer = document.createElement('div');
-            tempContainer.style.position = 'absolute';
-            tempContainer.style.left = '-9999px';
-            tempContainer.style.top = '0';
-            tempContainer.style.width = '800px';
-            tempContainer.style.backgroundColor = 'white';
-            tempContainer.style.padding = '0';
-            tempContainer.style.fontFamily = 'Arial, sans-serif';
-            tempContainer.style.fontSize = '14px';
-            tempContainer.style.lineHeight = '1.4';
-            tempContainer.style.color = '#333';
-            tempContainer.style.visibility = 'visible';
-            tempContainer.style.opacity = '1';
-            tempContainer.style.maxWidth = '800px';
-            tempContainer.style.margin = '0 auto';
-            
-            // Clone the preview content
-            const clonedPreview = previewElement.cloneNode(true);
-            
-            // Apply inline styles to match the preview exactly
-            this.applyInlineStyles(clonedPreview);
-            
-            tempContainer.appendChild(clonedPreview);
-            document.body.appendChild(tempContainer);
-
-            // Wait for content to render
-            await new Promise(resolve => setTimeout(resolve, 100));
-
-            // Calculate page dimensions
-            const pageWidth = 800; // A4 width in pixels at 96 DPI
-            const pageHeight = 1123; // A4 height in pixels at 96 DPI
-            const margin = 0; // No margin for Template 2 to preserve design
-
-            // For Template 2, we need to handle the two-column layout differently
+            // Use PDF-first approach - generate PDF directly from data
             if (selectedTemplate === 'modern') {
-                await this.generateTemplate2PDF(tempContainer, pageWidth, pageHeight);
+                await this.generateTemplate2PDFDirect();
             } else {
-                // For other templates, use the regular multi-page approach
-                const pages = await this.splitContentIntoPages(tempContainer, pageWidth, pageHeight, 20);
-                await this.generateRegularPDF(pages, pageWidth, pageHeight);
+                await this.generateClassicPDFDirect();
             }
 
-            // Clean up
-            document.body.removeChild(tempContainer);
+        } catch (error) {
+            console.error('Error generating PDF:', error);
+            throw error;
+        }
+    }
+
+    async generateTemplate2PDFDirect() {
+        try {
+            // Create PDF with proper dimensions for A4
+            const pdf = new jspdf.jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4',
+                compress: true
+            });
+
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const pageHeight = pdf.internal.pageSize.getHeight();
+            const margin = 10; // 10mm margin
+            const contentWidth = pageWidth - (margin * 2);
+            const contentHeight = pageHeight - (margin * 2);
+            
+            // Sidebar width (35% of content width)
+            const sidebarWidth = contentWidth * 0.35;
+            const mainContentWidth = contentWidth * 0.65;
+            
+            let currentY = margin;
+            let currentPage = 1;
+            const maxPages = 3; // Limit to 3 pages for Template 2
+
+            // Generate Template 2 content
+            const { sidebarContent, mainContent } = this.generateTemplate2PDFContent();
+            
+            // Add pages with Template 2 layout
+            for (let page = 1; page <= maxPages; page++) {
+                if (page > 1) {
+                    pdf.addPage();
+                }
+                
+                currentY = margin;
+                
+                // Draw sidebar background
+                pdf.setFillColor(210, 180, 140); // Light brown color
+                pdf.rect(margin, margin, sidebarWidth, contentHeight, 'F');
+                
+                // Draw main content background
+                pdf.setFillColor(248, 249, 250); // Light gray
+                pdf.rect(margin + sidebarWidth, margin, mainContentWidth, contentHeight, 'F');
+                
+                // Add sidebar content
+                currentY = this.addTemplate2SidebarContent(pdf, sidebarContent, margin, currentY, sidebarWidth, contentHeight, page);
+                
+                // Add main content
+                currentY = this.addTemplate2MainContent(pdf, mainContent, margin + sidebarWidth, margin, mainContentWidth, contentHeight, page);
+            }
+
+            // Set PDF properties
+            pdf.setProperties({
+                title: `CV - ${this.cvData.personalInfo.fullName || 'Resume'}`,
+                subject: 'Curriculum Vitae',
+                author: this.cvData.personalInfo.fullName || 'CV Builder',
+                creator: 'CV Builder App',
+                producer: 'CV Builder App'
+            });
+
+            // Generate filename
+            const timestamp = new Date().toISOString().slice(0, 10);
+            const fileName = `CV_${this.cvData.personalInfo.fullName?.replace(/\s+/g, '_') || 'Resume'}_${timestamp}.pdf`;
+            
+            // Download PDF
+            pdf.save(fileName);
+
+            // Log success
+            const pdfOutput = pdf.output('datauristring');
+            const fileSizeKB = Math.round(pdfOutput.length * 0.75 / 1024);
+            console.log(`Template 2 PDF generated successfully - File size: ~${fileSizeKB} KB`);
+            
+            // Show success message
+            this.showDownloadSuccess(fileSizeKB, 'Template 2');
 
         } catch (error) {
-            console.error('Error generating multi-page PDF:', error);
+            console.error('Error generating Template 2 PDF:', error);
+            throw error;
+        }
+    }
+
+    generateTemplate2PDFContent() {
+        const { personalInfo, education, experience, skills, languages, hobbies, otherInfo, references } = this.cvData;
+        
+        // Sidebar content
+        const sidebarContent = {
+            contact: {
+                phones: personalInfo.phones || [],
+                email: personalInfo.email || '',
+                address: personalInfo.address || ''
+            },
+            skills: skills || [],
+            languages: languages || [],
+            hobbies: hobbies || [],
+            otherInfo: otherInfo || ''
+        };
+        
+        // Main content
+        const mainContent = {
+            name: personalInfo.fullName || 'YOUR NAME HERE',
+            title: personalInfo.title || '',
+            summary: personalInfo.summary || '',
+            education: education || [],
+            experience: experience || [],
+            references: references || []
+        };
+        
+        return { sidebarContent, mainContent };
+    }
+
+    addTemplate2SidebarContent(pdf, content, startX, startY, width, height, page) {
+        let currentY = startY + 15;
+        const sectionSpacing = 15;
+        const textColor = [0, 0, 0]; // Black
+        const accentColor = [139, 69, 19]; // Brown
+        
+        // Profile picture placeholder
+        pdf.setFillColor(240, 240, 240);
+        pdf.rect(startX + 10, currentY, 30, 30, 'F');
+        pdf.setTextColor(textColor);
+        pdf.setFontSize(8);
+        pdf.text('PHOTO', startX + 15, currentY + 20, { align: 'center' });
+        currentY += 50;
+        
+        // Contact Information
+        pdf.setTextColor(accentColor);
+        pdf.setFontSize(10);
+        pdf.setFont(undefined, 'bold');
+        pdf.text('CONTACT', startX + 10, currentY);
+        currentY += 8;
+        
+        pdf.setTextColor(textColor);
+        pdf.setFontSize(8);
+        pdf.setFont(undefined, 'normal');
+        
+        if (content.contact.phones.length > 0) {
+            pdf.text('📱 ' + content.contact.phones.map(p => p.phone).join(', '), startX + 10, currentY);
+            currentY += 5;
+        }
+        if (content.contact.email) {
+            pdf.text('📧 ' + content.contact.email, startX + 10, currentY);
+            currentY += 5;
+        }
+        if (content.contact.address) {
+            pdf.text('📍 ' + content.contact.address, startX + 10, currentY);
+            currentY += 5;
+        }
+        currentY += sectionSpacing;
+        
+        // Skills
+        if (content.skills.length > 0) {
+            pdf.setTextColor(accentColor);
+            pdf.setFontSize(10);
+            pdf.setFont(undefined, 'bold');
+            pdf.text('⚙️ SKILLS', startX + 10, currentY);
+            currentY += 8;
+            
+            pdf.setTextColor(textColor);
+            pdf.setFontSize(8);
+            pdf.setFont(undefined, 'normal');
+            content.skills.forEach(skill => {
+                pdf.text('• ' + skill.skill, startX + 10, currentY);
+                currentY += 4;
+            });
+            currentY += sectionSpacing;
+        }
+        
+        // Languages
+        if (content.languages.length > 0) {
+            pdf.setTextColor(accentColor);
+            pdf.setFontSize(10);
+            pdf.setFont(undefined, 'bold');
+            pdf.text('🌐 LANGUAGES', startX + 10, currentY);
+            currentY += 8;
+            
+            pdf.setTextColor(textColor);
+            pdf.setFontSize(8);
+            pdf.setFont(undefined, 'normal');
+            content.languages.forEach(lang => {
+                const text = lang.level ? `${lang.language} (${lang.level})` : lang.language;
+                pdf.text('• ' + text, startX + 10, currentY);
+                currentY += 4;
+            });
+            currentY += sectionSpacing;
+        }
+        
+        // Hobbies
+        if (content.hobbies.length > 0) {
+            pdf.setTextColor(accentColor);
+            pdf.setFontSize(10);
+            pdf.setFont(undefined, 'bold');
+            pdf.text('🎯 HOBBIES', startX + 10, currentY);
+            currentY += 8;
+            
+            pdf.setTextColor(textColor);
+            pdf.setFontSize(8);
+            pdf.setFont(undefined, 'normal');
+            content.hobbies.forEach(hobby => {
+                pdf.text('• ' + hobby.hobby, startX + 10, currentY);
+                currentY += 4;
+            });
+            currentY += sectionSpacing;
+        }
+        
+        // Other Information
+        if (content.otherInfo) {
+            pdf.setTextColor(accentColor);
+            pdf.setFontSize(10);
+            pdf.setFont(undefined, 'bold');
+            pdf.text('ℹ️ OTHER INFO', startX + 10, currentY);
+            currentY += 8;
+            
+            pdf.setTextColor(textColor);
+            pdf.setFontSize(8);
+            pdf.setFont(undefined, 'normal');
+            const lines = pdf.splitTextToSize(content.otherInfo, width - 20);
+            pdf.text(lines, startX + 10, currentY);
+        }
+        
+        return currentY;
+    }
+
+    addTemplate2MainContent(pdf, content, startX, startY, width, height, page) {
+        let currentY = startY + 15;
+        const sectionSpacing = 15;
+        const textColor = [51, 51, 51]; // Dark gray
+        const accentColor = [139, 69, 19]; // Brown
+        
+        // Name and Title
+        pdf.setTextColor(accentColor);
+        pdf.setFontSize(18);
+        pdf.setFont(undefined, 'bold');
+        pdf.text(content.name.toUpperCase(), startX + width - 10, currentY, { align: 'right' });
+        currentY += 10;
+        
+        if (content.title) {
+            pdf.setFontSize(12);
+            pdf.setFont(undefined, 'normal');
+            pdf.text(content.title.toUpperCase(), startX + width - 10, currentY, { align: 'right' });
+            currentY += 15;
+        }
+        
+        // Profile/Summary
+        if (content.summary) {
+            pdf.setTextColor(accentColor);
+            pdf.setFontSize(12);
+            pdf.setFont(undefined, 'bold');
+            pdf.text('👤 PROFILE', startX + 10, currentY);
+            currentY += 8;
+            
+            pdf.setTextColor(textColor);
+            pdf.setFontSize(10);
+            pdf.setFont(undefined, 'normal');
+            const lines = pdf.splitTextToSize(content.summary, width - 20);
+            pdf.text(lines, startX + 10, currentY);
+            currentY += (lines.length * 4) + sectionSpacing;
+        }
+        
+        // Education
+        if (content.education.length > 0) {
+            pdf.setTextColor(accentColor);
+            pdf.setFontSize(12);
+            pdf.setFont(undefined, 'bold');
+            pdf.text('🎓 EDUCATION', startX + 10, currentY);
+            currentY += 8;
+            
+            pdf.setTextColor(textColor);
+            pdf.setFontSize(10);
+            pdf.setFont(undefined, 'normal');
+            
+            content.education.forEach(edu => {
+                if (edu.degree) {
+                    pdf.setFont(undefined, 'bold');
+                    pdf.text(edu.degree, startX + 10, currentY);
+                    currentY += 5;
+                }
+                if (edu.institution) {
+                    pdf.setFont(undefined, 'normal');
+                    pdf.text(edu.institution, startX + 10, currentY);
+                    currentY += 4;
+                }
+                if (edu.year) {
+                    pdf.text('Year: ' + edu.year, startX + 10, currentY);
+                    currentY += 4;
+                }
+                if (edu.grade) {
+                    pdf.text('Grade: ' + edu.grade, startX + 10, currentY);
+                    currentY += 4;
+                }
+                currentY += 8;
+            });
+            currentY += sectionSpacing;
+        }
+        
+        // Experience
+        if (content.experience.length > 0) {
+            pdf.setTextColor(accentColor);
+            pdf.setFontSize(12);
+            pdf.setFont(undefined, 'bold');
+            pdf.text('💼 EXPERIENCE', startX + 10, currentY);
+            currentY += 8;
+            
+            pdf.setTextColor(textColor);
+            pdf.setFontSize(10);
+            pdf.setFont(undefined, 'normal');
+            
+            content.experience.forEach(exp => {
+                if (exp.jobTitle) {
+                    pdf.setFont(undefined, 'bold');
+                    pdf.text(exp.jobTitle, startX + 10, currentY);
+                    currentY += 5;
+                }
+                if (exp.company) {
+                    pdf.setFont(undefined, 'normal');
+                    pdf.text(exp.company, startX + 10, currentY);
+                    currentY += 4;
+                }
+                if (exp.duration) {
+                    pdf.text(exp.duration, startX + 10, currentY);
+                    currentY += 4;
+                }
+                if (exp.description) {
+                    const lines = pdf.splitTextToSize(exp.description, width - 20);
+                    pdf.text(lines, startX + 10, currentY);
+                    currentY += (lines.length * 4) + 4;
+                }
+                currentY += 8;
+            });
+        }
+        
+        return currentY;
+    }
+
+    async generateClassicPDFDirect() {
+        try {
+            // Create PDF with proper dimensions for A4
+            const pdf = new jspdf.jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4',
+                compress: true
+            });
+
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const pageHeight = pdf.internal.pageSize.getHeight();
+            const margin = 15; // 15mm margin
+            const contentWidth = pageWidth - (margin * 2);
+            
+            let currentY = margin;
+            const { personalInfo, education, experience, skills, languages, hobbies, otherInfo, references } = this.cvData;
+            
+            // Header
+            pdf.setTextColor(0, 0, 0);
+            pdf.setFontSize(20);
+            pdf.setFont(undefined, 'bold');
+            pdf.text((personalInfo.fullName || 'YOUR NAME HERE').toUpperCase(), margin, currentY);
+            currentY += 10;
+            
+            // Contact Information
+            pdf.setFontSize(10);
+            pdf.setFont(undefined, 'normal');
+            if (personalInfo.email) {
+                pdf.text('Email: ' + personalInfo.email, margin, currentY);
+                currentY += 5;
+            }
+            if (personalInfo.phones && personalInfo.phones.length > 0) {
+                const phoneNumbers = personalInfo.phones.map(p => p.phone).join(', ');
+                pdf.text('Phone: ' + phoneNumbers, margin, currentY);
+                currentY += 5;
+            }
+            if (personalInfo.address) {
+                pdf.text('Address: ' + personalInfo.address, margin, currentY);
+                currentY += 5;
+            }
+            currentY += 10;
+            
+            // Summary
+            if (personalInfo.summary) {
+                pdf.setFontSize(12);
+                pdf.setFont(undefined, 'bold');
+                pdf.text('PROFESSIONAL SUMMARY', margin, currentY);
+                currentY += 8;
+                
+                pdf.setFontSize(10);
+                pdf.setFont(undefined, 'normal');
+                const lines = pdf.splitTextToSize(personalInfo.summary, contentWidth);
+                pdf.text(lines, margin, currentY);
+                currentY += (lines.length * 4) + 10;
+            }
+            
+            // Education
+            if (education && education.length > 0) {
+                pdf.setFontSize(12);
+                pdf.setFont(undefined, 'bold');
+                pdf.text('EDUCATION', margin, currentY);
+                currentY += 8;
+                
+                pdf.setFontSize(10);
+                pdf.setFont(undefined, 'normal');
+                education.forEach(edu => {
+                    if (edu.degree) {
+                        pdf.setFont(undefined, 'bold');
+                        pdf.text(edu.degree, margin, currentY);
+                        currentY += 5;
+                    }
+                    if (edu.institution) {
+                        pdf.setFont(undefined, 'normal');
+                        pdf.text(edu.institution, margin, currentY);
+                        currentY += 4;
+                    }
+                    if (edu.year) {
+                        pdf.text('Year: ' + edu.year, margin, currentY);
+                        currentY += 4;
+                    }
+                    if (edu.grade) {
+                        pdf.text('Grade: ' + edu.grade, margin, currentY);
+                        currentY += 4;
+                    }
+                    currentY += 8;
+                });
+            }
+            
+            // Experience
+            if (experience && experience.length > 0) {
+                pdf.setFontSize(12);
+                pdf.setFont(undefined, 'bold');
+                pdf.text('EXPERIENCE', margin, currentY);
+                currentY += 8;
+                
+                pdf.setFontSize(10);
+                pdf.setFont(undefined, 'normal');
+                experience.forEach(exp => {
+                    if (exp.jobTitle) {
+                        pdf.setFont(undefined, 'bold');
+                        pdf.text(exp.jobTitle, margin, currentY);
+                        currentY += 5;
+                    }
+                    if (exp.company) {
+                        pdf.setFont(undefined, 'normal');
+                        pdf.text(exp.company, margin, currentY);
+                        currentY += 4;
+                    }
+                    if (exp.duration) {
+                        pdf.text(exp.duration, margin, currentY);
+                        currentY += 4;
+                    }
+                    if (exp.description) {
+                        const lines = pdf.splitTextToSize(exp.description, contentWidth);
+                        pdf.text(lines, margin, currentY);
+                        currentY += (lines.length * 4) + 4;
+                    }
+                    currentY += 8;
+                });
+            }
+            
+            // Skills
+            if (skills && skills.length > 0) {
+                pdf.setFontSize(12);
+                pdf.setFont(undefined, 'bold');
+                pdf.text('SKILLS', margin, currentY);
+                currentY += 8;
+                
+                pdf.setFontSize(10);
+                pdf.setFont(undefined, 'normal');
+                skills.forEach(skill => {
+                    pdf.text('• ' + skill.skill, margin, currentY);
+                    currentY += 4;
+                });
+                currentY += 8;
+            }
+            
+            // Languages
+            if (languages && languages.length > 0) {
+                pdf.setFontSize(12);
+                pdf.setFont(undefined, 'bold');
+                pdf.text('LANGUAGES', margin, currentY);
+                currentY += 8;
+                
+                pdf.setFontSize(10);
+                pdf.setFont(undefined, 'normal');
+                languages.forEach(lang => {
+                    const text = lang.level ? `${lang.language} (${lang.level})` : lang.language;
+                    pdf.text('• ' + text, margin, currentY);
+                    currentY += 4;
+                });
+                currentY += 8;
+            }
+            
+            // Hobbies
+            if (hobbies && hobbies.length > 0) {
+                pdf.setFontSize(12);
+                pdf.setFont(undefined, 'bold');
+                pdf.text('HOBBIES', margin, currentY);
+                currentY += 8;
+                
+                pdf.setFontSize(10);
+                pdf.setFont(undefined, 'normal');
+                hobbies.forEach(hobby => {
+                    pdf.text('• ' + hobby.hobby, margin, currentY);
+                    currentY += 4;
+                });
+                currentY += 8;
+            }
+            
+            // Other Information
+            if (otherInfo) {
+                pdf.setFontSize(12);
+                pdf.setFont(undefined, 'bold');
+                pdf.text('OTHER INFORMATION', margin, currentY);
+                currentY += 8;
+                
+                pdf.setFontSize(10);
+                pdf.setFont(undefined, 'normal');
+                const lines = pdf.splitTextToSize(otherInfo, contentWidth);
+                pdf.text(lines, margin, currentY);
+                currentY += (lines.length * 4) + 8;
+            }
+            
+            // References
+            if (references && references.length > 0) {
+                pdf.setFontSize(12);
+                pdf.setFont(undefined, 'bold');
+                pdf.text('REFERENCES', margin, currentY);
+                currentY += 8;
+                
+                pdf.setFontSize(10);
+                pdf.setFont(undefined, 'normal');
+                references.forEach(ref => {
+                    if (ref.name) {
+                        pdf.setFont(undefined, 'bold');
+                        pdf.text(ref.name, margin, currentY);
+                        currentY += 4;
+                    }
+                    if (ref.position) {
+                        pdf.setFont(undefined, 'normal');
+                        pdf.text(ref.position, margin, currentY);
+                        currentY += 4;
+                    }
+                    if (ref.company) {
+                        pdf.text(ref.company, margin, currentY);
+                        currentY += 4;
+                    }
+                    if (ref.contact) {
+                        pdf.text(ref.contact, margin, currentY);
+                        currentY += 4;
+                    }
+                    currentY += 8;
+                });
+            }
+
+            // Set PDF properties
+            pdf.setProperties({
+                title: `CV - ${personalInfo.fullName || 'Resume'}`,
+                subject: 'Curriculum Vitae',
+                author: personalInfo.fullName || 'CV Builder',
+                creator: 'CV Builder App',
+                producer: 'CV Builder App'
+            });
+
+            // Generate filename
+            const timestamp = new Date().toISOString().slice(0, 10);
+            const fileName = `CV_${personalInfo.fullName?.replace(/\s+/g, '_') || 'Resume'}_${timestamp}.pdf`;
+            
+            // Download PDF
+            pdf.save(fileName);
+
+            // Log success
+            const pdfOutput = pdf.output('datauristring');
+            const fileSizeKB = Math.round(pdfOutput.length * 0.75 / 1024);
+            console.log(`Classic PDF generated successfully - File size: ~${fileSizeKB} KB`);
+            
+            // Show success message
+            this.showDownloadSuccess(fileSizeKB, 'Classic');
+
+        } catch (error) {
+            console.error('Error generating Classic PDF:', error);
             throw error;
         }
     }
