@@ -3034,13 +3034,13 @@ class CVBuilder {
             // Calculate ratio to fill the entire page width
             const widthRatio = pdfWidth / imgWidth;
             const heightRatio = pdfHeight / imgHeight;
-            const ratio = Math.max(widthRatio, heightRatio); // Use max to ensure full coverage
+            const ratio = Math.min(widthRatio, heightRatio); // Use min to ensure content fits within page
             
-            // Position to fill the entire page (no margins)
-            const imgX = 0;
-            const imgY = 0;
-            const finalWidth = imgWidth * ratio;
-            const finalHeight = imgHeight * ratio;
+            // Position with small margin to prevent text cutoff
+            const imgX = 2; // Small left margin
+            const imgY = 2; // Small top margin
+            const finalWidth = (imgWidth * ratio) - 4; // Account for margins
+            const finalHeight = (imgHeight * ratio) - 4; // Account for margins
 
             // Check if content fits on one page
             if (finalHeight <= pdfHeight) {
@@ -4055,13 +4055,13 @@ class CVBuilder {
             // Calculate ratio to fill the entire page width
             const widthRatio = pdfWidth / imgWidth;
             const heightRatio = pdfHeight / imgHeight;
-            const ratio = Math.max(widthRatio, heightRatio); // Use max to ensure full coverage
+            const ratio = Math.min(widthRatio, heightRatio); // Use min to ensure content fits within page
             
-            // Position to fill the entire page (no margins)
-            const imgX = 0;
-            const imgY = 0;
-            const finalWidth = imgWidth * ratio;
-            const finalHeight = imgHeight * ratio;
+            // Position with small margin to prevent text cutoff
+            const imgX = 2; // Small left margin
+            const imgY = 2; // Small top margin
+            const finalWidth = (imgWidth * ratio) - 4; // Account for margins
+            const finalHeight = (imgHeight * ratio) - 4; // Account for margins
 
             const imgData = pageCanvas.toDataURL('image/jpeg', 1.0);
             pdf.addImage(imgData, 'JPEG', imgX, imgY, finalWidth, finalHeight, undefined, 'FAST');
