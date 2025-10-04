@@ -959,12 +959,12 @@ class CVBuilder {
                             const textBefore = input.value.substring(0, cursorPos);
                             const textAfter = input.value.substring(input.selectionEnd);
                             
-                            // Add bullet point and new line
-                            const newText = textBefore + '\n• ' + textAfter;
+                            // Add only new line (no bullet point in form)
+                            const newText = textBefore + '\n' + textAfter;
                             input.value = newText;
                             
-                            // Set cursor position after the bullet point
-                            const newCursorPos = cursorPos + 3; // 3 characters for '\n• '
+                            // Set cursor position after the new line
+                            const newCursorPos = cursorPos + 1; // 1 character for '\n'
                             input.setSelectionRange(newCursorPos, newCursorPos);
                             
                             this.markAsChanged();
@@ -5217,7 +5217,7 @@ class CVBuilder {
             </div>
             <div class="form-row">
                 <label>Description:</label>
-                <textarea class="description" placeholder="Press Enter to add bullet points">${experienceData?.description || ''}</textarea>
+                <textarea class="description" placeholder="Press Enter for new line">${experienceData?.description || ''}</textarea>
             </div>
         `;
 
@@ -5238,12 +5238,12 @@ class CVBuilder {
                         const textBefore = input.value.substring(0, cursorPos);
                         const textAfter = input.value.substring(input.selectionEnd);
                         
-                        // Add bullet point and new line
-                        const newText = textBefore + '\n• ' + textAfter;
+                        // Add only new line (no bullet point in form)
+                        const newText = textBefore + '\n' + textAfter;
                         input.value = newText;
                         
-                        // Set cursor position after the bullet point
-                        const newCursorPos = cursorPos + 3; // 3 characters for '\n• '
+                        // Set cursor position after the new line
+                        const newCursorPos = cursorPos + 1; // 1 character for '\n'
                         input.setSelectionRange(newCursorPos, newCursorPos);
                         
                         this.markAsChanged();
