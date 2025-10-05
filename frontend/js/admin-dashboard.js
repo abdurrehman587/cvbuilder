@@ -373,9 +373,6 @@ class AdminDashboard {
                     <span class="stat-label">Template 3</span>
                 </div>
             </div>
-            <div class="all-cvs-info">
-                <p>📋 Showing all ${totalCVs} CVs in a single list. Click on any CV to view and edit.</p>
-            </div>
         `;
         
         // Display CVs list
