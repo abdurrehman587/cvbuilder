@@ -2918,14 +2918,21 @@ class CVBuilder {
             console.log('Generating PDF using backend...');
             
             // Check if backend server is running
+            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const backendUrl = isLocalhost ? 'http://localhost:3000' : 'https://your-backend-url.vercel.app';
+            
             try {
-                const healthResponse = await fetch('http://localhost:3000/up');
+                const healthResponse = await fetch(`${backendUrl}/up`);
                 if (!healthResponse.ok) {
                     throw new Error('Backend server is not responding');
                 }
                 console.log('Backend server is running');
             } catch (healthError) {
-                throw new Error('Backend server is not running. Please start the Node.js server on port 3000');
+                if (isLocalhost) {
+                    throw new Error('Backend server is not running. Please start the Node.js server on port 3000');
+                } else {
+                    throw new Error('Backend server is not available. Please check your deployment.');
+                }
             }
             
             // Get current CV data
@@ -2942,10 +2949,10 @@ class CVBuilder {
             
             console.log('Sending CV data to backend:', requestData);
             
-            // Backend URL - adjust as needed
-            const backendUrl = 'http://localhost:3000/api/pdf/generate';
+            // Backend URL - automatically detects localhost vs production
+            const pdfEndpoint = `${backendUrl}/api/pdf/generate`;
             
-            const response = await fetch(backendUrl, {
+            const response = await fetch(pdfEndpoint, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
