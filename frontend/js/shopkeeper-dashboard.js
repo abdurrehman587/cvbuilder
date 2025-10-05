@@ -373,9 +373,9 @@ class ShopkeeperDashboard {
         
         try {
             if (window.supabaseDatabaseManager) {
-                // Get CVs with pagination (first 50)
-                const result = await window.supabaseDatabaseManager.searchCVs('', '', null, 'shopkeeper', this.currentUser.id, 50, 0);
-                console.log('CVs loaded:', result);
+                // Get CVs with pagination (first 50) - FAST LOADING (names only)
+                const result = await window.supabaseDatabaseManager.searchCVs('', '', null, 'shopkeeper', this.currentUser.id, 50, 0, false);
+                console.log('CVs loaded (fast):', result);
                 console.log('Number of CVs:', result.data.length);
                 console.log('Total CVs:', result.total);
                 console.log('Has more:', result.hasMore);
@@ -386,7 +386,7 @@ class ShopkeeperDashboard {
                 this.totalCVs = result.total;
                 this.hasMore = result.hasMore;
                 
-                // Store all CVs for filtering
+                // Store CV summaries for fast display
                 this.allCVs = result.data;
                 
                 this.displayAllCVs(result.data);
@@ -425,16 +425,17 @@ class ShopkeeperDashboard {
             
             try {
                 if (window.supabaseDatabaseManager) {
-                    // Search CVs with server-side filtering
-                    const result = await window.supabaseDatabaseManager.searchCVs(
-                        searchName, 
-                        searchMobile, 
-                        null, 
-                        'shopkeeper', 
-                        this.currentUser.id, 
-                        50, 
-                        0
-                    );
+                // Search CVs with server-side filtering (fast loading)
+                const result = await window.supabaseDatabaseManager.searchCVs(
+                    searchName, 
+                    searchMobile, 
+                    null, 
+                    'shopkeeper', 
+                    this.currentUser.id, 
+                    50, 
+                    0,
+                    false
+                );
                     
                     console.log('Search results:', result);
                     console.log('Number of results:', result.data.length);
@@ -547,18 +548,38 @@ class ShopkeeperDashboard {
         console.log('=== END DISPLAY ALL CVs DEBUG ===');
     }
 
-    openCV(cvId) {
+    async openCV(cvId) {
         console.log('=== OPEN CV DEBUG ===');
         console.log('Opening CV with ID:', cvId);
         console.log('CV ID type:', typeof cvId);
         
-        // Store the CV ID for editing
-        sessionStorage.setItem('currentCVId', cvId);
-        console.log('Stored currentCVId in sessionStorage:', sessionStorage.getItem('currentCVId'));
+        // Show loading indicator for full CV data
+        this.showLoadingIndicator();
         
-        // Redirect to CV builder with the specific CV for editing
-        window.location.href = 'index.html';
-        console.log('Redirecting to CV builder...');
+        try {
+            // Load full CV data from database
+            const fullCVData = await window.supabaseDatabaseManager.getCVById(cvId, 'shopkeeper');
+            console.log('Full CV data loaded:', fullCVData);
+            
+            if (fullCVData) {
+                // Store the CV ID for editing
+                sessionStorage.setItem('currentCVId', cvId);
+                console.log('Stored currentCVId in sessionStorage:', sessionStorage.getItem('currentCVId'));
+                
+                // Redirect to CV builder with the specific CV for editing
+                window.location.href = 'index.html';
+                console.log('Redirecting to CV builder...');
+            } else {
+                console.error('CV not found with ID:', cvId);
+                this.showError('CV not found. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error loading CV:', error);
+            this.showError('Failed to load CV. Please try again.');
+        } finally {
+            this.hideLoadingIndicator();
+        }
+        
         console.log('=== END OPEN CV DEBUG ===');
     }
 

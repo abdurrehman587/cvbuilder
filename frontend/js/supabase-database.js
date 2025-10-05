@@ -678,7 +678,7 @@ class SupabaseDatabaseManager {
         }
     }
 
-    async searchCVs(name, mobile, template, userRole = 'admin', userId = null, limit = 50, offset = 0) {
+    async searchCVs(name, mobile, template, userRole = 'admin', userId = null, limit = 50, offset = 0, loadFullData = false) {
         try {
             if (!this.isSupabaseAvailable()) {
                 console.warn('Supabase not available, searching localStorage');
@@ -703,9 +703,12 @@ class SupabaseDatabaseManager {
                 tableName = this.adminTableName;
             }
 
+            // Select only essential fields for fast loading, or all fields for full data
+            const selectFields = loadFullData ? '*' : 'id, name, phone, email, template, created_at, updated_at';
+            
             let query = this.supabase
                 .from(tableName)
-                .select('*', { count: 'exact' });
+                .select(selectFields, { count: 'exact' });
 
             // Add role-specific filtering
             if (userRole === 'shopkeeper' && userId) {
