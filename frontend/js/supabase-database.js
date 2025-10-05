@@ -678,12 +678,17 @@ class SupabaseDatabaseManager {
         }
     }
 
-    async searchCVs(name, mobile, template, userRole = 'admin', userId = null) {
+    async searchCVs(name, mobile, template, userRole = 'admin', userId = null, limit = 50, offset = 0) {
         try {
             if (!this.isSupabaseAvailable()) {
                 console.warn('Supabase not available, searching localStorage');
                 const localCVs = JSON.parse(localStorage.getItem('localCVs') || '[]');
-                return localCVs.filter(cv => this.matchesSearchCriteria(cv, name, mobile, template));
+                const filtered = localCVs.filter(cv => this.matchesSearchCriteria(cv, name, mobile, template));
+                return {
+                    data: filtered.slice(offset, offset + limit),
+                    total: filtered.length,
+                    hasMore: (offset + limit) < filtered.length
+                };
             }
 
             // Determine which table to use based on user role
@@ -700,7 +705,7 @@ class SupabaseDatabaseManager {
 
             let query = this.supabase
                 .from(tableName)
-                .select('*');
+                .select('*', { count: 'exact' });
 
             // Add role-specific filtering
             if (userRole === 'shopkeeper' && userId) {
@@ -723,7 +728,12 @@ class SupabaseDatabaseManager {
                 query = query.eq('template', template);
             }
 
-            const { data, error } = await query.order('created_at', { ascending: false });
+            // Add pagination
+            query = query
+                .order('created_at', { ascending: false })
+                .range(offset, offset + limit - 1);
+
+            const { data, error, count } = await query;
 
             if (error) {
                 console.error('Error searching CVs in', tableName, ':', error);
@@ -732,18 +742,26 @@ class SupabaseDatabaseManager {
                 if (userRole === 'shopkeeper' && error.message.includes('relation') && error.message.includes('does not exist')) {
                     console.log('Dynamic shopkeeper table not found');
                     console.log('This shopkeeper may not have created any CVs yet, or the table was not created properly');
-                    return []; // Return empty array instead of falling back
+                    return { data: [], total: 0, hasMore: false };
                 }
                 
                 console.error('Full error object:', error);
                 throw new Error(`Database search failed: ${error.message}`);
             }
 
-            console.log(`Found ${data.length} CVs in ${tableName} table for ${userRole} ${userId}`);
-            return data;
+            const total = count || 0;
+            const hasMore = (offset + limit) < total;
+
+            console.log(`Found ${data.length} CVs in ${tableName} table for ${userRole} ${userId} (${offset}-${offset + data.length} of ${total})`);
+            
+            return {
+                data: data || [],
+                total: total,
+                hasMore: hasMore
+            };
         } catch (error) {
             console.error('Error in searchCVs:', error);
-            return [];
+            return { data: [], total: 0, hasMore: false };
         }
     }
 

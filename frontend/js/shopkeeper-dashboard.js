@@ -5,6 +5,10 @@ class ShopkeeperDashboard {
         this.allCVs = [];
         this.downloadHistory = [];
         this.selectedCV = null;
+        this.currentOffset = 0;
+        this.pageSize = 50;
+        this.totalCVs = 0;
+        this.hasMore = false;
         this.init();
     }
 
@@ -363,27 +367,41 @@ class ShopkeeperDashboard {
         console.log('Supabase database manager:', window.supabaseDatabaseManager);
         console.log('Current user:', this.currentUser);
         
-        if (window.supabaseDatabaseManager) {
-            // Get all CVs (no search criteria) - pass the current user ID
-            const allCVs = await window.supabaseDatabaseManager.searchCVs('', '', null, 'shopkeeper', this.currentUser.id);
-            console.log('All CVs loaded:', allCVs);
-            console.log('Number of CVs:', allCVs.length);
-            
-            // Debug: Check if "Abdul Rehman" is in the results
-            const abdulCV = allCVs.find(cv => 
-                cv.name && cv.name.toLowerCase().includes('abdul') ||
-                cv.cv_name && cv.cv_name.toLowerCase().includes('abdul')
-            );
-            console.log('Abdul CV found:', abdulCV);
-            
-            // Store all CVs for filtering
-            this.allCVs = allCVs;
-            
-            this.displayAllCVs(allCVs);
-        } else {
-            console.error('Database manager not available');
+        // Show loading indicator
+        this.showLoadingIndicator();
+        
+        try {
+            if (window.supabaseDatabaseManager) {
+                // Get CVs with pagination (first 50)
+                const result = await window.supabaseDatabaseManager.searchCVs('', '', null, 'shopkeeper', this.currentUser.id, 50, 0);
+                console.log('CVs loaded:', result);
+                console.log('Number of CVs:', result.data.length);
+                console.log('Total CVs:', result.total);
+                console.log('Has more:', result.hasMore);
+                
+                // Store pagination info
+                this.currentOffset = 0;
+                this.pageSize = 50;
+                this.totalCVs = result.total;
+                this.hasMore = result.hasMore;
+                
+                // Store all CVs for filtering
+                this.allCVs = result.data;
+                
+                this.displayAllCVs(result.data);
+                this.updatePaginationControls();
+            } else {
+                console.error('Database manager not available');
+                this.allCVs = [];
+                this.displayAllCVs([]);
+            }
+        } catch (error) {
+            console.error('Error loading CVs:', error);
+            this.showError('Failed to load CVs. Please try again.');
             this.allCVs = [];
             this.displayAllCVs([]);
+        } finally {
+            this.hideLoadingIndicator();
         }
         console.log('=== END LOAD ALL CVs DEBUG ===');
     }
@@ -611,6 +629,104 @@ class ShopkeeperDashboard {
                 toaster.parentNode.removeChild(toaster);
             }
         });
+    }
+
+    // Loading indicator methods
+    showLoadingIndicator() {
+        const allCVsList = document.getElementById('allCVsList');
+        if (allCVsList) {
+            allCVsList.innerHTML = `
+                <div class="loading-container">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">Loading CVs...</div>
+                </div>
+            `;
+        }
+    }
+
+    hideLoadingIndicator() {
+        // Loading indicator will be replaced by actual content
+    }
+
+    showError(message) {
+        const allCVsList = document.getElementById('allCVsList');
+        if (allCVsList) {
+            allCVsList.innerHTML = `
+                <div class="error-container">
+                    <div class="error-icon">⚠️</div>
+                    <div class="error-message">${message}</div>
+                    <button class="retry-btn" onclick="shopkeeperDashboard.loadAllCVs()">Retry</button>
+                </div>
+            `;
+        }
+    }
+
+    // Pagination methods
+    updatePaginationControls() {
+        const statsElement = document.getElementById('cvsStats');
+        if (statsElement && this.totalCVs > 0) {
+            const currentPage = Math.floor(this.currentOffset / this.pageSize) + 1;
+            const totalPages = Math.ceil(this.totalCVs / this.pageSize);
+            
+            statsElement.innerHTML += `
+                <div class="pagination-info">
+                    <span>Showing ${this.currentOffset + 1}-${Math.min(this.currentOffset + this.pageSize, this.totalCVs)} of ${this.totalCVs} CVs</span>
+                    <div class="pagination-controls">
+                        <button class="pagination-btn" onclick="shopkeeperDashboard.loadPreviousPage()" ${this.currentOffset === 0 ? 'disabled' : ''}>
+                            ← Previous
+                        </button>
+                        <span class="page-info">Page ${currentPage} of ${totalPages}</span>
+                        <button class="pagination-btn" onclick="shopkeeperDashboard.loadNextPage()" ${!this.hasMore ? 'disabled' : ''}>
+                            Next →
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    async loadNextPage() {
+        if (!this.hasMore) return;
+        
+        this.showLoadingIndicator();
+        try {
+            const newOffset = this.currentOffset + this.pageSize;
+            const result = await window.supabaseDatabaseManager.searchCVs('', '', null, 'shopkeeper', this.currentUser.id, this.pageSize, newOffset);
+            
+            this.currentOffset = newOffset;
+            this.hasMore = result.hasMore;
+            this.allCVs = [...this.allCVs, ...result.data];
+            
+            this.displayAllCVs(this.allCVs);
+            this.updatePaginationControls();
+        } catch (error) {
+            console.error('Error loading next page:', error);
+            this.showError('Failed to load more CVs. Please try again.');
+        } finally {
+            this.hideLoadingIndicator();
+        }
+    }
+
+    async loadPreviousPage() {
+        if (this.currentOffset === 0) return;
+        
+        this.showLoadingIndicator();
+        try {
+            const newOffset = Math.max(0, this.currentOffset - this.pageSize);
+            const result = await window.supabaseDatabaseManager.searchCVs('', '', null, 'shopkeeper', this.currentUser.id, this.pageSize, newOffset);
+            
+            this.currentOffset = newOffset;
+            this.hasMore = true; // We can always go forward from a previous page
+            this.allCVs = result.data;
+            
+            this.displayAllCVs(this.allCVs);
+            this.updatePaginationControls();
+        } catch (error) {
+            console.error('Error loading previous page:', error);
+            this.showError('Failed to load previous page. Please try again.');
+        } finally {
+            this.hideLoadingIndicator();
+        }
     }
 }
 
