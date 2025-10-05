@@ -843,6 +843,8 @@ class SupabaseDatabaseManager {
         try {
             console.log('=== SEARCHING ALL TABLES FOR ADMIN ===');
             console.log('Search params:', { name, mobile, template, limit, offset });
+            console.log('Supabase available:', this.isSupabaseAvailable());
+            console.log('Supabase client:', !!this.supabase);
             
             const selectFields = loadFullData ? '*' : 'id, name, phone, email, template, created_at, updated_at';
             const allResults = [];
@@ -851,6 +853,7 @@ class SupabaseDatabaseManager {
             // Search admin_cvs table
             try {
                 console.log('Searching admin_cvs table...');
+                console.log('Table name:', this.adminTableName);
                 let adminQuery = this.supabase
                     .from(this.adminTableName)
                     .select(selectFields, { count: 'exact' });
@@ -868,15 +871,19 @@ class SupabaseDatabaseManager {
                 const { data: adminData, error: adminError, count: adminCount } = await adminQuery
                     .order('created_at', { ascending: false });
                 
+                console.log('Admin table query result:', { adminData, adminError, adminCount });
+                
                 if (!adminError && adminData) {
                     allResults.push(...adminData.map(cv => ({ ...cv, source: 'admin' })));
                     totalCount += adminCount || 0;
                     console.log(`Found ${adminData.length} CVs in admin_cvs table (total: ${adminCount})`);
                 } else {
                     console.log('admin_cvs table error or empty:', adminError?.message);
+                    console.log('Admin error details:', adminError);
                 }
             } catch (error) {
                 console.log('admin_cvs table not accessible:', error.message);
+                console.log('Admin table error:', error);
             }
             
             // Search shopkeeper_cvs table
@@ -899,20 +906,25 @@ class SupabaseDatabaseManager {
                 const { data: shopkeeperData, error: shopkeeperError, count: shopkeeperCount } = await shopkeeperQuery
                     .order('created_at', { ascending: false });
                 
+                console.log('Shopkeeper table query result:', { shopkeeperData, shopkeeperError, shopkeeperCount });
+                
                 if (!shopkeeperError && shopkeeperData) {
                     allResults.push(...shopkeeperData.map(cv => ({ ...cv, source: 'shopkeeper' })));
                     totalCount += shopkeeperCount || 0;
                     console.log(`Found ${shopkeeperData.length} CVs in shopkeeper_cvs table (total: ${shopkeeperCount})`);
                 } else {
                     console.log('shopkeeper_cvs table error or empty:', shopkeeperError?.message);
+                    console.log('Shopkeeper error details:', shopkeeperError);
                 }
             } catch (error) {
                 console.log('shopkeeper_cvs table not accessible:', error.message);
+                console.log('Shopkeeper table error:', error);
             }
             
             // Search user_cvs table
             try {
                 console.log('Searching user_cvs table...');
+                console.log('User table name:', this.userTableName);
                 let userQuery = this.supabase
                     .from(this.userTableName)
                     .select(selectFields, { count: 'exact' });
@@ -930,15 +942,19 @@ class SupabaseDatabaseManager {
                 const { data: userData, error: userError, count: userCount } = await userQuery
                     .order('created_at', { ascending: false });
                 
+                console.log('User table query result:', { userData, userError, userCount });
+                
                 if (!userError && userData) {
                     allResults.push(...userData.map(cv => ({ ...cv, source: 'user' })));
                     totalCount += userCount || 0;
                     console.log(`Found ${userData.length} CVs in user_cvs table (total: ${userCount})`);
                 } else {
                     console.log('user_cvs table error or empty:', userError?.message);
+                    console.log('User error details:', userError);
                 }
             } catch (error) {
                 console.log('user_cvs table not accessible:', error.message);
+                console.log('User table error:', error);
             }
             
             // Sort by created_at descending
@@ -949,9 +965,13 @@ class SupabaseDatabaseManager {
             const paginatedResults = allResults.slice(offset, offset + limit);
             const hasMore = (offset + limit) < total;
             
+            console.log(`=== FINAL RESULTS ===`);
             console.log(`Total CVs found across all tables: ${total} (actual results)`);
             console.log(`Database total count: ${totalCount} (from count queries)`);
             console.log(`Returning ${paginatedResults.length} CVs (${offset}-${offset + paginatedResults.length})`);
+            console.log(`All results sample:`, allResults.slice(0, 3));
+            console.log(`Paginated results:`, paginatedResults);
+            console.log(`=== END FINAL RESULTS ===`);
             
             return {
                 data: paginatedResults,
