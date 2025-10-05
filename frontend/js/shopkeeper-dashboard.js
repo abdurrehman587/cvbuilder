@@ -373,24 +373,24 @@ class ShopkeeperDashboard {
         
         try {
             if (window.supabaseDatabaseManager) {
-                // Get CVs with pagination (first 50) - FAST LOADING (names only)
-                const result = await window.supabaseDatabaseManager.searchCVs('', '', null, 'shopkeeper', this.currentUser.id, 50, 0, false);
+                // Get ALL CVs without pagination - FAST LOADING (names only)
+                const result = await window.supabaseDatabaseManager.searchCVs('', '', null, 'shopkeeper', this.currentUser.id, 1000, 0, false);
                 console.log('CVs loaded (fast):', result);
                 console.log('Number of CVs:', result.data.length);
                 console.log('Total CVs:', result.total);
                 console.log('Has more:', result.hasMore);
                 
-                // Store pagination info
+                // Store all CVs (no pagination)
                 this.currentOffset = 0;
-                this.pageSize = 50;
+                this.pageSize = result.total; // Show all CVs
                 this.totalCVs = result.total;
-                this.hasMore = result.hasMore;
+                this.hasMore = false; // No pagination
                 
                 // Store CV summaries for fast display
                 this.allCVs = result.data;
                 
                 this.displayAllCVs(result.data);
-                this.updatePaginationControls();
+                // No pagination controls - show all CVs in single list
             } else {
                 console.error('Database manager not available');
                 this.allCVs = [];
@@ -425,14 +425,14 @@ class ShopkeeperDashboard {
             
             try {
                 if (window.supabaseDatabaseManager) {
-                // Search CVs with server-side filtering (fast loading)
+                // Search CVs with server-side filtering (fast loading) - ALL RESULTS
                 const result = await window.supabaseDatabaseManager.searchCVs(
                     searchName, 
                     searchMobile, 
                     null, 
                     'shopkeeper', 
                     this.currentUser.id, 
-                    50, 
+                    1000, 
                     0,
                     false
                 );
@@ -441,15 +441,15 @@ class ShopkeeperDashboard {
                     console.log('Number of results:', result.data.length);
                     console.log('Total results:', result.total);
                     
-                    // Update pagination info for search results
-                    this.currentOffset = 0;
-                    this.pageSize = 50;
+                // Update info for search results (no pagination)
+                this.currentOffset = 0;
+                this.pageSize = result.total; // Show all results
                     this.totalCVs = result.total;
-                    this.hasMore = result.hasMore;
+                    this.hasMore = false; // No pagination
                     this.allCVs = result.data;
                     
                     this.displayAllCVs(result.data);
-                    this.updatePaginationControls();
+                    // No pagination controls - show all results in single list
                 } else {
                     console.error('Database manager not available');
                     this.showError('Database not available. Please try again.');
@@ -711,73 +711,7 @@ class ShopkeeperDashboard {
         }
     }
 
-    // Pagination methods
-    updatePaginationControls() {
-        const statsElement = document.getElementById('cvsStats');
-        if (statsElement && this.totalCVs > 0) {
-            const currentPage = Math.floor(this.currentOffset / this.pageSize) + 1;
-            const totalPages = Math.ceil(this.totalCVs / this.pageSize);
-            
-            statsElement.innerHTML += `
-                <div class="pagination-info">
-                    <span>Showing ${this.currentOffset + 1}-${Math.min(this.currentOffset + this.pageSize, this.totalCVs)} of ${this.totalCVs} CVs</span>
-                    <div class="pagination-controls">
-                        <button class="pagination-btn" onclick="shopkeeperDashboard.loadPreviousPage()" ${this.currentOffset === 0 ? 'disabled' : ''}>
-                            ← Previous
-                        </button>
-                        <span class="page-info">Page ${currentPage} of ${totalPages}</span>
-                        <button class="pagination-btn" onclick="shopkeeperDashboard.loadNextPage()" ${!this.hasMore ? 'disabled' : ''}>
-                            Next →
-                        </button>
-                    </div>
-                </div>
-            `;
-        }
-    }
-
-    async loadNextPage() {
-        if (!this.hasMore) return;
-        
-        this.showLoadingIndicator();
-        try {
-            const newOffset = this.currentOffset + this.pageSize;
-            const result = await window.supabaseDatabaseManager.searchCVs('', '', null, 'shopkeeper', this.currentUser.id, this.pageSize, newOffset);
-            
-            this.currentOffset = newOffset;
-            this.hasMore = result.hasMore;
-            this.allCVs = [...this.allCVs, ...result.data];
-            
-            this.displayAllCVs(this.allCVs);
-            this.updatePaginationControls();
-        } catch (error) {
-            console.error('Error loading next page:', error);
-            this.showError('Failed to load more CVs. Please try again.');
-        } finally {
-            this.hideLoadingIndicator();
-        }
-    }
-
-    async loadPreviousPage() {
-        if (this.currentOffset === 0) return;
-        
-        this.showLoadingIndicator();
-        try {
-            const newOffset = Math.max(0, this.currentOffset - this.pageSize);
-            const result = await window.supabaseDatabaseManager.searchCVs('', '', null, 'shopkeeper', this.currentUser.id, this.pageSize, newOffset);
-            
-            this.currentOffset = newOffset;
-            this.hasMore = true; // We can always go forward from a previous page
-            this.allCVs = result.data;
-            
-            this.displayAllCVs(this.allCVs);
-            this.updatePaginationControls();
-        } catch (error) {
-            console.error('Error loading previous page:', error);
-            this.showError('Failed to load previous page. Please try again.');
-        } finally {
-            this.hideLoadingIndicator();
-        }
-    }
+    // No pagination methods needed - showing all CVs in single list
 }
 
 // Global functions for HTML onclick handlers
