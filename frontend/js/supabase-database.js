@@ -846,7 +846,8 @@ class SupabaseDatabaseManager {
             console.log('Supabase available:', this.isSupabaseAvailable());
             console.log('Supabase client:', !!this.supabase);
             
-            const selectFields = loadFullData ? '*' : 'id, name, phone, email, template, created_at, updated_at';
+            // Use flexible field selection - some tables may not have all columns
+            const selectFields = loadFullData ? '*' : 'id, name, phone, email, created_at, updated_at';
             const allResults = [];
             let totalCount = 0;
             
@@ -864,9 +865,10 @@ class SupabaseDatabaseManager {
                 if (mobile) {
                     adminQuery = adminQuery.ilike('phone', `%${mobile}%`);
                 }
-                if (template) {
-                    adminQuery = adminQuery.eq('template', template);
-                }
+                // Note: admin_cvs table may not have template column
+                // if (template) {
+                //     adminQuery = adminQuery.eq('template', template);
+                // }
                 
                 const { data: adminData, error: adminError, count: adminCount } = await adminQuery
                     .order('created_at', { ascending: false });
@@ -880,6 +882,25 @@ class SupabaseDatabaseManager {
                 } else {
                     console.log('admin_cvs table error or empty:', adminError?.message);
                     console.log('Admin error details:', adminError);
+                    
+                    // Try a simpler query without template column
+                    console.log('Trying simpler admin_cvs query...');
+                    try {
+                        const { data: simpleAdminData, error: simpleAdminError, count: simpleAdminCount } = await this.supabase
+                            .from(this.adminTableName)
+                            .select('id, name, phone, email, created_at, updated_at', { count: 'exact' })
+                            .order('created_at', { ascending: false });
+                        
+                        if (!simpleAdminError && simpleAdminData) {
+                            allResults.push(...simpleAdminData.map(cv => ({ ...cv, source: 'admin' })));
+                            totalCount += simpleAdminCount || 0;
+                            console.log(`Found ${simpleAdminData.length} CVs in admin_cvs table with simple query (total: ${simpleAdminCount})`);
+                        } else {
+                            console.log('Simple admin_cvs query also failed:', simpleAdminError?.message);
+                        }
+                    } catch (simpleError) {
+                        console.log('Simple admin_cvs query error:', simpleError.message);
+                    }
                 }
             } catch (error) {
                 console.log('admin_cvs table not accessible:', error.message);
