@@ -9,6 +9,7 @@ class ShopkeeperDashboard {
         this.pageSize = 50;
         this.totalCVs = 0;
         this.hasMore = false;
+        this.searchTimeout = null;
         this.init();
     }
 
@@ -406,39 +407,67 @@ class ShopkeeperDashboard {
         console.log('=== END LOAD ALL CVs DEBUG ===');
     }
 
-    performLiveSearch() {
-        const searchName = document.getElementById('liveSearchName').value.trim().toLowerCase();
-        const searchMobile = document.getElementById('liveSearchMobile').value.trim();
-        
-        console.log('Live search:', { searchName, searchMobile });
-        
-        if (!this.allCVs) {
-            console.log('No CVs loaded yet');
-            return;
+    async performLiveSearch() {
+        // Clear previous timeout
+        if (this.searchTimeout) {
+            clearTimeout(this.searchTimeout);
         }
         
-        // Filter CVs based on search criteria
-        const filteredCVs = this.allCVs.filter(cv => {
-            const nameMatch = !searchName || (cv.name && cv.name.toLowerCase().includes(searchName));
-            const mobileMatch = !searchMobile || (cv.phone && cv.phone.includes(searchMobile));
+        // Debounce search - wait 500ms after user stops typing
+        this.searchTimeout = setTimeout(async () => {
+            const searchName = document.getElementById('liveSearchName').value.trim();
+            const searchMobile = document.getElementById('liveSearchMobile').value.trim();
             
-            return nameMatch && mobileMatch;
-        });
-        
-        console.log('Filtered CVs:', filteredCVs.length, 'out of', this.allCVs.length);
-        
-        // Display filtered results
-        this.displayAllCVs(filteredCVs);
+            console.log('Live search:', { searchName, searchMobile });
+            
+            // Show loading indicator
+            this.showLoadingIndicator();
+            
+            try {
+                if (window.supabaseDatabaseManager) {
+                    // Search CVs with server-side filtering
+                    const result = await window.supabaseDatabaseManager.searchCVs(
+                        searchName, 
+                        searchMobile, 
+                        null, 
+                        'shopkeeper', 
+                        this.currentUser.id, 
+                        50, 
+                        0
+                    );
+                    
+                    console.log('Search results:', result);
+                    console.log('Number of results:', result.data.length);
+                    console.log('Total results:', result.total);
+                    
+                    // Update pagination info for search results
+                    this.currentOffset = 0;
+                    this.pageSize = 50;
+                    this.totalCVs = result.total;
+                    this.hasMore = result.hasMore;
+                    this.allCVs = result.data;
+                    
+                    this.displayAllCVs(result.data);
+                    this.updatePaginationControls();
+                } else {
+                    console.error('Database manager not available');
+                    this.showError('Database not available. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error performing search:', error);
+                this.showError('Search failed. Please try again.');
+            } finally {
+                this.hideLoadingIndicator();
+            }
+        }, 500); // Wait 500ms after user stops typing
     }
 
-    clearLiveSearch() {
+    async clearLiveSearch() {
         document.getElementById('liveSearchName').value = '';
         document.getElementById('liveSearchMobile').value = '';
         
-        // Show all CVs again
-        if (this.allCVs) {
-            this.displayAllCVs(this.allCVs);
-        }
+        // Reload all CVs (reset to show all)
+        await this.loadAllCVs();
     }
 
     displayAllCVs(cvs) {
