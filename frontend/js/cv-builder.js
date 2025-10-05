@@ -2919,7 +2919,7 @@ class CVBuilder {
             
             // Check if backend server is running
             const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-            const backendUrl = isLocalhost ? 'http://localhost:3000' : 'https://YOUR-ACTUAL-BACKEND-URL.vercel.app';
+            const backendUrl = isLocalhost ? 'http://localhost:3000' : 'https://cvbuilder-b6ok-nb3oy1au6-abdurrehmans-projects-37746bc3.vercel.app';
             
             try {
                 const healthResponse = await fetch(`${backendUrl}/up`);
