@@ -237,8 +237,8 @@ class AdminDashboard {
         
         try {
             if (window.supabaseDatabaseManager) {
-                // Get CVs with pagination (first 50) - FAST LOADING (names only)
-                const result = await window.supabaseDatabaseManager.searchCVs('', '', null, 'admin', null, 50, 0, false);
+                // Get CVs with pagination (first 100) - FAST LOADING (names only)
+                const result = await window.supabaseDatabaseManager.searchCVs('', '', null, 'admin', null, 100, 0, false);
                 console.log('CVs loaded (fast):', result);
                 console.log('Number of CVs:', result.data.length);
                 console.log('Total CVs:', result.total);
@@ -246,7 +246,7 @@ class AdminDashboard {
                 
                 // Store pagination info
                 this.currentOffset = 0;
-                this.pageSize = 50;
+                this.pageSize = 100;
                 this.totalCVs = result.total;
                 this.hasMore = result.hasMore;
                 
@@ -296,7 +296,7 @@ class AdminDashboard {
                     null, 
                     'admin', 
                     null, 
-                    50, 
+                    100, 
                     0,
                     false
                 );
@@ -305,9 +305,9 @@ class AdminDashboard {
                     console.log('Number of results:', result.data.length);
                     console.log('Total results:', result.total);
                     
-                    // Update pagination info for search results
-                    this.currentOffset = 0;
-                    this.pageSize = 50;
+                // Update pagination info for search results
+                this.currentOffset = 0;
+                this.pageSize = 100;
                     this.totalCVs = result.total;
                     this.hasMore = result.hasMore;
                     this.allCVs = result.data;
