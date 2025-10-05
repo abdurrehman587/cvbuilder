@@ -2890,64 +2890,43 @@ class CVBuilder {
             downloadBtn.innerHTML = '⏳ Generating PDF...';
             downloadBtn.disabled = true;
 
-            // Try backend PDF generation first
-            try {
-                await this.generateBackendPDF();
-                
-                // Track download if user is a shopkeeper
-                await this.trackDownload('pdf');
-                
-                // Reset button
-                downloadBtn.innerHTML = originalText;
-                downloadBtn.disabled = false;
-                
-                return; // Success, exit early
-                
-            } catch (backendError) {
-                console.log('Backend PDF generation failed, trying frontend fallback:', backendError);
-                
-                // Fallback to frontend PDF generation
-                await this.generateMultiPagePDF();
-                
-                // Track download if user is a shopkeeper
-                await this.trackDownload('pdf');
-                
-                // Reset button
-                downloadBtn.innerHTML = originalText;
-                downloadBtn.disabled = false;
-            }
+            // Use only backend PDF generation
+            await this.generateBackendPDF();
+            
+            // Track download if user is a shopkeeper
+            await this.trackDownload('pdf');
+            
+            // Reset button
+            downloadBtn.innerHTML = originalText;
+            downloadBtn.disabled = false;
 
         } catch (error) {
-            console.error('Error generating PDF:', error);
+            console.error('Backend PDF generation failed:', error);
             
-            // Try fallback method - create text-based PDF
-            try {
-                console.log('Attempting fallback PDF generation...');
-                await this.generateFallbackPDF();
-                
-                // Reset button
-                const downloadBtn = document.getElementById('downloadCV');
-                downloadBtn.innerHTML = '📄 Download CV as PDF';
-                downloadBtn.disabled = false;
-                
-                this.showDownloadSuccess(50); // Approximate size for fallback
-                
-            } catch (fallbackError) {
-                console.error('Fallback PDF generation also failed:', fallbackError);
-                
-                // Reset button on error
-                const downloadBtn = document.getElementById('downloadCV');
-                downloadBtn.innerHTML = '📄 Download CV as PDF';
-                downloadBtn.disabled = false;
-                
-                alert('Error generating PDF. Please try again or check your browser compatibility.');
-            }
+            // Reset button on error
+            const downloadBtn = document.getElementById('downloadCV');
+            downloadBtn.innerHTML = '📄 Download CV as PDF';
+            downloadBtn.disabled = false;
+            
+            // Show error message
+            alert('PDF generation failed. Please ensure the backend server is running on http://localhost:3000');
         }
     }
 
     async generateBackendPDF() {
         try {
             console.log('Generating PDF using backend...');
+            
+            // Check if backend server is running
+            try {
+                const healthResponse = await fetch('http://localhost:3000/up');
+                if (!healthResponse.ok) {
+                    throw new Error('Backend server is not responding');
+                }
+                console.log('Backend server is running');
+            } catch (healthError) {
+                throw new Error('Backend server is not running. Please start the Node.js server on port 3000');
+            }
             
             // Get current CV data
             const cvData = this.getCVData();
@@ -3000,7 +2979,7 @@ class CVBuilder {
             
         } catch (error) {
             console.error('Backend PDF generation error:', error);
-            throw error; // Re-throw to trigger fallback
+            throw error; // Re-throw to show error message
         }
     }
 
