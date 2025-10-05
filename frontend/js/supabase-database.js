@@ -470,6 +470,11 @@ class SupabaseDatabaseManager {
                 return localCVs.find(cv => cv.id === cvId);
             }
 
+            // For admin role, search ALL tables to find the CV
+            if (userRole === 'admin') {
+                return await this.getCVByIdFromAllTables(cvId);
+            }
+
             // Determine which table to use based on user role
             let tableName;
             if (userRole === 'shopkeeper') {
@@ -500,6 +505,67 @@ class SupabaseDatabaseManager {
             return data;
         } catch (error) {
             console.error('Error in getCVById:', error);
+            return null;
+        }
+    }
+
+    async getCVByIdFromAllTables(cvId) {
+        try {
+            console.log('=== SEARCHING ALL TABLES FOR CV ID:', cvId);
+            
+            // Search admin_cvs table
+            try {
+                const { data: adminData, error: adminError } = await this.supabase
+                    .from(this.adminTableName)
+                    .select('*')
+                    .eq('id', cvId)
+                    .single();
+                
+                if (!adminError && adminData) {
+                    console.log('Found CV in admin_cvs table');
+                    return adminData;
+                }
+            } catch (error) {
+                console.log('admin_cvs table not accessible:', error.message);
+            }
+            
+            // Search shopkeeper_cvs table
+            try {
+                const { data: shopkeeperData, error: shopkeeperError } = await this.supabase
+                    .from('shopkeeper_cvs')
+                    .select('*')
+                    .eq('id', cvId)
+                    .single();
+                
+                if (!shopkeeperError && shopkeeperData) {
+                    console.log('Found CV in shopkeeper_cvs table');
+                    return shopkeeperData;
+                }
+            } catch (error) {
+                console.log('shopkeeper_cvs table not accessible:', error.message);
+            }
+            
+            // Search user_cvs table
+            try {
+                const { data: userData, error: userError } = await this.supabase
+                    .from(this.userTableName)
+                    .select('*')
+                    .eq('id', cvId)
+                    .single();
+                
+                if (!userError && userData) {
+                    console.log('Found CV in user_cvs table');
+                    return userData;
+                }
+            } catch (error) {
+                console.log('user_cvs table not accessible:', error.message);
+            }
+            
+            console.log('CV not found in any table');
+            return null;
+            
+        } catch (error) {
+            console.error('Error searching all tables for CV:', error);
             return null;
         }
     }
@@ -691,6 +757,11 @@ class SupabaseDatabaseManager {
                 };
             }
 
+            // For admin role, search ALL tables to get all CVs
+            if (userRole === 'admin') {
+                return await this.searchAllTables(name, mobile, template, limit, offset, loadFullData);
+            }
+
             // Determine which table to use based on user role
             let tableName;
             if (userRole === 'shopkeeper') {
@@ -764,6 +835,105 @@ class SupabaseDatabaseManager {
             };
         } catch (error) {
             console.error('Error in searchCVs:', error);
+            return { data: [], total: 0, hasMore: false };
+        }
+    }
+
+    async searchAllTables(name, mobile, template, limit = 50, offset = 0, loadFullData = false) {
+        try {
+            console.log('=== SEARCHING ALL TABLES FOR ADMIN ===');
+            
+            const selectFields = loadFullData ? '*' : 'id, name, phone, email, template, created_at, updated_at';
+            const allResults = [];
+            
+            // Search admin_cvs table
+            try {
+                const { data: adminData, error: adminError } = await this.supabase
+                    .from(this.adminTableName)
+                    .select(selectFields)
+                    .order('created_at', { ascending: false });
+                
+                if (!adminError && adminData) {
+                    allResults.push(...adminData.map(cv => ({ ...cv, source: 'admin' })));
+                    console.log(`Found ${adminData.length} CVs in admin_cvs table`);
+                } else {
+                    console.log('admin_cvs table error or empty:', adminError?.message);
+                }
+            } catch (error) {
+                console.log('admin_cvs table not accessible:', error.message);
+            }
+            
+            // Search shopkeeper_cvs table
+            try {
+                const { data: shopkeeperData, error: shopkeeperError } = await this.supabase
+                    .from('shopkeeper_cvs')
+                    .select(selectFields)
+                    .order('created_at', { ascending: false });
+                
+                if (!shopkeeperError && shopkeeperData) {
+                    allResults.push(...shopkeeperData.map(cv => ({ ...cv, source: 'shopkeeper' })));
+                    console.log(`Found ${shopkeeperData.length} CVs in shopkeeper_cvs table`);
+                } else {
+                    console.log('shopkeeper_cvs table error or empty:', shopkeeperError?.message);
+                }
+            } catch (error) {
+                console.log('shopkeeper_cvs table not accessible:', error.message);
+            }
+            
+            // Search user_cvs table
+            try {
+                const { data: userData, error: userError } = await this.supabase
+                    .from(this.userTableName)
+                    .select(selectFields)
+                    .order('created_at', { ascending: false });
+                
+                if (!userError && userData) {
+                    allResults.push(...userData.map(cv => ({ ...cv, source: 'user' })));
+                    console.log(`Found ${userData.length} CVs in user_cvs table`);
+                } else {
+                    console.log('user_cvs table error or empty:', userError?.message);
+                }
+            } catch (error) {
+                console.log('user_cvs table not accessible:', error.message);
+            }
+            
+            // Apply search filters
+            let filteredResults = allResults;
+            if (name) {
+                filteredResults = filteredResults.filter(cv => 
+                    cv.name && cv.name.toLowerCase().includes(name.toLowerCase())
+                );
+            }
+            if (mobile) {
+                filteredResults = filteredResults.filter(cv => 
+                    cv.phone && cv.phone.includes(mobile)
+                );
+            }
+            if (template) {
+                filteredResults = filteredResults.filter(cv => 
+                    cv.template === template
+                );
+            }
+            
+            // Sort by created_at descending
+            filteredResults.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            
+            // Apply pagination
+            const total = filteredResults.length;
+            const paginatedResults = filteredResults.slice(offset, offset + limit);
+            const hasMore = (offset + limit) < total;
+            
+            console.log(`Total CVs found across all tables: ${total}`);
+            console.log(`Returning ${paginatedResults.length} CVs (${offset}-${offset + paginatedResults.length})`);
+            
+            return {
+                data: paginatedResults,
+                total: total,
+                hasMore: hasMore
+            };
+            
+        } catch (error) {
+            console.error('Error searching all tables:', error);
             return { data: [], total: 0, hasMore: false };
         }
     }
