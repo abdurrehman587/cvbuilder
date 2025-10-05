@@ -2890,15 +2890,32 @@ class CVBuilder {
             downloadBtn.innerHTML = '⏳ Generating PDF...';
             downloadBtn.disabled = true;
 
-            // Generate multi-page PDF
-            await this.generateMultiPagePDF();
-
-            // Track download if user is a shopkeeper
-            await this.trackDownload('pdf');
-
-            // Reset button
-            downloadBtn.innerHTML = originalText;
-            downloadBtn.disabled = false;
+            // Try backend PDF generation first
+            try {
+                await this.generateBackendPDF();
+                
+                // Track download if user is a shopkeeper
+                await this.trackDownload('pdf');
+                
+                // Reset button
+                downloadBtn.innerHTML = originalText;
+                downloadBtn.disabled = false;
+                
+                return; // Success, exit early
+                
+            } catch (backendError) {
+                console.log('Backend PDF generation failed, trying frontend fallback:', backendError);
+                
+                // Fallback to frontend PDF generation
+                await this.generateMultiPagePDF();
+                
+                // Track download if user is a shopkeeper
+                await this.trackDownload('pdf');
+                
+                // Reset button
+                downloadBtn.innerHTML = originalText;
+                downloadBtn.disabled = false;
+            }
 
         } catch (error) {
             console.error('Error generating PDF:', error);
@@ -2925,6 +2942,65 @@ class CVBuilder {
                 
                 alert('Error generating PDF. Please try again or check your browser compatibility.');
             }
+        }
+    }
+
+    async generateBackendPDF() {
+        try {
+            console.log('Generating PDF using backend...');
+            
+            // Get current CV data
+            const cvData = this.getCVData();
+            const template = sessionStorage.getItem('selectedTemplate') || 'classic';
+            
+            // Prepare data for backend
+            const requestData = {
+                cv_data: {
+                    ...cvData,
+                    template: template
+                }
+            };
+            
+            console.log('Sending CV data to backend:', requestData);
+            
+            // Backend URL - adjust as needed
+            const backendUrl = 'http://localhost:3000/api/pdf/generate';
+            
+            const response = await fetch(backendUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData)
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Backend PDF generation failed: ${response.status} ${response.statusText}`);
+            }
+            
+            // Get the PDF blob
+            const pdfBlob = await response.blob();
+            
+            // Create download link
+            const url = window.URL.createObjectURL(pdfBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `${cvData.personalInfo.fullName || 'CV'}.pdf`;
+            
+            // Trigger download
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Clean up
+            window.URL.revokeObjectURL(url);
+            
+            console.log('Backend PDF generation successful');
+            this.showDownloadSuccess(Math.round(pdfBlob.size / 1024)); // Size in KB
+            
+        } catch (error) {
+            console.error('Backend PDF generation error:', error);
+            throw error; // Re-throw to trigger fallback
         }
     }
 
