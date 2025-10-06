@@ -3921,66 +3921,85 @@ class CVBuilder {
             });
             combinedContent.appendChild(contactSection);
             
-            // Add skills from sidebar
-            const skillsHeading = Array.from(sidebar.querySelectorAll('h3')).find(h => h.textContent.includes('SKILLS'));
-            if (skillsHeading) {
-                const skillsDiv = document.createElement('div');
-                skillsDiv.innerHTML = '<h3 style="color: #8B4513; border-bottom: 2px solid #8B4513; padding-bottom: 5px; margin-bottom: 10px; margin-top: 20px;">SKILLS</h3>';
-                
-                const skillsList = sidebar.querySelectorAll('.template-2-skill-item');
-                skillsList.forEach(skill => {
-                    const skillDiv = document.createElement('div');
-                    skillDiv.style.marginBottom = '5px';
-                    skillDiv.innerHTML = skill.innerHTML;
-                    skillsDiv.appendChild(skillDiv);
-                });
-                combinedContent.appendChild(skillsDiv);
-            }
+            // Add sidebar sections (Skills, Languages, Hobbies, Other Info) at the end
+            const sidebarSections = sidebar.querySelectorAll('.template-2-sidebar-section');
+            console.log('Found sidebar sections:', sidebarSections.length);
             
-            // Add languages from sidebar
-            const languagesHeading = Array.from(sidebar.querySelectorAll('h3')).find(h => h.textContent.includes('LANGUAGES'));
-            if (languagesHeading) {
-                const languagesDiv = document.createElement('div');
-                languagesDiv.innerHTML = '<h3 style="color: #8B4513; border-bottom: 2px solid #8B4513; padding-bottom: 5px; margin-bottom: 10px; margin-top: 20px;">LANGUAGES</h3>';
+            sidebarSections.forEach((section, index) => {
+                console.log(`Processing sidebar section ${index + 1}:`, section);
                 
-                const languagesList = sidebar.querySelectorAll('.template-2-language-item');
-                languagesList.forEach(lang => {
-                    const langDiv = document.createElement('div');
-                    langDiv.style.marginBottom = '5px';
-                    langDiv.innerHTML = lang.innerHTML;
-                    languagesDiv.appendChild(langDiv);
-                });
-                combinedContent.appendChild(languagesDiv);
-            }
+                // Clone the section
+                const sectionClone = section.cloneNode(true);
+                
+                // Apply consistent styling to the heading
+                const heading = sectionClone.querySelector('h3');
+                if (heading) {
+                    heading.style.color = '#8B4513';
+                    heading.style.borderBottom = '2px solid #8B4513';
+                    heading.style.paddingBottom = '5px';
+                    heading.style.marginBottom = '15px';
+                    heading.style.fontSize = '14pt';
+                    heading.style.marginTop = '25px';
+                }
+                
+                // Style content
+                const content = sectionClone.querySelector('div');
+                if (content) {
+                    content.style.fontSize = '11pt';
+                    content.style.lineHeight = '1.4';
+                }
+                
+                combinedContent.appendChild(sectionClone);
+                console.log(`Sidebar section ${index + 1} added to combined content`);
+            });
             
-            // Add main content sections
-            const mainSections = mainContent.querySelectorAll('h3');
+            // Add main content sections (Profile, Education, Work Experience, etc.)
+            const mainSections = mainContent.querySelectorAll('.template-2-main-section');
             console.log('Found main content sections:', mainSections.length);
             mainSections.forEach((section, index) => {
-                console.log(`Processing main section ${index + 1}:`, section.textContent);
-                const sectionDiv = document.createElement('div');
-                sectionDiv.style.marginTop = '20px';
+                console.log(`Processing main section ${index + 1}:`, section);
                 
-                // Copy the section header
-                const header = section.cloneNode(true);
-                header.style.color = '#8B4513';
-                header.style.borderBottom = '2px solid #8B4513';
-                header.style.paddingBottom = '5px';
-                header.style.marginBottom = '10px';
-                sectionDiv.appendChild(header);
+                // Clone the entire section
+                const sectionClone = section.cloneNode(true);
                 
-                // Copy the section content
-                let nextElement = section.nextElementSibling;
-                let contentCount = 0;
-                while (nextElement && nextElement.tagName !== 'H3') {
-                    const contentDiv = nextElement.cloneNode(true);
-                    sectionDiv.appendChild(contentDiv);
-                    contentCount++;
-                    nextElement = nextElement.nextElementSibling;
+                // Apply consistent styling to the heading
+                const heading = sectionClone.querySelector('h3');
+                if (heading) {
+                    heading.style.color = '#8B4513';
+                    heading.style.borderBottom = '2px solid #8B4513';
+                    heading.style.paddingBottom = '5px';
+                    heading.style.marginBottom = '15px';
+                    heading.style.fontSize = '14pt';
+                    heading.style.marginTop = '25px';
                 }
-                console.log(`Section ${index + 1} content elements:`, contentCount);
                 
-                combinedContent.appendChild(sectionDiv);
+                // Style paragraphs and content
+                const paragraphs = sectionClone.querySelectorAll('p');
+                paragraphs.forEach(p => {
+                    p.style.fontSize = '11pt';
+                    p.style.lineHeight = '1.4';
+                    p.style.marginBottom = '8px';
+                });
+                
+                // Style lists
+                const lists = sectionClone.querySelectorAll('ul, ol');
+                lists.forEach(list => {
+                    list.style.fontSize = '11pt';
+                    list.style.lineHeight = '1.4';
+                    list.style.marginBottom = '10px';
+                });
+                
+                // Style divs
+                const divs = sectionClone.querySelectorAll('div');
+                divs.forEach(div => {
+                    if (!div.querySelector('h3')) { // Don't style heading divs
+                        div.style.fontSize = '11pt';
+                        div.style.lineHeight = '1.4';
+                    }
+                });
+                
+                combinedContent.appendChild(sectionClone);
+                console.log(`Section ${index + 1} added to combined content`);
             });
             
             // Also add the name from main content if it exists (check if not already added)
