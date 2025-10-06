@@ -3617,6 +3617,13 @@ class CVBuilder {
             
             console.log('Content prepared for canvas generation');
             
+            // Check if this is a two-column template and handle specially
+            const template2Container = container.querySelector('.template-2-container');
+            if (template2Container) {
+                console.log('Detected Template 2 - using specialized two-column capture');
+                return await this.generateTwoColumnPDF(template2Container, pageWidth, pageHeight);
+            }
+            
             // Generate canvas with conservative settings
             const canvas = await html2canvas(container, {
                 scale: 1, // Reduced scale to avoid issues
@@ -3811,7 +3818,14 @@ class CVBuilder {
             return '<div>CV content not found</div>';
         }
         
-        // Clone the preview element
+        // Check if this is a two-column template
+        const template2Container = previewElement.querySelector('.template-2-container');
+        if (template2Container) {
+            console.log('Detected Template 2 (two-column) - using specialized extraction');
+            return this.extractTwoColumnContent(template2Container);
+        }
+        
+        // For other templates, use standard extraction
         const clonedPreview = previewElement.cloneNode(true);
         
         // Apply simple styles for text extraction
@@ -3836,6 +3850,246 @@ class CVBuilder {
         
         console.log('Text content extracted, length:', clonedPreview.innerHTML.length);
         return clonedPreview.innerHTML;
+    }
+
+    extractTwoColumnContent(template2Container) {
+        console.log('Extracting two-column content...');
+        
+        // Create a single-column version that combines both sides
+        const combinedContent = document.createElement('div');
+        combinedContent.style.fontFamily = 'Arial, sans-serif';
+        combinedContent.style.fontSize = '12pt';
+        combinedContent.style.color = '#333';
+        combinedContent.style.backgroundColor = 'white';
+        combinedContent.style.padding = '20px';
+        combinedContent.style.lineHeight = '1.4';
+        combinedContent.style.width = '100%';
+        
+        // Get sidebar content
+        const sidebar = template2Container.querySelector('.template-2-sidebar');
+        const mainContent = template2Container.querySelector('.template-2-main-content');
+        
+        if (sidebar && mainContent) {
+            console.log('Found both sidebar and main content');
+            
+            // Create header with name
+            const nameElement = mainContent.querySelector('.template-2-name');
+            if (nameElement) {
+                const header = document.createElement('div');
+                header.style.textAlign = 'center';
+                header.style.fontSize = '24pt';
+                header.style.fontWeight = 'bold';
+                header.style.color = '#8B4513';
+                header.style.marginBottom = '20px';
+                header.style.borderBottom = '2px solid #8B4513';
+                header.style.paddingBottom = '10px';
+                header.textContent = nameElement.textContent;
+                combinedContent.appendChild(header);
+            }
+            
+            // Add contact information from sidebar
+            const contactSection = document.createElement('div');
+            contactSection.innerHTML = '<h3 style="color: #8B4513; border-bottom: 2px solid #8B4513; padding-bottom: 5px; margin-bottom: 10px;">CONTACT INFORMATION</h3>';
+            
+            const contactItems = sidebar.querySelectorAll('.template-2-contact-item');
+            contactItems.forEach(item => {
+                const contactDiv = document.createElement('div');
+                contactDiv.style.marginBottom = '8px';
+                contactDiv.innerHTML = item.innerHTML;
+                contactSection.appendChild(contactDiv);
+            });
+            combinedContent.appendChild(contactSection);
+            
+            // Add skills from sidebar
+            const skillsSection = sidebar.querySelector('h3:contains("SKILLS")')?.parentElement;
+            if (skillsSection) {
+                const skillsDiv = document.createElement('div');
+                skillsDiv.innerHTML = '<h3 style="color: #8B4513; border-bottom: 2px solid #8B4513; padding-bottom: 5px; margin-bottom: 10px; margin-top: 20px;">SKILLS</h3>';
+                
+                const skillsList = skillsSection.querySelectorAll('.template-2-skill-item');
+                skillsList.forEach(skill => {
+                    const skillDiv = document.createElement('div');
+                    skillDiv.style.marginBottom = '5px';
+                    skillDiv.innerHTML = skill.innerHTML;
+                    skillsDiv.appendChild(skillDiv);
+                });
+                combinedContent.appendChild(skillsDiv);
+            }
+            
+            // Add languages from sidebar
+            const languagesSection = sidebar.querySelector('h3:contains("LANGUAGES")')?.parentElement;
+            if (languagesSection) {
+                const languagesDiv = document.createElement('div');
+                languagesDiv.innerHTML = '<h3 style="color: #8B4513; border-bottom: 2px solid #8B4513; padding-bottom: 5px; margin-bottom: 10px; margin-top: 20px;">LANGUAGES</h3>';
+                
+                const languagesList = languagesSection.querySelectorAll('.template-2-language-item');
+                languagesList.forEach(lang => {
+                    const langDiv = document.createElement('div');
+                    langDiv.style.marginBottom = '5px';
+                    langDiv.innerHTML = lang.innerHTML;
+                    languagesDiv.appendChild(langDiv);
+                });
+                combinedContent.appendChild(languagesDiv);
+            }
+            
+            // Add main content sections
+            const mainSections = mainContent.querySelectorAll('h3');
+            mainSections.forEach(section => {
+                const sectionDiv = document.createElement('div');
+                sectionDiv.style.marginTop = '20px';
+                
+                // Copy the section header
+                const header = section.cloneNode(true);
+                header.style.color = '#8B4513';
+                header.style.borderBottom = '2px solid #8B4513';
+                header.style.paddingBottom = '5px';
+                header.style.marginBottom = '10px';
+                sectionDiv.appendChild(header);
+                
+                // Copy the section content
+                let nextElement = section.nextElementSibling;
+                while (nextElement && nextElement.tagName !== 'H3') {
+                    const contentDiv = nextElement.cloneNode(true);
+                    sectionDiv.appendChild(contentDiv);
+                    nextElement = nextElement.nextElementSibling;
+                }
+                
+                combinedContent.appendChild(sectionDiv);
+            });
+            
+        } else {
+            console.log('Sidebar or main content not found, using fallback');
+            combinedContent.innerHTML = template2Container.innerHTML;
+        }
+        
+        console.log('Two-column content extracted, length:', combinedContent.innerHTML.length);
+        return combinedContent.innerHTML;
+    }
+
+    async generateTwoColumnPDF(template2Container, pageWidth, pageHeight) {
+        try {
+            console.log('=== TWO-COLUMN PDF GENERATION ===');
+            
+            // Create a single-column version for better capture
+            const singleColumnContainer = document.createElement('div');
+            singleColumnContainer.style.position = 'absolute';
+            singleColumnContainer.style.left = '-9999px';
+            singleColumnContainer.style.top = '0';
+            singleColumnContainer.style.width = '210mm';
+            singleColumnContainer.style.minHeight = '297mm';
+            singleColumnContainer.style.backgroundColor = 'white';
+            singleColumnContainer.style.padding = '20px';
+            singleColumnContainer.style.fontFamily = 'Arial, sans-serif';
+            singleColumnContainer.style.fontSize = '12pt';
+            singleColumnContainer.style.color = '#333';
+            singleColumnContainer.style.lineHeight = '1.4';
+            
+            // Extract and combine content from both columns
+            const combinedContent = this.extractTwoColumnContent(template2Container);
+            singleColumnContainer.innerHTML = combinedContent;
+            
+            document.body.appendChild(singleColumnContainer);
+            
+            // Wait for content to render
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            console.log('Single-column container created, dimensions:', {
+                width: singleColumnContainer.offsetWidth,
+                height: singleColumnContainer.offsetHeight
+            });
+            
+            // Generate canvas with optimized settings for single column
+            const canvas = await html2canvas(singleColumnContainer, {
+                scale: 1,
+                useCORS: true,
+                backgroundColor: '#ffffff',
+                width: singleColumnContainer.offsetWidth,
+                height: singleColumnContainer.offsetHeight,
+                logging: true,
+                allowTaint: true,
+                foreignObjectRendering: false,
+                removeContainer: false,
+                imageTimeout: 15000,
+                scrollX: 0,
+                scrollY: 0,
+                windowWidth: singleColumnContainer.offsetWidth,
+                windowHeight: singleColumnContainer.offsetHeight,
+                onclone: (clonedDoc, element) => {
+                    console.log('Two-column canvas clone created');
+                    
+                    // Ensure proper styling in clone
+                    const clonedBody = clonedDoc.body;
+                    if (clonedBody) {
+                        clonedBody.style.background = 'white';
+                        clonedBody.style.color = '#333';
+                        clonedBody.style.fontFamily = 'Arial, sans-serif';
+                    }
+                    
+                    // Fix all elements
+                    const allElements = clonedDoc.querySelectorAll('*');
+                    allElements.forEach(el => {
+                        el.style.visibility = 'visible';
+                        el.style.opacity = '1';
+                        el.style.display = el.style.display || 'block';
+                        el.style.fontFamily = 'Arial, sans-serif';
+                        el.style.color = '#333';
+                        el.style.backgroundColor = 'transparent';
+                    });
+                }
+            });
+            
+            console.log('Two-column canvas generated:', {
+                width: canvas.width,
+                height: canvas.height,
+                hasContent: canvas.width > 0 && canvas.height > 0
+            });
+            
+            // Check if canvas has content
+            if (canvas.width === 0 || canvas.height === 0) {
+                throw new Error('Two-column canvas is empty');
+            }
+            
+            // Create PDF
+            const pdf = new jspdf.jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4',
+                compress: true
+            });
+            
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            const imgWidth = canvas.width;
+            const imgHeight = canvas.height;
+            
+            const widthRatio = pdfWidth / imgWidth;
+            const finalWidth = pdfWidth;
+            const finalHeight = imgHeight * widthRatio;
+            
+            console.log('Two-column PDF dimensions:', {
+                pdfWidth, pdfHeight, imgWidth, imgHeight, 
+                finalWidth, finalHeight, widthRatio
+            });
+            
+            const imgData = canvas.toDataURL('image/jpeg', 0.95);
+            pdf.addImage(imgData, 'JPEG', 0, 0, finalWidth, finalHeight);
+            
+            // Generate filename
+            const timestamp = new Date().toISOString().slice(0, 10);
+            const fileName = `CV_${this.cvData.personalInfo?.fullName?.replace(/\s+/g, '_') || 'Resume'}_${timestamp}.pdf`;
+            
+            // Download PDF
+            pdf.save(fileName);
+            
+            // Clean up
+            document.body.removeChild(singleColumnContainer);
+            
+            console.log('Two-column PDF generated successfully');
+            
+        } catch (error) {
+            console.error('Two-column PDF generation failed:', error);
+            throw error;
+        }
     }
 
     async generateTemplate2PDFWithCanvas(container, pageWidth, pageHeight) {
