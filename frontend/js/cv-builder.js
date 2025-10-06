@@ -3901,12 +3901,12 @@ class CVBuilder {
             combinedContent.appendChild(contactSection);
             
             // Add skills from sidebar
-            const skillsSection = sidebar.querySelector('h3:contains("SKILLS")')?.parentElement;
-            if (skillsSection) {
+            const skillsHeading = Array.from(sidebar.querySelectorAll('h3')).find(h => h.textContent.includes('SKILLS'));
+            if (skillsHeading) {
                 const skillsDiv = document.createElement('div');
                 skillsDiv.innerHTML = '<h3 style="color: #8B4513; border-bottom: 2px solid #8B4513; padding-bottom: 5px; margin-bottom: 10px; margin-top: 20px;">SKILLS</h3>';
                 
-                const skillsList = skillsSection.querySelectorAll('.template-2-skill-item');
+                const skillsList = sidebar.querySelectorAll('.template-2-skill-item');
                 skillsList.forEach(skill => {
                     const skillDiv = document.createElement('div');
                     skillDiv.style.marginBottom = '5px';
@@ -3917,12 +3917,12 @@ class CVBuilder {
             }
             
             // Add languages from sidebar
-            const languagesSection = sidebar.querySelector('h3:contains("LANGUAGES")')?.parentElement;
-            if (languagesSection) {
+            const languagesHeading = Array.from(sidebar.querySelectorAll('h3')).find(h => h.textContent.includes('LANGUAGES'));
+            if (languagesHeading) {
                 const languagesDiv = document.createElement('div');
                 languagesDiv.innerHTML = '<h3 style="color: #8B4513; border-bottom: 2px solid #8B4513; padding-bottom: 5px; margin-bottom: 10px; margin-top: 20px;">LANGUAGES</h3>';
                 
-                const languagesList = languagesSection.querySelectorAll('.template-2-language-item');
+                const languagesList = sidebar.querySelectorAll('.template-2-language-item');
                 languagesList.forEach(lang => {
                     const langDiv = document.createElement('div');
                     langDiv.style.marginBottom = '5px';
