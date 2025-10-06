@@ -3871,6 +3871,9 @@ class CVBuilder {
         
         if (sidebar && mainContent) {
             console.log('Found both sidebar and main content');
+            console.log('Sidebar content length:', sidebar.innerHTML.length);
+            console.log('Main content length:', mainContent.innerHTML.length);
+            console.log('Main content preview:', mainContent.innerHTML.substring(0, 500));
             
             // Create header with name
             const nameElement = mainContent.querySelector('.template-2-name');
@@ -3934,7 +3937,9 @@ class CVBuilder {
             
             // Add main content sections
             const mainSections = mainContent.querySelectorAll('h3');
-            mainSections.forEach(section => {
+            console.log('Found main content sections:', mainSections.length);
+            mainSections.forEach((section, index) => {
+                console.log(`Processing main section ${index + 1}:`, section.textContent);
                 const sectionDiv = document.createElement('div');
                 sectionDiv.style.marginTop = '20px';
                 
@@ -3948,14 +3953,33 @@ class CVBuilder {
                 
                 // Copy the section content
                 let nextElement = section.nextElementSibling;
+                let contentCount = 0;
                 while (nextElement && nextElement.tagName !== 'H3') {
                     const contentDiv = nextElement.cloneNode(true);
                     sectionDiv.appendChild(contentDiv);
+                    contentCount++;
                     nextElement = nextElement.nextElementSibling;
                 }
+                console.log(`Section ${index + 1} content elements:`, contentCount);
                 
                 combinedContent.appendChild(sectionDiv);
             });
+            
+            // Also add the name from main content if it exists
+            const nameElement = mainContent.querySelector('.template-2-name');
+            if (nameElement) {
+                console.log('Found name element in main content:', nameElement.textContent);
+                const nameDiv = document.createElement('div');
+                nameDiv.style.textAlign = 'center';
+                nameDiv.style.fontSize = '24pt';
+                nameDiv.style.fontWeight = 'bold';
+                nameDiv.style.color = '#8B4513';
+                nameDiv.style.marginBottom = '20px';
+                nameDiv.style.borderBottom = '2px solid #8B4513';
+                nameDiv.style.paddingBottom = '10px';
+                nameDiv.textContent = nameElement.textContent;
+                combinedContent.insertBefore(nameDiv, combinedContent.firstChild);
+            }
             
         } else {
             console.log('Sidebar or main content not found, using fallback');
