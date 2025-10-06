@@ -3070,20 +3070,81 @@ class CVBuilder {
             const pageHeight = 1123; // A4 height in pixels at 96 DPI (297mm)
             const margin = 0; // No margin to preserve Template 2 design
 
-            // For Template 2, we need to handle the two-column layout differently
-            if (selectedTemplate === 'modern') {
-                await this.generateTemplate2PDFWithCanvas(tempContainer, pageWidth, pageHeight);
-            } else {
-                // For other templates, use the regular multi-page approach
-                const pages = await this.splitContentIntoPages(tempContainer, pageWidth, pageHeight, 20);
-                await this.generateRegularPDF(pages, pageWidth, pageHeight);
-            }
+            // Use direct canvas capture for all templates
+            await this.generateDirectPDF(tempContainer, pageWidth, pageHeight);
 
             // Clean up
             document.body.removeChild(tempContainer);
 
         } catch (error) {
             console.error('Error generating PDF:', error);
+            throw error;
+        }
+    }
+
+    async generateDirectPDF(container, pageWidth, pageHeight) {
+        try {
+            console.log('Generating direct PDF from container...');
+            console.log('Container content:', container.innerHTML.substring(0, 200));
+            
+            // Generate canvas for the entire container
+            const canvas = await html2canvas(container, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: '#ffffff',
+                width: pageWidth,
+                height: container.scrollHeight,
+                logging: true,
+                allowTaint: true,
+                foreignObjectRendering: false,
+                removeContainer: false,
+                imageTimeout: 15000
+            });
+            
+            console.log('Canvas generated:', {
+                width: canvas.width,
+                height: canvas.height
+            });
+
+            // Create PDF
+            const pdf = new jspdf.jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4',
+                compress: true
+            });
+
+            // Calculate dimensions for full page coverage
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            const imgWidth = canvas.width;
+            const imgHeight = canvas.height;
+            
+            // Calculate ratio to fill the entire page width
+            const widthRatio = pdfWidth / imgWidth;
+            const ratio = widthRatio; // Use width ratio to fill full page width
+            
+            // Position to cover complete page (no margins)
+            const imgX = 0;
+            const imgY = 0;
+            const finalWidth = pdfWidth;
+            const finalHeight = imgHeight * ratio;
+
+            // Add image to PDF
+            const imgData = canvas.toDataURL('image/jpeg', 1.0);
+            pdf.addImage(imgData, 'JPEG', imgX, imgY, finalWidth, finalHeight);
+
+            // Generate filename
+            const timestamp = new Date().toISOString().slice(0, 10);
+            const fileName = `CV_${this.cvData.personalInfo.fullName?.replace(/\s+/g, '_') || 'Resume'}_${timestamp}.pdf`;
+            
+            // Download PDF
+            pdf.save(fileName);
+            
+            console.log('Direct PDF generated successfully');
+            
+        } catch (error) {
+            console.error('Error generating direct PDF:', error);
             throw error;
         }
     }
