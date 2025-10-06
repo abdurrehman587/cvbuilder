@@ -32,17 +32,29 @@ app.post('/api/pdf/generate', async (req, res) => {
   try {
     console.log('Received PDF generation request');
     
-    const cvData = req.body.cv_data || req.body;
-    const template = cvData.template || 'classic';
+    const { cvData, template = 'classic', html_content } = req.body;
     
     console.log('Template:', template);
-    console.log('CV Data keys:', Object.keys(cvData));
+    console.log('Has CV data:', !!cvData);
+    console.log('Has HTML content:', !!html_content);
     
-    // Generate HTML based on template
-    const html = generateHTML(cvData, template);
+    let html;
+    let pdfBuffer;
+    
+    if (html_content) {
+      // Hybrid approach: Use HTML content from frontend
+      console.log('Using hybrid approach: HTML to PDF conversion');
+      html = html_content;
+    } else if (cvData) {
+      // Original approach: Generate HTML from CV data
+      console.log('Using original approach: CV data to HTML conversion');
+      html = generateHTML(cvData, template);
+    } else {
+      return res.status(400).json({ error: 'Either CV data or HTML content is required' });
+    }
     
     // Generate PDF using Puppeteer
-    const pdfBuffer = await generatePDF(html);
+    pdfBuffer = await generatePDF(html);
     
     // Set response headers
     res.setHeader('Content-Type', 'application/pdf');
@@ -537,22 +549,43 @@ async function generatePDF(html) {
   try {
     browser = await puppeteer.launch({
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      args: [
+        '--no-sandbox', 
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--no-zygote',
+        '--single-process',
+        '--disable-gpu'
+      ]
     });
     
     const page = await browser.newPage();
     
-    await page.setContent(html, { waitUntil: 'networkidle0' });
+    // Set viewport for consistent rendering
+    await page.setViewport({ width: 794, height: 1123, deviceScaleFactor: 1 });
+    
+    await page.setContent(html, { 
+      waitUntil: 'networkidle0',
+      timeout: 30000 
+    });
+    
+    // Wait for fonts to load
+    await page.evaluateHandle('document.fonts.ready');
     
     const pdfBuffer = await page.pdf({
       format: 'A4',
       printBackground: true,
+      preferCSSPageSize: true,
       margin: {
-        top: '20mm',
-        right: '20mm',
-        bottom: '20mm',
-        left: '20mm'
-      }
+        top: '15mm',
+        right: '15mm',
+        bottom: '15mm',
+        left: '15mm'
+      },
+      displayHeaderFooter: false,
+      scale: 1.0
     });
     
     return pdfBuffer;

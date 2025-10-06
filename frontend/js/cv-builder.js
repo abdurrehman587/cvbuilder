@@ -3072,8 +3072,8 @@ class CVBuilder {
             const pageHeight = 1123; // A4 height in pixels at 96 DPI (297mm)
             const margin = 0; // No margin to preserve Template 2 design
 
-            // Use direct canvas capture for all templates
-            await this.generateDirectPDF(tempContainer, pageWidth, pageHeight);
+            // Use hybrid approach: frontend HTML generation + backend PDF conversion
+            await this.generateHybridPDF(tempContainer, pageWidth, pageHeight);
 
             // Clean up
             document.body.removeChild(tempContainer);
@@ -3147,6 +3147,269 @@ class CVBuilder {
             
         } catch (error) {
             console.error('Error generating direct PDF:', error);
+            throw error;
+        }
+    }
+
+    async generateHybridPDF(container, pageWidth, pageHeight) {
+        try {
+            console.log('=== HYBRID PDF GENERATION ===');
+            console.log('Step 1: Generating HTML from frontend preview...');
+            
+            // Step 1: Generate clean HTML from the frontend preview
+            const htmlContent = this.generateCleanHTML(container);
+            console.log('HTML generated, length:', htmlContent.length);
+            
+            // Step 2: Try backend PDF generation with the HTML
+            console.log('Step 2: Sending HTML to backend for PDF conversion...');
+            try {
+                await this.generateBackendPDFFromHTML(htmlContent);
+                console.log('Backend PDF generation successful');
+                return;
+            } catch (backendError) {
+                console.log('Backend failed, falling back to frontend PDF generation...');
+                console.error('Backend error:', backendError);
+                
+                // Step 3: Fallback to frontend PDF generation
+                console.log('Step 3: Using frontend PDF generation as fallback...');
+                await this.generateDirectPDF(container, pageWidth, pageHeight);
+            }
+            
+        } catch (error) {
+            console.error('Hybrid PDF generation failed:', error);
+            throw error;
+        }
+    }
+
+    generateCleanHTML(container) {
+        // Clone the container to avoid modifying the original
+        const clonedContainer = container.cloneNode(true);
+        
+        // Apply print-specific styles
+        this.applyPrintStyles(clonedContainer);
+        
+        // Generate clean HTML
+        const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>CV - ${this.cvData.personalInfo?.fullName || 'Resume'}</title>
+    <style>
+        @page { 
+            size: A4; 
+            margin: 15mm; 
+        }
+        body { 
+            font-family: 'Arial', sans-serif; 
+            font-size: 12pt; 
+            line-height: 1.4; 
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background: white;
+        }
+        * {
+            box-sizing: border-box;
+        }
+        .template-2-container {
+            display: flex;
+            width: 100%;
+            min-height: 100vh;
+        }
+        .template-2-sidebar {
+            width: 35%;
+            background: linear-gradient(135deg, #D2B48C 0%, #DEB887 50%, #D2B48C 100%);
+            padding: 20px;
+            color: #333;
+        }
+        .template-2-main-content {
+            width: 65%;
+            background: white;
+            padding: 20px;
+            color: #333;
+        }
+        .template-2-sidebar h3, .template-2-main-content h3 {
+            font-size: 14pt;
+            font-weight: bold;
+            color: #8B4513;
+            border-bottom: 2px solid #8B4513;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+            margin-top: 20px;
+        }
+        .template-2-sidebar h3:first-child, .template-2-main-content h3:first-child {
+            margin-top: 0;
+        }
+        .template-2-name {
+            font-size: 20pt;
+            font-weight: bold;
+            color: #8B4513;
+            text-align: right;
+            margin-bottom: 20px;
+        }
+        .template-2-contact-item {
+            font-size: 10pt;
+            margin-bottom: 8px;
+        }
+        .template-2-job-title, .template-2-degree {
+            font-weight: bold;
+            color: #8B4513;
+            font-size: 12pt;
+        }
+        .template-2-company, .template-2-institution {
+            font-weight: bold;
+            color: #333;
+        }
+        .template-2-duration {
+            color: #666;
+            font-style: italic;
+        }
+        .template-2-description {
+            margin-top: 5px;
+            text-align: justify;
+        }
+        .template-2-skill-item, .template-2-language-item {
+            font-size: 10pt;
+            margin-bottom: 5px;
+        }
+        /* Classic template styles */
+        .classic-template {
+            font-family: 'Arial', sans-serif;
+        }
+        .classic-template .template-name {
+            font-size: 24pt;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .classic-template .template-contact {
+            font-size: 11pt;
+            color: #666;
+        }
+        .classic-template h3 {
+            font-size: 14pt;
+            font-weight: bold;
+            color: #8B4513;
+            border-bottom: 2px solid #8B4513;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+        }
+        /* Minimalist template styles */
+        .minimalist-template {
+            font-family: 'Arial', sans-serif;
+        }
+        .minimalist-template .template-name {
+            font-size: 26pt;
+            font-weight: 300;
+            color: #333;
+            margin-bottom: 8px;
+            letter-spacing: 2px;
+        }
+        .minimalist-template .template-contact {
+            font-size: 11pt;
+            color: #666;
+            font-weight: 300;
+        }
+        .minimalist-template h3 {
+            font-size: 12pt;
+            font-weight: bold;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    ${clonedContainer.innerHTML}
+</body>
+</html>`;
+        
+        return html;
+    }
+
+    applyPrintStyles(container) {
+        // Ensure all elements have proper print styles
+        const allElements = container.querySelectorAll('*');
+        allElements.forEach(element => {
+            // Remove any inline styles that might interfere
+            if (element.style.position === 'absolute') {
+                element.style.position = 'static';
+            }
+            if (element.style.left === '-9999px') {
+                element.style.left = 'auto';
+            }
+            if (element.style.top === '-9999px') {
+                element.style.top = 'auto';
+            }
+            // Ensure visibility
+            element.style.visibility = 'visible';
+            element.style.opacity = '1';
+            element.style.display = element.style.display || 'block';
+        });
+    }
+
+    async generateBackendPDFFromHTML(htmlContent) {
+        try {
+            console.log('Sending HTML to backend for PDF conversion...');
+            
+            // Check if backend server is running
+            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const backendUrl = isLocalhost ? 'http://localhost:3000' : 'https://cvbuilder-b6ok-nb3oy1au6-abdurrehmans-projects-37746bc3.vercel.app';
+            
+            // Health check
+            try {
+                const healthResponse = await fetch(`${backendUrl}/up`, {
+                    method: 'GET',
+                    headers: { 'Accept': 'text/plain' }
+                });
+                if (!healthResponse.ok) {
+                    throw new Error('Backend server not responding');
+                }
+                console.log('Backend server is running');
+            } catch (healthError) {
+                throw new Error('Backend server is not available');
+            }
+            
+            // Send HTML to backend for PDF conversion
+            const response = await fetch(`${backendUrl}/api/pdf/generate`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    html_content: htmlContent,
+                    template: sessionStorage.getItem('selectedTemplate') || 'classic'
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Backend returned ${response.status}: ${response.statusText}`);
+            }
+            
+            // Get PDF blob
+            const pdfBlob = await response.blob();
+            
+            // Create download link
+            const url = window.URL.createObjectURL(pdfBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            
+            // Generate filename
+            const timestamp = new Date().toISOString().slice(0, 10);
+            const fileName = `CV_${this.cvData.personalInfo?.fullName?.replace(/\s+/g, '_') || 'Resume'}_${timestamp}.pdf`;
+            a.download = fileName;
+            
+            // Trigger download
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            console.log('Backend PDF generation successful');
+            
+        } catch (error) {
+            console.error('Backend PDF generation failed:', error);
             throw error;
         }
     }
