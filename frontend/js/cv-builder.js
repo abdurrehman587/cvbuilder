@@ -3172,7 +3172,13 @@ class CVBuilder {
                 
                 // Step 3: Fallback to frontend PDF generation with enhanced content capture
                 console.log('Step 3: Using enhanced frontend PDF generation as fallback...');
-                await this.generateEnhancedFrontendPDF(container, pageWidth, pageHeight);
+                try {
+                    await this.generateEnhancedFrontendPDF(container, pageWidth, pageHeight);
+                } catch (frontendError) {
+                    console.log('Enhanced frontend failed, trying simple fallback...');
+                    console.error('Enhanced frontend error:', frontendError);
+                    await this.generateSimplePDF(container, pageWidth, pageHeight);
+                }
             }
             
         } catch (error) {
@@ -3584,40 +3590,93 @@ class CVBuilder {
         try {
             console.log('=== ENHANCED FRONTEND PDF GENERATION ===');
             console.log('Container content length:', container.innerHTML.length);
+            console.log('Container visible:', container.offsetWidth, 'x', container.offsetHeight);
             
-            // Wait for all content to load
-            await new Promise(resolve => setTimeout(resolve, 500));
+            // Ensure container is visible and properly positioned
+            container.style.position = 'static';
+            container.style.left = 'auto';
+            container.style.top = 'auto';
+            container.style.visibility = 'visible';
+            container.style.opacity = '1';
+            container.style.display = 'block';
+            container.style.background = 'white';
             
-            // Generate canvas with enhanced settings
+            // Wait for fonts and content to load
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Force all child elements to be visible
+            const allElements = container.querySelectorAll('*');
+            allElements.forEach(element => {
+                element.style.visibility = 'visible';
+                element.style.opacity = '1';
+                element.style.display = element.style.display || 'block';
+                element.style.fontFamily = 'Arial, sans-serif';
+                element.style.color = '#333';
+                element.style.backgroundColor = 'transparent';
+            });
+            
+            console.log('Content prepared for canvas generation');
+            
+            // Generate canvas with conservative settings
             const canvas = await html2canvas(container, {
-                scale: 2,
+                scale: 1, // Reduced scale to avoid issues
                 useCORS: true,
                 backgroundColor: '#ffffff',
-                width: pageWidth,
-                height: container.scrollHeight,
+                width: container.offsetWidth || pageWidth,
+                height: container.offsetHeight || pageHeight,
                 logging: true,
                 allowTaint: true,
-                foreignObjectRendering: true,
+                foreignObjectRendering: false, // Disable to avoid black content
                 removeContainer: false,
-                imageTimeout: 20000,
-                onclone: (clonedDoc) => {
-                    console.log('Canvas clone created');
-                    // Ensure all fonts are loaded
-                    const allElements = clonedDoc.querySelectorAll('*');
-                    allElements.forEach(element => {
-                        element.style.fontFamily = 'Arial, sans-serif';
-                        element.style.visibility = 'visible';
-                        element.style.opacity = '1';
+                imageTimeout: 10000,
+                scrollX: 0,
+                scrollY: 0,
+                windowWidth: pageWidth,
+                windowHeight: pageHeight,
+                onclone: (clonedDoc, element) => {
+                    console.log('Canvas clone created for element:', element);
+                    
+                    // Ensure the cloned document has proper styling
+                    const clonedBody = clonedDoc.body;
+                    if (clonedBody) {
+                        clonedBody.style.background = 'white';
+                        clonedBody.style.color = '#333';
+                        clonedBody.style.fontFamily = 'Arial, sans-serif';
+                    }
+                    
+                    // Fix all elements in the clone
+                    const allClonedElements = clonedDoc.querySelectorAll('*');
+                    allClonedElements.forEach(el => {
+                        el.style.visibility = 'visible';
+                        el.style.opacity = '1';
+                        el.style.display = el.style.display || 'block';
+                        el.style.fontFamily = 'Arial, sans-serif';
+                        el.style.color = '#333';
+                        el.style.backgroundColor = 'transparent';
                     });
                 }
             });
             
             console.log('Canvas generated:', {
                 width: canvas.width,
-                height: canvas.height
+                height: canvas.height,
+                hasContent: canvas.width > 0 && canvas.height > 0
             });
+            
+            // Check if canvas has content
+            if (canvas.width === 0 || canvas.height === 0) {
+                throw new Error('Canvas is empty - no content captured');
+            }
+            
+            // Test canvas content by creating a temporary image
+            const testDataURL = canvas.toDataURL('image/png');
+            console.log('Canvas data URL length:', testDataURL.length);
+            
+            if (testDataURL === 'data:,') {
+                throw new Error('Canvas data is empty');
+            }
 
-            // Create PDF with multiple pages if needed
+            // Create PDF
             const pdf = new jspdf.jsPDF({
                 orientation: 'portrait',
                 unit: 'mm',
@@ -3637,6 +3696,11 @@ class CVBuilder {
             const finalWidth = pdfWidth;
             const finalHeight = imgHeight * ratio;
             
+            console.log('PDF dimensions:', {
+                pdfWidth, pdfHeight, imgWidth, imgHeight, 
+                finalWidth, finalHeight, ratio
+            });
+            
             // Add image to PDF
             const imgData = canvas.toDataURL('image/jpeg', 0.95);
             pdf.addImage(imgData, 'JPEG', 0, 0, finalWidth, finalHeight);
@@ -3654,6 +3718,124 @@ class CVBuilder {
             console.error('Enhanced frontend PDF generation failed:', error);
             throw error;
         }
+    }
+
+    async generateSimplePDF(container, pageWidth, pageHeight) {
+        try {
+            console.log('=== SIMPLE PDF GENERATION ===');
+            console.log('Using basic html2canvas approach...');
+            
+            // Create a simple container with just the text content
+            const simpleContainer = document.createElement('div');
+            simpleContainer.style.position = 'absolute';
+            simpleContainer.style.left = '-9999px';
+            simpleContainer.style.top = '0';
+            simpleContainer.style.width = '210mm';
+            simpleContainer.style.minHeight = '297mm';
+            simpleContainer.style.backgroundColor = 'white';
+            simpleContainer.style.padding = '20px';
+            simpleContainer.style.fontFamily = 'Arial, sans-serif';
+            simpleContainer.style.fontSize = '12pt';
+            simpleContainer.style.color = '#333';
+            simpleContainer.style.lineHeight = '1.4';
+            
+            // Copy only the text content, not the complex layout
+            const textContent = this.extractTextContent(container);
+            simpleContainer.innerHTML = textContent;
+            
+            document.body.appendChild(simpleContainer);
+            
+            // Wait for content to render
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Generate canvas with minimal settings
+            const canvas = await html2canvas(simpleContainer, {
+                scale: 1,
+                backgroundColor: '#ffffff',
+                width: simpleContainer.offsetWidth,
+                height: simpleContainer.offsetHeight,
+                logging: false,
+                allowTaint: true,
+                useCORS: true
+            });
+            
+            console.log('Simple canvas generated:', {
+                width: canvas.width,
+                height: canvas.height
+            });
+            
+            // Create PDF
+            const pdf = new jspdf.jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4'
+            });
+            
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            const imgWidth = canvas.width;
+            const imgHeight = canvas.height;
+            
+            const widthRatio = pdfWidth / imgWidth;
+            const finalWidth = pdfWidth;
+            const finalHeight = imgHeight * widthRatio;
+            
+            const imgData = canvas.toDataURL('image/jpeg', 0.95);
+            pdf.addImage(imgData, 'JPEG', 0, 0, finalWidth, finalHeight);
+            
+            // Generate filename
+            const timestamp = new Date().toISOString().slice(0, 10);
+            const fileName = `CV_${this.cvData.personalInfo?.fullName?.replace(/\s+/g, '_') || 'Resume'}_${timestamp}.pdf`;
+            
+            // Download PDF
+            pdf.save(fileName);
+            
+            // Clean up
+            document.body.removeChild(simpleContainer);
+            
+            console.log('Simple PDF generated successfully');
+            
+        } catch (error) {
+            console.error('Simple PDF generation failed:', error);
+            throw error;
+        }
+    }
+
+    extractTextContent(container) {
+        console.log('Extracting text content from container...');
+        
+        // Get the CV preview element
+        const previewElement = document.getElementById('cvPreview');
+        if (!previewElement) {
+            console.error('CV preview element not found');
+            return '<div>CV content not found</div>';
+        }
+        
+        // Clone the preview element
+        const clonedPreview = previewElement.cloneNode(true);
+        
+        // Apply simple styles for text extraction
+        clonedPreview.style.fontFamily = 'Arial, sans-serif';
+        clonedPreview.style.fontSize = '12pt';
+        clonedPreview.style.color = '#333';
+        clonedPreview.style.backgroundColor = 'white';
+        clonedPreview.style.padding = '20px';
+        clonedPreview.style.lineHeight = '1.4';
+        
+        // Remove any complex styling that might cause issues
+        const allElements = clonedPreview.querySelectorAll('*');
+        allElements.forEach(element => {
+            element.style.position = 'static';
+            element.style.left = 'auto';
+            element.style.top = 'auto';
+            element.style.transform = 'none';
+            element.style.background = 'transparent';
+            element.style.border = 'none';
+            element.style.boxShadow = 'none';
+        });
+        
+        console.log('Text content extracted, length:', clonedPreview.innerHTML.length);
+        return clonedPreview.innerHTML;
     }
 
     async generateTemplate2PDFWithCanvas(container, pageWidth, pageHeight) {
