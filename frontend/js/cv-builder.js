@@ -3092,7 +3092,21 @@ class CVBuilder {
         try {
             // Get the template-2-container
             const template2Container = container.querySelector('.template-2-container');
+            console.log('Template 2 container found:', !!template2Container);
+            console.log('Container HTML:', container.innerHTML.substring(0, 500));
+            
             if (!template2Container) {
+                // Try alternative selectors
+                const alternativeContainer = container.querySelector('.cv-preview') || 
+                                          container.querySelector('.template-2') ||
+                                          container.querySelector('[class*="template"]');
+                console.log('Alternative container found:', !!alternativeContainer);
+                
+                if (alternativeContainer) {
+                    console.log('Using alternative container for PDF generation');
+                    return await this.generateTemplate2PDFWithCanvas(alternativeContainer, pageWidth, pageHeight);
+                }
+                
                 throw new Error('Template 2 container not found');
             }
 
@@ -3100,17 +3114,28 @@ class CVBuilder {
             this.applyTemplate2PDFStylesWithFontSizes(template2Container);
 
             // Generate canvas for the entire Template 2 layout
+            console.log('Template 2 container dimensions:', {
+                width: template2Container.offsetWidth,
+                height: template2Container.offsetHeight,
+                scrollHeight: template2Container.scrollHeight
+            });
+            
             const canvas = await html2canvas(template2Container, {
                 scale: 3, // Increased scale for better quality
                 useCORS: true,
                 backgroundColor: '#ffffff',
                 width: pageWidth,
                 height: template2Container.scrollHeight,
-                logging: false,
+                logging: true, // Enable logging to see what's being captured
                 allowTaint: true,
                 foreignObjectRendering: false,
                 removeContainer: false,
                 imageTimeout: 15000
+            });
+            
+            console.log('Canvas generated:', {
+                width: canvas.width,
+                height: canvas.height
             });
 
             // Create PDF
