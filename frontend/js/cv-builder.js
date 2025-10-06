@@ -1801,6 +1801,24 @@ class CVBuilder {
         // Update experience
         this.updateExperiencePreview();
         
+        // Debug Template 2 main content
+        if (sessionStorage.getItem('selectedTemplate') === 'modern') {
+            console.log('=== TEMPLATE 2 DEBUG ===');
+            const mainContent = document.querySelector('.template-2-main-content');
+            const educationContainer = document.getElementById('previewEducation');
+            const experienceContainer = document.getElementById('previewExperience');
+            const summaryElement = document.getElementById('previewSummary');
+            
+            console.log('Main content element:', mainContent);
+            console.log('Education container:', educationContainer);
+            console.log('Experience container:', experienceContainer);
+            console.log('Summary element:', summaryElement);
+            console.log('Education data:', this.cvData.education);
+            console.log('Experience data:', this.cvData.experience);
+            console.log('Summary data:', this.cvData.personalInfo.summary);
+            console.log('=== END TEMPLATE 2 DEBUG ===');
+        }
+        
         // Update certifications
         this.updateCertificationsPreview();
         
