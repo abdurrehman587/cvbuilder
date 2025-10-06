@@ -1592,6 +1592,7 @@ class CVBuilder {
         // Collect skills data
         this.cvData.skills = [];
         const skillItems = document.querySelectorAll('.skill-item');
+        console.log('=== SKILLS COLLECTION DEBUG ===');
         console.log('Found skill items:', skillItems.length);
         skillItems.forEach((item, index) => {
             const skill = item.querySelector('.skill')?.value || '';
@@ -1603,6 +1604,7 @@ class CVBuilder {
         });
         
         console.log('Skills collected from form:', this.cvData.skills);
+        console.log('=== END SKILLS COLLECTION DEBUG ===');
         
         // If no skills found, use default skills
         if (this.cvData.skills.length === 0) {
@@ -6666,28 +6668,30 @@ class CVBuilder {
         const skillsList = document.getElementById('skillsList');
         if (!skillsList) return;
 
-        // Check if there are already skills in the HTML with values
-        const existingSkills = skillsList.querySelectorAll('.skill-item input.skill');
-        const hasExistingSkills = Array.from(existingSkills).some(input => input.value.trim() !== '');
+        console.log('=== POPULATE SKILLS FIELDS DEBUG ===');
+        console.log('Current cvData.skills:', this.cvData.skills);
+        console.log('Skills length:', this.cvData.skills ? this.cvData.skills.length : 0);
 
-        // Only clear and repopulate if there are no existing skills with values
-        if (!hasExistingSkills) {
-            // Clear existing skills items
-            skillsList.innerHTML = '';
+        // Always clear existing skills items to ensure fresh data
+        skillsList.innerHTML = '';
 
-            // Add skills items from saved data
-            if (this.cvData.skills && this.cvData.skills.length > 0) {
-                this.cvData.skills.forEach(skill => {
-                    this.addSkillItem(skill);
-                });
-            } else {
-                // Add default skills
-                const defaultSkills = ['Communication Skills', 'Time Management', 'Hardworking', 'Accurate Planning'];
-                defaultSkills.forEach(skill => {
-                    this.addSkillItem({ skill: skill });
-                });
-            }
+        // Add skills items from saved data
+        if (this.cvData.skills && this.cvData.skills.length > 0) {
+            console.log('Loading saved skills:', this.cvData.skills);
+            this.cvData.skills.forEach((skill, index) => {
+                console.log(`Adding saved skill ${index + 1}:`, skill);
+                this.addSkillItem(skill);
+            });
+        } else {
+            console.log('No saved skills found, using default skills');
+            // Add default skills
+            const defaultSkills = ['Communication Skills', 'Time Management', 'Hardworking', 'Accurate Planning'];
+            defaultSkills.forEach(skill => {
+                this.addSkillItem({ skill: skill });
+            });
         }
+        
+        console.log('=== END POPULATE SKILLS FIELDS DEBUG ===');
     }
 
     addSkillItem(skillData = null) {
