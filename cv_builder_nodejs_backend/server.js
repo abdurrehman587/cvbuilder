@@ -7,14 +7,36 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// CORS configuration
+const corsOptions = {
+  origin: [
+    'https://cvbuilder-beryl-beta.vercel.app',
+    'http://localhost:3000',
+    'http://localhost:8080',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:8080'
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+  credentials: true
+};
+
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ extended: true }));
 
+// Handle preflight requests
+app.options('*', cors(corsOptions));
+
 // Health check endpoint
 app.get('/up', (req, res) => {
-  res.status(200).send('OK');
+  console.log('Health check requested from:', req.headers.origin || req.headers.host);
+  res.status(200).json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    server: 'CV Builder PDF Server'
+  });
 });
 
 // Root endpoint
