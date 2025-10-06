@@ -2906,7 +2906,7 @@ class CVBuilder {
             // Try frontend PDF generation as fallback
             console.log('Attempting frontend PDF generation as fallback...');
             try {
-                await this.generateFrontendPDF();
+                await this.generateMultiPagePDF();
                 console.log('Frontend PDF generation successful');
             } catch (frontendError) {
                 console.error('Frontend PDF generation also failed:', frontendError);
