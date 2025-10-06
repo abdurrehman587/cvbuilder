@@ -2905,9 +2905,15 @@ class CVBuilder {
             
             // Try frontend PDF generation as fallback
             console.log('Attempting frontend PDF generation as fallback...');
+            console.log('Available methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(this)));
             try {
-                await this.generateMultiPagePDF();
-                console.log('Frontend PDF generation successful');
+                if (typeof this.generateMultiPagePDF === 'function') {
+                    console.log('Calling generateMultiPagePDF method...');
+                    await this.generateMultiPagePDF();
+                    console.log('Frontend PDF generation successful');
+                } else {
+                    throw new Error('generateMultiPagePDF method not found');
+                }
             } catch (frontendError) {
                 console.error('Frontend PDF generation also failed:', frontendError);
                 
