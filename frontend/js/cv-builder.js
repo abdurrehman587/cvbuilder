@@ -3038,6 +3038,7 @@ class CVBuilder {
             tempContainer.style.left = '-9999px';
             tempContainer.style.top = '0';
             tempContainer.style.width = '210mm'; // A4 width in mm
+            tempContainer.style.minHeight = '297mm'; // A4 height in mm
             tempContainer.style.backgroundColor = 'white';
             tempContainer.style.padding = '0';
             tempContainer.style.margin = '0';
@@ -3049,6 +3050,8 @@ class CVBuilder {
             tempContainer.style.opacity = '1';
             tempContainer.style.maxWidth = '210mm';
             tempContainer.style.boxSizing = 'border-box';
+            tempContainer.style.display = 'flex';
+            tempContainer.style.flexDirection = 'column';
             
             // Clone the preview content
             const clonedPreview = previewElement.cloneNode(true);
@@ -3124,16 +3127,16 @@ class CVBuilder {
             const imgWidth = canvas.width;
             const imgHeight = canvas.height;
             
-            // Calculate ratio to fill the entire page width
+            // Calculate ratio to fill the entire page width (prioritize width)
             const widthRatio = pdfWidth / imgWidth;
             const heightRatio = pdfHeight / imgHeight;
-            const ratio = Math.min(widthRatio, heightRatio); // Use min to ensure content fits within page
+            const ratio = widthRatio; // Use width ratio to fill full page width
             
             // Position to cover complete page (no margins)
             const imgX = 0; // No left margin
             const imgY = 0; // No top margin
-            const finalWidth = imgWidth * ratio; // Full width
-            const finalHeight = imgHeight * ratio; // Full height
+            const finalWidth = pdfWidth; // Full page width
+            const finalHeight = imgHeight * ratio; // Scale height proportionally
 
             // Check if content fits on one page
             if (finalHeight <= pdfHeight) {
@@ -3178,7 +3181,7 @@ class CVBuilder {
     applyTemplate2PDFStylesWithFontSizes(container) {
         // Ensure Template 2 styles are properly applied for PDF with minimum 12pt font sizes
         container.style.width = '210mm'; // A4 width
-        container.style.height = '297mm'; // A4 height (fixed height for complete coverage)
+        container.style.minHeight = '297mm'; // A4 height (minimum height, allow expansion)
         container.style.display = 'flex';
         container.style.fontFamily = 'Arial, sans-serif';
         container.style.fontSize = '16px'; // Base font size (12pt = 16px)
