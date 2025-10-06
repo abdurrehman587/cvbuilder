@@ -136,3 +136,4 @@ git push origin main
 - ✅ **Fast Performance**: Global CDN and optimized backend
 
 **Yes, you can absolutely run both frontend and backend on the same hosting platform!** 🎉
+

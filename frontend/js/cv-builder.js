@@ -2903,13 +2903,22 @@ class CVBuilder {
         } catch (error) {
             console.error('Backend PDF generation failed:', error);
             
-            // Reset button on error
-            const downloadBtn = document.getElementById('downloadCV');
-            downloadBtn.innerHTML = '📄 Download CV as PDF';
-            downloadBtn.disabled = false;
-            
-            // Show error message
-            alert('PDF generation failed. Please ensure the backend server is running on http://localhost:3000');
+            // Try frontend PDF generation as fallback
+            console.log('Attempting frontend PDF generation as fallback...');
+            try {
+                await this.generateFrontendPDF();
+                console.log('Frontend PDF generation successful');
+            } catch (frontendError) {
+                console.error('Frontend PDF generation also failed:', frontendError);
+                
+                // Reset button on error
+                const downloadBtn = document.getElementById('downloadCV');
+                downloadBtn.innerHTML = '📄 Download CV as PDF';
+                downloadBtn.disabled = false;
+                
+                // Show error message
+                alert('PDF generation failed. Both backend and frontend methods failed. Please try again.');
+            }
         }
     }
 
@@ -2922,12 +2931,27 @@ class CVBuilder {
             const backendUrl = isLocalhost ? 'http://localhost:3000' : 'https://cvbuilder-b6ok-nb3oy1au6-abdurrehmans-projects-37746bc3.vercel.app';
             
             try {
-                const healthResponse = await fetch(`${backendUrl}/up`);
+                // Try health check with timeout
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+                
+                const healthResponse = await fetch(`${backendUrl}/up`, {
+                    method: 'GET',
+                    signal: controller.signal,
+                    headers: {
+                        'Accept': 'text/plain',
+                        'Content-Type': 'text/plain'
+                    }
+                });
+                
+                clearTimeout(timeoutId);
+                
                 if (!healthResponse.ok) {
-                    throw new Error('Backend server is not responding');
+                    throw new Error(`Backend server returned ${healthResponse.status}`);
                 }
                 console.log('Backend server is running');
             } catch (healthError) {
+                console.error('Backend health check failed:', healthError);
                 if (isLocalhost) {
                     throw new Error('Backend server is not running. Please start the Node.js server on port 3000');
                 } else {

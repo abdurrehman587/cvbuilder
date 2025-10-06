@@ -89,3 +89,4 @@ The backend can be deployed using:
 - **Docker**: Use the included Dockerfile
 - **Kamal**: Use the included Kamal configuration
 - **Traditional hosting**: Standard Rails deployment methods
+

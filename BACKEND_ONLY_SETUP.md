@@ -118,3 +118,4 @@ Your CV Builder now uses **backend-only PDF generation** with:
 - ✅ Clear error handling
 
 **Your CV Builder is now optimized for professional PDF generation!** 🚀
+

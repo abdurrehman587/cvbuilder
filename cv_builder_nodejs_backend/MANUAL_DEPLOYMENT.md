@@ -92,3 +92,4 @@ Once deployed, your CV Builder will have:
 - ✅ **Backend**: PDF generation service (on Vercel)
 - ✅ **Full-Stack**: Complete solution on one platform
 - ✅ **Global**: Available worldwide with fast performance
+
