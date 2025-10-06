@@ -3170,9 +3170,9 @@ class CVBuilder {
                 console.log('Backend failed, falling back to frontend PDF generation...');
                 console.error('Backend error:', backendError);
                 
-                // Step 3: Fallback to frontend PDF generation
-                console.log('Step 3: Using frontend PDF generation as fallback...');
-                await this.generateDirectPDF(container, pageWidth, pageHeight);
+                // Step 3: Fallback to frontend PDF generation with enhanced content capture
+                console.log('Step 3: Using enhanced frontend PDF generation as fallback...');
+                await this.generateEnhancedFrontendPDF(container, pageWidth, pageHeight);
             }
             
         } catch (error) {
@@ -3182,11 +3182,25 @@ class CVBuilder {
     }
 
     generateCleanHTML(container) {
+        console.log('=== GENERATING CLEAN HTML ===');
+        console.log('Container content length:', container.innerHTML.length);
+        console.log('Container classes:', container.className);
+        
         // Clone the container to avoid modifying the original
         const clonedContainer = container.cloneNode(true);
         
         // Apply print-specific styles
         this.applyPrintStyles(clonedContainer);
+        
+        // Debug: Log the content being captured
+        console.log('Cloned container content preview:', clonedContainer.innerHTML.substring(0, 500));
+        
+        // Get the template type
+        const template = sessionStorage.getItem('selectedTemplate') || 'classic';
+        console.log('Template type:', template);
+        
+        // Generate comprehensive CSS for all templates
+        const css = this.generateComprehensiveCSS(template);
         
         // Generate clean HTML
         const html = `
@@ -3196,6 +3210,22 @@ class CVBuilder {
     <meta charset="UTF-8">
     <title>CV - ${this.cvData.personalInfo?.fullName || 'Resume'}</title>
     <style>
+        ${css}
+    </style>
+</head>
+<body>
+    ${clonedContainer.innerHTML}
+</body>
+</html>`;
+        
+        console.log('Generated HTML length:', html.length);
+        console.log('=== END GENERATING CLEAN HTML ===');
+        
+        return html;
+    }
+
+    generateComprehensiveCSS(template) {
+        return `
         @page { 
             size: A4; 
             margin: 15mm; 
@@ -3212,6 +3242,8 @@ class CVBuilder {
         * {
             box-sizing: border-box;
         }
+        
+        /* Template 2 (Modern) Styles */
         .template-2-container {
             display: flex;
             width: 100%;
@@ -3273,7 +3305,8 @@ class CVBuilder {
             font-size: 10pt;
             margin-bottom: 5px;
         }
-        /* Classic template styles */
+        
+        /* Classic Template Styles */
         .classic-template {
             font-family: 'Arial', sans-serif;
         }
@@ -3295,7 +3328,8 @@ class CVBuilder {
             padding-bottom: 5px;
             margin-bottom: 10px;
         }
-        /* Minimalist template styles */
+        
+        /* Minimalist Template Styles */
         .minimalist-template {
             font-family: 'Arial', sans-serif;
         }
@@ -3318,20 +3352,133 @@ class CVBuilder {
             padding-bottom: 5px;
             margin-bottom: 10px;
         }
-    </style>
-</head>
-<body>
-    ${clonedContainer.innerHTML}
-</body>
-</html>`;
         
-        return html;
+        /* Universal styles for all templates */
+        .cv-preview {
+            font-family: 'Arial', sans-serif !important;
+        }
+        .cv-preview * {
+            font-family: 'Arial', sans-serif !important;
+        }
+        
+        /* Ensure all content is visible */
+        .cv-preview, .cv-preview * {
+            visibility: visible !important;
+            opacity: 1 !important;
+            display: block !important;
+        }
+        
+        /* Profile picture styles */
+        .profile-picture {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 0 auto 20px;
+            display: block;
+        }
+        
+        /* Contact information styles */
+        .contact-info {
+            margin-bottom: 20px;
+        }
+        
+        .contact-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 10pt;
+        }
+        
+        .contact-item i {
+            margin-right: 8px;
+            width: 16px;
+        }
+        
+        /* Skills and languages */
+        .skills-list, .languages-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .skills-list li, .languages-list li {
+            margin-bottom: 5px;
+            font-size: 10pt;
+        }
+        
+        /* Work experience and education */
+        .experience-item, .education-item {
+            margin-bottom: 15px;
+        }
+        
+        .job-title, .degree {
+            font-weight: bold;
+            color: #8B4513;
+            font-size: 12pt;
+            margin-bottom: 5px;
+        }
+        
+        .company, .institution {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 3px;
+        }
+        
+        .duration {
+            color: #666;
+            font-style: italic;
+            margin-bottom: 5px;
+        }
+        
+        .description {
+            margin-top: 5px;
+            text-align: justify;
+            line-height: 1.4;
+        }
+        
+        /* Section headers */
+        .section-header {
+            font-size: 14pt;
+            font-weight: bold;
+            color: #8B4513;
+            border-bottom: 2px solid #8B4513;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+            margin-top: 25px;
+        }
+        
+        .section-header:first-child {
+            margin-top: 0;
+        }
+        
+        /* Ensure proper spacing */
+        .section {
+            margin-bottom: 25px;
+        }
+        
+        /* Bullet points */
+        ul {
+            margin: 5px 0;
+            padding-left: 20px;
+        }
+        
+        li {
+            margin-bottom: 3px;
+        }
+        `;
     }
 
     applyPrintStyles(container) {
+        console.log('=== APPLYING PRINT STYLES ===');
+        console.log('Container element:', container);
+        console.log('Container children count:', container.children.length);
+        
         // Ensure all elements have proper print styles
         const allElements = container.querySelectorAll('*');
-        allElements.forEach(element => {
+        console.log('Total elements to process:', allElements.length);
+        
+        allElements.forEach((element, index) => {
             // Remove any inline styles that might interfere
             if (element.style.position === 'absolute') {
                 element.style.position = 'static';
@@ -3346,7 +3493,26 @@ class CVBuilder {
             element.style.visibility = 'visible';
             element.style.opacity = '1';
             element.style.display = element.style.display || 'block';
+            
+            // Force font family to Arial
+            element.style.fontFamily = 'Arial, sans-serif';
+            
+            // Log first few elements for debugging
+            if (index < 5) {
+                console.log(`Element ${index}:`, element.tagName, element.className, element.textContent?.substring(0, 50));
+            }
         });
+        
+        // Ensure the container itself is visible
+        container.style.visibility = 'visible';
+        container.style.opacity = '1';
+        container.style.display = 'block';
+        container.style.position = 'static';
+        container.style.left = 'auto';
+        container.style.top = 'auto';
+        
+        console.log('Print styles applied successfully');
+        console.log('=== END APPLYING PRINT STYLES ===');
     }
 
     async generateBackendPDFFromHTML(htmlContent) {
@@ -3410,6 +3576,82 @@ class CVBuilder {
             
         } catch (error) {
             console.error('Backend PDF generation failed:', error);
+            throw error;
+        }
+    }
+
+    async generateEnhancedFrontendPDF(container, pageWidth, pageHeight) {
+        try {
+            console.log('=== ENHANCED FRONTEND PDF GENERATION ===');
+            console.log('Container content length:', container.innerHTML.length);
+            
+            // Wait for all content to load
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Generate canvas with enhanced settings
+            const canvas = await html2canvas(container, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: '#ffffff',
+                width: pageWidth,
+                height: container.scrollHeight,
+                logging: true,
+                allowTaint: true,
+                foreignObjectRendering: true,
+                removeContainer: false,
+                imageTimeout: 20000,
+                onclone: (clonedDoc) => {
+                    console.log('Canvas clone created');
+                    // Ensure all fonts are loaded
+                    const allElements = clonedDoc.querySelectorAll('*');
+                    allElements.forEach(element => {
+                        element.style.fontFamily = 'Arial, sans-serif';
+                        element.style.visibility = 'visible';
+                        element.style.opacity = '1';
+                    });
+                }
+            });
+            
+            console.log('Canvas generated:', {
+                width: canvas.width,
+                height: canvas.height
+            });
+
+            // Create PDF with multiple pages if needed
+            const pdf = new jspdf.jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4',
+                compress: true
+            });
+
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            const imgWidth = canvas.width;
+            const imgHeight = canvas.height;
+            
+            // Calculate scaling to fit page width
+            const widthRatio = pdfWidth / imgWidth;
+            const ratio = widthRatio;
+            
+            const finalWidth = pdfWidth;
+            const finalHeight = imgHeight * ratio;
+            
+            // Add image to PDF
+            const imgData = canvas.toDataURL('image/jpeg', 0.95);
+            pdf.addImage(imgData, 'JPEG', 0, 0, finalWidth, finalHeight);
+
+            // Generate filename
+            const timestamp = new Date().toISOString().slice(0, 10);
+            const fileName = `CV_${this.cvData.personalInfo?.fullName?.replace(/\s+/g, '_') || 'Resume'}_${timestamp}.pdf`;
+            
+            // Download PDF
+            pdf.save(fileName);
+            
+            console.log('Enhanced frontend PDF generated successfully');
+            
+        } catch (error) {
+            console.error('Enhanced frontend PDF generation failed:', error);
             throw error;
         }
     }
