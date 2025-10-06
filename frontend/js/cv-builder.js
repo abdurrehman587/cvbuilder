@@ -3965,10 +3965,10 @@ class CVBuilder {
                 combinedContent.appendChild(sectionDiv);
             });
             
-            // Also add the name from main content if it exists
-            const nameElement = mainContent.querySelector('.template-2-name');
-            if (nameElement) {
-                console.log('Found name element in main content:', nameElement.textContent);
+            // Also add the name from main content if it exists (check if not already added)
+            const nameElementCheck = mainContent.querySelector('.template-2-name');
+            if (nameElementCheck) {
+                console.log('Found name element in main content:', nameElementCheck.textContent);
                 const nameDiv = document.createElement('div');
                 nameDiv.style.textAlign = 'center';
                 nameDiv.style.fontSize = '24pt';
@@ -3977,7 +3977,7 @@ class CVBuilder {
                 nameDiv.style.marginBottom = '20px';
                 nameDiv.style.borderBottom = '2px solid #8B4513';
                 nameDiv.style.paddingBottom = '10px';
-                nameDiv.textContent = nameElement.textContent;
+                nameDiv.textContent = nameElementCheck.textContent;
                 combinedContent.insertBefore(nameDiv, combinedContent.firstChild);
             }
             
