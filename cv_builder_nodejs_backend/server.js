@@ -11,6 +11,7 @@ const PORT = process.env.PORT || 3000;
 const corsOptions = {
   origin: [
     'https://cvbuilder-beryl-beta.vercel.app',
+    'https://cvbuilder-3des-6imqlxdz2-abdurrehmans-projects-37746bc3.vercel.app',
     'http://localhost:3000',
     'http://localhost:8080',
     'http://127.0.0.1:3000',
@@ -36,6 +37,14 @@ app.get('/up', (req, res) => {
     status: 'OK', 
     timestamp: new Date().toISOString(),
     server: 'CV Builder PDF Server'
+  });
+});
+
+// Test endpoint
+app.get('/test', (req, res) => {
+  res.status(200).json({ 
+    message: 'Backend is working!',
+    timestamp: new Date().toISOString()
   });
 });
 
