@@ -543,6 +543,223 @@
             font-size: 0.9rem;
         }
 
+        /* Template 1 (Classic) Enhanced Styling */
+        .template-1-container {
+            background: white;
+            max-width: 800px;
+            margin: 0 auto;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .template-1-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+        }
+
+        .template-1-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/><circle cx="10" cy="60" r="0.5" fill="white" opacity="0.1"/><circle cx="90" cy="40" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .template-1-profile-section {
+            position: relative;
+            z-index: 1;
+        }
+
+        .template-1-profile-pic {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            margin: 0 auto 20px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        .template-1-profile-pic img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .template-1-name {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .template-1-title {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 20px;
+            font-weight: 300;
+        }
+
+        .template-1-contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .template-1-contact-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 15px;
+            border-radius: 25px;
+            backdrop-filter: blur(10px);
+        }
+
+        .template-1-contact-icon {
+            font-size: 1.2rem;
+        }
+
+        .template-1-body {
+            padding: 40px;
+        }
+
+        .template-1-section {
+            margin-bottom: 35px;
+            position: relative;
+        }
+
+        .template-1-section::before {
+            content: '';
+            position: absolute;
+            left: -20px;
+            top: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 2px;
+        }
+
+        .template-1-section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .template-1-section-icon {
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.9rem;
+        }
+
+        .template-1-content {
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .template-1-experience-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .template-1-experience-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
+        }
+
+        .template-1-experience-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .template-1-experience-company {
+            color: #667eea;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+
+        .template-1-education-item {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #e9ecef;
+        }
+
+        .template-1-education-degree {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .template-1-education-university {
+            color: #667eea;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .template-1-education-year {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .template-1-skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .template-1-skill-item {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 20px;
+            text-align: center;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .template-1-summary {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 25px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            font-style: italic;
+            line-height: 1.7;
+        }
+
         @media (max-width: 768px) {
             .action-buttons {
                 flex-direction: column;
@@ -856,42 +1073,96 @@
         }
         
         function generateTemplate1HTML() {
-            // Classic single-column template
+            // Beautiful Classic template with enhanced design
             document.getElementById('cvPreview').innerHTML = `
-                <div class="cv-template">
-                    <div class="cv-header">
-                        <h1 id="previewName">Your Name</h1>
-                        <div class="contact-info">
-                            <p id="previewEmail">your.email@example.com</p>
-                            <p id="previewPhone">+1 (555) 123-4567</p>
-                            <p id="previewAddress">Your Address</p>
+                <div class="template-1-container">
+                    <div class="template-1-header">
+                        <div class="template-1-profile-section">
+                            <div class="template-1-profile-pic" id="template1ProfilePic">
+                                <div id="previewName">Your Name</div>
+                            </div>
+                            <h1 class="template-1-name" id="previewName">Your Name</h1>
+                            <p class="template-1-title" id="previewJobTitle">Your Professional Title</p>
+                            
+                            <div class="template-1-contact-grid">
+                                <div class="template-1-contact-item">
+                                    <span class="template-1-contact-icon">📧</span>
+                                    <span id="previewEmail">your.email@example.com</span>
+                                </div>
+                                <div class="template-1-contact-item">
+                                    <span class="template-1-contact-icon">📱</span>
+                                    <span id="previewPhone">+1 (555) 123-4567</span>
+                                </div>
+                                <div class="template-1-contact-item">
+                                    <span class="template-1-contact-icon">📍</span>
+                                    <span id="previewAddress">Your Address</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
-                    <div class="cv-section">
-                        <h2>Professional Summary</h2>
-                        <p id="previewSummary">Write your professional summary here...</p>
-                    </div>
-                    
-                    <div class="cv-section">
-                        <h2>Work Experience</h2>
-                        <div class="experience-item">
-                            <h3 id="previewJobTitle">Job Title</h3>
-                            <p class="company" id="previewCompany">Company Name</p>
-                            <p id="previewExperience">Describe your work experience here...</p>
+                    <div class="template-1-body">
+                        <div class="template-1-section">
+                            <h2 class="template-1-section-title">
+                                <span class="template-1-section-icon">👤</span>
+                                Professional Summary
+                            </h2>
+                            <div class="template-1-summary">
+                                <p id="previewSummary">Write your professional summary here...</p>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="cv-section">
-                        <h2>Education</h2>
-                        <div class="education-item">
-                            <h3 id="previewDegree">Degree</h3>
-                            <p class="university" id="previewUniversity">University Name</p>
-                            <p class="year" id="previewGraduationYear">2024</p>
+                        
+                        <div class="template-1-section">
+                            <h2 class="template-1-section-title">
+                                <span class="template-1-section-icon">💼</span>
+                                Work Experience
+                            </h2>
+                            <div class="template-1-experience-item">
+                                <h3 class="template-1-experience-title" id="previewJobTitle">Job Title</h3>
+                                <p class="template-1-experience-company" id="previewCompany">Company Name</p>
+                                <p class="template-1-content" id="previewExperience">Describe your work experience here...</p>
+                            </div>
+                        </div>
+                        
+                        <div class="template-1-section">
+                            <h2 class="template-1-section-title">
+                                <span class="template-1-section-icon">🎓</span>
+                                Education
+                            </h2>
+                            <div class="template-1-education-item">
+                                <h3 class="template-1-education-degree" id="previewDegree">Degree</h3>
+                                <p class="template-1-education-university" id="previewUniversity">University Name</p>
+                                <p class="template-1-education-year" id="previewGraduationYear">2024</p>
+                            </div>
+                        </div>
+                        
+                        <div class="template-1-section">
+                            <h2 class="template-1-section-title">
+                                <span class="template-1-section-icon">⚡</span>
+                                Skills
+                            </h2>
+                            <div class="template-1-skills-grid">
+                                <div class="template-1-skill-item">JavaScript</div>
+                                <div class="template-1-skill-item">React</div>
+                                <div class="template-1-skill-item">Node.js</div>
+                                <div class="template-1-skill-item">Python</div>
+                                <div class="template-1-skill-item">SQL</div>
+                                <div class="template-1-skill-item">Git</div>
+                            </div>
                         </div>
                     </div>
                 </div>
             `;
+            
+            // Check if there's a profile picture and update it
+            const profilePicture = document.getElementById('profilePicture');
+            if (profilePicture && profilePicture.files && profilePicture.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    updatePreviewWithPicture(e.target.result);
+                };
+                reader.readAsDataURL(profilePicture.files[0]);
+            }
         }
         
         function generateTemplate2HTML() {
@@ -1028,7 +1299,7 @@
         
         function updatePreviewWithPicture(imageSrc) {
             // Update profile picture in all templates
-            const profilePics = document.querySelectorAll('.template-2-profile-pic, .template-3-profile-pic');
+            const profilePics = document.querySelectorAll('.template-1-profile-pic, .template-2-profile-pic, .template-3-profile-pic');
             profilePics.forEach(pic => {
                 if (imageSrc) {
                     pic.innerHTML = `<img src="${imageSrc}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
@@ -1037,26 +1308,6 @@
                     pic.innerHTML = `<div id="previewName">${fullName}</div>`;
                 }
             });
-            
-            // Also update the classic template header if it has a profile picture area
-            const classicHeader = document.querySelector('.cv-header');
-            if (classicHeader && imageSrc) {
-                // Add profile picture to classic template header
-                const existingPic = classicHeader.querySelector('.profile-picture');
-                if (existingPic) {
-                    existingPic.innerHTML = `<img src="${imageSrc}" alt="Profile Picture" style="width: 80px; height: 80px; object-fit: cover; border-radius: 50%; margin-bottom: 10px;">`;
-                } else {
-                    const picDiv = document.createElement('div');
-                    picDiv.className = 'profile-picture';
-                    picDiv.innerHTML = `<img src="${imageSrc}" alt="Profile Picture" style="width: 80px; height: 80px; object-fit: cover; border-radius: 50%; margin-bottom: 10px;">`;
-                    classicHeader.insertBefore(picDiv, classicHeader.firstChild);
-                }
-            } else if (classicHeader && !imageSrc) {
-                const existingPic = classicHeader.querySelector('.profile-picture');
-                if (existingPic) {
-                    existingPic.remove();
-                }
-            }
         }
         
         function updatePreview() {
