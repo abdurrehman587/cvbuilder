@@ -17,7 +17,7 @@
     },
     {
       "source": "/cv",
-      "destination": "/frontend/index.html"
+      "destination": "/cv.html"
     },
     {
       "source": "/css/(.*)",
