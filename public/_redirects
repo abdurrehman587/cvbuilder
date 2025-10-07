@@ -1,8 +1,9 @@
-# Vercel redirects for CV Builder
+# GitHub Pages redirects for CV Builder
 / /index.html 200
 /auth /frontend/auth.html 200
 /admin /frontend/admin-dashboard.html 200
 /shopkeeper /frontend/shopkeeper-dashboard.html 200
+/cv /frontend/index.html 200
 /* /index.html 200
 
 
