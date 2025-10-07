@@ -18,6 +18,14 @@
     {
       "source": "/cv",
       "destination": "/frontend/index.html"
+    },
+    {
+      "source": "/css/(.*)",
+      "destination": "/frontend/css/$1"
+    },
+    {
+      "source": "/js/(.*)",
+      "destination": "/frontend/js/$1"
     }
   ]
 }
