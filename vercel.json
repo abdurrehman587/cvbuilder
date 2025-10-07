@@ -17,7 +17,7 @@
     },
     {
       "source": "/cv",
-      "destination": "/cv.html"
+      "destination": "/cv-builder.html"
     },
     {
       "source": "/css/(.*)",
