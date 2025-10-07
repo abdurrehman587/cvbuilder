@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/auth",
-      "destination": "/frontend/auth.html"
+      "destination": "/auth.html"
     },
     {
       "source": "/admin",
