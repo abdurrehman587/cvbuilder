@@ -14,6 +14,10 @@
     {
       "source": "/frontend/admin-dashboard.html",
       "destination": "/admin-dashboard.html"
+    },
+    {
+      "source": "/cv",
+      "destination": "/frontend/index.html"
     }
   ]
 }
