@@ -2910,8 +2910,8 @@ class CVBuilder {
             downloadBtn.innerHTML = '⏳ Generating PDF...';
             downloadBtn.disabled = true;
 
-            // Use only backend PDF generation
-            await this.generateBackendPDF();
+            // Use frontend PDF generation directly
+            await this.generateMultiPagePDF();
             
             // Track download if user is a shopkeeper
             await this.trackDownload('pdf');
@@ -2921,30 +2921,15 @@ class CVBuilder {
             downloadBtn.disabled = false;
 
         } catch (error) {
-            console.error('Backend PDF generation failed:', error);
+            console.error('Frontend PDF generation failed:', error);
             
-            // Try frontend PDF generation as fallback
-            console.log('Attempting frontend PDF generation as fallback...');
-            console.log('Available methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(this)));
-            try {
-                if (typeof this.generateMultiPagePDF === 'function') {
-                    console.log('Calling generateMultiPagePDF method...');
-                    await this.generateMultiPagePDF();
-                    console.log('Frontend PDF generation successful');
-                } else {
-                    throw new Error('generateMultiPagePDF method not found');
-                }
-            } catch (frontendError) {
-                console.error('Frontend PDF generation also failed:', frontendError);
-                
-                // Reset button on error
-                const downloadBtn = document.getElementById('downloadCV');
-                downloadBtn.innerHTML = '📄 Download CV as PDF';
-                downloadBtn.disabled = false;
-                
-                // Show error message
-                alert('PDF generation failed. Both backend and frontend methods failed. Please try again.');
-            }
+            // Reset button on error
+            const downloadBtn = document.getElementById('downloadCV');
+            downloadBtn.innerHTML = '📄 Download CV as PDF';
+            downloadBtn.disabled = false;
+            
+            // Show error message
+            alert('PDF generation failed. Please try again.');
         }
     }
 
