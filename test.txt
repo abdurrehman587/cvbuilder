@@ -1,0 +1,2 @@
+This is a simple text file to test if Vercel can serve any files at all.
+If you can see this, Vercel is working.
