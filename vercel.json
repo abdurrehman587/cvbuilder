@@ -1,62 +1,20 @@
 {
-  "version": 2,
-  "builds": [
+  "rewrites": [
     {
-      "src": "index.html",
-      "use": "@vercel/static"
+      "source": "/auth",
+      "destination": "/frontend/auth.html"
     },
     {
-      "src": "frontend/**/*.html",
-      "use": "@vercel/static"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/",
-      "dest": "/index.html"
+      "source": "/admin",
+      "destination": "/frontend/admin-dashboard.html"
     },
     {
-      "src": "/auth",
-      "dest": "/frontend/auth.html"
+      "source": "/shopkeeper",
+      "destination": "/frontend/shopkeeper-dashboard.html"
     },
     {
-      "src": "/admin",
-      "dest": "/frontend/admin-dashboard.html"
-    },
-    {
-      "src": "/shopkeeper",
-      "dest": "/frontend/shopkeeper-dashboard.html"
-    },
-    {
-      "src": "/cv",
-      "dest": "/frontend/index.html"
-    },
-    {
-      "src": "/frontend/(.*)",
-      "dest": "/frontend/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
-        {
-          "key": "X-XSS-Protection",
-          "value": "1; mode=block"
-        }
-      ]
+      "source": "/cv",
+      "destination": "/frontend/index.html"
     }
   ]
 }
