@@ -2954,7 +2954,7 @@ class CVBuilder {
             
             // Check if backend server is running
             const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-            const backendUrl = isLocalhost ? 'http://localhost:3000' : 'https://cvbuilder-backend.vercel.app';
+            const backendUrl = isLocalhost ? 'http://localhost:3000' : 'https://cvbuilder-s4zp.vercel.app';
             
             try {
                 // Try health check with timeout
@@ -3545,7 +3545,7 @@ class CVBuilder {
             
             // Check if backend server is running
             const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-            const backendUrl = isLocalhost ? 'http://localhost:3000' : 'https://cvbuilder-backend.vercel.app';
+            const backendUrl = isLocalhost ? 'http://localhost:3000' : 'https://cvbuilder-s4zp.vercel.app';
             
             // Health check
             try {
