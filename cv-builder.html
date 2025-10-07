@@ -331,10 +331,28 @@
             margin: 0;
         }
 
+        .side-by-side-container {
+            display: flex;
+            gap: 20px;
+            height: calc(100vh - 200px);
+        }
+
+        .form-side {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .preview-side {
+            flex: 1;
+            overflow-y: auto;
+            padding-left: 10px;
+        }
+
         .form-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
 
         .form-section {
@@ -481,6 +499,20 @@
                 width: 100%;
                 max-width: 300px;
             }
+            
+            .side-by-side-container {
+                flex-direction: column;
+                height: auto;
+            }
+            
+            .form-side,
+            .preview-side {
+                padding: 0;
+            }
+            
+            .template-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -566,107 +598,115 @@
                     <button class="btn btn-secondary" onclick="backToWelcome()">← Back</button>
                 </div>
                 
-                <div class="form-container">
-                    <div class="form-section">
-                        <h4>Personal Information</h4>
-                        <div class="form-group">
-                            <label for="fullName">Full Name:</label>
-                            <input type="text" id="fullName" placeholder="Enter your full name" oninput="updatePreview()">
-                        </div>
-                        <div class="form-group">
-                            <label for="email">Email:</label>
-                            <input type="email" id="email" placeholder="Enter your email" oninput="updatePreview()">
-                        </div>
-                        <div class="form-group">
-                            <label for="phone">Phone:</label>
-                            <input type="tel" id="phone" placeholder="Enter your phone number" oninput="updatePreview()">
-                        </div>
-                        <div class="form-group">
-                            <label for="address">Address:</label>
-                            <textarea id="address" placeholder="Enter your address" oninput="updatePreview()"></textarea>
-                        </div>
-                    </div>
+                <div class="side-by-side-container">
+                    <!-- Left Side - Form -->
+                    <div class="form-side">
+                        <div class="form-container">
+                            <div class="form-section">
+                                <h4>Personal Information</h4>
+                                <div class="form-group">
+                                    <label for="fullName">Full Name:</label>
+                                    <input type="text" id="fullName" placeholder="Enter your full name" oninput="updatePreview()">
+                                </div>
+                                <div class="form-group">
+                                    <label for="email">Email:</label>
+                                    <input type="email" id="email" placeholder="Enter your email" oninput="updatePreview()">
+                                </div>
+                                <div class="form-group">
+                                    <label for="phone">Phone:</label>
+                                    <input type="tel" id="phone" placeholder="Enter your phone number" oninput="updatePreview()">
+                                </div>
+                                <div class="form-group">
+                                    <label for="address">Address:</label>
+                                    <textarea id="address" placeholder="Enter your address" oninput="updatePreview()"></textarea>
+                                </div>
+                            </div>
 
-                    <div class="form-section">
-                        <h4>Professional Summary</h4>
-                        <div class="form-group">
-                            <label for="summary">Summary:</label>
-                            <textarea id="summary" placeholder="Write a brief professional summary" oninput="updatePreview()"></textarea>
-                        </div>
-                    </div>
+                            <div class="form-section">
+                                <h4>Professional Summary</h4>
+                                <div class="form-group">
+                                    <label for="summary">Summary:</label>
+                                    <textarea id="summary" placeholder="Write a brief professional summary" oninput="updatePreview()"></textarea>
+                                </div>
+                            </div>
 
-                    <div class="form-section">
-                        <h4>Work Experience</h4>
-                        <div class="form-group">
-                            <label for="jobTitle">Job Title:</label>
-                            <input type="text" id="jobTitle" placeholder="Enter your job title" oninput="updatePreview()">
-                        </div>
-                        <div class="form-group">
-                            <label for="company">Company:</label>
-                            <input type="text" id="company" placeholder="Enter company name" oninput="updatePreview()">
-                        </div>
-                        <div class="form-group">
-                            <label for="experience">Experience Description:</label>
-                            <textarea id="experience" placeholder="Describe your work experience" oninput="updatePreview()"></textarea>
-                        </div>
-                    </div>
+                            <div class="form-section">
+                                <h4>Work Experience</h4>
+                                <div class="form-group">
+                                    <label for="jobTitle">Job Title:</label>
+                                    <input type="text" id="jobTitle" placeholder="Enter your job title" oninput="updatePreview()">
+                                </div>
+                                <div class="form-group">
+                                    <label for="company">Company:</label>
+                                    <input type="text" id="company" placeholder="Enter company name" oninput="updatePreview()">
+                                </div>
+                                <div class="form-group">
+                                    <label for="experience">Experience Description:</label>
+                                    <textarea id="experience" placeholder="Describe your work experience" oninput="updatePreview()"></textarea>
+                                </div>
+                            </div>
 
-                    <div class="form-section">
-                        <h4>Education</h4>
-                        <div class="form-group">
-                            <label for="degree">Degree:</label>
-                            <input type="text" id="degree" placeholder="Enter your degree" oninput="updatePreview()">
-                        </div>
-                        <div class="form-group">
-                            <label for="university">University:</label>
-                            <input type="text" id="university" placeholder="Enter university name" oninput="updatePreview()">
-                        </div>
-                        <div class="form-group">
-                            <label for="graduationYear">Graduation Year:</label>
-                            <input type="number" id="graduationYear" placeholder="Enter graduation year" oninput="updatePreview()">
-                        </div>
-                    </div>
+                            <div class="form-section">
+                                <h4>Education</h4>
+                                <div class="form-group">
+                                    <label for="degree">Degree:</label>
+                                    <input type="text" id="degree" placeholder="Enter your degree" oninput="updatePreview()">
+                                </div>
+                                <div class="form-group">
+                                    <label for="university">University:</label>
+                                    <input type="text" id="university" placeholder="Enter university name" oninput="updatePreview()">
+                                </div>
+                                <div class="form-group">
+                                    <label for="graduationYear">Graduation Year:</label>
+                                    <input type="number" id="graduationYear" placeholder="Enter graduation year" oninput="updatePreview()">
+                                </div>
+                            </div>
 
-                    <div class="form-actions">
-                        <button class="btn btn-primary" onclick="saveCV()">💾 Save CV</button>
-                        <button class="btn btn-secondary" onclick="downloadCV()">📥 Download CV</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="cv-preview-section" id="cvPreviewSection">
-                <h3>📄 CV Preview</h3>
-                <div class="cv-preview" id="cvPreview">
-                    <div class="cv-template">
-                        <div class="cv-header">
-                            <h1 id="previewName">Your Name</h1>
-                            <div class="contact-info">
-                                <p id="previewEmail">your.email@example.com</p>
-                                <p id="previewPhone">+1 (555) 123-4567</p>
-                                <p id="previewAddress">Your Address</p>
+                            <div class="form-actions">
+                                <button class="btn btn-primary" onclick="saveCV()">💾 Save CV</button>
+                                <button class="btn btn-secondary" onclick="downloadCV()">📥 Download CV</button>
                             </div>
                         </div>
-                        
-                        <div class="cv-section">
-                            <h2>Professional Summary</h2>
-                            <p id="previewSummary">Write your professional summary here...</p>
-                        </div>
-                        
-                        <div class="cv-section">
-                            <h2>Work Experience</h2>
-                            <div class="experience-item">
-                                <h3 id="previewJobTitle">Job Title</h3>
-                                <p class="company" id="previewCompany">Company Name</p>
-                                <p id="previewExperience">Describe your work experience here...</p>
-                            </div>
-                        </div>
-                        
-                        <div class="cv-section">
-                            <h2>Education</h2>
-                            <div class="education-item">
-                                <h3 id="previewDegree">Degree</h3>
-                                <p class="university" id="previewUniversity">University Name</p>
-                                <p class="year" id="previewGraduationYear">2024</p>
+                    </div>
+
+                    <!-- Right Side - Preview -->
+                    <div class="preview-side">
+                        <div class="cv-preview-section">
+                            <h3>📄 CV Preview</h3>
+                            <div class="cv-preview" id="cvPreview">
+                                <div class="cv-template">
+                                    <div class="cv-header">
+                                        <h1 id="previewName">Your Name</h1>
+                                        <div class="contact-info">
+                                            <p id="previewEmail">your.email@example.com</p>
+                                            <p id="previewPhone">+1 (555) 123-4567</p>
+                                            <p id="previewAddress">Your Address</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="cv-section">
+                                        <h2>Professional Summary</h2>
+                                        <p id="previewSummary">Write your professional summary here...</p>
+                                    </div>
+                                    
+                                    <div class="cv-section">
+                                        <h2>Work Experience</h2>
+                                        <div class="experience-item">
+                                            <h3 id="previewJobTitle">Job Title</h3>
+                                            <p class="company" id="previewCompany">Company Name</p>
+                                            <p id="previewExperience">Describe your work experience here...</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="cv-section">
+                                        <h2>Education</h2>
+                                        <div class="education-item">
+                                            <h3 id="previewDegree">Degree</h3>
+                                            <p class="university" id="previewUniversity">University Name</p>
+                                            <p class="year" id="previewGraduationYear">2024</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
