@@ -1,0 +1,13 @@
+{
+  "name": "cv-builder",
+  "version": "1.0.0",
+  "description": "Professional CV Builder with Multi-User Support",
+  "main": "index.html",
+  "scripts": {
+    "build": "echo 'Static site - no build needed'",
+    "start": "echo 'Static site - no start needed'"
+  },
+  "keywords": ["cv", "resume", "builder", "static"],
+  "author": "Abdur Rehman",
+  "license": "MIT"
+}
