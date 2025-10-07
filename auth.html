@@ -652,9 +652,8 @@
                 
                 // Admin credentials
                 if (email === 'admin@cvbuilder.com' && password === 'admin123') {
-                    alert('Admin login successful! Redirecting to admin dashboard...');
-                    // Redirect to admin dashboard
-                    window.location.href = '/frontend/admin-dashboard.html';
+                    // Redirect to admin dashboard without alert
+                    window.location.href = '/admin-dashboard.html';
                 } else {
                     alert('Invalid admin credentials. Try: admin@cvbuilder.com / admin123');
                 }
