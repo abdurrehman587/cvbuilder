@@ -912,7 +912,7 @@
                 </div>
                 
                 <div class="action-buttons">
-                    <button class="btn btn-primary" onclick="startNewCV()" id="startCVBtn" disabled>📝 Start Building CV</button>
+                    <button class="btn btn-primary" onclick="startNewCV()" id="startCVBtn">📝 Start Building CV</button>
                     <button class="btn btn-secondary" onclick="loadExistingCV()">📂 Load Existing CV</button>
                     <button class="btn btn-secondary" onclick="goToAdmin()">🎯 Admin Dashboard</button>
                 </div>
@@ -1089,15 +1089,14 @@
             // Add selected class to clicked card
             event.currentTarget.classList.add('selected');
             
-            // Enable start button
-            document.getElementById('startCVBtn').disabled = false;
+            // Update start button text
             document.getElementById('startCVBtn').textContent = `📝 Start Building CV (${template})`;
         }
         
         function startNewCV() {
+            // Set default template to classic if none selected
             if (!selectedTemplate) {
-                alert('Please select a template first!');
-                return;
+                selectedTemplate = 'classic';
             }
             
             document.getElementById('welcomeSection').style.display = 'none';
