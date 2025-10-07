@@ -760,6 +760,61 @@
             line-height: 1.7;
         }
 
+        /* Template Switcher Styles */
+        .template-switcher-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border: 2px solid #e9ecef;
+        }
+
+        .template-switcher-section h4 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .template-switcher-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .template-switch-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            background: white;
+            color: #666;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .template-switch-btn:hover {
+            border-color: #667eea;
+            color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+
+        .template-switch-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .template-icon {
+            font-size: 1.1rem;
+        }
+
         @media (max-width: 768px) {
             .action-buttons {
                 flex-direction: column;
@@ -867,6 +922,25 @@
                 <div class="form-header">
                     <h3>📝 Create Your CV</h3>
                     <button class="btn btn-secondary" onclick="backToWelcome()">← Back</button>
+                </div>
+                
+                <!-- Template Switcher -->
+                <div class="template-switcher-section">
+                    <h4>Switch Template:</h4>
+                    <div class="template-switcher-buttons">
+                        <button class="template-switch-btn active" onclick="switchTemplate('classic')" id="switchToTemplate1">
+                            <span class="template-icon">📄</span>
+                            Template 1
+                        </button>
+                        <button class="template-switch-btn" onclick="switchTemplate('modern')" id="switchToTemplate2">
+                            <span class="template-icon">📋</span>
+                            Template 2
+                        </button>
+                        <button class="template-switch-btn" onclick="switchTemplate('minimalist')" id="switchToTemplate3">
+                            <span class="template-icon">🎨</span>
+                            Template 3
+                        </button>
+                    </div>
                 </div>
                 
                 <div class="side-by-side-container">
@@ -1030,6 +1104,19 @@
             document.getElementById('cvFormSection').style.display = 'block';
             document.getElementById('cvPreviewSection').style.display = 'block';
             
+            // Set the correct active template button
+            document.querySelectorAll('.template-switch-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            if (selectedTemplate === 'classic') {
+                document.getElementById('switchToTemplate1').classList.add('active');
+            } else if (selectedTemplate === 'modern') {
+                document.getElementById('switchToTemplate2').classList.add('active');
+            } else if (selectedTemplate === 'minimalist') {
+                document.getElementById('switchToTemplate3').classList.add('active');
+            }
+            
             // Apply selected template to preview
             applyTemplateToPreview();
         }
@@ -1052,6 +1139,26 @@
             if (confirm('Are you sure you want to logout?')) {
                 window.location.href = '/auth';
             }
+        }
+        
+        function switchTemplate(template) {
+            selectedTemplate = template;
+            
+            // Update active button
+            document.querySelectorAll('.template-switch-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            if (template === 'classic') {
+                document.getElementById('switchToTemplate1').classList.add('active');
+            } else if (template === 'modern') {
+                document.getElementById('switchToTemplate2').classList.add('active');
+            } else if (template === 'minimalist') {
+                document.getElementById('switchToTemplate3').classList.add('active');
+            }
+            
+            // Apply the new template
+            applyTemplateToPreview();
         }
         
         function applyTemplateToPreview() {
