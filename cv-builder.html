@@ -144,6 +144,175 @@
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
         }
 
+        .template-selection {
+            margin: 30px 0;
+        }
+
+        .template-selection h3 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .template-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .template-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid #e9ecef;
+            text-align: center;
+        }
+
+        .template-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            border-color: #667eea;
+        }
+
+        .template-card.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .template-preview {
+            height: 200px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            overflow: hidden;
+            background: #f8f9fa;
+        }
+
+        .template-1-preview {
+            padding: 15px;
+        }
+
+        .template-header {
+            background: #667eea;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .template-content {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .template-section {
+            background: #e9ecef;
+            padding: 8px;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+
+        .template-2-preview {
+            display: flex;
+        }
+
+        .template-sidebar {
+            width: 30%;
+            background: #667eea;
+            color: white;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .template-profile {
+            background: white;
+            color: #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .template-sidebar-section {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px;
+            border-radius: 3px;
+            font-size: 10px;
+        }
+
+        .template-main {
+            width: 70%;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .template-3-preview {
+            padding: 15px;
+        }
+
+        .template-header-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .template-name {
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .template-title {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .template-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .template-card-item {
+            background: #e9ecef;
+            padding: 8px;
+            border-radius: 5px;
+            font-size: 10px;
+            text-align: center;
+        }
+
+        .template-card h4 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .template-card p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .template-card.selected h4,
+        .template-card.selected p {
+            color: white;
+        }
+
         .cv-form-section {
             display: none;
         }
@@ -333,8 +502,59 @@
                 <h2>Welcome to CV Builder</h2>
                 <p>Create your professional CV with our easy-to-use builder</p>
                 
+                <!-- Template Selection -->
+                <div class="template-selection">
+                    <h3>Choose Your Template</h3>
+                    <div class="template-grid">
+                        <div class="template-card" onclick="selectTemplate('classic')">
+                            <div class="template-preview template-1-preview">
+                                <div class="template-header">John Doe</div>
+                                <div class="template-content">
+                                    <div class="template-section">Professional Summary</div>
+                                    <div class="template-section">Work Experience</div>
+                                    <div class="template-section">Education</div>
+                                </div>
+                            </div>
+                            <h4>Template 1 - Classic</h4>
+                            <p>Traditional single-column layout</p>
+                        </div>
+                        
+                        <div class="template-card" onclick="selectTemplate('modern')">
+                            <div class="template-preview template-2-preview">
+                                <div class="template-sidebar">
+                                    <div class="template-profile">JD</div>
+                                    <div class="template-sidebar-section">Skills</div>
+                                    <div class="template-sidebar-section">Languages</div>
+                                </div>
+                                <div class="template-main">
+                                    <div class="template-section">Experience</div>
+                                    <div class="template-section">Education</div>
+                                </div>
+                            </div>
+                            <h4>Template 2 - Modern</h4>
+                            <p>Two-column layout with sidebar</p>
+                        </div>
+                        
+                        <div class="template-card" onclick="selectTemplate('minimalist')">
+                            <div class="template-preview template-3-preview">
+                                <div class="template-header-card">
+                                    <div class="template-name">John Doe</div>
+                                    <div class="template-title">Software Engineer</div>
+                                </div>
+                                <div class="template-cards">
+                                    <div class="template-card-item">Summary</div>
+                                    <div class="template-card-item">Experience</div>
+                                    <div class="template-card-item">Education</div>
+                                </div>
+                            </div>
+                            <h4>Template 3 - Minimalist</h4>
+                            <p>Card-based creative layout</p>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="action-buttons">
-                    <button class="btn btn-primary" onclick="startNewCV()">📝 Start New CV</button>
+                    <button class="btn btn-primary" onclick="startNewCV()" id="startCVBtn" disabled>📝 Start Building CV</button>
                     <button class="btn btn-secondary" onclick="loadExistingCV()">📂 Load Existing CV</button>
                     <button class="btn btn-secondary" onclick="goToAdmin()">🎯 Admin Dashboard</button>
                 </div>
@@ -457,10 +677,36 @@
 
     <script>
         // CV Builder JavaScript Functions
+        let selectedTemplate = null;
+        
+        function selectTemplate(template) {
+            selectedTemplate = template;
+            
+            // Remove selected class from all cards
+            document.querySelectorAll('.template-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Add selected class to clicked card
+            event.currentTarget.classList.add('selected');
+            
+            // Enable start button
+            document.getElementById('startCVBtn').disabled = false;
+            document.getElementById('startCVBtn').textContent = `📝 Start Building CV (${template})`;
+        }
+        
         function startNewCV() {
+            if (!selectedTemplate) {
+                alert('Please select a template first!');
+                return;
+            }
+            
             document.getElementById('welcomeSection').style.display = 'none';
             document.getElementById('cvFormSection').style.display = 'block';
             document.getElementById('cvPreviewSection').style.display = 'block';
+            
+            // Apply selected template to preview
+            applyTemplateToPreview();
         }
         
         function backToWelcome() {
@@ -483,6 +729,144 @@
             }
         }
         
+        function applyTemplateToPreview() {
+            const cvPreview = document.getElementById('cvPreview');
+            
+            // Remove existing template classes
+            cvPreview.classList.remove('template-2', 'template-3');
+            
+            if (selectedTemplate === 'modern') {
+                cvPreview.classList.add('template-2');
+                generateTemplate2HTML();
+            } else if (selectedTemplate === 'minimalist') {
+                cvPreview.classList.add('template-3');
+                generateTemplate3HTML();
+            } else {
+                // Classic template (default)
+                generateTemplate1HTML();
+            }
+        }
+        
+        function generateTemplate1HTML() {
+            // Classic single-column template
+            document.getElementById('cvPreview').innerHTML = `
+                <div class="cv-template">
+                    <div class="cv-header">
+                        <h1 id="previewName">Your Name</h1>
+                        <div class="contact-info">
+                            <p id="previewEmail">your.email@example.com</p>
+                            <p id="previewPhone">+1 (555) 123-4567</p>
+                            <p id="previewAddress">Your Address</p>
+                        </div>
+                    </div>
+                    
+                    <div class="cv-section">
+                        <h2>Professional Summary</h2>
+                        <p id="previewSummary">Write your professional summary here...</p>
+                    </div>
+                    
+                    <div class="cv-section">
+                        <h2>Work Experience</h2>
+                        <div class="experience-item">
+                            <h3 id="previewJobTitle">Job Title</h3>
+                            <p class="company" id="previewCompany">Company Name</p>
+                            <p id="previewExperience">Describe your work experience here...</p>
+                        </div>
+                    </div>
+                    
+                    <div class="cv-section">
+                        <h2>Education</h2>
+                        <div class="education-item">
+                            <h3 id="previewDegree">Degree</h3>
+                            <p class="university" id="previewUniversity">University Name</p>
+                            <p class="year" id="previewGraduationYear">2024</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function generateTemplate2HTML() {
+            // Modern two-column template
+            document.getElementById('cvPreview').innerHTML = `
+                <div class="template-2-container">
+                    <div class="template-2-sidebar">
+                        <div class="template-2-profile-pic">
+                            <div id="previewName">Your Name</div>
+                        </div>
+                        <div class="template-2-contact-section">
+                            <h3>Contact</h3>
+                            <p id="previewEmail">your.email@example.com</p>
+                            <p id="previewPhone">+1 (555) 123-4567</p>
+                            <p id="previewAddress">Your Address</p>
+                        </div>
+                    </div>
+                    <div class="template-2-main-content">
+                        <div class="template-2-main-section">
+                            <h3>Professional Summary</h3>
+                            <p id="previewSummary">Write your professional summary here...</p>
+                        </div>
+                        <div class="template-2-main-section">
+                            <h3>Work Experience</h3>
+                            <h4 id="previewJobTitle">Job Title</h4>
+                            <p class="company" id="previewCompany">Company Name</p>
+                            <p id="previewExperience">Describe your work experience here...</p>
+                        </div>
+                        <div class="template-2-main-section">
+                            <h3>Education</h3>
+                            <h4 id="previewDegree">Degree</h4>
+                            <p class="university" id="previewUniversity">University Name</p>
+                            <p class="year" id="previewGraduationYear">2024</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function generateTemplate3HTML() {
+            // Minimalist card-based template
+            document.getElementById('cvPreview').innerHTML = `
+                <div class="template-3-container">
+                    <div class="template-3-header">
+                        <div class="template-3-header-content">
+                            <div class="template-3-profile-section">
+                                <div class="template-3-profile-pic">
+                                    <div id="previewName">Your Name</div>
+                                </div>
+                                <div class="template-3-name-section">
+                                    <h1 id="previewName">Your Name</h1>
+                                    <p id="previewJobTitle">Job Title</p>
+                                </div>
+                            </div>
+                            <div class="template-3-contact-info">
+                                <p id="previewEmail">your.email@example.com</p>
+                                <p id="previewPhone">+1 (555) 123-4567</p>
+                                <p id="previewAddress">Your Address</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="template-3-main-grid">
+                        <div class="template-3-card">
+                            <h3>Professional Summary</h3>
+                            <p id="previewSummary">Write your professional summary here...</p>
+                        </div>
+                        <div class="template-3-card">
+                            <h3>Work Experience</h3>
+                            <h4 id="previewJobTitle">Job Title</h4>
+                            <p class="company" id="previewCompany">Company Name</p>
+                            <p id="previewExperience">Describe your work experience here...</p>
+                        </div>
+                        <div class="template-3-card">
+                            <h3>Education</h3>
+                            <h4 id="previewDegree">Degree</h4>
+                            <p class="university" id="previewUniversity">University Name</p>
+                            <p class="year" id="previewGraduationYear">2024</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
         function updatePreview() {
             // Update preview with form data
             const fullName = document.getElementById('fullName').value || 'Your Name';
@@ -497,17 +881,18 @@
             const university = document.getElementById('university').value || 'University Name';
             const graduationYear = document.getElementById('graduationYear').value || '2024';
             
-            document.getElementById('previewName').textContent = fullName;
-            document.getElementById('previewEmail').textContent = email;
-            document.getElementById('previewPhone').textContent = phone;
-            document.getElementById('previewAddress').textContent = address;
-            document.getElementById('previewSummary').textContent = summary;
-            document.getElementById('previewJobTitle').textContent = jobTitle;
-            document.getElementById('previewCompany').textContent = company;
-            document.getElementById('previewExperience').textContent = experience;
-            document.getElementById('previewDegree').textContent = degree;
-            document.getElementById('previewUniversity').textContent = university;
-            document.getElementById('previewGraduationYear').textContent = graduationYear;
+            // Update all preview elements
+            document.querySelectorAll('#previewName').forEach(el => el.textContent = fullName);
+            document.querySelectorAll('#previewEmail').forEach(el => el.textContent = email);
+            document.querySelectorAll('#previewPhone').forEach(el => el.textContent = phone);
+            document.querySelectorAll('#previewAddress').forEach(el => el.textContent = address);
+            document.querySelectorAll('#previewSummary').forEach(el => el.textContent = summary);
+            document.querySelectorAll('#previewJobTitle').forEach(el => el.textContent = jobTitle);
+            document.querySelectorAll('#previewCompany').forEach(el => el.textContent = company);
+            document.querySelectorAll('#previewExperience').forEach(el => el.textContent = experience);
+            document.querySelectorAll('#previewDegree').forEach(el => el.textContent = degree);
+            document.querySelectorAll('#previewUniversity').forEach(el => el.textContent = university);
+            document.querySelectorAll('#previewGraduationYear').forEach(el => el.textContent = graduationYear);
         }
         
         function saveCV() {
