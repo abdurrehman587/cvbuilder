@@ -929,6 +929,16 @@
                     </div>
                 </div>
             `;
+            
+            // Check if there's a profile picture and update it
+            const profilePicture = document.getElementById('profilePicture');
+            if (profilePicture && profilePicture.files && profilePicture.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    updatePreviewWithPicture(e.target.result);
+                };
+                reader.readAsDataURL(profilePicture.files[0]);
+            }
         }
         
         function generateTemplate3HTML() {
@@ -973,6 +983,16 @@
                     </div>
                 </div>
             `;
+            
+            // Check if there's a profile picture and update it
+            const profilePicture = document.getElementById('profilePicture');
+            if (profilePicture && profilePicture.files && profilePicture.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    updatePreviewWithPicture(e.target.result);
+                };
+                reader.readAsDataURL(profilePicture.files[0]);
+            }
         }
         
         function handlePictureUpload(event) {
@@ -1013,9 +1033,30 @@
                 if (imageSrc) {
                     pic.innerHTML = `<img src="${imageSrc}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
                 } else {
-                    pic.innerHTML = `<div id="previewName">Your Name</div>`;
+                    const fullName = document.getElementById('fullName').value || 'Your Name';
+                    pic.innerHTML = `<div id="previewName">${fullName}</div>`;
                 }
             });
+            
+            // Also update the classic template header if it has a profile picture area
+            const classicHeader = document.querySelector('.cv-header');
+            if (classicHeader && imageSrc) {
+                // Add profile picture to classic template header
+                const existingPic = classicHeader.querySelector('.profile-picture');
+                if (existingPic) {
+                    existingPic.innerHTML = `<img src="${imageSrc}" alt="Profile Picture" style="width: 80px; height: 80px; object-fit: cover; border-radius: 50%; margin-bottom: 10px;">`;
+                } else {
+                    const picDiv = document.createElement('div');
+                    picDiv.className = 'profile-picture';
+                    picDiv.innerHTML = `<img src="${imageSrc}" alt="Profile Picture" style="width: 80px; height: 80px; object-fit: cover; border-radius: 50%; margin-bottom: 10px;">`;
+                    classicHeader.insertBefore(picDiv, classicHeader.firstChild);
+                }
+            } else if (classicHeader && !imageSrc) {
+                const existingPic = classicHeader.querySelector('.profile-picture');
+                if (existingPic) {
+                    existingPic.remove();
+                }
+            }
         }
         
         function updatePreview() {
