@@ -305,9 +305,6 @@
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="/frontend/js/config.js"></script>
-    <script src="/frontend/js/supabase-config.js"></script>
-    <script src="/frontend/js/supabase-database.js"></script>
 </head>
 <body>
     <div class="auth-container">
@@ -552,6 +549,114 @@
         </div>
     </div>
 
-    <script src="/frontend/js/auth.js"></script>
+    <script>
+        // Essential JavaScript functions for authentication
+        function selectLoginType(type) {
+            console.log('Selecting login type:', type);
+            
+            // Hide all forms
+            const allForms = document.querySelectorAll('.login-form');
+            allForms.forEach(form => form.style.display = 'none');
+            
+            // Hide login type selector
+            const selector = document.querySelector('.login-type-selector');
+            if (selector) selector.style.display = 'none';
+            
+            // Show login forms container
+            const formsContainer = document.getElementById('loginFormsContainer');
+            if (formsContainer) formsContainer.style.display = 'block';
+            
+            // Show appropriate form
+            if (type === 'user') {
+                const userForm = document.getElementById('userLoginForm');
+                if (userForm) userForm.style.display = 'block';
+                
+                const title = document.getElementById('loginFormTitle');
+                const subtitle = document.getElementById('loginFormSubtitle');
+                if (title) title.textContent = 'User Login';
+                if (subtitle) subtitle.textContent = 'Access your personal account';
+            } else if (type === 'shopkeeper') {
+                const shopkeeperForm = document.getElementById('shopkeeperLoginForm');
+                if (shopkeeperForm) shopkeeperForm.style.display = 'block';
+                
+                const title = document.getElementById('loginFormTitle');
+                const subtitle = document.getElementById('loginFormSubtitle');
+                if (title) title.textContent = 'Shopkeeper Login';
+                if (subtitle) subtitle.textContent = 'Access your business account';
+            } else if (type === 'admin') {
+                const adminForm = document.getElementById('adminLoginForm');
+                if (adminForm) adminForm.style.display = 'block';
+                
+                const title = document.getElementById('loginFormTitle');
+                const subtitle = document.getElementById('loginFormSubtitle');
+                if (title) title.textContent = 'Admin Login';
+                if (subtitle) subtitle.textContent = 'Access admin panel';
+            }
+        }
+        
+        function showLoginTypeSelector() {
+            // Hide login forms container
+            const formsContainer = document.getElementById('loginFormsContainer');
+            if (formsContainer) formsContainer.style.display = 'none';
+            
+            // Show login type selector
+            const selector = document.querySelector('.login-type-selector');
+            if (selector) selector.style.display = 'flex';
+        }
+        
+        function switchUserTab(tab) {
+            const loginTab = document.getElementById('userLoginTab');
+            const signupTab = document.getElementById('userSignupTab');
+            const loginTabBtn = document.getElementById('userLoginTabBtn');
+            const signupTabBtn = document.getElementById('userSignupTabBtn');
+            
+            if (tab === 'login') {
+                if (loginTab) loginTab.style.display = 'block';
+                if (signupTab) signupTab.style.display = 'none';
+                if (loginTabBtn) loginTabBtn.classList.add('active');
+                if (signupTabBtn) signupTabBtn.classList.remove('active');
+            } else if (tab === 'signup') {
+                if (loginTab) loginTab.style.display = 'none';
+                if (signupTab) signupTab.style.display = 'block';
+                if (loginTabBtn) loginTabBtn.classList.remove('active');
+                if (signupTabBtn) signupTabBtn.classList.add('active');
+            }
+        }
+        
+        function switchShopkeeperTab(tab) {
+            const loginTab = document.getElementById('shopkeeperSigninTab');
+            const signupTab = document.getElementById('shopkeeperSignupTab');
+            const loginTabBtn = document.getElementById('shopkeeperLoginTabBtn');
+            const signupTabBtn = document.getElementById('shopkeeperSignupTabBtn');
+            
+            if (tab === 'login') {
+                if (loginTab) loginTab.style.display = 'block';
+                if (signupTab) signupTab.style.display = 'none';
+                if (loginTabBtn) loginTabBtn.classList.add('active');
+                if (signupTabBtn) signupTabBtn.classList.remove('active');
+            } else if (tab === 'signup') {
+                if (loginTab) loginTab.style.display = 'none';
+                if (signupTab) signupTab.style.display = 'block';
+                if (loginTabBtn) loginTabBtn.classList.remove('active');
+                if (signupTabBtn) signupTabBtn.classList.add('active');
+            }
+        }
+        
+        // Simple authentication functions
+        function handleLogin(type) {
+            console.log('Login attempt for:', type);
+            alert('Login functionality will be implemented with Supabase integration.');
+        }
+        
+        function handleSignup(type) {
+            console.log('Signup attempt for:', type);
+            alert('Signup functionality will be implemented with Supabase integration.');
+        }
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Auth page loaded');
+        });
+    </script>
 </body>
 </html>
