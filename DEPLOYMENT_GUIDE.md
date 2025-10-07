@@ -137,3 +137,4 @@ git push origin main
 
 **Yes, you can absolutely run both frontend and backend on the same hosting platform!** 🎉
 
+

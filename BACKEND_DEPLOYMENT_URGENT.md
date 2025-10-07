@@ -72,3 +72,4 @@ After deployment:
 **Just go to Vercel Dashboard and deploy the `cv_builder_nodejs_backend` folder!**
 
 Your backend will be working in 2 minutes! 🚀
+

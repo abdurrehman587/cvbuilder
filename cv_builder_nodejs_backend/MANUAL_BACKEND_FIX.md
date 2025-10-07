@@ -83,3 +83,4 @@ If you still get CORS errors:
 ## 📞 **Support**
 
 The frontend PDF generation is working perfectly as a fallback, so your CV Builder is fully functional even if the backend has issues.
+

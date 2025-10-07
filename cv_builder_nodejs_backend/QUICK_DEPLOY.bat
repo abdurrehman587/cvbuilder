@@ -29,3 +29,4 @@ echo Your backend is now deployed with CORS fixes.
 echo Copy the URL and update the frontend configuration.
 echo.
 pause
+

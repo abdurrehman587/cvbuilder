@@ -35,3 +35,4 @@ echo Your backend should now be available at the URL shown above.
 echo Please update the frontend with the new backend URL.
 echo.
 pause
+
