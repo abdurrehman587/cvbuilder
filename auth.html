@@ -642,20 +642,76 @@
             }
         }
         
-        // Simple authentication functions
+        // Authentication functions with admin credentials
         function handleLogin(type) {
             console.log('Login attempt for:', type);
-            alert('Login functionality will be implemented with Supabase integration.');
+            
+            if (type === 'admin') {
+                const email = document.getElementById('adminEmail').value;
+                const password = document.getElementById('adminPassword').value;
+                
+                // Admin credentials
+                if (email === 'admin@cvbuilder.com' && password === 'admin123') {
+                    alert('Admin login successful! Redirecting to admin dashboard...');
+                    // Redirect to admin dashboard
+                    window.location.href = '/frontend/admin-dashboard.html';
+                } else {
+                    alert('Invalid admin credentials. Try: admin@cvbuilder.com / admin123');
+                }
+            } else {
+                alert('Login functionality for ' + type + ' will be implemented with Supabase integration.');
+            }
         }
         
         function handleSignup(type) {
             console.log('Signup attempt for:', type);
-            alert('Signup functionality will be implemented with Supabase integration.');
+            alert('Signup functionality for ' + type + ' will be implemented with Supabase integration.');
         }
         
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Auth page loaded');
+            
+            // Add event listeners for form submissions
+            const adminLoginForm = document.getElementById('adminLoginFormElement');
+            if (adminLoginForm) {
+                adminLoginForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    handleLogin('admin');
+                });
+            }
+            
+            const userLoginForm = document.getElementById('userLoginFormElement');
+            if (userLoginForm) {
+                userLoginForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    handleLogin('user');
+                });
+            }
+            
+            const userSignupForm = document.getElementById('userSignupFormElement');
+            if (userSignupForm) {
+                userSignupForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    handleSignup('user');
+                });
+            }
+            
+            const shopkeeperLoginForm = document.getElementById('shopkeeperLoginFormElement');
+            if (shopkeeperLoginForm) {
+                shopkeeperLoginForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    handleLogin('shopkeeper');
+                });
+            }
+            
+            const shopkeeperSignupForm = document.getElementById('shopkeeperSignupFormElement');
+            if (shopkeeperSignupForm) {
+                shopkeeperSignupForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    handleSignup('shopkeeper');
+                });
+            }
         });
     </script>
 </body>
