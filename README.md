@@ -1,6 +1,6 @@
 # CV Builder Application
 
-A modern web application for creating and managing CVs with role-based access control and dynamic table management for shopkeepers.
+A modern web application for creating and managing CVs with role-based access control, dynamic table management for shopkeepers, and frontend-only PDF generation.
 
 ## 🚀 Features
 
@@ -10,6 +10,7 @@ A modern web application for creating and managing CVs with role-based access co
 - **Email Confirmation Bypass**: For development and testing
 - **localStorage Fallback**: Offline authentication support
 - **Real-time Database**: Powered by Supabase
+- **Frontend PDF Generation**: High-quality PDFs generated entirely in the browser
 
 ### User Roles
 - **Users**: Create and manage personal CVs
@@ -17,10 +18,11 @@ A modern web application for creating and managing CVs with role-based access co
 - **Admins**: Full system access and management
 
 ### CV Management
-- **Template Support**: Multiple CV templates
+- **Template Support**: Multiple CV templates (Classic, Modern, Minimalist)
 - **Rich Content**: Education, experience, skills, certifications, projects
 - **Image Upload**: Profile picture support
-- **Export Options**: Download CVs in various formats
+- **PDF Export**: Download CVs as high-quality PDFs
+- **Two-Column Layout**: Perfect Template 2 support
 
 ## 🛠️ Technology Stack
 
@@ -29,6 +31,8 @@ A modern web application for creating and managing CVs with role-based access co
 - **CSS3**: Modern styling with responsive design
 - **JavaScript (ES6+)**: Modern JavaScript with async/await
 - **Supabase JS**: Real-time database and authentication
+- **html2canvas**: Frontend PDF generation
+- **jsPDF**: PDF creation and download
 
 ### Backend
 - **Supabase**: Backend-as-a-Service
@@ -53,14 +57,15 @@ myapp/
 │   │   ├── auth.js          # Authentication system
 │   │   ├── supabase-config.js
 │   │   ├── supabase-database.js
-│   │   ├── cv-builder.js
+│   │   ├── cv-builder.js     # Main CV builder with PDF generation
 │   │   ├── admin-dashboard.js
 │   │   └── shopkeeper-dashboard.js
 │   ├── admin-dashboard.html  # Admin interface
 │   ├── auth.html            # Authentication page
 │   ├── index.html           # Main application
 │   └── shopkeeper-dashboard.html
-├── cv_builder_backend/      # Ruby on Rails backend (optional)
+├── public/                  # Static files
+│   └── _redirects           # Vercel redirects
 ├── .gitignore              # Git ignore rules
 └── README.md               # This file
 ```
@@ -215,7 +220,7 @@ For support and questions:
 
 ### Planned Features
 - [ ] Email confirmation system
-- [ ] CV export to PDF
+- [x] CV export to PDF (Frontend-only implementation)
 - [ ] Advanced templates
 - [ ] Mobile app
 - [ ] API documentation
