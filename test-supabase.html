@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase Integration Test - CV Builder</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .success { background: rgba(76, 175, 80, 0.3); }
+        .error { background: rgba(244, 67, 54, 0.3); }
+        .info { background: rgba(33, 150, 243, 0.3); }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #45a049; }
+        button:disabled { background: #666; cursor: not-allowed; }
+        .loading { opacity: 0.6; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/supabase-database.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Supabase Integration Test</h1>
+        <p>Testing your CV Builder's Supabase integration...</p>
+        
+        <div class="test-section">
+            <h3>📊 Connection Test</h3>
+            <button onclick="testConnection()">Test Supabase Connection</button>
+            <div id="connectionResult"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🗄️ Database Tables Test</h3>
+            <button onclick="testTables()">Test All Tables</button>
+            <div id="tablesResult"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>👤 Authentication Test</h3>
+            <button onclick="testAuth()">Test Authentication</button>
+            <div id="authResult"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>💾 CV Operations Test</h3>
+            <button onclick="testCVOperations()">Test CV Save/Load</button>
+            <div id="cvResult"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>📈 Full Integration Test</h3>
+            <button onclick="runFullTest()">Run Complete Test</button>
+            <div id="fullTestResult"></div>
+        </div>
+    </div>
+
+    <script>
+        let testResults = [];
+        
+        function addResult(containerId, message, type = 'info') {
+            const container = document.getElementById(containerId);
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${type}`;
+            resultDiv.innerHTML = `<strong>${new Date().toLocaleTimeString()}:</strong> ${message}`;
+            container.appendChild(resultDiv);
+            testResults.push({ message, type, time: new Date() });
+        }
+        
+        async function testConnection() {
+            addResult('connectionResult', 'Testing Supabase connection...', 'info');
+            
+            try {
+                if (!window.supabaseConfig) {
+                    throw new Error('Supabase config not loaded');
+                }
+                
+                if (!window.supabaseConfig.isAvailable()) {
+                    throw new Error('Supabase client not available');
+                }
+                
+                const client = window.supabaseConfig.getClient();
+                if (!client) {
+                    throw new Error('Supabase client is null');
+                }
+                
+                // Test basic connection
+                const { data, error } = await client.from('admin_cvs').select('count').limit(1);
+                
+                if (error) {
+                    throw new Error(`Connection failed: ${error.message}`);
+                }
+                
+                addResult('connectionResult', '✅ Supabase connection successful!', 'success');
+                return true;
+            } catch (error) {
+                addResult('connectionResult', `❌ Connection failed: ${error.message}`, 'error');
+                return false;
+            }
+        }
+        
+        async function testTables() {
+            addResult('tablesResult', 'Testing database tables...', 'info');
+            
+            const tables = ['admin_cvs', 'shopkeeper_cvs', 'user_cvs'];
+            let allTablesWorking = true;
+            
+            for (const tableName of tables) {
+                try {
+                    const client = window.supabaseConfig.getClient();
+                    const { data, error } = await client.from(tableName).select('*').limit(1);
+                    
+                    if (error) {
+                        addResult('tablesResult', `❌ Table ${tableName}: ${error.message}`, 'error');
+                        allTablesWorking = false;
+                    } else {
+                        addResult('tablesResult', `✅ Table ${tableName} accessible`, 'success');
+                    }
+                } catch (error) {
+                    addResult('tablesResult', `❌ Table ${tableName} error: ${error.message}`, 'error');
+                    allTablesWorking = false;
+                }
+            }
+            
+            if (allTablesWorking) {
+                addResult('tablesResult', '✅ All tables are accessible!', 'success');
+            }
+            
+            return allTablesWorking;
+        }
+        
+        async function testAuth() {
+            addResult('authResult', 'Testing authentication system...', 'info');
+            
+            try {
+                if (!window.supabaseDatabaseManager) {
+                    throw new Error('Database manager not available');
+                }
+                
+                // Test if auth system is working
+                const client = window.supabaseConfig.getClient();
+                const { data: { user }, error } = await client.auth.getUser();
+                
+                if (error && error.message !== 'Auth session missing!') {
+                    throw new Error(`Auth error: ${error.message}`);
+                }
+                
+                addResult('authResult', '✅ Authentication system ready!', 'success');
+                return true;
+            } catch (error) {
+                addResult('authResult', `❌ Auth test failed: ${error.message}`, 'error');
+                return false;
+            }
+        }
+        
+        async function testCVOperations() {
+            addResult('cvResult', 'Testing CV operations...', 'info');
+            
+            try {
+                if (!window.supabaseDatabaseManager) {
+                    throw new Error('Database manager not available');
+                }
+                
+                // Test CV save operation
+                const testCVData = {
+                    personalInfo: {
+                        fullName: 'Test User',
+                        email: 'test@example.com',
+                        phones: [{ phone: '1234567890' }],
+                        address: 'Test Address',
+                        summary: 'Test CV Summary'
+                    },
+                    education: [],
+                    experience: [],
+                    skills: ['JavaScript', 'HTML', 'CSS'],
+                    template: 'classic'
+                };
+                
+                // Test save operation
+                const savedCV = await window.supabaseDatabaseManager.saveCV(
+                    testCVData, 
+                    'test_user_id', 
+                    'admin'
+                );
+                
+                if (savedCV) {
+                    addResult('cvResult', '✅ CV save operation successful!', 'success');
+                    
+                    // Test load operation
+                    const loadedCV = await window.supabaseDatabaseManager.getCVById(savedCV.id, 'admin');
+                    if (loadedCV) {
+                        addResult('cvResult', '✅ CV load operation successful!', 'success');
+                    } else {
+                        addResult('cvResult', '❌ CV load operation failed', 'error');
+                    }
+                } else {
+                    addResult('cvResult', '❌ CV save operation failed', 'error');
+                }
+                
+                return true;
+            } catch (error) {
+                addResult('cvResult', `❌ CV operations failed: ${error.message}`, 'error');
+                return false;
+            }
+        }
+        
+        async function runFullTest() {
+            addResult('fullTestResult', '🚀 Starting full integration test...', 'info');
+            
+            const results = {
+                connection: false,
+                tables: false,
+                auth: false,
+                cv: false
+            };
+            
+            // Test connection
+            results.connection = await testConnection();
+            
+            // Test tables
+            results.tables = await testTables();
+            
+            // Test auth
+            results.auth = await testAuth();
+            
+            // Test CV operations
+            results.cv = await testCVOperations();
+            
+            // Summary
+            const passedTests = Object.values(results).filter(Boolean).length;
+            const totalTests = Object.keys(results).length;
+            
+            if (passedTests === totalTests) {
+                addResult('fullTestResult', `🎉 All tests passed! (${passedTests}/${totalTests})`, 'success');
+                addResult('fullTestResult', '✅ Your Supabase integration is working perfectly!', 'success');
+            } else {
+                addResult('fullTestResult', `⚠️ Some tests failed (${passedTests}/${totalTests})`, 'error');
+                addResult('fullTestResult', '❌ Please check the failed tests above', 'error');
+            }
+            
+            return results;
+        }
+        
+        // Auto-run basic tests on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            addResult('connectionResult', '🔄 Auto-testing on page load...', 'info');
+            await testConnection();
+        });
+    </script>
+</body>
+</html>
