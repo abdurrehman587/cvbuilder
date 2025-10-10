@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Professional CV Builder</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         /* Reset and Base Styles */
         * {
@@ -475,22 +477,57 @@
             margin-bottom: 15px;
         }
 
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .preview-header h3 {
+            margin: 0;
+        }
+
         .cv-preview {
-            min-height: 200px;
+            width: 210mm; /* A4 width */
+            min-height: 297mm; /* A4 height */
+            max-width: 210mm;
             background: white;
             border-radius: 10px;
-            padding: 30px;
+            padding: 20mm; /* Standard A4 margins */
             border: 1px solid #dee2e6;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            margin: 0 auto;
+            font-size: 12pt;
+            line-height: 1.4;
+        }
+
+        /* Responsive A4 preview */
+        @media (max-width: 1200px) {
+            .cv-preview {
+                width: 180mm;
+                max-width: 180mm;
+                padding: 15mm;
+                font-size: 11pt;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .cv-preview {
+                width: 150mm;
+                max-width: 150mm;
+                padding: 10mm;
+                font-size: 10pt;
+            }
         }
 
         /* Enhanced CV Preview Styles */
         .cv-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 30px;
+            padding: 15mm;
             border-radius: 8px;
-            margin-bottom: 20px;
+            margin-bottom: 15mm;
         }
 
         .header-content {
@@ -507,8 +544,8 @@
         }
 
         .profile-picture-container {
-            width: 100px;
-            height: 100px;
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
             overflow: hidden;
             border: 3px solid rgba(255, 255, 255, 0.3);
@@ -523,13 +560,13 @@
 
         .name-title h1 {
             margin: 0;
-            font-size: 2.2em;
+            font-size: 24pt;
             font-weight: 700;
         }
 
         .name-title h2 {
             margin: 5px 0 0 0;
-            font-size: 1.2em;
+            font-size: 14pt;
             font-weight: 300;
             opacity: 0.9;
         }
@@ -562,8 +599,8 @@
         }
 
         .cv-section {
-            margin-bottom: 25px;
-            padding-bottom: 20px;
+            margin-bottom: 15mm;
+            padding-bottom: 10mm;
             border-bottom: 1px solid #eee;
         }
 
@@ -573,8 +610,8 @@
 
         .cv-section h2 {
             color: #667eea;
-            font-size: 1.4em;
-            margin-bottom: 15px;
+            font-size: 16pt;
+            margin-bottom: 8mm;
             display: flex;
             align-items: center;
             gap: 8px;
@@ -1265,7 +1302,12 @@
                     <!-- Right Side - Preview -->
                     <div class="preview-side">
                         <div class="cv-preview-section">
-                            <h3>📄 CV Preview</h3>
+                            <div class="preview-header">
+                                <h3>📄 CV Preview</h3>
+                                <button class="btn btn-primary" onclick="downloadPDF()" id="downloadPDFBtn">
+                                    📄 Download PDF
+                                </button>
+                            </div>
                             <div class="cv-preview" id="cvPreview">
                                 <div class="cv-template">
                                     <!-- Header Section -->
@@ -1960,6 +2002,62 @@
         
         function saveCV() {
             alert('CV saved successfully! Database integration will be implemented with Supabase.');
+        }
+        
+        function downloadPDF() {
+            const { jsPDF } = window.jspdf;
+            const element = document.getElementById('cvPreview');
+            
+            // Show loading state
+            const downloadBtn = document.getElementById('downloadPDFBtn');
+            const originalText = downloadBtn.innerHTML;
+            downloadBtn.innerHTML = '⏳ Generating PDF...';
+            downloadBtn.disabled = true;
+            
+            html2canvas(element, {
+                scale: 2, // Higher quality
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: '#ffffff'
+            }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                
+                // Get A4 dimensions
+                const pdfWidth = 210;
+                const pdfHeight = 297;
+                const imgWidth = canvas.width;
+                const imgHeight = canvas.height;
+                
+                // Calculate scaling to fit A4
+                const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+                const scaledWidth = imgWidth * ratio;
+                const scaledHeight = imgHeight * ratio;
+                
+                // Center the image on the page
+                const x = (pdfWidth - scaledWidth) / 2;
+                const y = (pdfHeight - scaledHeight) / 2;
+                
+                pdf.addImage(imgData, 'PNG', x, y, scaledWidth, scaledHeight);
+                
+                // Get the name for the filename
+                const name = document.getElementById('fullName').value || 'CV';
+                const filename = `${name.replace(/\s+/g, '_')}_CV.pdf`;
+                
+                // Download the PDF
+                pdf.save(filename);
+                
+                // Reset button
+                downloadBtn.innerHTML = originalText;
+                downloadBtn.disabled = false;
+            }).catch(error => {
+                console.error('Error generating PDF:', error);
+                alert('Error generating PDF. Please try again.');
+                
+                // Reset button
+                downloadBtn.innerHTML = originalText;
+                downloadBtn.disabled = false;
+            });
         }
         
         function downloadCV() {
