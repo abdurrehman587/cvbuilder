@@ -343,13 +343,21 @@
         .form-side {
             flex: 1;
             overflow-y: auto;
-            padding-right: 10px;
+            padding: 20px;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e8f4f8;
         }
 
         .preview-side {
             flex: 1;
             overflow: hidden;
-            padding-left: 10px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e8f4f8;
         }
 
         .form-container {
@@ -1167,7 +1175,120 @@
             font-size: 1.1rem;
         }
 
+        @media (max-width: 1200px) {
+            .side-by-side-container {
+                gap: 15px;
+                height: calc(100vh - 180px);
+            }
+            
+            .form-side,
+            .preview-side {
+                padding: 15px;
+            }
+            
+            .cv-preview {
+                width: 180mm;
+                max-width: 180mm;
+                padding: 15mm;
+                font-size: 11pt;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .side-by-side-container {
+                flex-direction: column;
+                height: auto;
+                gap: 20px;
+            }
+            
+            .form-side,
+            .preview-side {
+                flex: none;
+                height: auto;
+                min-height: 400px;
+            }
+            
+            .cv-preview {
+                width: 160mm;
+                max-width: 160mm;
+                padding: 12mm;
+                font-size: 10pt;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+            
+            .contact-info {
+                min-width: unset;
+                width: 100%;
+            }
+        }
+
         @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .side-by-side-container {
+                gap: 15px;
+            }
+            
+            .form-side,
+            .preview-side {
+                padding: 15px;
+                border-radius: 8px;
+            }
+            
+            .cv-preview {
+                width: 140mm;
+                max-width: 140mm;
+                padding: 10mm;
+                font-size: 9pt;
+            }
+            
+            .template-switcher-buttons {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .template-switch-btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .form-row {
+                flex-direction: column;
+            }
+            
+            .form-group {
+                margin-bottom: 15px;
+            }
+            
+            .cv-header {
+                padding: 15mm 10mm;
+            }
+            
+            .name-title h1 {
+                font-size: 24pt;
+            }
+            
+            .name-title h2 {
+                font-size: 14pt;
+            }
+            
+            .cv-section {
+                padding: 15mm;
+                margin-bottom: 15mm;
+            }
+            
+            .experience-item, .education-item {
+                padding: 15px;
+                margin-bottom: 15mm;
+            }
+            
             .action-buttons {
                 flex-direction: column;
                 align-items: center;
@@ -1177,19 +1298,85 @@
                 width: 100%;
                 max-width: 300px;
             }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 5px;
+            }
+            
+            .header {
+                height: 50px;
+                margin-bottom: 10px;
+            }
+            
+            .header h1 {
+                font-size: 18px;
+            }
             
             .side-by-side-container {
-                flex-direction: column;
-                height: auto;
+                gap: 10px;
             }
             
             .form-side,
             .preview-side {
-                padding: 0;
+                padding: 10px;
             }
             
-            .template-grid {
-                grid-template-columns: 1fr;
+            .cv-preview {
+                width: 120mm;
+                max-width: 120mm;
+                padding: 8mm;
+                font-size: 8pt;
+            }
+            
+            .cv-header {
+                padding: 10mm 8mm;
+            }
+            
+            .name-title h1 {
+                font-size: 20pt;
+            }
+            
+            .name-title h2 {
+                font-size: 12pt;
+            }
+            
+            .contact-info {
+                padding: 15px;
+                gap: 8px;
+            }
+            
+            .contact-item {
+                font-size: 10pt;
+                gap: 8px;
+            }
+            
+            .cv-section {
+                padding: 10mm;
+                margin-bottom: 10mm;
+            }
+            
+            .cv-section h2 {
+                font-size: 14pt;
+                margin-bottom: 10mm;
+            }
+            
+            .experience-item, .education-item {
+                padding: 12px;
+                margin-bottom: 10mm;
+            }
+            
+            .experience-header h3, .education-header h3 {
+                font-size: 12pt;
+            }
+            
+            .company, .university {
+                font-size: 10pt;
+            }
+            
+            .experience-dates, .education-dates {
+                font-size: 9pt;
             }
         }
     </style>
