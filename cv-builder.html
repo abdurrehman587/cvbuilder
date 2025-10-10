@@ -1223,6 +1223,40 @@
                             </div>
 
                             <div class="form-section">
+                                <h4>🎓 Education</h4>
+                                <div id="educationContainer">
+                                    <div class="education-entry" id="education1">
+                                        <div class="form-row">
+                                            <div class="form-group">
+                                                <label for="degree1">Degree/Qualification:</label>
+                                                <input type="text" id="degree1" placeholder="e.g., Bachelor of Science in Computer Science" oninput="updatePreview()">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="university1">Institution:</label>
+                                                <input type="text" id="university1" placeholder="e.g., University Name" oninput="updatePreview()">
+                                            </div>
+                                        </div>
+                                        <div class="form-row">
+                                            <div class="form-group">
+                                                <label for="educationStartDate1">Start Date:</label>
+                                                <input type="date" id="educationStartDate1" oninput="updatePreview()">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="educationEndDate1">End Date:</label>
+                                                <input type="date" id="educationEndDate1" oninput="updatePreview()">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="educationDescription1">Description (Optional):</label>
+                                            <textarea id="educationDescription1" placeholder="Any additional details about your education..." oninput="updatePreview()" rows="2"></textarea>
+                                        </div>
+                                        <button type="button" class="btn btn-secondary" onclick="removeEducation(1)" style="display: none;">Remove Education</button>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-secondary" onclick="addEducation()">+ Add Education</button>
+                            </div>
+
+                            <div class="form-section">
                                 <h4>💼 Work Experience</h4>
                                 <div id="workExperienceContainer">
                                     <div class="experience-item">
@@ -1251,34 +1285,6 @@
                                 <button type="button" class="btn btn-secondary" onclick="addWorkExperience()">+ Add Another Experience</button>
                             </div>
 
-                            <div class="form-section">
-                                <h4>🎓 Education</h4>
-                                <div id="educationContainer">
-                                    <div class="education-item">
-                                        <div class="form-group">
-                                            <label for="degree1">Degree/Certification:</label>
-                                            <input type="text" id="degree1" placeholder="e.g., Bachelor of Computer Science" oninput="updatePreview()">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="university1">Institution:</label>
-                                            <input type="text" id="university1" placeholder="University or College name" oninput="updatePreview()">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="educationStartDate1">Start Date:</label>
-                                            <input type="text" id="educationStartDate1" placeholder="e.g., Sep 2016" oninput="updatePreview()">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="educationEndDate1">End Date:</label>
-                                            <input type="text" id="educationEndDate1" placeholder="e.g., May 2020" oninput="updatePreview()">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="educationDescription1">Description:</label>
-                                            <textarea id="educationDescription1" placeholder="Relevant coursework, achievements, GPA (optional)..." oninput="updatePreview()" rows="2"></textarea>
-                                        </div>
-                                    </div>
-                                </div>
-                                <button type="button" class="btn btn-secondary" onclick="addEducation()">+ Add Another Education</button>
-                            </div>
 
                             <div class="form-section">
                                 <h4>🛠️ Skills</h4>
