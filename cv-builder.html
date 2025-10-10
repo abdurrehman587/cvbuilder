@@ -1044,72 +1044,10 @@
         </div>
 
         <div class="cv-builder-content">
-            <div class="welcome-section" id="welcomeSection">
-                <h2>Welcome to CV Builder</h2>
-                <p>Create your professional CV with our easy-to-use builder</p>
-                
-                <!-- Template Selection -->
-                <div class="template-selection">
-                    <h3>Choose Your Template</h3>
-                    <div class="template-grid">
-                        <div class="template-card" onclick="selectTemplate('classic')">
-                            <div class="template-preview template-1-preview">
-                                <div class="template-header">John Doe</div>
-                                <div class="template-content">
-                                    <div class="template-section">Professional Summary</div>
-                                    <div class="template-section">Work Experience</div>
-                                    <div class="template-section">Education</div>
-                                </div>
-                            </div>
-                            <h4>Template 1 - Classic</h4>
-                            <p>Traditional single-column layout</p>
-                        </div>
-                        
-                        <div class="template-card" onclick="selectTemplate('modern')">
-                            <div class="template-preview template-2-preview">
-                                <div class="template-sidebar">
-                                    <div class="template-profile">JD</div>
-                                    <div class="template-sidebar-section">Skills</div>
-                                    <div class="template-sidebar-section">Languages</div>
-                                </div>
-                                <div class="template-main">
-                                    <div class="template-section">Experience</div>
-                                    <div class="template-section">Education</div>
-                                </div>
-                            </div>
-                            <h4>Template 2 - Modern</h4>
-                            <p>Two-column layout with sidebar</p>
-                        </div>
-                        
-                        <div class="template-card" onclick="selectTemplate('minimalist')">
-                            <div class="template-preview template-3-preview">
-                                <div class="template-header-card">
-                                    <div class="template-name">John Doe</div>
-                                    <div class="template-title">Software Engineer</div>
-                                </div>
-                                <div class="template-cards">
-                                    <div class="template-card-item">Summary</div>
-                                    <div class="template-card-item">Experience</div>
-                                    <div class="template-card-item">Education</div>
-                                </div>
-                            </div>
-                            <h4>Template 3 - Minimalist</h4>
-                            <p>Card-based creative layout</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="action-buttons">
-                    <button class="btn btn-primary" onclick="startNewCV()" id="startCVBtn">📝 Start Building CV</button>
-                    <button class="btn btn-secondary" onclick="loadExistingCV()">📂 Load Existing CV</button>
-                    <button class="btn btn-secondary" onclick="goToAdmin()">🎯 Admin Dashboard</button>
-                </div>
-            </div>
 
-            <div class="cv-form-section" id="cvFormSection" style="display: none;">
+            <div class="cv-form-section" id="cvFormSection" style="display: block;">
                 <div class="form-header">
                     <h3>📝 Create Your CV</h3>
-                    <button class="btn btn-secondary" onclick="backToWelcome()">← Back</button>
                 </div>
                 
                 <!-- Template Switcher -->
@@ -1488,61 +1426,22 @@
         // CV Builder JavaScript Functions
         let selectedTemplate = null;
         
-        function selectTemplate(template) {
-            selectedTemplate = template;
-            
-            // Remove selected class from all cards
-            document.querySelectorAll('.template-card').forEach(card => {
-                card.classList.remove('selected');
-            });
-            
-            // Add selected class to clicked card
-            event.currentTarget.classList.add('selected');
-            
-            // Update start button text
-            document.getElementById('startCVBtn').textContent = `📝 Start Building CV (${template})`;
-        }
         
-        function startNewCV() {
-            // Set default template to classic if none selected
-            if (!selectedTemplate) {
-                selectedTemplate = 'classic';
-            }
-            
-            document.getElementById('welcomeSection').style.display = 'none';
-            document.getElementById('cvFormSection').style.display = 'block';
-            document.getElementById('cvPreviewSection').style.display = 'block';
+        // Initialize the CV builder on page load
+        function initializeCVBuilder() {
+            // Set default template to classic
+            selectedTemplate = 'classic';
             
             // Set the correct active template button
             document.querySelectorAll('.template-switch-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
+            document.getElementById('switchToTemplate1').classList.add('active');
             
-            if (selectedTemplate === 'classic') {
-                document.getElementById('switchToTemplate1').classList.add('active');
-            } else if (selectedTemplate === 'modern') {
-                document.getElementById('switchToTemplate2').classList.add('active');
-            } else if (selectedTemplate === 'minimalist') {
-                document.getElementById('switchToTemplate3').classList.add('active');
-            }
-            
-            // Apply selected template to preview
-            applyTemplateToPreview();
+            // Initialize preview
+            updatePreview();
         }
         
-        function backToWelcome() {
-            document.getElementById('cvFormSection').style.display = 'none';
-            document.getElementById('cvPreviewSection').style.display = 'none';
-            document.getElementById('welcomeSection').style.display = 'block';
-        }
-        
-        function loadExistingCV() {
-            alert('Loading existing CV... This feature will be implemented with database integration.');
-        }
-        
-        function goToAdmin() {
-            window.location.href = '/admin';
-        }
         
         function logout() {
             if (confirm('Are you sure you want to logout?')) {
@@ -2112,6 +2011,7 @@ ${cvData.graduationYear}
         // Initialize CV Builder
         document.addEventListener('DOMContentLoaded', function() {
             console.log('CV Builder loaded');
+            initializeCVBuilder();
         });
     </script>
 </body>
