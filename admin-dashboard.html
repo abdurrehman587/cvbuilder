@@ -208,6 +208,117 @@
             margin-top: 20px;
         }
 
+        /* CV List Styles */
+        .cv-item {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .cv-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+        
+        .cv-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .cv-header h4 {
+            margin: 0;
+            color: #333;
+            font-size: 1.2em;
+        }
+        
+        .cv-source {
+            background: #667eea;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            text-transform: capitalize;
+        }
+        
+        .cv-details {
+            margin-bottom: 15px;
+        }
+        
+        .cv-details p {
+            margin: 5px 0;
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .cv-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .cv-actions button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.2s;
+        }
+        
+        .btn-view {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .btn-view:hover {
+            background: #45a049;
+        }
+        
+        .btn-edit {
+            background: #2196F3;
+            color: white;
+        }
+        
+        .btn-edit:hover {
+            background: #1976D2;
+        }
+        
+        .btn-delete {
+            background: #f44336;
+            color: white;
+        }
+        
+        .btn-delete:hover {
+            background: #d32f2f;
+        }
+        
+        .btn-retry {
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .btn-retry:hover {
+            background: #5a6fd8;
+        }
+        
+        .loading-spinner {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        
         @media (max-width: 768px) {
             .options-grid {
                 grid-template-columns: 1fr;
@@ -216,6 +327,15 @@
             .user-info {
                 position: static;
                 margin-bottom: 20px;
+            }
+            
+            .cv-actions {
+                flex-direction: column;
+            }
+            
+            .cv-actions button {
+                width: 100%;
+                margin-bottom: 5px;
             }
         }
     </style>
@@ -294,19 +414,95 @@
             window.location.href = '/cv';
         }
 
-        function showAllCVs() {
+        async function showAllCVs() {
             const section = document.getElementById('allCVsSection');
             const shopkeepersSection = document.getElementById('shopkeepersSection');
             
             if (section) section.style.display = 'block';
             if (shopkeepersSection) shopkeepersSection.style.display = 'none';
             
-            // Show placeholder content
+            // Show loading state
             const stats = document.getElementById('cvsStats');
             const list = document.getElementById('allCVsList');
             
-            if (stats) stats.innerHTML = '<p>📊 Total CVs: 0 (Database integration pending)</p>';
-            if (list) list.innerHTML = '<p>No CVs found. Database integration will be implemented with Supabase.</p>';
+            if (stats) stats.innerHTML = '<p>🔄 Loading CVs from database...</p>';
+            if (list) list.innerHTML = '<div class="loading-spinner">Loading...</div>';
+            
+            try {
+                // Load CVs from all tables using the database manager
+                if (window.supabaseDatabaseManager && window.supabaseDatabaseManager.isSupabaseAvailable()) {
+                    console.log('Loading all CVs from database...');
+                    
+                    // Search all tables for CVs
+                    const result = await window.supabaseDatabaseManager.searchAllTables(
+                        null, // name filter
+                        null, // mobile filter  
+                        null, // template filter
+                        100,  // limit
+                        0,    // offset
+                        true  // load full data
+                    );
+                    
+                    console.log('CVs loaded:', result);
+                    
+                    if (result && result.data) {
+                        const totalCVs = result.total || result.data.length;
+                        const cvs = result.data;
+                        
+                        // Update stats
+                        if (stats) {
+                            stats.innerHTML = `
+                                <p>📊 Total CVs: ${totalCVs}</p>
+                                <p>📋 Showing: ${cvs.length} CVs</p>
+                                <p>🔄 Last updated: ${new Date().toLocaleTimeString()}</p>
+                            `;
+                        }
+                        
+                        // Display CVs
+                        if (list) {
+                            if (cvs.length === 0) {
+                                list.innerHTML = '<p>📝 No CVs found in the database.</p>';
+                            } else {
+                                list.innerHTML = cvs.map(cv => `
+                                    <div class="cv-item">
+                                        <div class="cv-header">
+                                            <h4>${cv.name || cv.cv_name || 'Untitled CV'}</h4>
+                                            <span class="cv-source">${cv.source || 'Unknown'}</span>
+                                        </div>
+                                        <div class="cv-details">
+                                            <p><strong>Email:</strong> ${cv.email || 'N/A'}</p>
+                                            <p><strong>Phone:</strong> ${cv.phone || 'N/A'}</p>
+                                            <p><strong>Template:</strong> ${cv.template || 'Classic'}</p>
+                                            <p><strong>Created:</strong> ${new Date(cv.created_at).toLocaleDateString()}</p>
+                                        </div>
+                                        <div class="cv-actions">
+                                            <button onclick="viewCV('${cv.id}', '${cv.source || 'admin'}')" class="btn-view">👁️ View</button>
+                                            <button onclick="editCV('${cv.id}', '${cv.source || 'admin'}')" class="btn-edit">✏️ Edit</button>
+                                            <button onclick="deleteCV('${cv.id}', '${cv.source || 'admin'}')" class="btn-delete">🗑️ Delete</button>
+                                        </div>
+                                    </div>
+                                `).join('');
+                            }
+                        }
+                    } else {
+                        throw new Error('No data returned from database');
+                    }
+                } else {
+                    throw new Error('Database not available');
+                }
+            } catch (error) {
+                console.error('Error loading CVs:', error);
+                
+                if (stats) {
+                    stats.innerHTML = '<p>❌ Error loading CVs from database</p>';
+                }
+                if (list) {
+                    list.innerHTML = `
+                        <p>❌ Failed to load CVs: ${error.message}</p>
+                        <button onclick="showAllCVs()" class="btn-retry">🔄 Retry</button>
+                    `;
+                }
+            }
         }
 
         function showShopkeepers() {
@@ -334,9 +530,135 @@
             }
         }
 
+        // CV Action Functions
+        async function viewCV(cvId, source) {
+            try {
+                console.log('Viewing CV:', cvId, 'from source:', source);
+                
+                if (window.supabaseDatabaseManager && window.supabaseDatabaseManager.isSupabaseAvailable()) {
+                    const cv = await window.supabaseDatabaseManager.getCVById(cvId, source);
+                    
+                    if (cv) {
+                        // Open CV in a new window/tab for viewing
+                        const cvWindow = window.open('', '_blank', 'width=800,height=600,scrollbars=yes');
+                        cvWindow.document.write(`
+                            <html>
+                            <head>
+                                <title>CV Preview - ${cv.name || cv.cv_name || 'Untitled CV'}</title>
+                                <style>
+                                    body { font-family: Arial, sans-serif; margin: 20px; }
+                                    .cv-preview { max-width: 800px; margin: 0 auto; }
+                                    .cv-header { background: #667eea; color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+                                    .cv-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+                                    .cv-section h3 { color: #333; margin-top: 0; }
+                                </style>
+                            </head>
+                            <body>
+                                <div class="cv-preview">
+                                    <div class="cv-header">
+                                        <h1>${cv.name || cv.cv_name || 'Untitled CV'}</h1>
+                                        <p>Email: ${cv.email || 'N/A'} | Phone: ${cv.phone || 'N/A'}</p>
+                                    </div>
+                                    <div class="cv-section">
+                                        <h3>Summary</h3>
+                                        <p>${cv.objective || 'No summary provided'}</p>
+                                    </div>
+                                    <div class="cv-section">
+                                        <h3>Education</h3>
+                                        <p>${Array.isArray(cv.education) ? cv.education.join(', ') : 'No education listed'}</p>
+                                    </div>
+                                    <div class="cv-section">
+                                        <h3>Experience</h3>
+                                        <p>${Array.isArray(cv.work_experience) ? cv.work_experience.join(', ') : 'No experience listed'}</p>
+                                    </div>
+                                    <div class="cv-section">
+                                        <h3>Skills</h3>
+                                        <p>${Array.isArray(cv.skills) ? cv.skills.join(', ') : 'No skills listed'}</p>
+                                    </div>
+                                    <div style="text-align: center; margin-top: 30px;">
+                                        <button onclick="window.print()" style="background: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">🖨️ Print CV</button>
+                                        <button onclick="window.close()" style="background: #666; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-left: 10px;">❌ Close</button>
+                                    </div>
+                                </div>
+                            </body>
+                            </html>
+                        `);
+                        cvWindow.document.close();
+                    } else {
+                        alert('CV not found or could not be loaded.');
+                    }
+                } else {
+                    alert('Database not available. Please try again later.');
+                }
+            } catch (error) {
+                console.error('Error viewing CV:', error);
+                alert('Error loading CV: ' + error.message);
+            }
+        }
+
+        async function editCV(cvId, source) {
+            try {
+                console.log('Editing CV:', cvId, 'from source:', source);
+                
+                if (window.supabaseDatabaseManager && window.supabaseDatabaseManager.isSupabaseAvailable()) {
+                    const cv = await window.supabaseDatabaseManager.getCVById(cvId, source);
+                    
+                    if (cv) {
+                        // Store CV data in session storage for editing
+                        sessionStorage.setItem('editingCV', JSON.stringify(cv));
+                        sessionStorage.setItem('editingCVSource', source);
+                        
+                        // Redirect to CV builder with edit mode
+                        window.location.href = '/cv?edit=' + cvId;
+                    } else {
+                        alert('CV not found or could not be loaded.');
+                    }
+                } else {
+                    alert('Database not available. Please try again later.');
+                }
+            } catch (error) {
+                console.error('Error loading CV for editing:', error);
+                alert('Error loading CV: ' + error.message);
+            }
+        }
+
+        async function deleteCV(cvId, source) {
+            try {
+                if (!confirm('Are you sure you want to delete this CV? This action cannot be undone.')) {
+                    return;
+                }
+                
+                console.log('Deleting CV:', cvId, 'from source:', source);
+                
+                if (window.supabaseDatabaseManager && window.supabaseDatabaseManager.isSupabaseAvailable()) {
+                    const success = await window.supabaseDatabaseManager.deleteCV(cvId, source);
+                    
+                    if (success) {
+                        alert('CV deleted successfully!');
+                        // Refresh the CV list
+                        showAllCVs();
+                    } else {
+                        alert('Failed to delete CV. Please try again.');
+                    }
+                } else {
+                    alert('Database not available. Please try again later.');
+                }
+            } catch (error) {
+                console.error('Error deleting CV:', error);
+                alert('Error deleting CV: ' + error.message);
+            }
+        }
+
         // Initialize dashboard
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Admin Dashboard loaded');
+            
+            // Check if we have Supabase integration
+            if (window.supabaseDatabaseManager) {
+                console.log('Supabase database manager available');
+            } else {
+                console.log('Supabase database manager not available');
+            }
         });
     </script>
 </body>
