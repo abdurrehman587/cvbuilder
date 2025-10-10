@@ -340,8 +340,8 @@
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="frontend/js/supabase-config.js"></script>
-    <script src="frontend/js/supabase-database.js"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/supabase-database.js"></script>
 </head>
 <body>
     <div class="container">
@@ -678,8 +678,8 @@
         // Function to dynamically load Supabase scripts
         function loadSupabaseScripts() {
             const scripts = [
-                'frontend/js/supabase-config.js',
-                'frontend/js/supabase-database.js'
+                'js/supabase-config.js',
+                'js/supabase-database.js'
             ];
             
             scripts.forEach(src => {
@@ -687,7 +687,7 @@
                 script.src = src;
                 script.onload = () => {
                     console.log(`✅ Loaded ${src}`);
-                    if (src === 'frontend/js/supabase-database.js' && window.supabaseDatabaseManager) {
+                    if (src === 'js/supabase-database.js' && window.supabaseDatabaseManager) {
                         console.log('✅ Supabase database manager now available');
                     }
                 };
