@@ -1184,21 +1184,7 @@
                     <div class="form-side">
                         <div class="form-container">
                             <div class="form-section">
-                                <h4>👤 Personal Information</h4>
-                                <div class="form-group">
-                                    <label for="profilePicture">Profile Picture:</label>
-                                    <div class="picture-input-container">
-                                        <input type="file" id="profilePicture" accept="image/*" onchange="handlePictureUpload(event)" style="display: none;">
-                                        <div class="picture-preview" id="picturePreview">
-                                            <div class="picture-placeholder">
-                                                <span>📷</span>
-                                                <p>Click to upload photo</p>
-                                            </div>
-                                        </div>
-                                        <button type="button" class="btn btn-secondary" onclick="document.getElementById('profilePicture').click()">Choose Photo</button>
-                                        <button type="button" class="btn btn-secondary" onclick="removePicture()" id="removePictureBtn" style="display: none;">Remove Photo</button>
-                                    </div>
-                                </div>
+                                <h4>📞 Contact Information</h4>
                                 <div class="form-group">
                                     <label for="fullName">Full Name *:</label>
                                     <input type="text" id="fullName" placeholder="Enter your full name" oninput="updatePreview()" required>
@@ -1217,15 +1203,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="address">Address:</label>
-                                    <textarea id="address" placeholder="Enter your full address" oninput="updatePreview()"></textarea>
-                                </div>
-                                <div class="form-group">
-                                    <label for="linkedin">LinkedIn Profile:</label>
-                                    <input type="url" id="linkedin" placeholder="https://linkedin.com/in/yourprofile" oninput="updatePreview()">
-                                </div>
-                                <div class="form-group">
-                                    <label for="github">GitHub Profile:</label>
-                                    <input type="url" id="github" placeholder="https://github.com/yourusername" oninput="updatePreview()">
+                                    <input type="text" id="address" placeholder="Enter your full address" oninput="updatePreview()">
                                 </div>
                             </div>
 
@@ -1792,49 +1770,8 @@
             }
         }
         
-        function handlePictureUpload(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const picturePreview = document.getElementById('picturePreview');
-                    picturePreview.innerHTML = `<img src="${e.target.result}" alt="Profile Picture">`;
-                    document.getElementById('removePictureBtn').style.display = 'inline-block';
-                    
-                    // Update preview with picture
-                    updatePreviewWithPicture(e.target.result);
-                };
-                reader.readAsDataURL(file);
-            }
-        }
         
-        function removePicture() {
-            const picturePreview = document.getElementById('picturePreview');
-            picturePreview.innerHTML = `
-                <div class="picture-placeholder">
-                    <span>📷</span>
-                    <p>Click to upload photo</p>
-                </div>
-            `;
-            document.getElementById('removePictureBtn').style.display = 'none';
-            document.getElementById('profilePicture').value = '';
-            
-            // Remove picture from preview
-            updatePreviewWithPicture(null);
-        }
         
-        function updatePreviewWithPicture(imageSrc) {
-            // Update profile picture in all templates
-            const profilePics = document.querySelectorAll('.template-1-profile-pic, .template-2-profile-pic, .template-3-profile-pic');
-            profilePics.forEach(pic => {
-                if (imageSrc) {
-                    pic.innerHTML = `<img src="${imageSrc}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
-                } else {
-                    const fullName = document.getElementById('fullName').value || 'Your Name';
-                    pic.innerHTML = `<div id="previewName">${fullName}</div>`;
-                }
-            });
-        }
         
         function updatePreview() {
             // Get form values
@@ -1843,8 +1780,6 @@
             const email = document.getElementById('email').value || 'your.email@example.com';
             const phone = document.getElementById('phone').value || '+1 (555) 123-4567';
             const address = document.getElementById('address').value || 'Your Address';
-            const linkedin = document.getElementById('linkedin').value || '';
-            const github = document.getElementById('github').value || '';
             const summary = document.getElementById('summary').value || 'Write your professional summary here...';
             
             // Work Experience
@@ -1878,8 +1813,6 @@
             updateContactItem('previewEmailItem', 'previewEmail', email);
             updateContactItem('previewPhoneItem', 'previewPhone', phone);
             updateContactItem('previewAddressItem', 'previewAddress', address);
-            updateContactLink('previewLinkedInItem', 'previewLinkedIn', linkedin, linkedin);
-            updateContactLink('previewGithubItem', 'previewGithub', github, github);
             
             // Update sections with conditional display
             updateSection('summarySection', 'previewSummary', summary);
