@@ -489,7 +489,7 @@
 
         .cv-preview {
             width: 210mm; /* A4 width */
-            min-height: 297mm; /* A4 height */
+            height: 297mm; /* A4 height - fixed height */
             max-width: 210mm;
             background: white;
             border-radius: 0;
@@ -499,28 +499,33 @@
             margin: 0 auto;
             font-size: 12pt;
             line-height: 1.4;
+            overflow: hidden; /* Remove scrolling */
         }
 
         /* Responsive A4 preview */
         @media (max-width: 1200px) {
             .cv-preview {
                 width: 180mm;
+                height: 240mm; /* Proportional height */
                 max-width: 180mm;
                 padding: 15mm;
                 font-size: 11pt;
                 border-radius: 0;
                 box-shadow: none;
+                overflow: hidden;
             }
         }
 
         @media (max-width: 768px) {
             .cv-preview {
                 width: 150mm;
+                height: 200mm; /* Proportional height */
                 max-width: 150mm;
                 padding: 10mm;
                 font-size: 10pt;
                 border-radius: 0;
                 box-shadow: none;
+                overflow: hidden;
             }
         }
 
