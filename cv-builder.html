@@ -1236,15 +1236,9 @@
                                                 <input type="text" id="university1" placeholder="e.g., University Name" oninput="updatePreview()">
                                             </div>
                                         </div>
-                                        <div class="form-row">
-                                            <div class="form-group">
-                                                <label for="educationStartDate1">Start Date:</label>
-                                                <input type="date" id="educationStartDate1" oninput="updatePreview()">
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="educationEndDate1">End Date:</label>
-                                                <input type="date" id="educationEndDate1" oninput="updatePreview()">
-                                            </div>
+                                        <div class="form-group">
+                                            <label for="educationDuration1">Duration:</label>
+                                            <input type="text" id="educationDuration1" placeholder="e.g., 2016 - 2020 or 4 years" oninput="updatePreview()">
                                         </div>
                                         <div class="form-group">
                                             <label for="educationDescription1">Description (Optional):</label>
@@ -1269,12 +1263,8 @@
                                             <input type="text" id="company1" placeholder="Company name" oninput="updatePreview()">
                                         </div>
                                         <div class="form-group">
-                                            <label for="jobStartDate1">Start Date:</label>
-                                            <input type="text" id="jobStartDate1" placeholder="e.g., Jan 2020" oninput="updatePreview()">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="jobEndDate1">End Date:</label>
-                                            <input type="text" id="jobEndDate1" placeholder="e.g., Present or Dec 2023" oninput="updatePreview()">
+                                            <label for="jobDuration1">Duration:</label>
+                                            <input type="text" id="jobDuration1" placeholder="e.g., Jan 2020 - Present or 2 years" oninput="updatePreview()">
                                         </div>
                                         <div class="form-group">
                                             <label for="jobDescription1">Job Description:</label>
@@ -1798,15 +1788,13 @@
             // Work Experience
             const jobTitle = document.getElementById('jobTitle1').value || 'Job Title';
             const company = document.getElementById('company1').value || 'Company Name';
-            const jobStartDate = document.getElementById('jobStartDate1').value || 'Start Date';
-            const jobEndDate = document.getElementById('jobEndDate1').value || 'End Date';
+            const jobDuration = document.getElementById('jobDuration1').value || 'Duration';
             const jobDescription = document.getElementById('jobDescription1').value || 'Describe your work experience here...';
             
             // Education
             const degree = document.getElementById('degree1').value || 'Degree';
             const university = document.getElementById('university1').value || 'University Name';
-            const educationStartDate = document.getElementById('educationStartDate1').value || 'Start Date';
-            const educationEndDate = document.getElementById('educationEndDate1').value || 'End Date';
+            const educationDuration = document.getElementById('educationDuration1').value || 'Duration';
             const educationDescription = document.getElementById('educationDescription1').value || 'Relevant coursework, achievements...';
             
             // Skills and other fields
@@ -1829,8 +1817,8 @@
             
             // Update sections with conditional display
             updateSection('summarySection', 'previewSummary', summary);
-            updateSection('experienceSection', 'previewJobTitle', jobTitle, 'previewCompany', company, 'previewJobDates', `${jobStartDate} - ${jobEndDate}`, 'previewJobDescription', jobDescription);
-            updateSection('educationSection', 'previewDegree', degree, 'previewUniversity', university, 'previewEducationDates', `${educationStartDate} - ${educationEndDate}`, 'previewEducationDescription', educationDescription);
+            updateSection('experienceSection', 'previewJobTitle', jobTitle, 'previewCompany', company, 'previewJobDates', jobDuration, 'previewJobDescription', jobDescription);
+            updateSection('educationSection', 'previewDegree', degree, 'previewUniversity', university, 'previewEducationDates', educationDuration, 'previewEducationDescription', educationDescription);
             
             // Update skills
             if (skills.trim()) {
