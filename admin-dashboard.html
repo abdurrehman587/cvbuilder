@@ -318,6 +318,92 @@
             padding: 20px;
             color: #666;
         }
+
+        /* Search Section Styles */
+        .search-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .search-form {
+            width: 100%;
+        }
+
+        .search-input-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-input, .search-select {
+            flex: 1;
+            min-width: 150px;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .search-input:focus, .search-select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-btn, .clear-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .search-btn {
+            background: #667eea;
+            color: white;
+        }
+
+        .search-btn:hover {
+            background: #5a6cdb;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .clear-btn {
+            background: #dc3545;
+            color: white;
+        }
+
+        .clear-btn:hover {
+            background: #c82333;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .search-input-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-input, .search-select {
+                min-width: unset;
+                width: 100%;
+            }
+
+            .search-btn, .clear-btn {
+                width: 100%;
+            }
+        }
         
         @media (max-width: 768px) {
             .options-grid {
@@ -744,6 +830,24 @@
                     <h3>📋 All CVs in Database</h3>
                 </div>
                 
+                <!-- Search Form -->
+                <div class="search-section">
+                    <div class="search-form">
+                        <div class="search-input-group">
+                            <input type="text" id="searchName" placeholder="Search by name..." class="search-input">
+                            <input type="text" id="searchMobile" placeholder="Search by phone..." class="search-input">
+                            <select id="searchTemplate" class="search-select">
+                                <option value="">All Templates</option>
+                                <option value="classic">Classic</option>
+                                <option value="modern">Modern</option>
+                                <option value="minimalist">Minimalist</option>
+                            </select>
+                            <button onclick="searchCVs()" class="search-btn">🔍 Search</button>
+                            <button onclick="clearSearch()" class="clear-btn">❌ Clear</button>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="cvs-stats" id="cvsStats"></div>
                 <div class="all-cvs-list" id="allCVsList"></div>
             </div>
@@ -1032,6 +1136,121 @@
             }, 1000);
         });
         
+        // Search Functions
+        async function searchCVs() {
+            const name = document.getElementById('searchName').value.trim();
+            const mobile = document.getElementById('searchMobile').value.trim();
+            const template = document.getElementById('searchTemplate').value;
+            
+            const section = document.getElementById('allCVsSection');
+            const shopkeepersSection = document.getElementById('shopkeepersSection');
+            
+            if (section) section.style.display = 'block';
+            if (shopkeepersSection) shopkeepersSection.style.display = 'none';
+            
+            // Show loading state
+            const stats = document.getElementById('cvsStats');
+            const list = document.getElementById('allCVsList');
+            
+            if (stats) stats.innerHTML = '<p>🔍 Searching CVs...</p>';
+            if (list) list.innerHTML = '<div class="loading-spinner">Searching...</div>';
+            
+            try {
+                // Check if database manager is available
+                if (!window.supabaseDatabaseManager) {
+                    throw new Error('Supabase database manager not loaded. Please refresh the page.');
+                }
+                
+                if (!window.supabaseDatabaseManager.isSupabaseAvailable()) {
+                    throw new Error('Supabase connection not available. Please check your internet connection.');
+                }
+                
+                console.log('Searching CVs with filters:', { name, mobile, template });
+                
+                // Search all tables for CVs with filters
+                const result = await window.supabaseDatabaseManager.searchAllTables(
+                    name || null, // name filter
+                    mobile || null, // mobile filter  
+                    template || null, // template filter
+                    100,  // limit
+                    0,    // offset
+                    true  // load full data
+                );
+                
+                console.log('Search results:', result);
+                
+                if (result && result.data) {
+                    const totalCVs = result.total || result.data.length;
+                    const cvs = result.data;
+                    
+                    // Update stats
+                    if (stats) {
+                        const searchFilters = [];
+                        if (name) searchFilters.push(`Name: "${name}"`);
+                        if (mobile) searchFilters.push(`Phone: "${mobile}"`);
+                        if (template) searchFilters.push(`Template: "${template}"`);
+                        
+                        stats.innerHTML = `
+                            <p>🔍 Search Results: ${totalCVs} CVs found</p>
+                            <p>📋 Showing: ${cvs.length} CVs</p>
+                            ${searchFilters.length > 0 ? `<p>🔎 Filters: ${searchFilters.join(', ')}</p>` : ''}
+                            <p>🔄 Last updated: ${new Date().toLocaleTimeString()}</p>
+                        `;
+                    }
+                    
+                    // Display CVs
+                    if (list) {
+                        if (cvs.length === 0) {
+                            list.innerHTML = '<p>📝 No CVs found matching your search criteria.</p>';
+                        } else {
+                            list.innerHTML = cvs.map(cv => `
+                                <div class="cv-item">
+                                    <div class="cv-header">
+                                        <h4>${cv.name || cv.cv_name || 'Untitled CV'}</h4>
+                                        <span class="cv-source">${cv.source || 'Unknown'}</span>
+                                    </div>
+                                    <div class="cv-details">
+                                        <p><strong>Email:</strong> ${cv.email || 'N/A'}</p>
+                                        <p><strong>Phone:</strong> ${cv.phone || 'N/A'}</p>
+                                        <p><strong>Template:</strong> ${cv.template || 'Classic'}</p>
+                                        <p><strong>Created:</strong> ${new Date(cv.created_at).toLocaleDateString()}</p>
+                                    </div>
+                                    <div class="cv-actions">
+                                        <button onclick="viewCV('${cv.id}', '${cv.source || 'admin'}')" class="btn-view">👁️ View</button>
+                                        <button onclick="editCV('${cv.id}', '${cv.source || 'admin'}')" class="btn-edit">✏️ Edit</button>
+                                        <button onclick="deleteCV('${cv.id}', '${cv.source || 'admin'}')" class="btn-delete">🗑️ Delete</button>
+                                    </div>
+                                </div>
+                            `).join('');
+                        }
+                    }
+                } else {
+                    throw new Error('No data returned from search');
+                }
+            } catch (error) {
+                console.error('Error searching CVs:', error);
+                
+                if (stats) {
+                    stats.innerHTML = '<p>❌ Error searching CVs</p>';
+                }
+                if (list) {
+                    list.innerHTML = `
+                        <p>❌ Search failed: ${error.message}</p>
+                        <button onclick="searchCVs()" class="btn-retry">🔄 Retry Search</button>
+                    `;
+                }
+            }
+        }
+
+        function clearSearch() {
+            document.getElementById('searchName').value = '';
+            document.getElementById('searchMobile').value = '';
+            document.getElementById('searchTemplate').value = '';
+            
+            // Reload all CVs without filters
+            showAllCVs();
+        }
+
         // Supabase scripts are now embedded directly in the HTML
     </script>
 </body>
