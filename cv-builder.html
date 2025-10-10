@@ -484,6 +484,194 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
 
+        /* Enhanced CV Preview Styles */
+        .cv-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+        }
+
+        .profile-section {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .profile-picture-container {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .profile-picture-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .name-title h1 {
+            margin: 0;
+            font-size: 2.2em;
+            font-weight: 700;
+        }
+
+        .name-title h2 {
+            margin: 5px 0 0 0;
+            font-size: 1.2em;
+            font-weight: 300;
+            opacity: 0.9;
+        }
+
+        .contact-info {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 200px;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9em;
+        }
+
+        .contact-item .icon {
+            font-size: 1.1em;
+        }
+
+        .contact-item a {
+            color: white;
+            text-decoration: none;
+        }
+
+        .contact-item a:hover {
+            text-decoration: underline;
+        }
+
+        .cv-section {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .cv-section:last-child {
+            border-bottom: none;
+        }
+
+        .cv-section h2 {
+            color: #667eea;
+            font-size: 1.4em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .experience-item, .education-item {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .experience-header, .education-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .experience-header h3, .education-header h3 {
+            margin: 0;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .company, .university {
+            color: #666;
+            font-style: italic;
+        }
+
+        .experience-dates, .education-dates {
+            color: #888;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+
+        .skills-list, .hobbies-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .skill-tag, .hobby-tag {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+
+        .certifications-list, .languages-list, .projects-list, .references-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .certification-item, .language-item, .project-item, .reference-item {
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border-left: 3px solid #667eea;
+        }
+
+        .project-item h4 {
+            margin: 0 0 5px 0;
+            color: #333;
+        }
+
+        .reference-item strong {
+            color: #333;
+        }
+
+        .other-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 3px solid #667eea;
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .profile-section {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .contact-info {
+                min-width: unset;
+            }
+        }
+
         .cv-template {
             font-family: 'Arial', sans-serif;
             line-height: 1.6;
@@ -948,7 +1136,7 @@
                     <div class="form-side">
                         <div class="form-container">
                             <div class="form-section">
-                                <h4>Personal Information</h4>
+                                <h4>👤 Personal Information</h4>
                                 <div class="form-group">
                                     <label for="profilePicture">Profile Picture:</label>
                                     <div class="picture-input-container">
@@ -964,60 +1152,168 @@
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label for="fullName">Full Name:</label>
-                                    <input type="text" id="fullName" placeholder="Enter your full name" oninput="updatePreview()">
+                                    <label for="fullName">Full Name *:</label>
+                                    <input type="text" id="fullName" placeholder="Enter your full name" oninput="updatePreview()" required>
                                 </div>
                                 <div class="form-group">
-                                    <label for="email">Email:</label>
-                                    <input type="email" id="email" placeholder="Enter your email" oninput="updatePreview()">
+                                    <label for="title">Job Title/Position:</label>
+                                    <input type="text" id="title" placeholder="e.g., Software Engineer, Marketing Manager" oninput="updatePreview()">
                                 </div>
                                 <div class="form-group">
-                                    <label for="phone">Phone:</label>
+                                    <label for="email">Email *:</label>
+                                    <input type="email" id="email" placeholder="Enter your email" oninput="updatePreview()" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="phone">Phone Number:</label>
                                     <input type="tel" id="phone" placeholder="Enter your phone number" oninput="updatePreview()">
                                 </div>
                                 <div class="form-group">
                                     <label for="address">Address:</label>
-                                    <textarea id="address" placeholder="Enter your address" oninput="updatePreview()"></textarea>
+                                    <textarea id="address" placeholder="Enter your full address" oninput="updatePreview()"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="linkedin">LinkedIn Profile:</label>
+                                    <input type="url" id="linkedin" placeholder="https://linkedin.com/in/yourprofile" oninput="updatePreview()">
+                                </div>
+                                <div class="form-group">
+                                    <label for="github">GitHub Profile:</label>
+                                    <input type="url" id="github" placeholder="https://github.com/yourusername" oninput="updatePreview()">
                                 </div>
                             </div>
 
                             <div class="form-section">
-                                <h4>Professional Summary</h4>
+                                <h4>📝 Professional Summary</h4>
                                 <div class="form-group">
-                                    <label for="summary">Summary:</label>
-                                    <textarea id="summary" placeholder="Write a brief professional summary" oninput="updatePreview()"></textarea>
+                                    <label for="summary">Objective/Summary:</label>
+                                    <textarea id="summary" placeholder="Write a brief professional summary highlighting your key skills and career goals..." oninput="updatePreview()" rows="4"></textarea>
                                 </div>
                             </div>
 
                             <div class="form-section">
-                                <h4>Work Experience</h4>
-                                <div class="form-group">
-                                    <label for="jobTitle">Job Title:</label>
-                                    <input type="text" id="jobTitle" placeholder="Enter your job title" oninput="updatePreview()">
+                                <h4>💼 Work Experience</h4>
+                                <div id="workExperienceContainer">
+                                    <div class="experience-item">
+                                        <div class="form-group">
+                                            <label for="jobTitle1">Job Title:</label>
+                                            <input type="text" id="jobTitle1" placeholder="e.g., Senior Software Engineer" oninput="updatePreview()">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="company1">Company:</label>
+                                            <input type="text" id="company1" placeholder="Company name" oninput="updatePreview()">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="jobStartDate1">Start Date:</label>
+                                            <input type="text" id="jobStartDate1" placeholder="e.g., Jan 2020" oninput="updatePreview()">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="jobEndDate1">End Date:</label>
+                                            <input type="text" id="jobEndDate1" placeholder="e.g., Present or Dec 2023" oninput="updatePreview()">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="jobDescription1">Job Description:</label>
+                                            <textarea id="jobDescription1" placeholder="Describe your responsibilities and achievements..." oninput="updatePreview()" rows="3"></textarea>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="form-group">
-                                    <label for="company">Company:</label>
-                                    <input type="text" id="company" placeholder="Enter company name" oninput="updatePreview()">
+                                <button type="button" class="btn btn-secondary" onclick="addWorkExperience()">+ Add Another Experience</button>
+                            </div>
+
+                            <div class="form-section">
+                                <h4>🎓 Education</h4>
+                                <div id="educationContainer">
+                                    <div class="education-item">
+                                        <div class="form-group">
+                                            <label for="degree1">Degree/Certification:</label>
+                                            <input type="text" id="degree1" placeholder="e.g., Bachelor of Computer Science" oninput="updatePreview()">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="university1">Institution:</label>
+                                            <input type="text" id="university1" placeholder="University or College name" oninput="updatePreview()">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="educationStartDate1">Start Date:</label>
+                                            <input type="text" id="educationStartDate1" placeholder="e.g., Sep 2016" oninput="updatePreview()">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="educationEndDate1">End Date:</label>
+                                            <input type="text" id="educationEndDate1" placeholder="e.g., May 2020" oninput="updatePreview()">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="educationDescription1">Description:</label>
+                                            <textarea id="educationDescription1" placeholder="Relevant coursework, achievements, GPA (optional)..." oninput="updatePreview()" rows="2"></textarea>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="form-group">
-                                    <label for="experience">Experience Description:</label>
-                                    <textarea id="experience" placeholder="Describe your work experience" oninput="updatePreview()"></textarea>
+                                <button type="button" class="btn btn-secondary" onclick="addEducation()">+ Add Another Education</button>
+                            </div>
+
+                            <div class="form-section">
+                                <h4>🛠️ Skills</h4>
+                                <div id="skillsContainer">
+                                    <div class="form-group">
+                                        <label for="skills">Technical Skills:</label>
+                                        <textarea id="skills" placeholder="List your technical skills separated by commas (e.g., JavaScript, Python, React, Node.js)" oninput="updatePreview()" rows="3"></textarea>
+                                    </div>
                                 </div>
                             </div>
 
                             <div class="form-section">
-                                <h4>Education</h4>
-                                <div class="form-group">
-                                    <label for="degree">Degree:</label>
-                                    <input type="text" id="degree" placeholder="Enter your degree" oninput="updatePreview()">
+                                <h4>🏆 Certifications</h4>
+                                <div id="certificationsContainer">
+                                    <div class="form-group">
+                                        <label for="certifications">Certifications:</label>
+                                        <textarea id="certifications" placeholder="List your certifications (e.g., AWS Certified Developer, Google Analytics Certified)" oninput="updatePreview()" rows="3"></textarea>
+                                    </div>
                                 </div>
-                                <div class="form-group">
-                                    <label for="university">University:</label>
-                                    <input type="text" id="university" placeholder="Enter university name" oninput="updatePreview()">
+                            </div>
+
+                            <div class="form-section">
+                                <h4>🌐 Languages</h4>
+                                <div id="languagesContainer">
+                                    <div class="form-group">
+                                        <label for="languages">Languages:</label>
+                                        <textarea id="languages" placeholder="List languages you speak (e.g., English (Native), Spanish (Fluent), French (Intermediate))" oninput="updatePreview()" rows="2"></textarea>
+                                    </div>
                                 </div>
-                                <div class="form-group">
-                                    <label for="graduationYear">Graduation Year:</label>
-                                    <input type="number" id="graduationYear" placeholder="Enter graduation year" oninput="updatePreview()">
+                            </div>
+
+                            <div class="form-section">
+                                <h4>🎯 Projects</h4>
+                                <div id="projectsContainer">
+                                    <div class="form-group">
+                                        <label for="projects">Projects:</label>
+                                        <textarea id="projects" placeholder="Describe your key projects, including technologies used and your role..." oninput="updatePreview()" rows="4"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-section">
+                                <h4>🎨 Hobbies & Interests</h4>
+                                <div id="hobbiesContainer">
+                                    <div class="form-group">
+                                        <label for="hobbies">Hobbies & Interests:</label>
+                                        <textarea id="hobbies" placeholder="List your hobbies and interests (e.g., Photography, Chess, Hiking, Reading)" oninput="updatePreview()" rows="2"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-section">
+                                <h4>📞 References</h4>
+                                <div id="referencesContainer">
+                                    <div class="form-group">
+                                        <label for="references">References:</label>
+                                        <textarea id="references" placeholder="List professional references with their contact information (optional)" oninput="updatePreview()" rows="3"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-section">
+                                <h4>📋 Additional Information</h4>
+                                <div id="otherInfoContainer">
+                                    <div class="form-group">
+                                        <label for="otherInfo">Other Information:</label>
+                                        <textarea id="otherInfo" placeholder="Any additional information you'd like to include (awards, publications, volunteer work, etc.)" oninput="updatePreview()" rows="3"></textarea>
+                                    </div>
                                 </div>
                             </div>
 
@@ -1034,35 +1330,149 @@
                             <h3>📄 CV Preview</h3>
                             <div class="cv-preview" id="cvPreview">
                                 <div class="cv-template">
+                                    <!-- Header Section -->
                                     <div class="cv-header">
-                                        <h1 id="previewName">Your Name</h1>
-                                        <div class="contact-info">
-                                            <p id="previewEmail">your.email@example.com</p>
-                                            <p id="previewPhone">+1 (555) 123-4567</p>
-                                            <p id="previewAddress">Your Address</p>
+                                        <div class="header-content">
+                                            <div class="profile-section">
+                                                <div class="profile-picture-container" id="previewProfilePicture" style="display: none;">
+                                                    <img id="previewProfileImg" src="" alt="Profile Picture">
+                                                </div>
+                                                <div class="name-title">
+                                                    <h1 id="previewName">Your Name</h1>
+                                                    <h2 id="previewTitle">Your Job Title</h2>
+                                                </div>
+                                            </div>
+                                            <div class="contact-info">
+                                                <div class="contact-item" id="previewEmailItem" style="display: none;">
+                                                    <span class="icon">📧</span>
+                                                    <span id="previewEmail">your.email@example.com</span>
+                                                </div>
+                                                <div class="contact-item" id="previewPhoneItem" style="display: none;">
+                                                    <span class="icon">📞</span>
+                                                    <span id="previewPhone">+1 (555) 123-4567</span>
+                                                </div>
+                                                <div class="contact-item" id="previewAddressItem" style="display: none;">
+                                                    <span class="icon">📍</span>
+                                                    <span id="previewAddress">Your Address</span>
+                                                </div>
+                                                <div class="contact-item" id="previewLinkedInItem" style="display: none;">
+                                                    <span class="icon">💼</span>
+                                                    <a id="previewLinkedIn" href="#" target="_blank">LinkedIn Profile</a>
+                                                </div>
+                                                <div class="contact-item" id="previewGithubItem" style="display: none;">
+                                                    <span class="icon">💻</span>
+                                                    <a id="previewGithub" href="#" target="_blank">GitHub Profile</a>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                     
-                                    <div class="cv-section">
-                                        <h2>Professional Summary</h2>
+                                    <!-- Professional Summary -->
+                                    <div class="cv-section" id="summarySection" style="display: none;">
+                                        <h2>📝 Professional Summary</h2>
                                         <p id="previewSummary">Write your professional summary here...</p>
                                     </div>
                                     
-                                    <div class="cv-section">
-                                        <h2>Work Experience</h2>
-                                        <div class="experience-item">
-                                            <h3 id="previewJobTitle">Job Title</h3>
-                                            <p class="company" id="previewCompany">Company Name</p>
-                                            <p id="previewExperience">Describe your work experience here...</p>
+                                    <!-- Work Experience -->
+                                    <div class="cv-section" id="experienceSection" style="display: none;">
+                                        <h2>💼 Work Experience</h2>
+                                        <div id="previewExperienceContainer">
+                                            <div class="experience-item">
+                                                <div class="experience-header">
+                                                    <h3 id="previewJobTitle">Job Title</h3>
+                                                    <span class="company" id="previewCompany">Company Name</span>
+                                                </div>
+                                                <div class="experience-dates">
+                                                    <span id="previewJobDates">Start Date - End Date</span>
+                                                </div>
+                                                <p id="previewJobDescription">Describe your work experience here...</p>
+                                            </div>
                                         </div>
                                     </div>
                                     
-                                    <div class="cv-section">
-                                        <h2>Education</h2>
-                                        <div class="education-item">
-                                            <h3 id="previewDegree">Degree</h3>
-                                            <p class="university" id="previewUniversity">University Name</p>
-                                            <p class="year" id="previewGraduationYear">2024</p>
+                                    <!-- Education -->
+                                    <div class="cv-section" id="educationSection" style="display: none;">
+                                        <h2>🎓 Education</h2>
+                                        <div id="previewEducationContainer">
+                                            <div class="education-item">
+                                                <div class="education-header">
+                                                    <h3 id="previewDegree">Degree</h3>
+                                                    <span class="university" id="previewUniversity">University Name</span>
+                                                </div>
+                                                <div class="education-dates">
+                                                    <span id="previewEducationDates">Start Date - End Date</span>
+                                                </div>
+                                                <p id="previewEducationDescription">Relevant coursework, achievements...</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Skills -->
+                                    <div class="cv-section" id="skillsSection" style="display: none;">
+                                        <h2>🛠️ Technical Skills</h2>
+                                        <div id="previewSkills" class="skills-list">
+                                            <span class="skill-tag">JavaScript</span>
+                                            <span class="skill-tag">Python</span>
+                                            <span class="skill-tag">React</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Certifications -->
+                                    <div class="cv-section" id="certificationsSection" style="display: none;">
+                                        <h2>🏆 Certifications</h2>
+                                        <div id="previewCertifications" class="certifications-list">
+                                            <div class="certification-item">AWS Certified Developer</div>
+                                            <div class="certification-item">Google Analytics Certified</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Languages -->
+                                    <div class="cv-section" id="languagesSection" style="display: none;">
+                                        <h2>🌐 Languages</h2>
+                                        <div id="previewLanguages" class="languages-list">
+                                            <div class="language-item">English (Native)</div>
+                                            <div class="language-item">Spanish (Fluent)</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Projects -->
+                                    <div class="cv-section" id="projectsSection" style="display: none;">
+                                        <h2>🎯 Projects</h2>
+                                        <div id="previewProjects" class="projects-list">
+                                            <div class="project-item">
+                                                <h4>Project Name</h4>
+                                                <p>Project description and technologies used...</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Hobbies -->
+                                    <div class="cv-section" id="hobbiesSection" style="display: none;">
+                                        <h2>🎨 Hobbies & Interests</h2>
+                                        <div id="previewHobbies" class="hobbies-list">
+                                            <span class="hobby-tag">Photography</span>
+                                            <span class="hobby-tag">Chess</span>
+                                            <span class="hobby-tag">Hiking</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- References -->
+                                    <div class="cv-section" id="referencesSection" style="display: none;">
+                                        <h2>📞 References</h2>
+                                        <div id="previewReferences" class="references-list">
+                                            <div class="reference-item">
+                                                <strong>John Smith</strong><br>
+                                                <span>Senior Manager, ABC Company</span><br>
+                                                <span>john.smith@abc.com | +1 (555) 123-4567</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Additional Information -->
+                                    <div class="cv-section" id="otherInfoSection" style="display: none;">
+                                        <h2>📋 Additional Information</h2>
+                                        <div id="previewOtherInfo" class="other-info">
+                                            <p>Awards, publications, volunteer work, etc.</p>
                                         </div>
                                     </div>
                                 </div>
@@ -1417,31 +1827,236 @@
         }
         
         function updatePreview() {
-            // Update preview with form data
+            // Get form values
             const fullName = document.getElementById('fullName').value || 'Your Name';
+            const title = document.getElementById('title').value || 'Your Job Title';
             const email = document.getElementById('email').value || 'your.email@example.com';
             const phone = document.getElementById('phone').value || '+1 (555) 123-4567';
             const address = document.getElementById('address').value || 'Your Address';
+            const linkedin = document.getElementById('linkedin').value || '';
+            const github = document.getElementById('github').value || '';
             const summary = document.getElementById('summary').value || 'Write your professional summary here...';
-            const jobTitle = document.getElementById('jobTitle').value || 'Job Title';
-            const company = document.getElementById('company').value || 'Company Name';
-            const experience = document.getElementById('experience').value || 'Describe your work experience here...';
-            const degree = document.getElementById('degree').value || 'Degree';
-            const university = document.getElementById('university').value || 'University Name';
-            const graduationYear = document.getElementById('graduationYear').value || '2024';
             
-            // Update all preview elements
-            document.querySelectorAll('#previewName').forEach(el => el.textContent = fullName);
-            document.querySelectorAll('#previewEmail').forEach(el => el.textContent = email);
-            document.querySelectorAll('#previewPhone').forEach(el => el.textContent = phone);
-            document.querySelectorAll('#previewAddress').forEach(el => el.textContent = address);
-            document.querySelectorAll('#previewSummary').forEach(el => el.textContent = summary);
-            document.querySelectorAll('#previewJobTitle').forEach(el => el.textContent = jobTitle);
-            document.querySelectorAll('#previewCompany').forEach(el => el.textContent = company);
-            document.querySelectorAll('#previewExperience').forEach(el => el.textContent = experience);
-            document.querySelectorAll('#previewDegree').forEach(el => el.textContent = degree);
-            document.querySelectorAll('#previewUniversity').forEach(el => el.textContent = university);
-            document.querySelectorAll('#previewGraduationYear').forEach(el => el.textContent = graduationYear);
+            // Work Experience
+            const jobTitle = document.getElementById('jobTitle1').value || 'Job Title';
+            const company = document.getElementById('company1').value || 'Company Name';
+            const jobStartDate = document.getElementById('jobStartDate1').value || 'Start Date';
+            const jobEndDate = document.getElementById('jobEndDate1').value || 'End Date';
+            const jobDescription = document.getElementById('jobDescription1').value || 'Describe your work experience here...';
+            
+            // Education
+            const degree = document.getElementById('degree1').value || 'Degree';
+            const university = document.getElementById('university1').value || 'University Name';
+            const educationStartDate = document.getElementById('educationStartDate1').value || 'Start Date';
+            const educationEndDate = document.getElementById('educationEndDate1').value || 'End Date';
+            const educationDescription = document.getElementById('educationDescription1').value || 'Relevant coursework, achievements...';
+            
+            // Skills and other fields
+            const skills = document.getElementById('skills').value || '';
+            const certifications = document.getElementById('certifications').value || '';
+            const languages = document.getElementById('languages').value || '';
+            const projects = document.getElementById('projects').value || '';
+            const hobbies = document.getElementById('hobbies').value || '';
+            const references = document.getElementById('references').value || '';
+            const otherInfo = document.getElementById('otherInfo').value || '';
+
+            // Update header elements
+            document.getElementById('previewName').textContent = fullName;
+            document.getElementById('previewTitle').textContent = title;
+            
+            // Update contact info with conditional display
+            updateContactItem('previewEmailItem', 'previewEmail', email);
+            updateContactItem('previewPhoneItem', 'previewPhone', phone);
+            updateContactItem('previewAddressItem', 'previewAddress', address);
+            updateContactLink('previewLinkedInItem', 'previewLinkedIn', linkedin, linkedin);
+            updateContactLink('previewGithubItem', 'previewGithub', github, github);
+            
+            // Update sections with conditional display
+            updateSection('summarySection', 'previewSummary', summary);
+            updateSection('experienceSection', 'previewJobTitle', jobTitle, 'previewCompany', company, 'previewJobDates', `${jobStartDate} - ${jobEndDate}`, 'previewJobDescription', jobDescription);
+            updateSection('educationSection', 'previewDegree', degree, 'previewUniversity', university, 'previewEducationDates', `${educationStartDate} - ${educationEndDate}`, 'previewEducationDescription', educationDescription);
+            
+            // Update skills
+            if (skills.trim()) {
+                document.getElementById('skillsSection').style.display = 'block';
+                const skillsArray = skills.split(',').map(s => s.trim()).filter(s => s);
+                document.getElementById('previewSkills').innerHTML = skillsArray.map(skill => `<span class="skill-tag">${skill}</span>`).join('');
+            } else {
+                document.getElementById('skillsSection').style.display = 'none';
+            }
+            
+            // Update certifications
+            if (certifications.trim()) {
+                document.getElementById('certificationsSection').style.display = 'block';
+                const certsArray = certifications.split(',').map(c => c.trim()).filter(c => c);
+                document.getElementById('previewCertifications').innerHTML = certsArray.map(cert => `<div class="certification-item">${cert}</div>`).join('');
+            } else {
+                document.getElementById('certificationsSection').style.display = 'none';
+            }
+            
+            // Update languages
+            if (languages.trim()) {
+                document.getElementById('languagesSection').style.display = 'block';
+                const langsArray = languages.split(',').map(l => l.trim()).filter(l => l);
+                document.getElementById('previewLanguages').innerHTML = langsArray.map(lang => `<div class="language-item">${lang}</div>`).join('');
+            } else {
+                document.getElementById('languagesSection').style.display = 'none';
+            }
+            
+            // Update projects
+            if (projects.trim()) {
+                document.getElementById('projectsSection').style.display = 'block';
+                document.getElementById('previewProjects').innerHTML = `<div class="project-item"><p>${projects}</p></div>`;
+            } else {
+                document.getElementById('projectsSection').style.display = 'none';
+            }
+            
+            // Update hobbies
+            if (hobbies.trim()) {
+                document.getElementById('hobbiesSection').style.display = 'block';
+                const hobbiesArray = hobbies.split(',').map(h => h.trim()).filter(h => h);
+                document.getElementById('previewHobbies').innerHTML = hobbiesArray.map(hobby => `<span class="hobby-tag">${hobby}</span>`).join('');
+            } else {
+                document.getElementById('hobbiesSection').style.display = 'none';
+            }
+            
+            // Update references
+            if (references.trim()) {
+                document.getElementById('referencesSection').style.display = 'block';
+                document.getElementById('previewReferences').innerHTML = `<div class="reference-item">${references}</div>`;
+            } else {
+                document.getElementById('referencesSection').style.display = 'none';
+            }
+            
+            // Update other info
+            if (otherInfo.trim()) {
+                document.getElementById('otherInfoSection').style.display = 'block';
+                document.getElementById('previewOtherInfo').innerHTML = `<p>${otherInfo}</p>`;
+            } else {
+                document.getElementById('otherInfoSection').style.display = 'none';
+            }
+        }
+        
+        function updateContactItem(itemId, textId, value) {
+            const item = document.getElementById(itemId);
+            const text = document.getElementById(textId);
+            if (value.trim()) {
+                item.style.display = 'flex';
+                text.textContent = value;
+            } else {
+                item.style.display = 'none';
+            }
+        }
+        
+        function updateContactLink(itemId, linkId, value, href) {
+            const item = document.getElementById(itemId);
+            const link = document.getElementById(linkId);
+            if (value.trim()) {
+                item.style.display = 'flex';
+                link.textContent = value;
+                link.href = href;
+            } else {
+                item.style.display = 'none';
+            }
+        }
+        
+        function updateSection(sectionId, ...args) {
+            const section = document.getElementById(sectionId);
+            let hasContent = false;
+            
+            for (let i = 0; i < args.length; i += 2) {
+                const elementId = args[i];
+                const value = args[i + 1];
+                const element = document.getElementById(elementId);
+                if (element) {
+                    element.textContent = value;
+                    if (value.trim()) hasContent = true;
+                }
+            }
+            
+            section.style.display = hasContent ? 'block' : 'none';
+        }
+        
+        // Dynamic form functions
+        let experienceCount = 1;
+        let educationCount = 1;
+        
+        function addWorkExperience() {
+            experienceCount++;
+            const container = document.getElementById('workExperienceContainer');
+            const newExperience = document.createElement('div');
+            newExperience.className = 'experience-item';
+            newExperience.innerHTML = `
+                <div class="form-group">
+                    <label for="jobTitle${experienceCount}">Job Title:</label>
+                    <input type="text" id="jobTitle${experienceCount}" placeholder="e.g., Senior Software Engineer" oninput="updatePreview()">
+                </div>
+                <div class="form-group">
+                    <label for="company${experienceCount}">Company:</label>
+                    <input type="text" id="company${experienceCount}" placeholder="Company name" oninput="updatePreview()">
+                </div>
+                <div class="form-group">
+                    <label for="jobStartDate${experienceCount}">Start Date:</label>
+                    <input type="text" id="jobStartDate${experienceCount}" placeholder="e.g., Jan 2020" oninput="updatePreview()">
+                </div>
+                <div class="form-group">
+                    <label for="jobEndDate${experienceCount}">End Date:</label>
+                    <input type="text" id="jobEndDate${experienceCount}" placeholder="e.g., Present or Dec 2023" oninput="updatePreview()">
+                </div>
+                <div class="form-group">
+                    <label for="jobDescription${experienceCount}">Job Description:</label>
+                    <textarea id="jobDescription${experienceCount}" placeholder="Describe your responsibilities and achievements..." oninput="updatePreview()" rows="3"></textarea>
+                </div>
+                <button type="button" class="btn btn-danger" onclick="removeWorkExperience(${experienceCount})">Remove Experience</button>
+            `;
+            container.appendChild(newExperience);
+        }
+        
+        function removeWorkExperience(id) {
+            const element = document.querySelector(`#workExperienceContainer .experience-item:nth-child(${id})`);
+            if (element) {
+                element.remove();
+                updatePreview();
+            }
+        }
+        
+        function addEducation() {
+            educationCount++;
+            const container = document.getElementById('educationContainer');
+            const newEducation = document.createElement('div');
+            newEducation.className = 'education-item';
+            newEducation.innerHTML = `
+                <div class="form-group">
+                    <label for="degree${educationCount}">Degree/Certification:</label>
+                    <input type="text" id="degree${educationCount}" placeholder="e.g., Bachelor of Computer Science" oninput="updatePreview()">
+                </div>
+                <div class="form-group">
+                    <label for="university${educationCount}">Institution:</label>
+                    <input type="text" id="university${educationCount}" placeholder="University or College name" oninput="updatePreview()">
+                </div>
+                <div class="form-group">
+                    <label for="educationStartDate${educationCount}">Start Date:</label>
+                    <input type="text" id="educationStartDate${educationCount}" placeholder="e.g., Sep 2016" oninput="updatePreview()">
+                </div>
+                <div class="form-group">
+                    <label for="educationEndDate${educationCount}">End Date:</label>
+                    <input type="text" id="educationEndDate${educationCount}" placeholder="e.g., May 2020" oninput="updatePreview()">
+                </div>
+                <div class="form-group">
+                    <label for="educationDescription${educationCount}">Description:</label>
+                    <textarea id="educationDescription${educationCount}" placeholder="Relevant coursework, achievements, GPA (optional)..." oninput="updatePreview()" rows="2"></textarea>
+                </div>
+                <button type="button" class="btn btn-danger" onclick="removeEducation(${educationCount})">Remove Education</button>
+            `;
+            container.appendChild(newEducation);
+        }
+        
+        function removeEducation(id) {
+            const element = document.querySelector(`#educationContainer .education-item:nth-child(${id})`);
+            if (element) {
+                element.remove();
+                updatePreview();
+            }
         }
         
         function saveCV() {
