@@ -340,6 +340,8 @@
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/supabase-database.js"></script>
 </head>
 <body>
     <div class="container">
@@ -429,66 +431,71 @@
             if (list) list.innerHTML = '<div class="loading-spinner">Loading...</div>';
             
             try {
+                // Check if database manager is available
+                if (!window.supabaseDatabaseManager) {
+                    throw new Error('Supabase database manager not loaded. Please refresh the page.');
+                }
+                
+                if (!window.supabaseDatabaseManager.isSupabaseAvailable()) {
+                    throw new Error('Supabase connection not available. Please check your internet connection.');
+                }
+                
                 // Load CVs from all tables using the database manager
-                if (window.supabaseDatabaseManager && window.supabaseDatabaseManager.isSupabaseAvailable()) {
-                    console.log('Loading all CVs from database...');
+                console.log('Loading all CVs from database...');
+                
+                // Search all tables for CVs
+                const result = await window.supabaseDatabaseManager.searchAllTables(
+                    null, // name filter
+                    null, // mobile filter  
+                    null, // template filter
+                    100,  // limit
+                    0,    // offset
+                    true  // load full data
+                );
+                
+                console.log('CVs loaded:', result);
+                
+                if (result && result.data) {
+                    const totalCVs = result.total || result.data.length;
+                    const cvs = result.data;
                     
-                    // Search all tables for CVs
-                    const result = await window.supabaseDatabaseManager.searchAllTables(
-                        null, // name filter
-                        null, // mobile filter  
-                        null, // template filter
-                        100,  // limit
-                        0,    // offset
-                        true  // load full data
-                    );
+                    // Update stats
+                    if (stats) {
+                        stats.innerHTML = `
+                            <p>📊 Total CVs: ${totalCVs}</p>
+                            <p>📋 Showing: ${cvs.length} CVs</p>
+                            <p>🔄 Last updated: ${new Date().toLocaleTimeString()}</p>
+                        `;
+                    }
                     
-                    console.log('CVs loaded:', result);
-                    
-                    if (result && result.data) {
-                        const totalCVs = result.total || result.data.length;
-                        const cvs = result.data;
-                        
-                        // Update stats
-                        if (stats) {
-                            stats.innerHTML = `
-                                <p>📊 Total CVs: ${totalCVs}</p>
-                                <p>📋 Showing: ${cvs.length} CVs</p>
-                                <p>🔄 Last updated: ${new Date().toLocaleTimeString()}</p>
-                            `;
-                        }
-                        
-                        // Display CVs
-                        if (list) {
-                            if (cvs.length === 0) {
-                                list.innerHTML = '<p>📝 No CVs found in the database.</p>';
-                            } else {
-                                list.innerHTML = cvs.map(cv => `
-                                    <div class="cv-item">
-                                        <div class="cv-header">
-                                            <h4>${cv.name || cv.cv_name || 'Untitled CV'}</h4>
-                                            <span class="cv-source">${cv.source || 'Unknown'}</span>
-                                        </div>
-                                        <div class="cv-details">
-                                            <p><strong>Email:</strong> ${cv.email || 'N/A'}</p>
-                                            <p><strong>Phone:</strong> ${cv.phone || 'N/A'}</p>
-                                            <p><strong>Template:</strong> ${cv.template || 'Classic'}</p>
-                                            <p><strong>Created:</strong> ${new Date(cv.created_at).toLocaleDateString()}</p>
-                                        </div>
-                                        <div class="cv-actions">
-                                            <button onclick="viewCV('${cv.id}', '${cv.source || 'admin'}')" class="btn-view">👁️ View</button>
-                                            <button onclick="editCV('${cv.id}', '${cv.source || 'admin'}')" class="btn-edit">✏️ Edit</button>
-                                            <button onclick="deleteCV('${cv.id}', '${cv.source || 'admin'}')" class="btn-delete">🗑️ Delete</button>
-                                        </div>
+                    // Display CVs
+                    if (list) {
+                        if (cvs.length === 0) {
+                            list.innerHTML = '<p>📝 No CVs found in the database.</p>';
+                        } else {
+                            list.innerHTML = cvs.map(cv => `
+                                <div class="cv-item">
+                                    <div class="cv-header">
+                                        <h4>${cv.name || cv.cv_name || 'Untitled CV'}</h4>
+                                        <span class="cv-source">${cv.source || 'Unknown'}</span>
                                     </div>
-                                `).join('');
-                            }
+                                    <div class="cv-details">
+                                        <p><strong>Email:</strong> ${cv.email || 'N/A'}</p>
+                                        <p><strong>Phone:</strong> ${cv.phone || 'N/A'}</p>
+                                        <p><strong>Template:</strong> ${cv.template || 'Classic'}</p>
+                                        <p><strong>Created:</strong> ${new Date(cv.created_at).toLocaleDateString()}</p>
+                                    </div>
+                                    <div class="cv-actions">
+                                        <button onclick="viewCV('${cv.id}', '${cv.source || 'admin'}')" class="btn-view">👁️ View</button>
+                                        <button onclick="editCV('${cv.id}', '${cv.source || 'admin'}')" class="btn-edit">✏️ Edit</button>
+                                        <button onclick="deleteCV('${cv.id}', '${cv.source || 'admin'}')" class="btn-delete">🗑️ Delete</button>
+                                    </div>
+                                </div>
+                            `).join('');
                         }
-                    } else {
-                        throw new Error('No data returned from database');
                     }
                 } else {
-                    throw new Error('Database not available');
+                    throw new Error('No data returned from database');
                 }
             } catch (error) {
                 console.error('Error loading CVs:', error);
@@ -653,13 +660,43 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Admin Dashboard loaded');
             
-            // Check if we have Supabase integration
-            if (window.supabaseDatabaseManager) {
-                console.log('Supabase database manager available');
-            } else {
-                console.log('Supabase database manager not available');
-            }
+            // Wait a bit for scripts to load, then check
+            setTimeout(() => {
+                if (window.supabaseDatabaseManager) {
+                    console.log('✅ Supabase database manager available');
+                } else {
+                    console.log('❌ Supabase database manager not available');
+                    console.log('Available objects:', Object.keys(window).filter(key => key.includes('supabase')));
+                    
+                    // Try to reload the scripts
+                    console.log('Attempting to reload Supabase scripts...');
+                    loadSupabaseScripts();
+                }
+            }, 1000);
         });
+        
+        // Function to dynamically load Supabase scripts
+        function loadSupabaseScripts() {
+            const scripts = [
+                'js/supabase-config.js',
+                'js/supabase-database.js'
+            ];
+            
+            scripts.forEach(src => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.onload = () => {
+                    console.log(`✅ Loaded ${src}`);
+                    if (src === 'js/supabase-database.js' && window.supabaseDatabaseManager) {
+                        console.log('✅ Supabase database manager now available');
+                    }
+                };
+                script.onerror = () => {
+                    console.error(`❌ Failed to load ${src}`);
+                };
+                document.head.appendChild(script);
+            });
+        }
     </script>
 </body>
 </html>
