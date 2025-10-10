@@ -339,10 +339,10 @@
             align-items: center;
         }
 
-        .search-input, .search-select {
+        .search-input {
             flex: 1;
-            min-width: 150px;
-            padding: 10px 15px;
+            min-width: 200px;
+            padding: 12px 15px;
             border: 1px solid #ddd;
             border-radius: 8px;
             font-size: 14px;
@@ -350,43 +350,10 @@
             transition: border-color 0.3s ease, box-shadow 0.3s ease;
         }
 
-        .search-input:focus, .search-select:focus {
+        .search-input:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .search-btn, .clear-btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            white-space: nowrap;
-        }
-
-        .search-btn {
-            background: #667eea;
-            color: white;
-        }
-
-        .search-btn:hover {
-            background: #5a6cdb;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-        }
-
-        .clear-btn {
-            background: #dc3545;
-            color: white;
-        }
-
-        .clear-btn:hover {
-            background: #c82333;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
         }
 
         @media (max-width: 768px) {
@@ -395,12 +362,8 @@
                 align-items: stretch;
             }
 
-            .search-input, .search-select {
+            .search-input {
                 min-width: unset;
-                width: 100%;
-            }
-
-            .search-btn, .clear-btn {
                 width: 100%;
             }
         }
@@ -834,16 +797,8 @@
                 <div class="search-section">
                     <div class="search-form">
                         <div class="search-input-group">
-                            <input type="text" id="searchName" placeholder="Search by name..." class="search-input">
-                            <input type="text" id="searchMobile" placeholder="Search by phone..." class="search-input">
-                            <select id="searchTemplate" class="search-select">
-                                <option value="">All Templates</option>
-                                <option value="classic">Classic</option>
-                                <option value="modern">Modern</option>
-                                <option value="minimalist">Minimalist</option>
-                            </select>
-                            <button onclick="searchCVs()" class="search-btn">🔍 Search</button>
-                            <button onclick="clearSearch()" class="clear-btn">❌ Clear</button>
+                            <input type="text" id="searchName" placeholder="Search by name..." class="search-input" onkeyup="debounceSearch()">
+                            <input type="text" id="searchMobile" placeholder="Search by phone..." class="search-input" onkeyup="debounceSearch()">
                         </div>
                     </div>
                 </div>
@@ -1136,11 +1091,17 @@
             }, 1000);
         });
         
-        // Search Functions
+        // Search Functions with Debounce
+        let searchTimeout;
+        
+        function debounceSearch() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(searchCVs, 300); // 300ms delay
+        }
+        
         async function searchCVs() {
             const name = document.getElementById('searchName').value.trim();
             const mobile = document.getElementById('searchMobile').value.trim();
-            const template = document.getElementById('searchTemplate').value;
             
             const section = document.getElementById('allCVsSection');
             const shopkeepersSection = document.getElementById('shopkeepersSection');
@@ -1165,13 +1126,13 @@
                     throw new Error('Supabase connection not available. Please check your internet connection.');
                 }
                 
-                console.log('Searching CVs with filters:', { name, mobile, template });
+                console.log('Searching CVs with filters:', { name, mobile });
                 
                 // Search all tables for CVs with filters
                 const result = await window.supabaseDatabaseManager.searchAllTables(
                     name || null, // name filter
                     mobile || null, // mobile filter  
-                    template || null, // template filter
+                    null, // template filter (removed)
                     100,  // limit
                     0,    // offset
                     true  // load full data
@@ -1188,7 +1149,6 @@
                         const searchFilters = [];
                         if (name) searchFilters.push(`Name: "${name}"`);
                         if (mobile) searchFilters.push(`Phone: "${mobile}"`);
-                        if (template) searchFilters.push(`Template: "${template}"`);
                         
                         stats.innerHTML = `
                             <p>🔍 Search Results: ${totalCVs} CVs found</p>
@@ -1242,14 +1202,6 @@
             }
         }
 
-        function clearSearch() {
-            document.getElementById('searchName').value = '';
-            document.getElementById('searchMobile').value = '';
-            document.getElementById('searchTemplate').value = '';
-            
-            // Reload all CVs without filters
-            showAllCVs();
-        }
 
         // Supabase scripts are now embedded directly in the HTML
     </script>
