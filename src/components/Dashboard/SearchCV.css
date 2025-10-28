@@ -250,6 +250,17 @@
   line-height: 1.2;
 }
 
+.cv-email {
+  color: #667eea;
+  font-size: 0.7rem;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+  font-weight: 500;
+}
+
 /* User info for admin */
 .cv-user-info {
   margin-top: 0.3rem;

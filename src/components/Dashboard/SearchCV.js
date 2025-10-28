@@ -10,7 +10,7 @@ const SearchCV = ({ onBack, onEditCV }) => {
   const [useClientSearch, setUseClientSearch] = useState(true);
   const [loadingCV, setLoadingCV] = useState(null);
   const [userInfo, setUserInfo] = useState({});
-  const { cvs, searchCVs, fetchCompleteCV, loading, error, isAdmin } = useCVs();
+  const { cvs, searchCVs, fetchCompleteCV, loading, isAdmin } = useCVs();
   
   // Debug: Log admin status
   useEffect(() => {
@@ -77,8 +77,8 @@ const SearchCV = ({ onBack, onEditCV }) => {
       const name = cv.name?.toLowerCase() || '';
       const title = cv.title?.toLowerCase() || '';
       const company = cv.company?.toLowerCase() || '';
-      const phone = cv.cv_data?.personal_info?.phone?.toLowerCase() || '';
-      const email = cv.cv_data?.personal_info?.email?.toLowerCase() || '';
+      const phone = cv.phone?.toLowerCase() || '';
+      const email = cv.email?.toLowerCase() || '';
       
       return name.includes(lowerTerm) || 
              title.includes(lowerTerm) || 
@@ -158,10 +158,13 @@ const SearchCV = ({ onBack, onEditCV }) => {
   // Memoized search results to prevent unnecessary re-renders
   const memoizedSearchResults = useMemo(() => {
     return searchResults.map((cv) => {
-      const phoneNumber = cv.cv_data?.personal_info?.phone || 'No phone number';
+      // Phone and email are now directly accessible from the query
+      const phoneNumber = cv.phone || 'No phone number';
+      const email = cv.email || 'No email';
       return {
         ...cv,
-        phoneNumber
+        phoneNumber,
+        email
       };
     });
   }, [searchResults]);
@@ -202,7 +205,7 @@ const SearchCV = ({ onBack, onEditCV }) => {
         }
         
         // Check if user is admin
-        const { data: userData, error: adminError } = await supabase
+        const { data: userData } = await supabase
           .from('users')
           .select('is_admin')
           .eq('email', user.email)
@@ -307,13 +310,15 @@ const SearchCV = ({ onBack, onEditCV }) => {
               }
               
               const user = userInfo[cv.user_id];
-              const phoneNumber = cv.cv_data?.personal_info?.phone || 'No phone';
+              const phoneNumber = cv.phone || 'No phone';
+              const email = cv.email || 'No email';
               
               return (
                 <div key={cv.id} className={`cv-result-card ${loadingCV === cv.id ? 'loading' : ''}`} onClick={() => handleCVClick(cv)}>
                   <div className="cv-info">
                     <h4>{cv.name}</h4>
                     <p className="cv-phone">{phoneNumber}</p>
+                    <p className="cv-email">{email}</p>
                     {isAdmin && user && (
                       <div className="cv-user-info">
                         <small className="user-email">👤 {user.email}</small>

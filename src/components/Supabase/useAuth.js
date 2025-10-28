@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useSupabase } from './SupabaseProvider'
 import { supabase } from './supabase'
 
@@ -58,7 +58,7 @@ export const useCVs = () => {
   }
 
   // Fetch CVs for current user (lightweight version for list display)
-  const fetchCVs = async () => {
+  const fetchCVs = useCallback(async () => {
     if (!user) return
 
     try {
@@ -80,7 +80,8 @@ export const useCVs = () => {
           company,
           created_at,
           updated_at,
-          cv_data,
+          cv_data->personal_info->phone,
+          cv_data->personal_info->email,
           user_id
         `)
         .order('created_at', { ascending: false })
@@ -109,7 +110,7 @@ export const useCVs = () => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user])
 
   // Fetch complete CV data when needed (for editing)
   const fetchCompleteCV = async (cvId) => {
@@ -239,7 +240,8 @@ export const useCVs = () => {
           company,
           created_at,
           updated_at,
-          cv_data,
+          cv_data->personal_info->phone,
+          cv_data->personal_info->email,
           user_id
         `)
         .or(`name.ilike.%${searchTerm}%,title.ilike.%${searchTerm}%,company.ilike.%${searchTerm}%`)
@@ -278,7 +280,7 @@ export const useCVs = () => {
     } else {
       setCvs([])
     }
-  }, [user])
+  }, [user, fetchCVs])
 
   return {
     cvs,
