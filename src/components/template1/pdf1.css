@@ -164,7 +164,7 @@
 
 @media (max-width: 480px) {
   .cv-preview.pdf-mode .other-info-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
