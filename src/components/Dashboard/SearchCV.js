@@ -7,6 +7,7 @@ const SearchCV = ({ onBack, onEditCV }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(null);
   const [useClientSearch, setUseClientSearch] = useState(true);
   const [loadingCV, setLoadingCV] = useState(null);
   const [userInfo, setUserInfo] = useState({});
@@ -111,6 +112,7 @@ const SearchCV = ({ onBack, onEditCV }) => {
       return results;
     } catch (err) {
       console.error('Search error:', err);
+      setErrorMessage('Search failed. Please try again.');
       return [];
     } finally {
       setIsSearching(false);
@@ -177,15 +179,18 @@ const SearchCV = ({ onBack, onEditCV }) => {
         const completeCV = await fetchCompleteCV(cv.id);
         if (completeCV) {
           onEditCV(completeCV);
+          setErrorMessage(null);
         } else {
           console.error('Failed to load complete CV data');
           // Fallback to lightweight data
           onEditCV(cv);
+          setErrorMessage('Failed to load complete CV data. Showing basic data.');
         }
       } catch (error) {
         console.error('Error loading complete CV:', error);
         // Fallback to lightweight data
         onEditCV(cv);
+        setErrorMessage('Error loading complete CV. Showing basic data.');
       } finally {
         setLoadingCV(null);
       }
@@ -231,6 +236,7 @@ const SearchCV = ({ onBack, onEditCV }) => {
       } catch (error) {
         console.error('Error deleting CV:', error);
         alert('Failed to delete CV. Please try again.');
+        setErrorMessage('Failed to delete CV.');
       }
     }
   };
@@ -364,9 +370,9 @@ const SearchCV = ({ onBack, onEditCV }) => {
       )}
 
       {/* Error State */}
-      {error && (
+      {errorMessage && (
         <div className="error-state">
-          <p>Error: {error}</p>
+          <p>Error: {errorMessage}</p>
         </div>
       )}
 
