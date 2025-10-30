@@ -31,7 +31,7 @@
 }
 
 .cv-preview.pdf-mode .section-heading {
-  font-size: 1.8rem;
+  font-size: 2.0rem;
   padding-bottom: 4px;
   font-family: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
 }
@@ -75,7 +75,7 @@
 
 .cv-preview.pdf-mode .experience-job-title,
 .cv-preview.pdf-mode .education-degree {
-  font-size: 1.6rem;
+  font-size: 1.35rem;
   font-weight: 600;
   font-family: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
 }
