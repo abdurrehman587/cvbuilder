@@ -2,9 +2,9 @@
 
 /* Balanced layout for PDF generation */
 .cv-preview.pdf-mode {
-  padding: 8px;
+  padding: 6px;
   min-height: auto;
-  line-height: 1.3;
+  line-height: 1.25;
   font-family: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
   background: white;
   color: #333;
@@ -16,9 +16,9 @@
 }
 
 .cv-preview.pdf-mode .cv-header {
-  gap: 15px;
+  gap: 12px;
   margin-bottom: 10px;
-  padding-bottom: 12px;
+  padding-bottom: 8px;
 }
 
 .cv-preview.pdf-mode .profile-image-container {
@@ -27,7 +27,7 @@
 }
 
 .cv-preview.pdf-mode .cv-section {
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .cv-preview.pdf-mode .section-heading {
@@ -42,12 +42,12 @@
 
 .cv-preview.pdf-mode .contact-item {
   font-size: 1.4rem;
-  margin-bottom: 3px;
+  margin-bottom: 2px;
   font-family: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
   display: flex;
   align-items: center;
-  gap: 10px;
-  line-height: 1.4;
+  gap: 8px;
+  line-height: 1.3;
 }
 
 .cv-preview.pdf-mode .contact-icon {
@@ -141,8 +141,8 @@
 
 .cv-preview.pdf-mode .other-info-grid {
   display: grid !important;
-  grid-template-columns: repeat(3, 1fr) !important;
-  gap: 8px !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 6px !important;
 }
 
 .cv-preview.pdf-mode .info-item {
@@ -189,15 +189,15 @@
 .cv-preview.pdf-mode .skill-pill,
 .cv-preview.pdf-mode .language-pill,
 .cv-preview.pdf-mode .hobby-pill {
-  padding: 6px 12px;
-  border-radius: 15px;
+  padding: 4px 10px;
+  border-radius: 14px;
   font-size: 1.2rem;
   margin: 2px 4px 2px 0;
   display: inline-block;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   font-family: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
-  line-height: 1.3;
+  line-height: 1.25;
 }
 
 .cv-preview.pdf-mode .skill-pill:hover,
@@ -330,13 +330,13 @@
 .cv-preview.pdf-mode span,
 .cv-preview.pdf-mode li {
   font-size: 1.4rem !important;
-  line-height: 1.4;
+  line-height: 1.3;
 }
 
 /* Additional PDF-specific overrides for exact preview matching */
 .cv-preview.pdf-mode .cv-section {
-  margin-bottom: 25px !important;
-  padding: 20px !important;
+  margin-bottom: 12px !important;
+  padding: 10px !important;
   background: #f8f9fa !important;
   border-radius: 8px !important;
   border-left: 4px solid #667eea !important;
@@ -346,9 +346,9 @@
 .cv-preview.pdf-mode .cv-header {
   display: flex !important;
   align-items: flex-start !important;
-  gap: 30px !important;
-  margin-bottom: 30px !important;
-  padding-bottom: 20px !important;
+  gap: 16px !important;
+  margin-bottom: 14px !important;
+  padding-bottom: 10px !important;
   border-bottom: 2px solid #e0e0e0 !important;
 }
 
