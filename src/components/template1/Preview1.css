@@ -5,7 +5,7 @@
   padding: 12px;
   font-family: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
   color: #333;
-  font-size: 1.0rem;
+  font-size: 0.95rem;
   line-height: 1.3;
 }
 
@@ -14,7 +14,7 @@
 .cv-preview div,
 .cv-preview span,
 .cv-preview li {
-  font-size: 1.0rem;
+  font-size: 0.95rem;
   line-height: 1.3;
 }
 
@@ -100,7 +100,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 1.0rem;
+  font-size: 0.95rem;
   color: #555;
   line-height: 1.4;
 }
@@ -143,7 +143,7 @@
 }
 
 .professional-summary-text {
-  font-size: 1.0rem;
+  font-size: 0.95rem;
   color: #555;
   margin: 0;
   line-height: 1.35;
@@ -186,19 +186,19 @@
 }
 
 .education-board {
-  font-size: 1.4rem !important;
+  font-size: 1.3rem !important;
   font-weight: 500;
   color: #667eea;
 }
 
 .education-year {
-  font-size: 1.4rem !important;
+  font-size: 1.3rem !important;
   font-weight: 500;
   color: #555;
 }
 
 .education-marks {
-  font-size: 1.4rem !important;
+  font-size: 1.3rem !important;
   color: #888;
   font-style: italic;
 }
@@ -238,7 +238,7 @@
 }
 
 .experience-duration {
-  font-size: 1.4rem !important;
+  font-size: 1.3rem !important;
   font-weight: 500;
   color: #555;
 }
@@ -248,13 +248,13 @@
 }
 
 .experience-company {
-  font-size: 1.4rem !important;
+  font-size: 1.3rem !important;
   font-weight: 500;
   color: #667eea;
 }
 
 .experience-details {
-  font-size: 1.4rem !important;
+  font-size: 1.3rem !important;
   color: #666;
   line-height: 1.3;
   margin-left: 6px;
@@ -272,7 +272,7 @@
 .experience-detail-item {
   position: relative;
   padding: 1px 0 1px 14px;
-  font-size: 1.4rem !important;
+  font-size: 1.3rem !important;
   color: #666;
   line-height: 1.3;
 }
@@ -302,7 +302,7 @@
 }
 
 .certification-text {
-  font-size: 1.0rem;
+  font-size: 0.95rem;
   color: #555;
   margin: 0;
   line-height: 1.4;
@@ -321,7 +321,7 @@
   color: white;
   padding: 4px 10px;
   border-radius: 20px;
-  font-size: 1.0rem;
+  font-size: 0.95rem;
   font-weight: 500;
   box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
   transition: all 0.3s ease;
@@ -400,13 +400,13 @@
   font-weight: 600;
   color: #667eea;
   margin-right: 8px;
-  font-size: 1.4rem !important;
+  font-size: 1.3rem !important;
   min-width: fit-content;
 }
 
 .info-value {
   color: #333;
-  font-size: 1.4rem !important;
+  font-size: 1.3rem !important;
   font-weight: 500;
 }
 
@@ -422,7 +422,7 @@
   color: white;
   padding: 4px 10px;
   border-radius: 20px;
-  font-size: 1.0rem;
+  font-size: 0.95rem;
   font-weight: 500;
   box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
   transition: all 0.3s ease;
@@ -469,7 +469,7 @@
   color: white;
   padding: 4px 10px;
   border-radius: 20px;
-  font-size: 1.0rem;
+  font-size: 0.95rem;
   font-weight: 500;
   box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
   transition: all 0.3s ease;
@@ -529,7 +529,7 @@
 }
 
 .custom-section-detail {
-  font-size: 1.0rem;
+  font-size: 0.95rem;
   color: #555;
   margin: 0;
   line-height: 1.35;
@@ -551,7 +551,7 @@
 }
 
 .reference-text {
-  font-size: 1.0rem;
+  font-size: 0.95rem;
   color: #555;
   margin: 0;
   line-height: 1.4;

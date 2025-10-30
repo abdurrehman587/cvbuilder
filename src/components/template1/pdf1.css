@@ -81,24 +81,24 @@
 }
 
 .cv-preview.pdf-mode .experience-company {
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   font-family: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
 }
 
 .cv-preview.pdf-mode .education-institution {
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   font-family: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
 }
 
 .cv-preview.pdf-mode .experience-duration,
 .cv-preview.pdf-mode .education-duration {
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   font-family: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
 }
 
 .cv-preview.pdf-mode .experience-details,
 .cv-preview.pdf-mode .education-details {
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   margin-top: 3px;
   font-family: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
 }
@@ -107,7 +107,7 @@
 .cv-preview.pdf-mode .certifications-list,
 .cv-preview.pdf-mode .languages-list,
 .cv-preview.pdf-mode .hobbies-list {
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   margin-bottom: 6px;
   font-family: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
 }
@@ -133,7 +133,7 @@
 }
 
 .cv-preview.pdf-mode .professional-summary-text {
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   line-height: 1.4;
   margin: 0;
   font-family: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
@@ -169,13 +169,13 @@
 }
 
 .cv-preview.pdf-mode .other-info-item {
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   margin-bottom: 3px;
   font-family: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
 }
 
 .cv-preview.pdf-mode .references-list {
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   margin-bottom: 6px;
   font-family: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
 }
@@ -191,7 +191,7 @@
 .cv-preview.pdf-mode .hobby-pill {
   padding: 4px 10px;
   border-radius: 14px;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   margin: 2px 4px 2px 0;
   display: inline-block;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -211,7 +211,7 @@
 .cv-preview.pdf-mode .language-name,
 .cv-preview.pdf-mode .hobby-name {
   color: white;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-family: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
 }
 
@@ -235,19 +235,19 @@
 }
 
 .cv-preview.pdf-mode .education-board {
-  font-size: 1.4rem !important;
+  font-size: 1.3rem !important;
   font-weight: 500;
   color: #667eea;
 }
 
 .cv-preview.pdf-mode .education-year {
-  font-size: 1.4rem !important;
+  font-size: 1.3rem !important;
   font-weight: 500;
   color: #555;
 }
 
 .cv-preview.pdf-mode .education-marks {
-  font-size: 1.4rem !important;
+  font-size: 1.3rem !important;
   color: #888;
   font-style: italic;
 }
@@ -259,44 +259,44 @@
 }
 
 .cv-preview.pdf-mode .experience-duration {
-  font-size: 1.4rem !important;
+  font-size: 1.3rem !important;
   font-weight: 500;
   color: #555;
 }
 
 .cv-preview.pdf-mode .experience-company {
-  font-size: 1.4rem !important;
+  font-size: 1.3rem !important;
   font-weight: 500;
   color: #667eea;
 }
 
 .cv-preview.pdf-mode .experience-details {
-  font-size: 1.4rem !important;
+  font-size: 1.3rem !important;
   color: #666;
   line-height: 1.4;
 }
 
 .cv-preview.pdf-mode .experience-detail-item {
-  font-size: 1.4rem !important;
+  font-size: 1.3rem !important;
   color: #666;
   line-height: 1.4;
 }
 
 .cv-preview.pdf-mode .certification-text {
-  font-size: 1.4rem !important;
+  font-size: 1.3rem !important;
   color: #555;
   line-height: 1.4;
   font-weight: 500;
 }
 
 .cv-preview.pdf-mode .info-label {
-  font-size: 1.4rem !important;
+  font-size: 1.3rem !important;
   font-weight: 600;
   color: #667eea;
 }
 
 .cv-preview.pdf-mode .info-value {
-  font-size: 1.4rem !important;
+  font-size: 1.3rem !important;
   color: #333;
   font-weight: 500;
 }
@@ -308,13 +308,13 @@
 }
 
 .cv-preview.pdf-mode .custom-section-detail {
-  font-size: 1.4rem !important;
+  font-size: 1.3rem !important;
   color: #555;
   line-height: 1.5;
 }
 
 .cv-preview.pdf-mode .reference-text {
-  font-size: 1.4rem !important;
+  font-size: 1.3rem !important;
   color: #555;
   line-height: 1.4;
   font-style: italic;
@@ -329,7 +329,7 @@
 .cv-preview.pdf-mode div,
 .cv-preview.pdf-mode span,
 .cv-preview.pdf-mode li {
-  font-size: 1.4rem !important;
+  font-size: 1.3rem !important;
   line-height: 1.3;
 }
 
