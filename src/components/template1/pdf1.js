@@ -131,31 +131,68 @@ const createPDF = (canvas) => {
 
 const handleMultiPagePDF = (pdf, canvas, contentWidth, contentHeight, imgHeight) => {
   const totalPages = Math.ceil(imgHeight / contentHeight);
+  // Safety margin to prevent text cut-off at page boundaries (in mm, converted to canvas pixels)
+  const safetyMargin = 3; // 3mm safety margin
+  const safetyMarginPixels = (safetyMargin / PDF_CONFIG.pageHeight) * canvas.height;
   
   for (let pageNum = 0; pageNum < totalPages; pageNum++) {
     if (pageNum > 0) {
       pdf.addPage();
     }
     
-    const startY = pageNum * contentHeight;
-    const endY = Math.min((pageNum + 1) * contentHeight, imgHeight);
-    const pageImgHeight = endY - startY;
+    // Calculate start and end positions with safety margins
+    let startY = pageNum * contentHeight;
+    let endY = Math.min((pageNum + 1) * contentHeight, imgHeight);
+    
+    // For pages after the first, add top safety margin
+    if (pageNum > 0) {
+      startY = Math.max(0, startY - safetyMargin);
+    }
+    
+    // For pages before the last, add bottom safety margin  
+    if (pageNum < totalPages - 1) {
+      endY = Math.min(imgHeight, endY + safetyMargin);
+    }
+    
+    // Convert to canvas pixel coordinates
+    const sourceStartY = (startY / imgHeight) * canvas.height;
+    const sourceEndY = (endY / imgHeight) * canvas.height;
+    const sourceHeight = sourceEndY - sourceStartY;
     
     const pageCanvas = document.createElement('canvas');
     const pageCtx = pageCanvas.getContext('2d');
     pageCanvas.width = canvas.width;
-    pageCanvas.height = (pageImgHeight / imgHeight) * canvas.height;
+    pageCanvas.height = sourceHeight;
     
+    // Draw the portion of the canvas
     pageCtx.drawImage(
       canvas, 
-      0, (startY / imgHeight) * canvas.height, 
-      canvas.width, (pageImgHeight / imgHeight) * canvas.height,
+      0, sourceStartY, 
+      canvas.width, sourceHeight,
       0, 0, 
-      canvas.width, (pageImgHeight / imgHeight) * canvas.height
+      canvas.width, sourceHeight
     );
     
     const pageImgData = pageCanvas.toDataURL('image/jpeg', PDF_CONFIG.imageQuality);
-    pdf.addImage(pageImgData, 'JPEG', PDF_CONFIG.margin, PDF_CONFIG.margin, contentWidth, pageImgHeight);
+    
+    // Calculate PDF positioning
+    let pdfY = PDF_CONFIG.margin;
+    let renderedHeight = endY - startY;
+    
+    // For subsequent pages, adjust Y position to account for safety margin
+    if (pageNum > 0) {
+      pdfY = PDF_CONFIG.margin - safetyMargin;
+      renderedHeight = renderedHeight + safetyMargin;
+    }
+    
+    // For last page, use remaining height
+    if (pageNum === totalPages - 1) {
+      renderedHeight = imgHeight - (pageNum * contentHeight);
+    } else {
+      renderedHeight = contentHeight + (pageNum > 0 ? safetyMargin : 0);
+    }
+    
+    pdf.addImage(pageImgData, 'JPEG', PDF_CONFIG.margin, pdfY, contentWidth, renderedHeight);
   }
 };
 
