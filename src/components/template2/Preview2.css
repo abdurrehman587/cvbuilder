@@ -129,7 +129,7 @@
 }
 
 .template2-root .contact-item.contact-address > span:last-child {
-  text-align: left;
+  text-align: justify;
 }
 
 .template2-root .contact-item:hover {

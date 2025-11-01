@@ -44,7 +44,7 @@
 }
 
 .cv-preview.pdf-mode .contact-item.contact-address > span:last-child {
-  text-align: left;
+  text-align: justify !important;
 }
 
 .cv-preview.pdf-mode .experience-item,
