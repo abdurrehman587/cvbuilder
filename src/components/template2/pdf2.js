@@ -478,6 +478,30 @@ const generatePDF = async () => {
       leftColumn.style.backgroundColor = '#667eea'; // Solid fallback
       leftColumn.style.backgroundRepeat = 'no-repeat';
       leftColumn.style.backgroundSize = '100% 100%';
+      
+      // Apply styles to skill and language pills before cloning
+      const skillPills = leftColumn.querySelectorAll('.skill-pill, .language-pill, .hobby-pill');
+      skillPills.forEach(pill => {
+        pill.style.color = 'white';
+        pill.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
+        const children = pill.querySelectorAll('*');
+        children.forEach(child => {
+          child.style.color = 'white';
+          child.style.fontSize = '13px';
+          child.style.fontWeight = '500';
+        });
+      });
+      
+      // Apply styles to info items before cloning
+      const infoItems = leftColumn.querySelectorAll('.info-item');
+      infoItems.forEach(item => {
+        item.style.color = 'white';
+        item.style.backgroundColor = 'rgba(255, 255, 255, 0.12)';
+        const children = item.querySelectorAll('.info-label, .info-value');
+        children.forEach(child => {
+          child.style.color = 'white';
+        });
+      });
     }
     
     if (rightColumn) {
