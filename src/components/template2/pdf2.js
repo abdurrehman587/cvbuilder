@@ -115,12 +115,13 @@ const generateCanvas = async (cvPreview) => {
         
         if (leftColumn) {
           leftColumn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-          leftColumn.style.display = 'block';
+          leftColumn.style.color = 'white';
+          leftColumn.style.padding = '30px 25px';
         }
         
         if (rightColumn) {
           rightColumn.style.background = 'white';
-          rightColumn.style.display = 'block';
+          rightColumn.style.padding = '30px 35px';
         }
       }
     }
