@@ -94,13 +94,13 @@ const generateCanvas = async (cvPreview) => {
     useCORS: true,
     allowTaint: true,
     backgroundColor: '#ffffff',
-    logging: true,
+    logging: false,
     scrollX: 0,
     scrollY: 0,
     width: elementToRender.offsetWidth || elementToRender.scrollWidth,
     height: elementToRender.offsetHeight || elementToRender.scrollHeight,
     removeContainer: false,
-    foreignObjectRendering: false,
+    foreignObjectRendering: true, // Enable for better gradient support
     imageTimeout: PDF_CONFIG.imageTimeout,
     onclone: (clonedDoc) => {
       // Force apply all PDF styles immediately via injected stylesheet
@@ -187,12 +187,28 @@ const generateCanvas = async (cvPreview) => {
         const rightColumn = clonedPreview.querySelector('.cv-right-column');
         
         if (leftColumn) {
-          // Use solid color as fallback if gradient doesn't render
-          leftColumn.style.background = 'linear-gradient(135deg, rgb(102, 126, 234) 0%, rgb(118, 75, 162) 100%)';
-          leftColumn.style.backgroundColor = '#667eea'; // Fallback
+          // Create SVG gradient for better html2canvas support
+          const svgGradient = `
+            <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="purpleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+                </linearGradient>
+              </defs>
+              <rect width="100%" height="100%" fill="url(#purpleGradient)"/>
+            </svg>
+          `;
+          // Try multiple background approaches
+          leftColumn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+          leftColumn.style.backgroundImage = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+          leftColumn.style.backgroundColor = '#667eea'; // Solid fallback
+          leftColumn.style.backgroundRepeat = 'no-repeat';
+          leftColumn.style.backgroundSize = '100% 100%';
           leftColumn.style.color = 'white';
           leftColumn.style.padding = '30px 25px';
           leftColumn.style.display = 'block';
+          leftColumn.style.position = 'relative';
           
           // Apply white color to all text elements in left column
           const textElements = leftColumn.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, div, li, td, th, label');
