@@ -9,7 +9,8 @@ const PDF_CONFIG = {
   format: 'a4',
   pageWidth: 210, // A4 width in mm
   pageHeight: 297, // A4 height in mm
-  margin: 5, // Reduced top margin for better space utilization
+  margin: 5, // Top, bottom, left margins
+  marginRight: 0, // No right margin
   scale: 3, // Canvas scale for better compatibility
   imageQuality: 2, // JPEG quality
   imageTimeout: 15000 // Timeout for images
@@ -149,11 +150,11 @@ const generateCanvas = async (cvPreview) => {
         .template2-root.pdf-mode .cv-preview.pdf-mode .skill-pill,
         .template2-root.pdf-mode .cv-preview.pdf-mode .language-pill,
         .template2-root.pdf-mode .cv-preview.pdf-mode .hobby-pill {
-          background: rgba(255, 255, 255, 0.25) !important;
+          background: rgba(0, 0, 0, 0.2) !important; /* Dark background instead of white */
           color: white !important;
           visibility: visible !important;
           opacity: 1 !important;
-          border: 1px solid rgba(255, 255, 255, 0.4) !important;
+          border: 1px solid rgba(255, 255, 255, 0.3) !important;
         }
         .template2-root.pdf-mode .cv-preview.pdf-mode .skill-pill *,
         .template2-root.pdf-mode .cv-preview.pdf-mode .language-pill *,
@@ -169,7 +170,7 @@ const generateCanvas = async (cvPreview) => {
           font-weight: 600 !important;
           visibility: visible !important;
           opacity: 1 !important;
-          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+          text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important; /* Stronger shadow */
         }
         .template2-root.pdf-mode .cv-preview.pdf-mode .info-item {
           background: rgba(255, 255, 255, 0.12) !important;
@@ -267,12 +268,12 @@ const generateCanvas = async (cvPreview) => {
           const skillPills = leftColumn.querySelectorAll('.skill-pill, .language-pill, .hobby-pill');
           skillPills.forEach(pill => {
             pill.style.color = 'white';
-            pill.style.backgroundColor = 'rgba(255, 255, 255, 0.25)'; // Increased opacity
+            pill.style.backgroundColor = 'rgba(0, 0, 0, 0.2)'; // Dark background for contrast
             pill.style.padding = '10px 15px';
             pill.style.borderRadius = '8px';
             pill.style.fontSize = '13px';
             pill.style.fontWeight = '500';
-            pill.style.border = '1px solid rgba(255, 255, 255, 0.4)'; // Stronger border
+            pill.style.border = '1px solid rgba(255, 255, 255, 0.3)';
             pill.style.display = 'block';
             pill.style.visibility = 'visible';
             pill.style.opacity = '1';
@@ -284,7 +285,7 @@ const generateCanvas = async (cvPreview) => {
               child.style.fontWeight = '600'; // Increased weight
               child.style.visibility = 'visible';
               child.style.opacity = '1';
-              child.style.textShadow = '0 1px 2px rgba(0, 0, 0, 0.3)'; // Add shadow
+              child.style.textShadow = '0 1px 3px rgba(0, 0, 0, 0.5)'; // Stronger shadow
             });
           });
           
@@ -295,7 +296,7 @@ const generateCanvas = async (cvPreview) => {
             name.style.display = 'block';
             name.style.visibility = 'visible';
             name.style.opacity = '1';
-            name.style.textShadow = '0 1px 2px rgba(0, 0, 0, 0.3)'; // Add shadow for contrast
+            name.style.textShadow = '0 1px 3px rgba(0, 0, 0, 0.5)'; // Stronger shadow for contrast
           });
           
           // Apply styles to info items
