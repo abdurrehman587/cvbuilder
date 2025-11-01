@@ -103,7 +103,7 @@ const generateCanvas = async (cvPreview) => {
     foreignObjectRendering: false,
     imageTimeout: PDF_CONFIG.imageTimeout,
     onclone: (clonedDoc) => {
-      // Force apply all PDF styles immediately
+      // Force apply all PDF styles immediately via injected stylesheet
       const style = document.createElement('style');
       style.textContent = `
         .template2-root.pdf-mode .cv-preview.pdf-mode {
@@ -114,20 +114,52 @@ const generateCanvas = async (cvPreview) => {
           background: white !important;
           max-width: 1200px !important;
           margin: 0 auto !important;
+          font-family: 'Arial', sans-serif !important;
         }
         .template2-root.pdf-mode .cv-preview.pdf-mode .cv-left-column {
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+          background: -webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
           color: white !important;
           padding: 30px 25px !important;
+          display: block !important;
         }
         .template2-root.pdf-mode .cv-preview.pdf-mode .cv-right-column {
           background: white !important;
           padding: 30px 35px !important;
+          display: block !important;
+        }
+        .template2-root.pdf-mode .cv-preview.pdf-mode .cv-left-column * {
+          color: white !important;
+        }
+        .template2-root.pdf-mode .cv-preview.pdf-mode .header-name {
+          color: white !important;
+          font-size: 28px !important;
+        }
+        .template2-root.pdf-mode .cv-preview.pdf-mode .header-title {
+          color: rgba(255, 255, 255, 0.9) !important;
+        }
+        .template2-root.pdf-mode .cv-preview.pdf-mode .contact-item {
+          background: rgba(255, 255, 255, 0.1) !important;
+          color: rgba(255, 255, 255, 0.9) !important;
+        }
+        .template2-root.pdf-mode .cv-preview.pdf-mode .section-heading.left-column {
+          color: white !important;
+          border-bottom-color: rgba(255, 255, 255, 0.3) !important;
+        }
+        .template2-root.pdf-mode .cv-preview.pdf-mode .skill-pill,
+        .template2-root.pdf-mode .cv-preview.pdf-mode .language-pill,
+        .template2-root.pdf-mode .cv-preview.pdf-mode .hobby-pill {
+          background: rgba(255, 255, 255, 0.15) !important;
+          color: white !important;
+        }
+        .template2-root.pdf-mode .cv-preview.pdf-mode .info-label,
+        .template2-root.pdf-mode .cv-preview.pdf-mode .info-value {
+          color: white !important;
         }
       `;
       clonedDoc.head.appendChild(style);
       
-      // Ensure template2-root styles are preserved
+      // Apply inline styles to all elements
       const clonedRoot = clonedDoc.querySelector('.template2-root');
       if (clonedRoot) {
         clonedRoot.classList.add('pdf-mode');
@@ -136,7 +168,6 @@ const generateCanvas = async (cvPreview) => {
         clonedRoot.style.height = 'auto';
       }
       
-      // Ensure cv-preview styles are preserved
       const clonedPreview = clonedDoc.querySelector('.cv-preview');
       if (clonedPreview) {
         clonedPreview.classList.add('pdf-mode');
@@ -150,24 +181,36 @@ const generateCanvas = async (cvPreview) => {
         clonedPreview.style.margin = '0 auto';
         clonedPreview.style.padding = '0';
         clonedPreview.style.background = 'white';
+        clonedPreview.style.fontFamily = 'Arial, sans-serif';
         
-        // Ensure left and right columns maintain their styles
         const leftColumn = clonedPreview.querySelector('.cv-left-column');
         const rightColumn = clonedPreview.querySelector('.cv-right-column');
         
         if (leftColumn) {
+          // Use solid color as fallback if gradient doesn't render
           leftColumn.style.background = 'linear-gradient(135deg, rgb(102, 126, 234) 0%, rgb(118, 75, 162) 100%)';
+          leftColumn.style.backgroundColor = '#667eea'; // Fallback
           leftColumn.style.color = 'white';
           leftColumn.style.padding = '30px 25px';
           leftColumn.style.display = 'block';
-          leftColumn.style.minHeight = '100%';
+          
+          // Apply white color to all text in left column
+          const leftColumnTexts = leftColumn.querySelectorAll('*');
+          leftColumnTexts.forEach(el => {
+            if (el.tagName && !['SCRIPT', 'STYLE'].includes(el.tagName)) {
+              const computedColor = window.getComputedStyle(el).color;
+              if (computedColor && !computedColor.includes('rgb(255')) {
+                el.style.color = 'white';
+              }
+            }
+          });
         }
         
         if (rightColumn) {
           rightColumn.style.background = 'white';
+          rightColumn.style.backgroundColor = 'white';
           rightColumn.style.padding = '30px 35px';
           rightColumn.style.display = 'block';
-          rightColumn.style.minHeight = '100%';
         }
       }
     }
