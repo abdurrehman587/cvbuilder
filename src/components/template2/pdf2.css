@@ -91,15 +91,18 @@
 .template2-root.cv-preview.pdf-mode .contact-item .contact-icon,
 .cv-preview.pdf-mode.template2-root .contact-item .contact-icon {
   flex-shrink: 0 !important;
+  margin-top: 2px !important; /* Align with first line of text */
 }
 
 .template2-root.cv-preview.pdf-mode .contact-item > span:last-child,
 .cv-preview.pdf-mode.template2-root .contact-item > span:last-child {
   flex: 1 !important;
+  min-width: 0 !important;
   word-wrap: break-word !important;
-  word-break: break-word !important;
+  word-break: break-all !important; /* Break long words like email addresses */
   overflow-wrap: break-word !important;
   line-height: 1.4 !important;
+  display: block !important; /* Ensure proper wrapping */
 }
 
 .template2-root.cv-preview.pdf-mode .contact-item.contact-address,

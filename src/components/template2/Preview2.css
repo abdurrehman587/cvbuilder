@@ -128,14 +128,17 @@
 
 .template2-root .contact-item .contact-icon {
   flex-shrink: 0;
+  margin-top: 2px; /* Align with first line of text */
 }
 
 .template2-root .contact-item > span:last-child {
   flex: 1;
+  min-width: 0;
   word-wrap: break-word;
-  word-break: break-word;
+  word-break: break-all; /* Break long words like email addresses */
   overflow-wrap: break-word;
   line-height: 1.4;
+  display: block; /* Ensure proper wrapping */
 }
 
 .template2-root .contact-item.contact-address {
