@@ -122,6 +122,16 @@
   border-radius: 8px;
   backdrop-filter: blur(10px);
   transition: all 0.3s ease;
+  width: 100%;
+  min-width: 0; /* Allow flex items to shrink */
+}
+
+.template2-root .contact-item > span:last-child {
+  flex: 1;
+  min-width: 0; /* Allow text to wrap */
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .template2-root .contact-item.contact-address {
