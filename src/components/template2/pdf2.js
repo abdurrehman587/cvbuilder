@@ -350,8 +350,12 @@ const generatePDF = async () => {
     if (leftColumn) {
       // Save original styles
       originalLeftBg = leftColumn.style.background || '';
+      // Apply gradient with multiple fallbacks for html2canvas
       leftColumn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+      leftColumn.style.backgroundImage = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
       leftColumn.style.backgroundColor = '#667eea'; // Solid fallback
+      leftColumn.style.backgroundRepeat = 'no-repeat';
+      leftColumn.style.backgroundSize = '100% 100%';
     }
     
     if (rightColumn) {
