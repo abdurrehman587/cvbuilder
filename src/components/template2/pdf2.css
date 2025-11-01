@@ -82,7 +82,7 @@
   border-radius: 8px !important;
   font-family: 'Arial', sans-serif !important;
   display: flex !important;
-  align-items: flex-start !important;
+  align-items: center !important;
   gap: 12px !important;
   width: 100% !important;
   box-sizing: border-box !important;
@@ -91,7 +91,6 @@
 .template2-root.cv-preview.pdf-mode .contact-item .contact-icon,
 .cv-preview.pdf-mode.template2-root .contact-item .contact-icon {
   flex-shrink: 0 !important;
-  margin-top: 2px !important; /* Align with first line of text */
 }
 
 .template2-root.cv-preview.pdf-mode .contact-item > span:last-child,
