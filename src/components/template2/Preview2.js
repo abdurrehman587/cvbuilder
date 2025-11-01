@@ -120,7 +120,10 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges })
             <div className="cv-section left-column">
               <h3 className="section-heading left-column">Other Information</h3>
               <div className="section-content">
-                <div className="other-info-grid">
+                <div 
+                  className="other-info-grid"
+                  style={{ gridTemplateColumns: '1fr' }}
+                >
                   {displayData.otherInfo.map((info, index) => (
                     <div key={index} className="info-item">
                       <span className="info-label">{info.label}:</span>

@@ -418,8 +418,8 @@
 
 /* Other Information Section Styling - Left Column */
 .template2-root .other-info-grid {
-  display: grid;
-  grid-template-columns: 1fr;
+  display: grid !important;
+  grid-template-columns: 1fr !important;
   gap: 8px;
 }
 
