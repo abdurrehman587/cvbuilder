@@ -9,7 +9,7 @@
   background: white !important;
   color: #333;
   display: grid !important;
-  grid-template-columns: 1fr 2fr !important;
+  grid-template-columns: 35% 65% !important;
   gap: 0 !important;
   max-width: 1200px !important;
   margin: 0 auto !important;

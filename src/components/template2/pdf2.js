@@ -108,7 +108,7 @@ const generateCanvas = async (cvPreview) => {
       style.textContent = `
         .template2-root.pdf-mode .cv-preview.pdf-mode {
           display: grid !important;
-          grid-template-columns: 1fr 2fr !important;
+          grid-template-columns: 35% 65% !important;
           gap: 0 !important;
           padding: 0 !important;
           background: white !important;
@@ -173,7 +173,7 @@ const generateCanvas = async (cvPreview) => {
         clonedPreview.classList.add('pdf-mode');
         clonedPreview.style.visibility = 'visible';
         clonedPreview.style.display = 'grid';
-        clonedPreview.style.gridTemplateColumns = '1fr 2fr';
+        clonedPreview.style.gridTemplateColumns = '35% 65%';
         clonedPreview.style.gap = '0';
         clonedPreview.style.width = 'auto';
         clonedPreview.style.height = 'auto';
