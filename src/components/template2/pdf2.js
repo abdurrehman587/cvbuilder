@@ -39,13 +39,19 @@ const setupPDFMode = (cvPreview) => {
     downloadButton.style.display = 'none';
   }
 
-  // Apply PDF mode styling
+  // Apply PDF mode styling to cv-preview
   cvPreview.classList.add('pdf-mode');
+  
+  // Also add pdf-mode to template2-root wrapper if it exists
+  const template2Root = cvPreview.closest('.template2-root');
+  if (template2Root) {
+    template2Root.classList.add('pdf-mode');
+  }
 
-  return { downloadButton, originalDisplay };
+  return { downloadButton, originalDisplay, template2Root };
 };
 
-const cleanupPDFMode = (cvPreview, downloadButton, originalDisplay) => {
+const cleanupPDFMode = (cvPreview, downloadButton, originalDisplay, template2Root) => {
   // Restore download button
   if (downloadButton) {
     downloadButton.style.display = originalDisplay;
@@ -53,6 +59,10 @@ const cleanupPDFMode = (cvPreview, downloadButton, originalDisplay) => {
   
   // Remove PDF mode styling
   cvPreview.classList.remove('pdf-mode');
+  
+  if (template2Root) {
+    template2Root.classList.remove('pdf-mode');
+  }
 };
 
 const updateButtonState = (text, disabled = false) => {
@@ -93,9 +103,34 @@ const generateCanvas = async (cvPreview) => {
     foreignObjectRendering: false,
     imageTimeout: PDF_CONFIG.imageTimeout,
     onclone: (clonedDoc) => {
+      // Force apply all PDF styles immediately
+      const style = document.createElement('style');
+      style.textContent = `
+        .template2-root.pdf-mode .cv-preview.pdf-mode {
+          display: grid !important;
+          grid-template-columns: 1fr 2fr !important;
+          gap: 0 !important;
+          padding: 0 !important;
+          background: white !important;
+          max-width: 1200px !important;
+          margin: 0 auto !important;
+        }
+        .template2-root.pdf-mode .cv-preview.pdf-mode .cv-left-column {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+          color: white !important;
+          padding: 30px 25px !important;
+        }
+        .template2-root.pdf-mode .cv-preview.pdf-mode .cv-right-column {
+          background: white !important;
+          padding: 30px 35px !important;
+        }
+      `;
+      clonedDoc.head.appendChild(style);
+      
       // Ensure template2-root styles are preserved
       const clonedRoot = clonedDoc.querySelector('.template2-root');
       if (clonedRoot) {
+        clonedRoot.classList.add('pdf-mode');
         clonedRoot.style.display = 'block';
         clonedRoot.style.width = 'auto';
         clonedRoot.style.height = 'auto';
@@ -104,6 +139,7 @@ const generateCanvas = async (cvPreview) => {
       // Ensure cv-preview styles are preserved
       const clonedPreview = clonedDoc.querySelector('.cv-preview');
       if (clonedPreview) {
+        clonedPreview.classList.add('pdf-mode');
         clonedPreview.style.visibility = 'visible';
         clonedPreview.style.display = 'grid';
         clonedPreview.style.gridTemplateColumns = '1fr 2fr';
@@ -124,12 +160,14 @@ const generateCanvas = async (cvPreview) => {
           leftColumn.style.color = 'white';
           leftColumn.style.padding = '30px 25px';
           leftColumn.style.display = 'block';
+          leftColumn.style.minHeight = '100%';
         }
         
         if (rightColumn) {
           rightColumn.style.background = 'white';
           rightColumn.style.padding = '30px 35px';
           rightColumn.style.display = 'block';
+          rightColumn.style.minHeight = '100%';
         }
       }
     }
@@ -205,7 +243,7 @@ const generateFileName = () => {
 
 // Main PDF Generation Function
 const generatePDF = async () => {
-  let cvPreview, downloadButton, originalDisplay;
+  let cvPreview, downloadButton, originalDisplay, template2Root;
 
   try {
     console.log('Starting PDF generation...');
@@ -220,6 +258,7 @@ const generatePDF = async () => {
     const setup = setupPDFMode(cvPreview);
     downloadButton = setup.downloadButton;
     originalDisplay = setup.originalDisplay;
+    template2Root = setup.template2Root;
     
     // Generate canvas
     const canvas = await generateCanvas(cvPreview);
@@ -239,7 +278,7 @@ const generatePDF = async () => {
   } finally {
     // Cleanup
     if (cvPreview) {
-      cleanupPDFMode(cvPreview, downloadButton, originalDisplay);
+      cleanupPDFMode(cvPreview, downloadButton, originalDisplay, template2Root);
     }
     updateButtonState('📄 Download PDF', false);
   }
