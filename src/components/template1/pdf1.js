@@ -9,7 +9,7 @@ const PDF_CONFIG = {
   format: 'a4',
   pageWidth: 210, // A4 width in mm
   pageHeight: 297, // A4 height in mm
-  margin: 5, // Reduced top margin for better space utilization
+  margin: 8, // Increased margin to prevent text cut-off at page boundaries
   scale: 3, // Canvas scale for better compatibility
   imageQuality: 2, // JPEG quality
   imageTimeout: 15000 // Timeout for images
@@ -131,28 +131,16 @@ const createPDF = (canvas) => {
 
 const handleMultiPagePDF = (pdf, canvas, contentWidth, contentHeight, imgHeight) => {
   const totalPages = Math.ceil(imgHeight / contentHeight);
-  // Safety margin to prevent text cut-off at page boundaries (in mm, converted to canvas pixels)
-  const safetyMargin = 3; // 3mm safety margin
-  const safetyMarginPixels = (safetyMargin / PDF_CONFIG.pageHeight) * canvas.height;
   
   for (let pageNum = 0; pageNum < totalPages; pageNum++) {
     if (pageNum > 0) {
       pdf.addPage();
     }
     
-    // Calculate start and end positions with safety margins
-    let startY = pageNum * contentHeight;
-    let endY = Math.min((pageNum + 1) * contentHeight, imgHeight);
-    
-    // For pages after the first, add top safety margin
-    if (pageNum > 0) {
-      startY = Math.max(0, startY - safetyMargin);
-    }
-    
-    // For pages before the last, add bottom safety margin  
-    if (pageNum < totalPages - 1) {
-      endY = Math.min(imgHeight, endY + safetyMargin);
-    }
+    // Calculate clean page boundaries without overlap to prevent duplication
+    const startY = pageNum * contentHeight;
+    const endY = Math.min((pageNum + 1) * contentHeight, imgHeight);
+    const pageImgHeight = endY - startY;
     
     // Convert to canvas pixel coordinates
     const sourceStartY = (startY / imgHeight) * canvas.height;
@@ -164,7 +152,7 @@ const handleMultiPagePDF = (pdf, canvas, contentWidth, contentHeight, imgHeight)
     pageCanvas.width = canvas.width;
     pageCanvas.height = sourceHeight;
     
-    // Draw the portion of the canvas
+    // Draw the portion of the canvas (no overlap)
     pageCtx.drawImage(
       canvas, 
       0, sourceStartY, 
@@ -175,24 +163,8 @@ const handleMultiPagePDF = (pdf, canvas, contentWidth, contentHeight, imgHeight)
     
     const pageImgData = pageCanvas.toDataURL('image/jpeg', PDF_CONFIG.imageQuality);
     
-    // Calculate PDF positioning
-    let pdfY = PDF_CONFIG.margin;
-    let renderedHeight = endY - startY;
-    
-    // For subsequent pages, adjust Y position to account for safety margin
-    if (pageNum > 0) {
-      pdfY = PDF_CONFIG.margin - safetyMargin;
-      renderedHeight = renderedHeight + safetyMargin;
-    }
-    
-    // For last page, use remaining height
-    if (pageNum === totalPages - 1) {
-      renderedHeight = imgHeight - (pageNum * contentHeight);
-    } else {
-      renderedHeight = contentHeight + (pageNum > 0 ? safetyMargin : 0);
-    }
-    
-    pdf.addImage(pageImgData, 'JPEG', PDF_CONFIG.margin, pdfY, contentWidth, renderedHeight);
+    // Add image to PDF at the correct position
+    pdf.addImage(pageImgData, 'JPEG', PDF_CONFIG.margin, PDF_CONFIG.margin, contentWidth, pageImgHeight);
   }
 };
 
