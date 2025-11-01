@@ -275,6 +275,16 @@
   font-weight: 500 !important;
   border: 1px solid rgba(255, 255, 255, 0.2) !important;
   font-family: 'Arial', sans-serif !important;
+  display: block !important;
+}
+
+.template2-root.cv-preview.pdf-mode .skill-pill *,
+.template2-root.cv-preview.pdf-mode .language-pill *,
+.template2-root.cv-preview.pdf-mode .hobby-pill *,
+.cv-preview.pdf-mode.template2-root .skill-pill *,
+.cv-preview.pdf-mode.template2-root .language-pill *,
+.cv-preview.pdf-mode.template2-root .hobby-pill * {
+  color: white !important;
 }
 
 .template2-root.cv-preview.pdf-mode .skill-name,
@@ -287,6 +297,7 @@
   font-size: 13px !important;
   font-weight: 500 !important;
   font-family: 'Arial', sans-serif !important;
+  display: block !important;
 }
 
 /* Other Information - Left Column */
@@ -303,30 +314,41 @@
   align-items: center !important;
   justify-content: space-between !important;
   gap: 8px !important;
-  padding: 6px 8px !important;
-  background: rgba(255, 255, 255, 0.08) !important;
+  padding: 8px 10px !important;
+  background: rgba(255, 255, 255, 0.12) !important;
   border-radius: 6px !important;
-  border-left: 2px solid rgba(255, 255, 255, 0.25) !important;
+  border-left: 2px solid rgba(255, 255, 255, 0.3) !important;
   font-family: 'Arial', sans-serif !important;
+  color: white !important;
+  white-space: normal !important;
+  flex-wrap: wrap !important;
+}
+
+.template2-root.cv-preview.pdf-mode .info-item *,
+.cv-preview.pdf-mode.template2-root .info-item * {
+  color: white !important;
 }
 
 .template2-root.cv-preview.pdf-mode .info-label,
 .cv-preview.pdf-mode.template2-root .info-label {
   font-weight: 600 !important;
-  color: rgba(255, 255, 255, 0.85) !important;
-  font-size: 14px !important;
+  color: white !important;
+  font-size: 13px !important;
   text-transform: uppercase !important;
   letter-spacing: 0.5px !important;
   font-family: 'Arial', sans-serif !important;
+  white-space: normal !important;
 }
 
 .template2-root.cv-preview.pdf-mode .info-value,
 .cv-preview.pdf-mode.template2-root .info-value {
   color: white !important;
-  font-size: 14px !important;
+  font-size: 13px !important;
   font-weight: 500 !important;
-  line-height: 1.3 !important;
+  line-height: 1.4 !important;
   font-family: 'Arial', sans-serif !important;
+  white-space: normal !important;
+  word-wrap: break-word !important;
 }
 
 /* Custom Section */

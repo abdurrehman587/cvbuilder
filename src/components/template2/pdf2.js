@@ -152,6 +152,24 @@ const generateCanvas = async (cvPreview) => {
           background: rgba(255, 255, 255, 0.15) !important;
           color: white !important;
         }
+        .template2-root.pdf-mode .cv-preview.pdf-mode .skill-pill *,
+        .template2-root.pdf-mode .cv-preview.pdf-mode .language-pill *,
+        .template2-root.pdf-mode .cv-preview.pdf-mode .hobby-pill * {
+          color: white !important;
+        }
+        .template2-root.pdf-mode .cv-preview.pdf-mode .skill-name,
+        .template2-root.pdf-mode .cv-preview.pdf-mode .language-name,
+        .template2-root.pdf-mode .cv-preview.pdf-mode .hobby-name {
+          color: white !important;
+          font-weight: 500 !important;
+        }
+        .template2-root.pdf-mode .cv-preview.pdf-mode .info-item {
+          background: rgba(255, 255, 255, 0.12) !important;
+          color: white !important;
+        }
+        .template2-root.pdf-mode .cv-preview.pdf-mode .info-item * {
+          color: white !important;
+        }
         .template2-root.pdf-mode .cv-preview.pdf-mode .info-label,
         .template2-root.pdf-mode .cv-preview.pdf-mode .info-value {
           color: white !important;
