@@ -194,16 +194,35 @@ const generateCanvas = async (cvPreview) => {
           leftColumn.style.padding = '30px 25px';
           leftColumn.style.display = 'block';
           
-          // Apply white color to all text in left column
-          const leftColumnTexts = leftColumn.querySelectorAll('*');
-          leftColumnTexts.forEach(el => {
-            if (el.tagName && !['SCRIPT', 'STYLE'].includes(el.tagName)) {
-              const computedColor = window.getComputedStyle(el).color;
-              if (computedColor && !computedColor.includes('rgb(255')) {
-                el.style.color = 'white';
-              }
+          // Apply white color to all text elements in left column
+          const textElements = leftColumn.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, div, li, td, th, label');
+          textElements.forEach(el => {
+            // Only set color if it's a text element and not already explicitly set
+            if (el.tagName && el.textContent.trim()) {
+              el.style.color = 'white';
             }
           });
+          
+          // Ensure all specific elements are white
+          const headerName = leftColumn.querySelector('.header-name');
+          const headerTitle = leftColumn.querySelector('.header-title');
+          const contactItems = leftColumn.querySelectorAll('.contact-item');
+          const sectionHeadings = leftColumn.querySelectorAll('.section-heading');
+          const skillNames = leftColumn.querySelectorAll('.skill-name, .language-name, .hobby-name');
+          const infoLabels = leftColumn.querySelectorAll('.info-label');
+          const infoValues = leftColumn.querySelectorAll('.info-value');
+          
+          if (headerName) headerName.style.color = 'white';
+          if (headerTitle) headerTitle.style.color = 'rgba(255, 255, 255, 0.9)';
+          contactItems.forEach(item => {
+            item.style.color = 'rgba(255, 255, 255, 0.9)';
+            const spans = item.querySelectorAll('span');
+            spans.forEach(span => span.style.color = 'rgba(255, 255, 255, 0.9)');
+          });
+          sectionHeadings.forEach(heading => heading.style.color = 'white');
+          skillNames.forEach(name => name.style.color = 'white');
+          infoLabels.forEach(label => label.style.color = 'rgba(255, 255, 255, 0.85)');
+          infoValues.forEach(value => value.style.color = 'white');
         }
         
         if (rightColumn) {
