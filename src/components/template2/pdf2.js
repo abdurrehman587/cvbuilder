@@ -106,22 +106,30 @@ const generateCanvas = async (cvPreview) => {
       if (clonedPreview) {
         clonedPreview.style.visibility = 'visible';
         clonedPreview.style.display = 'grid';
+        clonedPreview.style.gridTemplateColumns = '1fr 2fr';
+        clonedPreview.style.gap = '0';
         clonedPreview.style.width = 'auto';
         clonedPreview.style.height = 'auto';
+        clonedPreview.style.maxWidth = '1200px';
+        clonedPreview.style.margin = '0 auto';
+        clonedPreview.style.padding = '0';
+        clonedPreview.style.background = 'white';
         
         // Ensure left and right columns maintain their styles
         const leftColumn = clonedPreview.querySelector('.cv-left-column');
         const rightColumn = clonedPreview.querySelector('.cv-right-column');
         
         if (leftColumn) {
-          leftColumn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+          leftColumn.style.background = 'linear-gradient(135deg, rgb(102, 126, 234) 0%, rgb(118, 75, 162) 100%)';
           leftColumn.style.color = 'white';
           leftColumn.style.padding = '30px 25px';
+          leftColumn.style.display = 'block';
         }
         
         if (rightColumn) {
           rightColumn.style.background = 'white';
           rightColumn.style.padding = '30px 35px';
+          rightColumn.style.display = 'block';
         }
       }
     }
