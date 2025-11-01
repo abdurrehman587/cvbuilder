@@ -130,6 +130,10 @@
   font-family: 'Arial', sans-serif;
 }
 
+.cv-preview.pdf-mode .other-info-grid {
+  grid-template-columns: 1fr !important;
+}
+
 .cv-preview.pdf-mode .references-list {
   font-size: 1rem;
   margin-bottom: 6px;
