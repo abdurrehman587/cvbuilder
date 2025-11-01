@@ -260,6 +260,14 @@ const generatePDF = async () => {
     originalDisplay = setup.originalDisplay;
     template2Root = setup.template2Root;
     
+    // Wait a moment for styles to apply
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // Force a reflow to ensure styles are computed
+    if (cvPreview && cvPreview.offsetHeight) {
+      cvPreview.offsetHeight;
+    }
+    
     // Generate canvas
     const canvas = await generateCanvas(cvPreview);
     
