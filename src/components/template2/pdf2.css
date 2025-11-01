@@ -1,8 +1,7 @@
 /* PDF Generation Styles for Template 2 */
 
 /* Ensure PDF mode maintains template2 layout and styling */
-.template2-root.cv-preview.pdf-mode,
-.cv-preview.pdf-mode.template2-root {
+.template2-root .cv-preview.pdf-mode {
   padding: 0 !important;
   min-height: auto;
   line-height: 1.3;
@@ -17,8 +16,7 @@
 }
 
 /* Left Column - Purple Gradient */
-.template2-root.cv-preview.pdf-mode .cv-left-column,
-.cv-preview.pdf-mode.template2-root .cv-left-column {
+.template2-root .cv-preview.pdf-mode .cv-left-column {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
   color: white !important;
   padding: 30px 25px !important;
@@ -26,16 +24,14 @@
 }
 
 /* Right Column - White */
-.template2-root.cv-preview.pdf-mode .cv-right-column,
-.cv-preview.pdf-mode.template2-root .cv-right-column {
+.template2-root .cv-preview.pdf-mode .cv-right-column {
   background: white !important;
   padding: 30px 35px !important;
   min-height: auto !important;
 }
 
 /* CV Header */
-.template2-root.cv-preview.pdf-mode .cv-header,
-.cv-preview.pdf-mode.template2-root .cv-header {
+.template2-root .cv-preview.pdf-mode .cv-header {
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
@@ -46,8 +42,7 @@
 }
 
 /* Profile Image */
-.template2-root.cv-preview.pdf-mode .profile-image-container,
-.cv-preview.pdf-mode.template2-root .profile-image-container {
+.template2-root .cv-preview.pdf-mode .profile-image-container {
   width: 160px !important;
   height: 160px !important;
   border-radius: 50% !important;
