@@ -112,6 +112,7 @@
   font-size: 1.3rem;
   margin-top: 3px;
   font-family: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  text-align: justify;
 }
 
 .cv-preview.pdf-mode .skills-list,
@@ -288,12 +289,14 @@
   font-size: 1.3rem !important;
   color: #666;
   line-height: 1.4;
+  text-align: justify !important;
 }
 
 .cv-preview.pdf-mode .experience-detail-item {
   font-size: 1.3rem !important;
   color: #666;
   line-height: 1.4;
+  text-align: justify !important;
 }
 
 .cv-preview.pdf-mode .certification-text {

@@ -260,6 +260,7 @@
   margin-left: 6px;
   padding-left: 6px;
   border-left: 1px solid #e0e0e0;
+  text-align: justify;
 }
 
 /* Experience Details Bullet Points */
@@ -275,6 +276,7 @@
   font-size: 1.3rem !important;
   color: #666;
   line-height: 1.3;
+  text-align: justify;
 }
 
 .experience-detail-item:before {
