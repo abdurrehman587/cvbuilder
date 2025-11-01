@@ -266,12 +266,15 @@ const generateCanvas = async (cvPreview) => {
             pill.style.fontWeight = '500';
             pill.style.border = '1px solid rgba(255, 255, 255, 0.2)';
             pill.style.display = 'block';
-            // Apply white to all children
-            const children = pill.querySelectorAll('*');
-            children.forEach(child => {
+            pill.style.visibility = 'visible';
+            // Apply white to all children including nested spans
+            const allChildren = pill.querySelectorAll('*');
+            allChildren.forEach(child => {
               child.style.color = 'white';
               child.style.fontSize = '13px';
               child.style.fontWeight = '500';
+              child.style.visibility = 'visible';
+              child.style.opacity = '1';
             });
           });
           
@@ -280,6 +283,8 @@ const generateCanvas = async (cvPreview) => {
             name.style.fontSize = '13px';
             name.style.fontWeight = '500';
             name.style.display = 'block';
+            name.style.visibility = 'visible';
+            name.style.opacity = '1';
           });
           
           // Apply styles to info items
