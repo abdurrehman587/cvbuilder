@@ -267,15 +267,17 @@
 .cv-preview.pdf-mode.template2-root .skill-pill,
 .cv-preview.pdf-mode.template2-root .language-pill,
 .cv-preview.pdf-mode.template2-root .hobby-pill {
-  background: rgba(255, 255, 255, 0.15) !important;
+  background: rgba(255, 255, 255, 0.25) !important; /* Increased opacity for better visibility */
   color: white !important;
   padding: 10px 15px !important;
   border-radius: 8px !important;
   font-size: 13px !important;
   font-weight: 500 !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important; /* Stronger border */
   font-family: 'Arial', sans-serif !important;
   display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 .template2-root.cv-preview.pdf-mode .skill-pill *,
@@ -285,6 +287,8 @@
 .cv-preview.pdf-mode.template2-root .language-pill *,
 .cv-preview.pdf-mode.template2-root .hobby-pill * {
   color: white !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 .template2-root.cv-preview.pdf-mode .skill-name,
@@ -295,9 +299,12 @@
 .cv-preview.pdf-mode.template2-root .hobby-name {
   color: white !important;
   font-size: 13px !important;
-  font-weight: 500 !important;
+  font-weight: 600 !important; /* Increased weight for better visibility */
   font-family: 'Arial', sans-serif !important;
   display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important; /* Add shadow for contrast */
 }
 
 /* Other Information - Left Column */
