@@ -318,7 +318,7 @@ const generateCanvas = async (cvPreview) => {
         if (rightColumn) {
           rightColumn.style.background = 'white';
           rightColumn.style.backgroundColor = 'white';
-          rightColumn.style.padding = '30px 35px';
+          rightColumn.style.padding = '30px 20px 30px 35px'; // Reduced right padding
           rightColumn.style.display = 'block';
         }
       }
