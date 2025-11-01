@@ -254,9 +254,65 @@ const generateCanvas = async (cvPreview) => {
             spans.forEach(span => span.style.color = 'rgba(255, 255, 255, 0.9)');
           });
           sectionHeadings.forEach(heading => heading.style.color = 'white');
-          skillNames.forEach(name => name.style.color = 'white');
-          infoLabels.forEach(label => label.style.color = 'rgba(255, 255, 255, 0.85)');
-          infoValues.forEach(value => value.style.color = 'white');
+          
+          // Apply styles to skill and language pills
+          const skillPills = leftColumn.querySelectorAll('.skill-pill, .language-pill, .hobby-pill');
+          skillPills.forEach(pill => {
+            pill.style.color = 'white';
+            pill.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
+            pill.style.padding = '10px 15px';
+            pill.style.borderRadius = '8px';
+            pill.style.fontSize = '13px';
+            pill.style.fontWeight = '500';
+            pill.style.border = '1px solid rgba(255, 255, 255, 0.2)';
+            pill.style.display = 'block';
+            // Apply white to all children
+            const children = pill.querySelectorAll('*');
+            children.forEach(child => {
+              child.style.color = 'white';
+              child.style.fontSize = '13px';
+              child.style.fontWeight = '500';
+            });
+          });
+          
+          skillNames.forEach(name => {
+            name.style.color = 'white';
+            name.style.fontSize = '13px';
+            name.style.fontWeight = '500';
+            name.style.display = 'block';
+          });
+          
+          // Apply styles to info items
+          const infoItems = leftColumn.querySelectorAll('.info-item');
+          infoItems.forEach(item => {
+            item.style.color = 'white';
+            item.style.backgroundColor = 'rgba(255, 255, 255, 0.12)';
+            item.style.padding = '8px 10px';
+            item.style.borderRadius = '6px';
+            item.style.borderLeft = '2px solid rgba(255, 255, 255, 0.3)';
+            item.style.whiteSpace = 'normal';
+            item.style.flexWrap = 'wrap';
+            // Apply white to all children
+            const children = item.querySelectorAll('*');
+            children.forEach(child => {
+              child.style.color = 'white';
+            });
+          });
+          
+          infoLabels.forEach(label => {
+            label.style.color = 'white';
+            label.style.fontSize = '13px';
+            label.style.fontWeight = '600';
+            label.style.whiteSpace = 'normal';
+          });
+          
+          infoValues.forEach(value => {
+            value.style.color = 'white';
+            value.style.fontSize = '13px';
+            value.style.fontWeight = '500';
+            value.style.whiteSpace = 'normal';
+            value.style.wordWrap = 'break-word';
+          });
         }
         
         if (rightColumn) {
