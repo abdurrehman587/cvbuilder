@@ -82,19 +82,24 @@
   border-radius: 8px !important;
   font-family: 'Arial', sans-serif !important;
   display: flex !important;
-  align-items: center !important;
+  align-items: flex-start !important;
   gap: 12px !important;
   width: 100% !important;
-  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+
+.template2-root.cv-preview.pdf-mode .contact-item .contact-icon,
+.cv-preview.pdf-mode.template2-root .contact-item .contact-icon {
+  flex-shrink: 0 !important;
 }
 
 .template2-root.cv-preview.pdf-mode .contact-item > span:last-child,
 .cv-preview.pdf-mode.template2-root .contact-item > span:last-child {
   flex: 1 !important;
-  min-width: 0 !important;
   word-wrap: break-word !important;
   word-break: break-word !important;
   overflow-wrap: break-word !important;
+  line-height: 1.4 !important;
 }
 
 .template2-root.cv-preview.pdf-mode .contact-item.contact-address,

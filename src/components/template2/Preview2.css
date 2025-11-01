@@ -113,7 +113,7 @@
 
 .template2-root .contact-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
   font-size: 14px;
   color: rgba(255, 255, 255, 0.9);
@@ -123,15 +123,19 @@
   backdrop-filter: blur(10px);
   transition: all 0.3s ease;
   width: 100%;
-  min-width: 0; /* Allow flex items to shrink */
+  box-sizing: border-box;
+}
+
+.template2-root .contact-item .contact-icon {
+  flex-shrink: 0;
 }
 
 .template2-root .contact-item > span:last-child {
   flex: 1;
-  min-width: 0; /* Allow text to wrap */
   word-wrap: break-word;
   word-break: break-word;
   overflow-wrap: break-word;
+  line-height: 1.4;
 }
 
 .template2-root .contact-item.contact-address {
