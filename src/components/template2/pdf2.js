@@ -100,7 +100,7 @@ const generateCanvas = async (cvPreview) => {
     width: elementToRender.offsetWidth || elementToRender.scrollWidth,
     height: elementToRender.offsetHeight || elementToRender.scrollHeight,
     removeContainer: false,
-    foreignObjectRendering: true, // Enable for better gradient support
+    foreignObjectRendering: false, // Disabled - was causing blank pages
     imageTimeout: PDF_CONFIG.imageTimeout,
     onclone: (clonedDoc) => {
       // Force apply all PDF styles immediately via injected stylesheet
@@ -285,6 +285,7 @@ const createPDF = (canvas) => {
 
 const handleMultiPagePDF = (pdf, canvas, contentWidth, contentHeight, imgHeight) => {
   const totalPages = Math.ceil(imgHeight / contentHeight);
+  console.log('Multi-page PDF:', { totalPages, imgHeight, contentHeight });
   
   for (let pageNum = 0; pageNum < totalPages; pageNum++) {
     if (pageNum > 0) {
@@ -295,21 +296,41 @@ const handleMultiPagePDF = (pdf, canvas, contentWidth, contentHeight, imgHeight)
     const endY = Math.min((pageNum + 1) * contentHeight, imgHeight);
     const pageImgHeight = endY - startY;
     
+    // Skip empty pages
+    if (pageImgHeight <= 0) {
+      console.warn(`Skipping empty page ${pageNum + 1}`);
+      continue;
+    }
+    
     const pageCanvas = document.createElement('canvas');
     const pageCtx = pageCanvas.getContext('2d');
+    const sourceHeight = (pageImgHeight / imgHeight) * canvas.height;
     pageCanvas.width = canvas.width;
-    pageCanvas.height = (pageImgHeight / imgHeight) * canvas.height;
+    pageCanvas.height = sourceHeight;
     
+    // Validate source dimensions
+    if (sourceHeight <= 0 || canvas.width <= 0) {
+      console.warn(`Invalid dimensions for page ${pageNum + 1}:`, { sourceHeight, width: canvas.width });
+      continue;
+    }
+    
+    const sourceY = (startY / imgHeight) * canvas.height;
     pageCtx.drawImage(
       canvas, 
-      0, (startY / imgHeight) * canvas.height, 
-      canvas.width, (pageImgHeight / imgHeight) * canvas.height,
+      0, sourceY, 
+      canvas.width, sourceHeight,
       0, 0, 
-      canvas.width, (pageImgHeight / imgHeight) * canvas.height
+      canvas.width, sourceHeight
     );
     
     const pageImgData = pageCanvas.toDataURL('image/jpeg', PDF_CONFIG.imageQuality);
-    pdf.addImage(pageImgData, 'JPEG', PDF_CONFIG.margin, PDF_CONFIG.margin, contentWidth, pageImgHeight);
+    
+    // Only add page if image data is valid
+    if (pageImgData && pageImgData !== 'data:,') {
+      pdf.addImage(pageImgData, 'JPEG', PDF_CONFIG.margin, PDF_CONFIG.margin, contentWidth, pageImgHeight);
+    } else {
+      console.warn(`Empty image data for page ${pageNum + 1}`);
+    }
   }
 };
 
