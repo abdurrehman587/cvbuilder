@@ -323,7 +323,26 @@ const generatePDF = async () => {
     template2Root = setup.template2Root;
     
     // Wait a moment for styles to apply
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise(resolve => setTimeout(resolve, 200));
+    
+    // Apply critical styles directly to elements before cloning
+    const leftColumn = cvPreview.querySelector('.cv-left-column');
+    const rightColumn = cvPreview.querySelector('.cv-right-column');
+    let originalLeftBg = '';
+    let originalRightBg = '';
+    
+    if (leftColumn) {
+      // Save original styles
+      originalLeftBg = leftColumn.style.background || '';
+      leftColumn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+      leftColumn.style.backgroundColor = '#667eea'; // Solid fallback
+    }
+    
+    if (rightColumn) {
+      originalRightBg = rightColumn.style.background || '';
+      rightColumn.style.background = 'white';
+      rightColumn.style.backgroundColor = 'white';
+    }
     
     // Force a reflow to ensure styles are computed
     if (cvPreview) {
@@ -332,6 +351,24 @@ const generatePDF = async () => {
     
     // Generate canvas
     const canvas = await generateCanvas(cvPreview);
+    
+    // Restore original styles after capture
+    if (leftColumn) {
+      if (originalLeftBg) {
+        leftColumn.style.background = originalLeftBg;
+      } else {
+        leftColumn.style.background = '';
+        leftColumn.style.backgroundColor = '';
+      }
+    }
+    if (rightColumn) {
+      if (originalRightBg) {
+        rightColumn.style.background = originalRightBg;
+      } else {
+        rightColumn.style.background = '';
+        rightColumn.style.backgroundColor = '';
+      }
+    }
     
     // Create PDF
     const pdf = createPDF(canvas);
