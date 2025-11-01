@@ -66,14 +66,20 @@ const updateButtonState = (text, disabled = false) => {
 
 const generateCanvas = async (cvPreview) => {
   console.log('CV preview element found, generating canvas...');
-  console.log('CV preview dimensions:', {
-    width: cvPreview.scrollWidth,
-    height: cvPreview.scrollHeight,
-    offsetWidth: cvPreview.offsetWidth,
-    offsetHeight: cvPreview.offsetHeight
+  
+  // Get the template2-root wrapper to ensure full layout is captured
+  const template2Root = cvPreview.closest('.template2-root');
+  const elementToRender = template2Root || cvPreview;
+  
+  console.log('Element to render dimensions:', {
+    width: elementToRender.scrollWidth,
+    height: elementToRender.scrollHeight,
+    offsetWidth: elementToRender.offsetWidth,
+    offsetHeight: elementToRender.offsetHeight,
+    isTemplate2Root: !!template2Root
   });
 
-  const canvas = await html2canvas(cvPreview, {
+  const canvas = await html2canvas(elementToRender, {
     scale: PDF_CONFIG.scale,
     useCORS: true,
     allowTaint: true,
@@ -81,18 +87,41 @@ const generateCanvas = async (cvPreview) => {
     logging: true,
     scrollX: 0,
     scrollY: 0,
-    width: cvPreview.offsetWidth || cvPreview.scrollWidth,
-    height: cvPreview.offsetHeight || cvPreview.scrollHeight,
+    width: elementToRender.offsetWidth || elementToRender.scrollWidth,
+    height: elementToRender.offsetHeight || elementToRender.scrollHeight,
     removeContainer: false,
     foreignObjectRendering: false,
     imageTimeout: PDF_CONFIG.imageTimeout,
     onclone: (clonedDoc) => {
+      // Ensure template2-root styles are preserved
+      const clonedRoot = clonedDoc.querySelector('.template2-root');
+      if (clonedRoot) {
+        clonedRoot.style.display = 'block';
+        clonedRoot.style.width = 'auto';
+        clonedRoot.style.height = 'auto';
+      }
+      
+      // Ensure cv-preview styles are preserved
       const clonedPreview = clonedDoc.querySelector('.cv-preview');
       if (clonedPreview) {
         clonedPreview.style.visibility = 'visible';
-        clonedPreview.style.display = 'block';
+        clonedPreview.style.display = 'grid';
         clonedPreview.style.width = 'auto';
         clonedPreview.style.height = 'auto';
+        
+        // Ensure left and right columns maintain their styles
+        const leftColumn = clonedPreview.querySelector('.cv-left-column');
+        const rightColumn = clonedPreview.querySelector('.cv-right-column');
+        
+        if (leftColumn) {
+          leftColumn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+          leftColumn.style.display = 'block';
+        }
+        
+        if (rightColumn) {
+          rightColumn.style.background = 'white';
+          rightColumn.style.display = 'block';
+        }
       }
     }
   });
