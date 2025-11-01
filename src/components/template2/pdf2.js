@@ -125,7 +125,7 @@ const generateCanvas = async (cvPreview) => {
         }
         .template2-root.pdf-mode .cv-preview.pdf-mode .cv-right-column {
           background: white !important;
-          padding: 30px 20px 30px 35px !important; /* Reduced right padding */
+          padding: 30px 0 30px 35px !important; /* No right padding */
           display: block !important;
         }
         .template2-root.pdf-mode .cv-preview.pdf-mode .cv-left-column * {
@@ -149,19 +149,27 @@ const generateCanvas = async (cvPreview) => {
         .template2-root.pdf-mode .cv-preview.pdf-mode .skill-pill,
         .template2-root.pdf-mode .cv-preview.pdf-mode .language-pill,
         .template2-root.pdf-mode .cv-preview.pdf-mode .hobby-pill {
-          background: rgba(255, 255, 255, 0.15) !important;
+          background: rgba(255, 255, 255, 0.25) !important;
           color: white !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+          border: 1px solid rgba(255, 255, 255, 0.4) !important;
         }
         .template2-root.pdf-mode .cv-preview.pdf-mode .skill-pill *,
         .template2-root.pdf-mode .cv-preview.pdf-mode .language-pill *,
         .template2-root.pdf-mode .cv-preview.pdf-mode .hobby-pill * {
           color: white !important;
+          visibility: visible !important;
+          opacity: 1 !important;
         }
         .template2-root.pdf-mode .cv-preview.pdf-mode .skill-name,
         .template2-root.pdf-mode .cv-preview.pdf-mode .language-name,
         .template2-root.pdf-mode .cv-preview.pdf-mode .hobby-name {
           color: white !important;
-          font-weight: 500 !important;
+          font-weight: 600 !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
         }
         .template2-root.pdf-mode .cv-preview.pdf-mode .info-item {
           background: rgba(255, 255, 255, 0.12) !important;
@@ -259,32 +267,35 @@ const generateCanvas = async (cvPreview) => {
           const skillPills = leftColumn.querySelectorAll('.skill-pill, .language-pill, .hobby-pill');
           skillPills.forEach(pill => {
             pill.style.color = 'white';
-            pill.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
+            pill.style.backgroundColor = 'rgba(255, 255, 255, 0.25)'; // Increased opacity
             pill.style.padding = '10px 15px';
             pill.style.borderRadius = '8px';
             pill.style.fontSize = '13px';
             pill.style.fontWeight = '500';
-            pill.style.border = '1px solid rgba(255, 255, 255, 0.2)';
+            pill.style.border = '1px solid rgba(255, 255, 255, 0.4)'; // Stronger border
             pill.style.display = 'block';
             pill.style.visibility = 'visible';
+            pill.style.opacity = '1';
             // Apply white to all children including nested spans
             const allChildren = pill.querySelectorAll('*');
             allChildren.forEach(child => {
               child.style.color = 'white';
               child.style.fontSize = '13px';
-              child.style.fontWeight = '500';
+              child.style.fontWeight = '600'; // Increased weight
               child.style.visibility = 'visible';
               child.style.opacity = '1';
+              child.style.textShadow = '0 1px 2px rgba(0, 0, 0, 0.3)'; // Add shadow
             });
           });
           
           skillNames.forEach(name => {
             name.style.color = 'white';
             name.style.fontSize = '13px';
-            name.style.fontWeight = '500';
+            name.style.fontWeight = '600'; // Increased weight
             name.style.display = 'block';
             name.style.visibility = 'visible';
             name.style.opacity = '1';
+            name.style.textShadow = '0 1px 2px rgba(0, 0, 0, 0.3)'; // Add shadow for contrast
           });
           
           // Apply styles to info items
@@ -323,7 +334,7 @@ const generateCanvas = async (cvPreview) => {
         if (rightColumn) {
           rightColumn.style.background = 'white';
           rightColumn.style.backgroundColor = 'white';
-          rightColumn.style.padding = '30px 20px 30px 35px'; // Reduced right padding
+          rightColumn.style.padding = '30px 0 30px 35px'; // No right padding
           rightColumn.style.display = 'block';
         }
       }
