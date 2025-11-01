@@ -256,6 +256,33 @@ const generateCanvas = async (cvPreview) => {
     width: canvas.width,
     height: canvas.height
   });
+  
+  // Validate canvas has content
+  if (canvas.width === 0 || canvas.height === 0) {
+    throw new Error('Canvas has invalid dimensions. Element may not be visible.');
+  }
+  
+  // Check if canvas has any visible content (sample a small area)
+  const ctx = canvas.getContext('2d');
+  const sampleSize = Math.min(50, canvas.width, canvas.height);
+  const imageData = ctx.getImageData(0, 0, sampleSize, sampleSize);
+  let hasNonWhitePixels = false;
+  
+  for (let i = 0; i < imageData.data.length; i += 4) {
+    const r = imageData.data[i];
+    const g = imageData.data[i + 1];
+    const b = imageData.data[i + 2];
+    const a = imageData.data[i + 3];
+    // Check if pixel is not fully white/transparent
+    if (a > 0 && (r < 255 || g < 255 || b < 255)) {
+      hasNonWhitePixels = true;
+      break;
+    }
+  }
+  
+  if (!hasNonWhitePixels) {
+    console.warn('Canvas appears to be empty or all white. Continuing anyway...');
+  }
 
   return canvas;
 };
