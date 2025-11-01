@@ -264,8 +264,8 @@ const generatePDF = async () => {
     await new Promise(resolve => setTimeout(resolve, 100));
     
     // Force a reflow to ensure styles are computed
-    if (cvPreview && cvPreview.offsetHeight) {
-      cvPreview.offsetHeight;
+    if (cvPreview) {
+      void cvPreview.offsetHeight; // Force reflow
     }
     
     // Generate canvas
