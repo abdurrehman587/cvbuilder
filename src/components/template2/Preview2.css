@@ -124,6 +124,14 @@
   transition: all 0.3s ease;
 }
 
+.template2-root .contact-item.contact-address {
+  justify-content: flex-start;
+}
+
+.template2-root .contact-item.contact-address > span:last-child {
+  text-align: left;
+}
+
 .template2-root .contact-item:hover {
   background: rgba(255, 255, 255, 0.2);
   transform: translateX(5px);

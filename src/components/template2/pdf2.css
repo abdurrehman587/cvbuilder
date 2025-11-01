@@ -39,6 +39,14 @@
   font-family: 'Arial', sans-serif;
 }
 
+.cv-preview.pdf-mode .contact-item.contact-address {
+  justify-content: flex-start;
+}
+
+.cv-preview.pdf-mode .contact-item.contact-address > span:last-child {
+  text-align: left;
+}
+
 .cv-preview.pdf-mode .experience-item,
 .cv-preview.pdf-mode .education-item {
   margin-bottom: 8px;
