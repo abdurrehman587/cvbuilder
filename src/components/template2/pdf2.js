@@ -386,7 +386,7 @@ const createPDF = (canvas) => {
     format: PDF_CONFIG.format
   });
 
-  const contentWidth = PDF_CONFIG.pageWidth - (PDF_CONFIG.margin * 2);
+  const contentWidth = PDF_CONFIG.pageWidth - PDF_CONFIG.margin - PDF_CONFIG.marginRight;
   const contentHeight = PDF_CONFIG.pageHeight - (PDF_CONFIG.margin * 2);
   const imgWidth = contentWidth;
   const imgHeight = (canvas.height * contentWidth) / canvas.width;
