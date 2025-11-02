@@ -111,7 +111,7 @@ const generateCanvas = async (cvPreview) => {
       style.textContent = `
         .template2-root.pdf-mode .cv-preview.pdf-mode {
           display: grid !important;
-          grid-template-columns: 65% 35% !important;
+          grid-template-columns: 35% 65% !important;
           gap: 0 !important;
           padding: 0 !important;
           background: white !important;
@@ -120,20 +120,20 @@ const generateCanvas = async (cvPreview) => {
           font-family: 'Arial', sans-serif !important;
         }
         .template2-root.pdf-mode .cv-preview.pdf-mode .cv-left-column {
-          background: white !important;
-          color: #333 !important;
-          padding: 30px 35px !important;
-          display: block !important;
-        }
-        .template2-root.pdf-mode .cv-preview.pdf-mode .cv-right-column {
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
           background: -webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
           color: white !important;
           padding: 30px 25px !important;
           display: block !important;
         }
-        .template2-root.pdf-mode .cv-preview.pdf-mode .cv-right-column * {
+        .template2-root.pdf-mode .cv-preview.pdf-mode .cv-left-column * {
           color: white !important;
+        }
+        .template2-root.pdf-mode .cv-preview.pdf-mode .cv-right-column {
+          background: white !important;
+          color: #333 !important;
+          padding: 30px 35px !important;
+          display: block !important;
         }
       `;
       clonedDoc.head.appendChild(style);
@@ -142,7 +142,7 @@ const generateCanvas = async (cvPreview) => {
       if (clonedPreview) {
         clonedPreview.style.visibility = 'visible';
         clonedPreview.style.display = 'grid';
-        clonedPreview.style.gridTemplateColumns = '65% 35%';
+        clonedPreview.style.gridTemplateColumns = '35% 65%';
         clonedPreview.style.width = 'auto';
         clonedPreview.style.height = 'auto';
       }
