@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import usePreviewHandler from './PreviewHandler2';
 import generatePDF from './pdf2';
 import './Preview2.css';
 
 function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges }) {
-  const { formData: hookFormData, getProfileImageUrl, formatContactInfo } = usePreviewHandler(propFormData);
+  const { formData: hookFormData, getProfileImageUrl, formatContactInfo, updatePreviewData } = usePreviewHandler(propFormData);
   // Use propFormData as primary source (from app state/database) and merge with hook data for DOM-only fields
   const formData = { 
     ...(propFormData || {}),
@@ -13,6 +13,31 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges })
     // Ensure customSection comes from propFormData (app state) not DOM
     customSection: propFormData?.customSection || hookFormData?.customSection || []
   };
+
+  // Refresh preview data from form inputs whenever app form data changes
+  useEffect(() => {
+    updatePreviewData();
+  }, [propFormData, updatePreviewData]);
+
+  // Ensure dynamic inputs update preview on typing
+  useEffect(() => {
+    const onInput = (e) => {
+      if (e && e.target && e.target.classList && (
+        e.target.classList.contains('father-name-input') ||
+        e.target.classList.contains('husband-name-input') ||
+        e.target.classList.contains('cnic-input') ||
+        e.target.classList.contains('dob-input') ||
+        e.target.classList.contains('marital-status-input') ||
+        e.target.classList.contains('religion-input') ||
+        e.target.classList.contains('custom-label-input-field') ||
+        e.target.classList.contains('custom-value-input-field')
+      )) {
+        updatePreviewData();
+      }
+    };
+    document.addEventListener('input', onInput, true);
+    return () => document.removeEventListener('input', onInput, true);
+  }, [updatePreviewData]);
   
   // Default sections to show on page load: professional-summary, skills, languages, references
   const displayData = {
@@ -50,13 +75,37 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges })
   
   const profileImageUrl = getLocalProfileImageUrl();
   const contactInfo = formatContactInfo();
+  
+  // Debug: Log contact information
+  console.log('Template1 - Contact Info:', contactInfo);
+  console.log('Template1 - Form Data:', formData);
+  console.log('Template1 - Profile Image:', formData.profileImage);
+  console.log('Template1 - Profile Image URL:', profileImageUrl);
+  console.log('Template1 - Custom Section Data:', displayData.customSection);
+  console.log('Template1 - Custom Section Data Details:', displayData.customSection.map((item, index) => ({
+    index,
+    heading: item.heading,
+    detail: item.detail,
+    hasHeading: !!item.heading,
+    hasDetail: !!item.detail
+  })));
+  console.log('Template1 - Full Custom Section Array:', JSON.stringify(displayData.customSection, null, 2));
+  console.log('Template1 - Individual Items:');
+  displayData.customSection.forEach((item, index) => {
+    console.log(`Item ${index}:`, {
+      heading: item.heading,
+      detail: item.detail,
+      headingLength: item.heading?.length || 0,
+      detailLength: item.detail?.length || 0
+    });
+  });
 
   return (
-    <div className="right-container template2-root">
-      <div className="cv-preview">
-        {/* Left Column */}
+    <div className="right-container">
+      <div className="cv-preview template2-root">
+        {/* Two Column Layout */}
         <div className="cv-left-column">
-          {/* CV Header */}
+          {/* CV Header - Left Column */}
           <div className="cv-header">
             {/* Profile Image Container */}
             <div className="profile-image-container">
@@ -68,7 +117,7 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges })
                 />
               ) : (
                 <div className="profile-placeholder">
-                  No Image
+                  CV
                 </div>
               )}
             </div>
@@ -89,17 +138,24 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges })
 
               {/* Contact Information */}
               <div className="header-contact">
-                {contactInfo.map((contact, index) => (
-                  <div key={index} className={`contact-item ${contact.type === 'address' ? 'contact-address' : ''}`}>
-                    <span className="contact-icon">{contact.icon}</span>
-                    <span>{contact.value}</span>
+                {contactInfo && contactInfo.length > 0 ? (
+                  contactInfo.map((contact, index) => (
+                    <div key={index} className="contact-item">
+                      <span className="contact-icon">{contact.icon}</span>
+                      <span>{contact.value}</span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="contact-item">
+                    <span className="contact-icon">📞</span>
+                    <span>No phone number</span>
                   </div>
-                ))}
+                )}
               </div>
             </div>
           </div>
 
-          {/* Skills Section */}
+          {/* Skills Section - Left Column */}
           {displayData.skills && displayData.skills.length > 0 && (
             <div className="cv-section left-column">
               <h3 className="section-heading left-column">Skills</h3>
@@ -115,14 +171,14 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges })
             </div>
           )}
 
-          {/* Other Information Section */}
+          {/* Other Information Section - Left Column */}
           {displayData.otherInfo && displayData.otherInfo.length > 0 && (
             <div className="cv-section left-column">
               <h3 className="section-heading left-column">Other Information</h3>
               <div className="section-content">
-                <div 
+                <div
                   className="other-info-grid"
-                  style={{ gridTemplateColumns: '1fr' }}
+                  style={{ gridTemplateColumns: '1fr', gridAutoFlow: 'row' }}
                 >
                   {displayData.otherInfo.map((info, index) => (
                     <div key={index} className="info-item">
@@ -135,7 +191,7 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges })
             </div>
           )}
 
-          {/* Languages Section */}
+          {/* Languages Section - Left Column */}
           {displayData.languages && displayData.languages.length > 0 && (
             <div className="cv-section left-column">
               <h3 className="section-heading left-column">Languages</h3>
@@ -151,7 +207,7 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges })
             </div>
           )}
 
-          {/* Hobbies Section */}
+          {/* Hobbies Section - Left Column */}
           {displayData.hobbies && displayData.hobbies.length > 0 && (
             <div className="cv-section left-column">
               <h3 className="section-heading left-column">Hobbies</h3>
@@ -168,9 +224,9 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges })
           )}
         </div>
 
-        {/* Right Column - Education should be here after Professional Summary */}
+        {/* Right Column */}
         <div className="cv-right-column">
-          {/* Professional Summary Section */}
+          {/* Professional Summary Section - Right Column */}
           <div className="cv-section right-column">
             <h3 className="section-heading right-column">Professional Summary</h3>
             <div className="section-content">
@@ -180,61 +236,61 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges })
             </div>
           </div>
 
-          {/* Education Section */}
+          {/* Education Section - Right Column */}
           {displayData.education && displayData.education.length > 0 && (
             <div className="cv-section right-column">
               <h3 className="section-heading right-column">Education</h3>
-            <div className="section-content">
-              {displayData.education.map((edu, index) => (
-                <div key={index} className="education-item">
-                  <div className="education-single-line">
-                    <span className="education-degree">{edu.degree}</span>
-                    {edu.board && <span className="education-board"> • {edu.board}</span>}
-                    {edu.year && <span className="education-year"> • {edu.year}</span>}
-                    {edu.marks && <span className="education-marks"> • {edu.marks}</span>}
+              <div className="section-content">
+                {displayData.education.map((edu, index) => (
+                  <div key={index} className="education-item">
+                    <div className="education-single-line">
+                      <span className="education-degree">{edu.degree}</span>
+                      {edu.board && <span className="education-board"> • {edu.board}</span>}
+                      {edu.year && <span className="education-year"> • {edu.year}</span>}
+                      {edu.marks && <span className="education-marks"> • {edu.marks}</span>}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-          {/* Experience Section */}
+          {/* Experience Section - Right Column */}
           {displayData.experience && displayData.experience.length > 0 && (
             <div className="cv-section right-column">
               <h3 className="section-heading right-column">Experience</h3>
-            <div className="section-content">
-              {displayData.experience.map((exp, index) => (
-                <div key={index} className="experience-item">
-                  <div className="experience-header">
-                    <span className="experience-job-title">{exp.jobTitle || 'No job title'}</span>
-                    {exp.duration && <span className="experience-duration">{exp.duration}</span>}
+              <div className="section-content">
+                {displayData.experience.map((exp, index) => (
+                  <div key={index} className="experience-item">
+                    <div className="experience-header">
+                      <span className="experience-job-title">{exp.jobTitle || 'No job title'}</span>
+                      {exp.duration && <span className="experience-duration">{exp.duration}</span>}
+                    </div>
+                    {exp.company && (
+                      <div className="experience-company-line">
+                        <span className="experience-company">{exp.company}</span>
+                      </div>
+                    )}
+                    {exp.jobDetails && (
+                      <div className="experience-details">
+                        <ul className="experience-details-list">
+                          {exp.jobDetails.split('\n').map((detail, detailIndex) => (
+                            detail.trim() && (
+                              <li key={detailIndex} className="experience-detail-item">
+                                {detail.trim()}
+                              </li>
+                            )
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
-                  {exp.company && (
-                    <div className="experience-company-line">
-                      <span className="experience-company">{exp.company}</span>
-                    </div>
-                  )}
-                  {exp.jobDetails && (
-                    <div className="experience-details">
-                      <ul className="experience-details-list">
-                        {exp.jobDetails.split('\n').map((detail, detailIndex) => (
-                          detail.trim() && (
-                            <li key={detailIndex} className="experience-detail-item">
-                              {detail.trim()}
-                            </li>
-                          )
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-          {/* Certifications Section */}
+          {/* Certifications Section - Right Column */}
           {displayData.certifications && displayData.certifications.length > 0 && (
             <div className="cv-section right-column">
               <h3 className="section-heading right-column">Certifications</h3>
@@ -250,8 +306,7 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges })
             </div>
           )}
 
-
-          {/* Custom Section */}
+          {/* Custom Section - Right Column */}
           {displayData.customSection && displayData.customSection.length > 0 && (
             <div className="cv-section right-column">
               <h3 className="section-heading right-column">
@@ -261,6 +316,9 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges })
                 <div className="custom-section-content">
                   {displayData.customSection.map((custom, index) => (
                     <div key={index} className="custom-section-item">
+                      {custom.heading && (
+                        <h4 className="custom-section-subheading">{custom.heading}</h4>
+                      )}
                       {custom.detail && (
                         <p className="custom-section-detail">{custom.detail}</p>
                       )}
@@ -271,7 +329,7 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges })
             </div>
           )}
 
-          {/* References Section */}
+          {/* References Section - Right Column */}
           {displayData.references && displayData.references.length > 0 && (
             <div className="cv-section right-column">
               <h3 className="section-heading right-column">References</h3>
@@ -287,7 +345,7 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges })
             </div>
           )}
 
-          {/* Download PDF Button */}
+          {/* Download PDF Button - Right Column */}
           <div className="download-pdf-container">
             <button 
               className="download-pdf-button" 

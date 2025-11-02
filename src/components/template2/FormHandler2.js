@@ -19,7 +19,9 @@ const useFormHandler = (formData, updateFormData, markAsChanged) => {
 
     // Handle input changes and trigger auto-save
     const handleInputChange = (field, value) => {
+        console.log('handleInputChange called:', { field, value });
         const newFormData = { ...formData, [field]: value };
+        console.log('New form data:', newFormData);
         updateFormData(newFormData);
         markAsChanged();
     };
@@ -171,29 +173,15 @@ const useFormHandler = (formData, updateFormData, markAsChanged) => {
         markAsChanged();
     };
 
-    // Function to add new custom section detail
-    const addCustomSectionDetail = () => {
-        const customSection = document.getElementById('custom-section');
-        if (customSection) {
-            const timestamp = Date.now();
-            const newDetailContainer = document.createElement('div');
-            newDetailContainer.className = 'custom-detail-container input-group';
-            
-            newDetailContainer.innerHTML = `
-                <div class="custom-detail-wrapper">
-                    <input id="custom-detail-input-${timestamp}" class="custom-detail-input styled-input" type="text" name="customDetail" placeholder="Enter custom section detail" />
-                    <button type="button" class="remove-detail-button" onclick="this.parentElement.parentElement.remove()">Remove</button>
-                </div>
-            `;
-            
-            const addDetailContainer = customSection.querySelector('.add-detail-container');
-            if (addDetailContainer) {
-                customSection.insertBefore(newDetailContainer, addDetailContainer);
-            } else {
-                customSection.appendChild(newDetailContainer);
-            }
-        }
-    };
+
+  // Function to add new custom section detail
+  const addCustomSectionDetail = () => {
+    // Simply add a new empty detail to the form state
+    const newCustomSection = [...(formData.customSection || [])];
+    newCustomSection.push({ heading: '', detail: '' });
+    updateFormData({ ...formData, customSection: newCustomSection });
+    markAsChanged();
+  };
 
     // Simple function to add new reference input
     const addReferenceInput = () => {

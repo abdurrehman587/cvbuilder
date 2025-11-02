@@ -36,7 +36,7 @@ const usePreviewHandler = (passedFormData = null) => {
     };
   }, [formData.profileImage]);
 
-  // Function to get form data from Form1 inputs
+  // Function to get form data from Form2 inputs
   const getFormData = () => {
     const data = {
       name: document.getElementById('name-input')?.value || '',
@@ -151,12 +151,12 @@ const usePreviewHandler = (passedFormData = null) => {
     const otherInfoData = [];
     
     // Get main other information fields
-    const fatherName = document.getElementById('father-name-input')?.value || '';
-    const husbandName = document.getElementById('husband-name-input')?.value || '';
-    const cnic = document.getElementById('cnic-input')?.value || '';
-    const dob = document.getElementById('dob-input')?.value || '';
-    const maritalStatus = document.getElementById('marital-status-input')?.value || '';
-    const religion = document.getElementById('religion-input')?.value || '';
+    const fatherName = document.getElementById('father-name-input-always')?.value || '';
+    const husbandName = document.getElementById('husband-name-input-always')?.value || '';
+    const cnic = document.getElementById('cnic-input-always')?.value || '';
+    const dob = document.getElementById('dob-input-always')?.value || '';
+    const maritalStatus = document.getElementById('marital-status-input-always')?.value || '';
+    const religion = document.getElementById('religion-input-always')?.value || '';
     
     // Add main fields if they have values
     if (fatherName.trim()) otherInfoData.push({ label: "Father's Name", value: fatherName });
