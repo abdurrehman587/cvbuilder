@@ -102,9 +102,10 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges })
 
   return (
     <div className="right-container">
-      <div className="cv-preview template2-root">
-        {/* Two Column Layout */}
-        <div className="cv-left-column">
+      <div className="template2-root">
+        <div className="cv-preview">
+          {/* Two Column Layout */}
+          <div className="cv-left-column">
           {/* CV Header - Left Column */}
           <div className="cv-header">
             {/* Profile Image Container */}
@@ -355,6 +356,7 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges })
               📄 Download PDF
             </button>
           </div>
+        </div>
         </div>
       </div>
     </div>
