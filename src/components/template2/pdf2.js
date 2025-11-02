@@ -17,7 +17,9 @@ const PDF_CONFIG = {
 
 // Helper Functions
 const validateCVPreview = () => {
-  const cvPreview = document.querySelector('.cv-preview');
+  // Check for template2-root wrapper first, then fall back to cv-preview
+  const template2Root = document.querySelector('.template2-root');
+  const cvPreview = template2Root || document.querySelector('.cv-preview');
   
   if (!cvPreview) {
     throw new Error('CV preview not found. Please make sure the CV is loaded.');
@@ -208,6 +210,7 @@ const generatePDF = async () => {
     const setup = setupPDFMode(cvPreview);
     downloadButton = setup.downloadButton;
     originalDisplay = setup.originalDisplay;
+    const template2Root = setup.template2Root;
     
     // Generate canvas
     const canvas = await generateCanvas(cvPreview);
@@ -227,7 +230,6 @@ const generatePDF = async () => {
   } finally {
     // Cleanup
     if (cvPreview) {
-      const template2Root = cvPreview.closest('.template2-root');
       cleanupPDFMode(cvPreview, downloadButton, originalDisplay, template2Root);
     }
     updateButtonState('📄 Download PDF', false);
