@@ -228,7 +228,7 @@ const generateFileName = () => {
 
 // Main PDF Generation Function
 const generatePDF = async () => {
-  let cvPreview, downloadButton, originalDisplay;
+  let cvPreview, downloadButton, originalDisplay, template2Root;
 
   try {
     console.log('Starting PDF generation...');
@@ -243,7 +243,7 @@ const generatePDF = async () => {
     const setup = setupPDFMode(cvPreview);
     downloadButton = setup.downloadButton;
     originalDisplay = setup.originalDisplay;
-    const template2Root = setup.template2Root;
+    template2Root = setup.template2Root;
     
     // Generate canvas
     const canvas = await generateCanvas(cvPreview);
