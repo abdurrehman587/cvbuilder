@@ -9,24 +9,25 @@
   background: white !important;
   color: #333;
   display: grid !important;
-  grid-template-columns: 35% 65% !important;
+  grid-template-columns: 65% 35% !important;
   gap: 0 !important;
   max-width: 1200px !important;
   margin: 0 auto !important;
 }
 
-/* Left Column - Purple Gradient */
+/* Left Column - White Background (Professional content) */
 .template2-root .cv-preview.pdf-mode .cv-left-column {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-  color: white !important;
-  padding: 30px 25px !important;
+  background: white !important;
+  color: #333 !important;
+  padding: 30px 35px !important;
   min-height: auto !important;
 }
 
-/* Right Column - White */
+/* Right Column - Purple Background (Personal info, contacts, skills) */
 .template2-root .cv-preview.pdf-mode .cv-right-column {
-  background: white !important;
-  padding: 30px 0 30px 35px !important; /* No right padding */
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: white !important;
+  padding: 30px 25px !important;
   min-height: auto !important;
 }
 

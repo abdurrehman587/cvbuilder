@@ -106,10 +106,43 @@ const generateCanvas = async (cvPreview) => {
     foreignObjectRendering: false,
     imageTimeout: PDF_CONFIG.imageTimeout,
     onclone: (clonedDoc) => {
+      // Force apply all PDF styles immediately via injected stylesheet
+      const style = document.createElement('style');
+      style.textContent = `
+        .template2-root.pdf-mode .cv-preview.pdf-mode {
+          display: grid !important;
+          grid-template-columns: 65% 35% !important;
+          gap: 0 !important;
+          padding: 0 !important;
+          background: white !important;
+          max-width: 1200px !important;
+          margin: 0 auto !important;
+          font-family: 'Arial', sans-serif !important;
+        }
+        .template2-root.pdf-mode .cv-preview.pdf-mode .cv-left-column {
+          background: white !important;
+          color: #333 !important;
+          padding: 30px 35px !important;
+          display: block !important;
+        }
+        .template2-root.pdf-mode .cv-preview.pdf-mode .cv-right-column {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+          background: -webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+          color: white !important;
+          padding: 30px 25px !important;
+          display: block !important;
+        }
+        .template2-root.pdf-mode .cv-preview.pdf-mode .cv-right-column * {
+          color: white !important;
+        }
+      `;
+      clonedDoc.head.appendChild(style);
+      
       const clonedPreview = clonedDoc.querySelector('.cv-preview');
       if (clonedPreview) {
         clonedPreview.style.visibility = 'visible';
-        clonedPreview.style.display = 'block';
+        clonedPreview.style.display = 'grid';
+        clonedPreview.style.gridTemplateColumns = '65% 35%';
         clonedPreview.style.width = 'auto';
         clonedPreview.style.height = 'auto';
       }
