@@ -105,8 +105,142 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges })
       <div className="template2-root">
         <div className="cv-preview">
           {/* Two Column Layout */}
+          {/* Left Column - White Background */}
           <div className="cv-left-column">
-          {/* CV Header - Left Column */}
+          {/* Professional Summary Section - Left Column */}
+          <div className="cv-section right-column">
+            <h3 className="section-heading right-column">Professional Summary</h3>
+            <div className="section-content">
+              <p className="professional-summary-text">
+                {displayData.professionalSummary}
+              </p>
+            </div>
+          </div>
+
+          {/* Education Section - Left Column */}
+          {displayData.education && displayData.education.length > 0 && (
+            <div className="cv-section right-column">
+              <h3 className="section-heading right-column">Education</h3>
+              <div className="section-content">
+                {displayData.education.map((edu, index) => (
+                  <div key={index} className="education-item">
+                    <div className="education-single-line">
+                      <span className="education-degree">{edu.degree}</span>
+                      {edu.board && <span className="education-board"> • {edu.board}</span>}
+                      {edu.year && <span className="education-year"> • {edu.year}</span>}
+                      {edu.marks && <span className="education-marks"> • {edu.marks}</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Experience Section - Left Column */}
+          {displayData.experience && displayData.experience.length > 0 && (
+            <div className="cv-section right-column">
+              <h3 className="section-heading right-column">Experience</h3>
+              <div className="section-content">
+                {displayData.experience.map((exp, index) => (
+                  <div key={index} className="experience-item">
+                    <div className="experience-header">
+                      <span className="experience-job-title">{exp.jobTitle || 'No job title'}</span>
+                      {exp.duration && <span className="experience-duration">{exp.duration}</span>}
+                    </div>
+                    {exp.company && (
+                      <div className="experience-company-line">
+                        <span className="experience-company">{exp.company}</span>
+                      </div>
+                    )}
+                    {exp.jobDetails && (
+                      <div className="experience-details">
+                        <ul className="experience-details-list">
+                          {exp.jobDetails.split('\n').map((detail, detailIndex) => (
+                            detail.trim() && (
+                              <li key={detailIndex} className="experience-detail-item">
+                                {detail.trim()}
+                              </li>
+                            )
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Certifications Section - Left Column */}
+          {displayData.certifications && displayData.certifications.length > 0 && (
+            <div className="cv-section right-column">
+              <h3 className="section-heading right-column">Certifications</h3>
+              <div className="section-content">
+                <div className="certifications-content">
+                  {displayData.certifications.map((cert, index) => (
+                    <div key={index} className="certification-item">
+                      <p className="certification-text">{cert}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Custom Section - Left Column */}
+          {displayData.customSection && displayData.customSection.length > 0 && (
+            <div className="cv-section right-column">
+              <h3 className="section-heading right-column">
+                {displayData.customSection[0]?.heading || 'Custom Section'}
+              </h3>
+              <div className="section-content">
+                <div className="custom-section-content">
+                  {displayData.customSection.map((custom, index) => (
+                    <div key={index} className="custom-section-item">
+                      {custom.heading && (
+                        <h4 className="custom-section-subheading">{custom.heading}</h4>
+                      )}
+                      {custom.detail && (
+                        <p className="custom-section-detail">{custom.detail}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* References Section - Left Column */}
+          {displayData.references && displayData.references.length > 0 && (
+            <div className="cv-section right-column">
+              <h3 className="section-heading right-column">References</h3>
+              <div className="section-content">
+                <div className="references-content">
+                  {displayData.references.map((reference, index) => (
+                    <div key={index} className="reference-item">
+                      <p className="reference-text">{reference}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Download PDF Button - Left Column */}
+          <div className="download-pdf-container">
+            <button 
+              className="download-pdf-button" 
+              onClick={generatePDF}
+              title="Download CV as PDF"
+            >
+              📄 Download PDF
+            </button>
+          </div>
+        </div>
+
+        {/* Right Column - Purple Background */}
+        <div className="cv-right-column">
+          {/* CV Header - Right Column */}
           <div className="cv-header">
             {/* Profile Image Container */}
             <div className="profile-image-container">
@@ -156,7 +290,7 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges })
             </div>
           </div>
 
-          {/* Skills Section - Left Column */}
+          {/* Skills Section - Right Column */}
           {displayData.skills && displayData.skills.length > 0 && (
             <div className="cv-section left-column">
               <h3 className="section-heading left-column">Skills</h3>
@@ -172,7 +306,7 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges })
             </div>
           )}
 
-          {/* Other Information Section - Left Column */}
+          {/* Other Information Section - Right Column */}
           {displayData.otherInfo && displayData.otherInfo.length > 0 && (
             <div className="cv-section left-column">
               <h3 className="section-heading left-column">Other Information</h3>
@@ -192,7 +326,7 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges })
             </div>
           )}
 
-          {/* Languages Section - Left Column */}
+          {/* Languages Section - Right Column */}
           {displayData.languages && displayData.languages.length > 0 && (
             <div className="cv-section left-column">
               <h3 className="section-heading left-column">Languages</h3>
@@ -208,7 +342,7 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges })
             </div>
           )}
 
-          {/* Hobbies Section - Left Column */}
+          {/* Hobbies Section - Right Column */}
           {displayData.hobbies && displayData.hobbies.length > 0 && (
             <div className="cv-section left-column">
               <h3 className="section-heading left-column">Hobbies</h3>
@@ -223,139 +357,6 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges })
               </div>
             </div>
           )}
-        </div>
-
-        {/* Right Column */}
-        <div className="cv-right-column">
-          {/* Professional Summary Section - Right Column */}
-          <div className="cv-section right-column">
-            <h3 className="section-heading right-column">Professional Summary</h3>
-            <div className="section-content">
-              <p className="professional-summary-text">
-                {displayData.professionalSummary}
-              </p>
-            </div>
-          </div>
-
-          {/* Education Section - Right Column */}
-          {displayData.education && displayData.education.length > 0 && (
-            <div className="cv-section right-column">
-              <h3 className="section-heading right-column">Education</h3>
-              <div className="section-content">
-                {displayData.education.map((edu, index) => (
-                  <div key={index} className="education-item">
-                    <div className="education-single-line">
-                      <span className="education-degree">{edu.degree}</span>
-                      {edu.board && <span className="education-board"> • {edu.board}</span>}
-                      {edu.year && <span className="education-year"> • {edu.year}</span>}
-                      {edu.marks && <span className="education-marks"> • {edu.marks}</span>}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Experience Section - Right Column */}
-          {displayData.experience && displayData.experience.length > 0 && (
-            <div className="cv-section right-column">
-              <h3 className="section-heading right-column">Experience</h3>
-              <div className="section-content">
-                {displayData.experience.map((exp, index) => (
-                  <div key={index} className="experience-item">
-                    <div className="experience-header">
-                      <span className="experience-job-title">{exp.jobTitle || 'No job title'}</span>
-                      {exp.duration && <span className="experience-duration">{exp.duration}</span>}
-                    </div>
-                    {exp.company && (
-                      <div className="experience-company-line">
-                        <span className="experience-company">{exp.company}</span>
-                      </div>
-                    )}
-                    {exp.jobDetails && (
-                      <div className="experience-details">
-                        <ul className="experience-details-list">
-                          {exp.jobDetails.split('\n').map((detail, detailIndex) => (
-                            detail.trim() && (
-                              <li key={detailIndex} className="experience-detail-item">
-                                {detail.trim()}
-                              </li>
-                            )
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Certifications Section - Right Column */}
-          {displayData.certifications && displayData.certifications.length > 0 && (
-            <div className="cv-section right-column">
-              <h3 className="section-heading right-column">Certifications</h3>
-              <div className="section-content">
-                <div className="certifications-content">
-                  {displayData.certifications.map((cert, index) => (
-                    <div key={index} className="certification-item">
-                      <p className="certification-text">{cert}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Custom Section - Right Column */}
-          {displayData.customSection && displayData.customSection.length > 0 && (
-            <div className="cv-section right-column">
-              <h3 className="section-heading right-column">
-                {displayData.customSection[0]?.heading || 'Custom Section'}
-              </h3>
-              <div className="section-content">
-                <div className="custom-section-content">
-                  {displayData.customSection.map((custom, index) => (
-                    <div key={index} className="custom-section-item">
-                      {custom.heading && (
-                        <h4 className="custom-section-subheading">{custom.heading}</h4>
-                      )}
-                      {custom.detail && (
-                        <p className="custom-section-detail">{custom.detail}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* References Section - Right Column */}
-          {displayData.references && displayData.references.length > 0 && (
-            <div className="cv-section right-column">
-              <h3 className="section-heading right-column">References</h3>
-              <div className="section-content">
-                <div className="references-content">
-                  {displayData.references.map((reference, index) => (
-                    <div key={index} className="reference-item">
-                      <p className="reference-text">{reference}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Download PDF Button - Right Column */}
-          <div className="download-pdf-container">
-            <button 
-              className="download-pdf-button" 
-              onClick={generatePDF}
-              title="Download CV as PDF"
-            >
-              📄 Download PDF
-            </button>
-          </div>
         </div>
         </div>
       </div>

@@ -5,26 +5,27 @@
   padding: 0;
   font-family: 'Arial', sans-serif;
   color: #333;
-  display: grid;
-  grid-template-columns: 35% 65%;
+  display: grid !important;
+  grid-template-columns: 65% 35% !important;
   gap: 0;
   max-width: 1200px;
   margin: 0 auto;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
 }
 
-/* Left Column */
+/* Left Column - White Background (Professional content) */
 .template2-root .cv-left-column {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 30px 25px;
+  background: white !important;
+  color: #333;
+  padding: 30px 35px;
   min-height: 100vh;
 }
 
-/* Right Column */
+/* Right Column - Purple Background (Personal info, contacts, skills) */
 .template2-root .cv-right-column {
-  background: white;
-  padding: 30px 35px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: white;
+  padding: 30px 25px;
   min-height: 100vh;
 }
 
