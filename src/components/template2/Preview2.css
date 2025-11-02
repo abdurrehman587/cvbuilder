@@ -390,7 +390,7 @@
 }
 
 .template2-root .skill-pill {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.1);
   color: white;
   padding: 10px 15px;
   border-radius: 8px;
@@ -484,7 +484,7 @@
 }
 
 .template2-root .language-pill {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.1);
   color: white;
   padding: 10px 15px;
   border-radius: 8px;
@@ -534,7 +534,7 @@
 }
 
 .template2-root .hobby-pill {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.1);
   color: white;
   padding: 10px 15px;
   border-radius: 8px;

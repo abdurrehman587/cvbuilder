@@ -150,11 +150,11 @@ const generateCanvas = async (cvPreview) => {
         .template2-root.pdf-mode .cv-preview.pdf-mode .skill-pill,
         .template2-root.pdf-mode .cv-preview.pdf-mode .language-pill,
         .template2-root.pdf-mode .cv-preview.pdf-mode .hobby-pill {
-          background: rgba(0, 0, 0, 0.2) !important; /* Dark background instead of white */
+          background: rgba(255, 255, 255, 0.1) !important; /* Match contact items background */
           color: white !important;
           visibility: visible !important;
           opacity: 1 !important;
-          border: 1px solid rgba(255, 255, 255, 0.3) !important;
+          border: 1px solid rgba(255, 255, 255, 0.2) !important;
         }
         .template2-root.pdf-mode .cv-preview.pdf-mode .skill-pill *,
         .template2-root.pdf-mode .cv-preview.pdf-mode .language-pill *,
@@ -268,12 +268,12 @@ const generateCanvas = async (cvPreview) => {
           const skillPills = leftColumn.querySelectorAll('.skill-pill, .language-pill, .hobby-pill');
           skillPills.forEach(pill => {
             pill.style.color = 'white';
-            pill.style.backgroundColor = 'rgba(0, 0, 0, 0.2)'; // Dark background for contrast
+            pill.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'; // Match contact items background
             pill.style.padding = '10px 15px';
             pill.style.borderRadius = '8px';
             pill.style.fontSize = '13px';
             pill.style.fontWeight = '500';
-            pill.style.border = '1px solid rgba(255, 255, 255, 0.3)';
+            pill.style.border = '1px solid rgba(255, 255, 255, 0.2)';
             pill.style.display = 'block';
             pill.style.visibility = 'visible';
             pill.style.opacity = '1';
