@@ -102,6 +102,30 @@ export const cvService = {
     
     if (error) throw error
     return data
+  },
+
+  // Find CV by name for a user (to prevent duplicates)
+  async findCVByName(userId, name, isAdmin = false) {
+    const trimmedName = name.trim();
+    if (!trimmedName) return null;
+    
+    let query = supabase
+      .from(TABLES.CVS)
+      .select('*')
+      .ilike('name', trimmedName) // Case-insensitive comparison
+    
+    // Only filter by user_id if not admin
+    if (!isAdmin) {
+      query = query.eq('user_id', userId)
+    }
+    
+    // Get the most recent CV with this name
+    query = query.order('created_at', { ascending: false }).limit(1)
+    
+    const { data, error } = await query
+    
+    if (error) throw error
+    return data && data.length > 0 ? data[0] : null
   }
 }
 

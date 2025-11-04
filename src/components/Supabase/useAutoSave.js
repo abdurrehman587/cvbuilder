@@ -104,11 +104,22 @@ const useAutoSave = (formData, saveInterval = 10000) => {
         savedCV = await cvService.updateCV(currentCVId, cvData, user.id, isAdmin);
         console.log('✅ CV updated successfully:', savedCV);
       } else {
-        console.log('➕ Creating new CV...');
-        // Create new CV
-        savedCV = await cvService.createCV(cvData);
-        console.log('✅ New CV created:', savedCV);
-        setCurrentCVId(savedCV.id);
+        // Check if a CV with the same name already exists to prevent duplicates
+        const existingCV = await cvService.findCVByName(user.id, cvData.name, isAdmin);
+        
+        if (existingCV) {
+          console.log('🔍 Found existing CV with same name, updating instead of creating:', existingCV.id);
+          // Update existing CV instead of creating a new one
+          savedCV = await cvService.updateCV(existingCV.id, cvData, user.id, isAdmin);
+          console.log('✅ Existing CV updated successfully:', savedCV);
+          setCurrentCVId(existingCV.id);
+        } else {
+          console.log('➕ Creating new CV...');
+          // Create new CV only if no existing CV found
+          savedCV = await cvService.createCV(cvData);
+          console.log('✅ New CV created:', savedCV);
+          setCurrentCVId(savedCV.id);
+        }
       }
       
       // Update last saved data reference
