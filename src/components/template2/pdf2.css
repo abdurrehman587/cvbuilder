@@ -54,7 +54,7 @@
 /* Header Name */
 .template2-root.cv-preview.pdf-mode .header-name,
 .cv-preview.pdf-mode.template2-root .header-name {
-  font-size: 34px !important;
+  font-size: 42px !important;
   font-weight: 700 !important;
   color: white !important;
   margin: 0 0 8px 0 !important;
@@ -65,7 +65,7 @@
 /* Header Title */
 .template2-root.cv-preview.pdf-mode .header-title,
 .cv-preview.pdf-mode.template2-root .header-title {
-  font-size: 22px !important;
+  font-size: 28px !important;
   font-weight: 500 !important;
   color: rgba(255, 255, 255, 0.9) !important;
   margin: 0 0 20px 0 !important;
@@ -76,7 +76,7 @@
 /* Contact Items */
 .template2-root.cv-preview.pdf-mode .contact-item,
 .cv-preview.pdf-mode.template2-root .contact-item {
-  font-size: 16px !important;
+  font-size: 20px !important;
   color: rgba(255, 255, 255, 0.9) !important;
   padding: 8px 12px !important;
   background: rgba(255, 255, 255, 0.1) !important;
@@ -118,7 +118,7 @@
 /* Section Headings - Left Column */
 .template2-root.cv-preview.pdf-mode .section-heading.left-column,
 .cv-preview.pdf-mode.template2-root .section-heading.left-column {
-  font-size: 18px !important;
+  font-size: 22px !important;
   font-weight: 700 !important;
   color: white !important;
   margin: 0 0 15px 0 !important;
@@ -132,7 +132,7 @@
 /* Section Headings - Right Column */
 .template2-root.cv-preview.pdf-mode .section-heading.right-column,
 .cv-preview.pdf-mode.template2-root .section-heading.right-column {
-  font-size: 18px !important;
+  font-size: 22px !important;
   font-weight: 700 !important;
   color: #2c3e50 !important;
   margin: 0 0 15px 0 !important;
@@ -167,7 +167,7 @@
 /* Professional Summary */
 .template2-root.cv-preview.pdf-mode .professional-summary-text,
 .cv-preview.pdf-mode.template2-root .professional-summary-text {
-  font-size: 16px !important;
+  font-size: 18px !important;
   color: #555 !important;
   line-height: 1.7 !important;
   text-align: justify !important;
@@ -179,7 +179,7 @@
 /* Education */
 .template2-root.cv-preview.pdf-mode .education-degree,
 .cv-preview.pdf-mode.template2-root .education-degree {
-  font-size: 16px !important;
+  font-size: 18px !important;
   font-weight: 600 !important;
   color: #2c3e50 !important;
   font-family: 'Arial', sans-serif !important;
@@ -187,7 +187,7 @@
 
 .template2-root.cv-preview.pdf-mode .education-board,
 .cv-preview.pdf-mode.template2-root .education-board {
-  font-size: 16px !important;
+  font-size: 18px !important;
   font-weight: 500 !important;
   color: #667eea !important;
   font-family: 'Arial', sans-serif !important;
@@ -195,7 +195,7 @@
 
 .template2-root.cv-preview.pdf-mode .education-year,
 .cv-preview.pdf-mode.template2-root .education-year {
-  font-size: 16px !important;
+  font-size: 18px !important;
   font-weight: 500 !important;
   color: #555 !important;
   font-family: 'Arial', sans-serif !important;
@@ -203,7 +203,7 @@
 
 .template2-root.cv-preview.pdf-mode .education-marks,
 .cv-preview.pdf-mode.template2-root .education-marks {
-  font-size: 16px !important;
+  font-size: 18px !important;
   color: #888 !important;
   font-style: italic !important;
   font-family: 'Arial', sans-serif !important;
@@ -212,7 +212,7 @@
 /* Experience */
 .template2-root.cv-preview.pdf-mode .experience-job-title,
 .cv-preview.pdf-mode.template2-root .experience-job-title {
-  font-size: 16px !important;
+  font-size: 18px !important;
   font-weight: 600 !important;
   color: #2c3e50 !important;
   font-family: 'Arial', sans-serif !important;
@@ -220,7 +220,7 @@
 
 .template2-root.cv-preview.pdf-mode .experience-duration,
 .cv-preview.pdf-mode.template2-root .experience-duration {
-  font-size: 16px !important;
+  font-size: 18px !important;
   font-weight: 500 !important;
   color: #555 !important;
   font-family: 'Arial', sans-serif !important;
@@ -228,7 +228,7 @@
 
 .template2-root.cv-preview.pdf-mode .experience-company,
 .cv-preview.pdf-mode.template2-root .experience-company {
-  font-size: 16px !important;
+  font-size: 18px !important;
   font-weight: 500 !important;
   color: #667eea !important;
   font-family: 'Arial', sans-serif !important;
@@ -236,7 +236,7 @@
 
 .template2-root.cv-preview.pdf-mode .experience-details,
 .cv-preview.pdf-mode.template2-root .experience-details {
-  font-size: 16px !important;
+  font-size: 18px !important;
   color: #666 !important;
   line-height: 1.4 !important;
   font-family: 'Arial', sans-serif !important;
@@ -244,7 +244,7 @@
 
 .template2-root.cv-preview.pdf-mode .experience-detail-item,
 .cv-preview.pdf-mode.template2-root .experience-detail-item {
-  font-size: 16px !important;
+  font-size: 18px !important;
   color: #666 !important;
   line-height: 1.4 !important;
   font-family: 'Arial', sans-serif !important;
@@ -253,7 +253,7 @@
 /* Certifications */
 .template2-root.cv-preview.pdf-mode .certification-text,
 .cv-preview.pdf-mode.template2-root .certification-text {
-  font-size: 14px !important;
+  font-size: 16px !important;
   color: #555 !important;
   line-height: 1.4 !important;
   font-weight: 500 !important;
@@ -272,7 +272,7 @@
   color: white !important;
   padding: 10px 15px !important;
   border-radius: 8px !important;
-  font-size: 15px !important;
+  font-size: 18px !important;
   font-weight: 500 !important;
   border: 1px solid rgba(255, 255, 255, 0.2) !important;
   font-family: 'Arial', sans-serif !important;
@@ -299,7 +299,7 @@
 .cv-preview.pdf-mode.template2-root .language-name,
 .cv-preview.pdf-mode.template2-root .hobby-name {
   color: white !important;
-  font-size: 15px !important;
+  font-size: 18px !important;
   font-weight: 600 !important; /* Increased weight for better visibility */
   font-family: 'Arial', sans-serif !important;
   display: block !important;
@@ -341,7 +341,7 @@
 .cv-preview.pdf-mode.template2-root .info-label {
   font-weight: 600 !important;
   color: white !important;
-  font-size: 16px !important;
+  font-size: 18px !important;
   text-transform: uppercase !important;
   letter-spacing: 0.5px !important;
   font-family: 'Arial', sans-serif !important;
@@ -351,7 +351,7 @@
 .template2-root.cv-preview.pdf-mode .info-value,
 .cv-preview.pdf-mode.template2-root .info-value {
   color: white !important;
-  font-size: 16px !important;
+  font-size: 18px !important;
   font-weight: 500 !important;
   line-height: 1.4 !important;
   font-family: 'Arial', sans-serif !important;
@@ -362,7 +362,7 @@
 /* Custom Section */
 .template2-root.cv-preview.pdf-mode .custom-section-detail,
 .cv-preview.pdf-mode.template2-root .custom-section-detail {
-  font-size: 14px !important;
+  font-size: 16px !important;
   color: #555 !important;
   line-height: 1.5 !important;
   margin: 0 !important;
@@ -372,7 +372,7 @@
 /* References */
 .template2-root.cv-preview.pdf-mode .reference-text,
 .cv-preview.pdf-mode.template2-root .reference-text {
-  font-size: 14px !important;
+  font-size: 16px !important;
   color: #555 !important;
   line-height: 1.4 !important;
   font-style: italic !important;
