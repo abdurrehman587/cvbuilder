@@ -31,7 +31,7 @@ export const useCVs = () => {
   const [isAdmin, setIsAdmin] = useState(false)
 
   // Check admin status
-  const checkAdminStatus = async () => {
+  const checkAdminStatus = useCallback(async () => {
     if (!user) return false
     
     try {
@@ -55,7 +55,7 @@ export const useCVs = () => {
       console.error('❌ Error checking admin status:', err)
       return false
     }
-  }
+  }, [user])
 
   // Fetch CVs for current user (lightweight version for list display)
   const fetchCVs = useCallback(async () => {

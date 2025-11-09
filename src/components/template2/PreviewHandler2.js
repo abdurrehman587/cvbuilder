@@ -37,7 +37,7 @@ const usePreviewHandler = (passedFormData = null) => {
   }, [formData.profileImage]);
 
   // Function to get form data from Form2 inputs
-  const getFormData = () => {
+  const getFormData = useCallback(() => {
     const data = {
       name: document.getElementById('name-input')?.value || '',
       position: document.getElementById('position-input')?.value || '',
@@ -207,7 +207,7 @@ const usePreviewHandler = (passedFormData = null) => {
     data.customSection = customSectionData;
 
     return data;
-  };
+  }, [formData.hobbies]);
 
   // Function to update preview data - memoized to prevent infinite re-renders
   const updatePreviewData = useCallback(() => {
