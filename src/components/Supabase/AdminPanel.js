@@ -40,7 +40,7 @@ const AdminPanel = () => {
   }, [user])
 
   // Load admin data
-  const loadAdminData = async () => {
+  const loadAdminData = useCallback(async () => {
     if (!isAdmin) return
 
     try {
@@ -79,7 +79,7 @@ const AdminPanel = () => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [isAdmin])
 
   useEffect(() => {
     if (isAdmin) {
