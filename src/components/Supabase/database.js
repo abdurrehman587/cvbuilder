@@ -269,9 +269,11 @@ export const dbHelpers = {
   }
 }
 
-export default {
+const dbExports = {
   createTables,
   createStorageBuckets,
   initializeDatabase,
   dbHelpers
-}
+};
+
+export default dbExports;

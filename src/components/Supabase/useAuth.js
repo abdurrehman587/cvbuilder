@@ -110,7 +110,7 @@ export const useCVs = () => {
     } finally {
       setLoading(false)
     }
-  }, [user])
+  }, [user, checkAdminStatus])
 
   // Fetch complete CV data when needed (for editing)
   const fetchCompleteCV = async (cvId) => {

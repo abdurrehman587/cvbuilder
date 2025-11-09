@@ -4,7 +4,7 @@ import generatePDF from './pdf2';
 import './Preview2.css';
 
 function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges }) {
-  const { formData: hookFormData, getProfileImageUrl, formatContactInfo, updatePreviewData } = usePreviewHandler(propFormData);
+  const { formData: hookFormData, formatContactInfo, updatePreviewData } = usePreviewHandler(propFormData);
   // Use propFormData as primary source (from app state/database) and merge with hook data for DOM-only fields
   const formData = { 
     ...(propFormData || {}),

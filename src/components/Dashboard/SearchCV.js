@@ -24,7 +24,7 @@ const SearchCV = ({ onBack, onEditCV }) => {
     const testAdminDetection = async () => {
       try {
         console.log('🧪 Testing admin detection directly...');
-        const { data, error } = await supabase
+        const { data } = await supabase
           .from('users')
           .select('is_admin, email, full_name')
           .eq('email', 'admin@cvbuilder.com')  // Replace with your admin email

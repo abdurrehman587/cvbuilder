@@ -55,6 +55,7 @@ const useFormHandler = (formData, updateFormData, markAsChanged) => {
             const newFormData = { ...formData, languages: ['English', 'Urdu', 'Punjabi'] };
             updateFormData(newFormData);
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); // Only run once on mount
 
     // Track if languages have been explicitly cleared by user

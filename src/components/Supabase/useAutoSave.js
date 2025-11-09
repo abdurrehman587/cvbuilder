@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { cvService, authService, supabase } from './supabase';
 import { dbHelpers } from './database';
 
@@ -7,11 +7,10 @@ const useAutoSave = (formData, saveInterval = 10000) => {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [currentCVId, setCurrentCVId] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(true);
-  const autoSaveTimeoutRef = useRef(null);
   const lastSavedDataRef = useRef(null);
 
   // Auto-save functionality
-  const autoSave = async () => {
+  const autoSave = useCallback(async () => {
     console.log('Auto-save triggered:', { hasUnsavedChanges, name: formData.name?.trim() });
     
     if (!formData.name?.trim()) {
@@ -59,7 +58,7 @@ const useAutoSave = (formData, saveInterval = 10000) => {
       // Test Supabase connection
       console.log('Testing Supabase connection...');
       try {
-        const { data: testData, error: testError } = await supabase
+        const { error: testError } = await supabase
           .from('cvs')
           .select('count')
           .limit(1);
@@ -88,7 +87,7 @@ const useAutoSave = (formData, saveInterval = 10000) => {
       console.log('Profile image in formatted data:', cvData.cv_data.profileImage);
 
       // Check if user is admin for update operations
-      const { data: userData, error: userError } = await supabase
+      const { data: userData } = await supabase
         .from('users')
         .select('is_admin')
         .eq('email', user.email)
@@ -139,7 +138,7 @@ const useAutoSave = (formData, saveInterval = 10000) => {
       setAutoSaveStatus('Auto-save failed: ' + err.message);
       setTimeout(() => setAutoSaveStatus(''), 5000);
     }
-  };
+  }, [formData, currentCVId, hasUnsavedChanges]);
 
   // Monitor authentication status
   useEffect(() => {
@@ -199,7 +198,7 @@ const useAutoSave = (formData, saveInterval = 10000) => {
     }, saveInterval);
 
     return () => clearInterval(interval);
-  }, [formData, saveInterval, isAuthenticated]);
+  }, [formData, saveInterval, isAuthenticated, autoSave, hasUnsavedChanges]);
 
   // Removed localStorage loading - form data will reset on page reload
 
@@ -230,7 +229,7 @@ const useAutoSave = (formData, saveInterval = 10000) => {
       }
       
       // Check if user is admin
-      const { data: userData, error: userError } = await supabase
+      const { data: userData } = await supabase
         .from('users')
         .select('is_admin')
         .eq('email', user.email)

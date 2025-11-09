@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { supabase } from './index'
 import './AdminBulkCV.css'
 
@@ -24,7 +24,6 @@ const AdminBulkCV = () => {
   const [errorMessage, setErrorMessage] = useState('')
   const [autoSaveStatus, setAutoSaveStatus] = useState('')
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
-  const autoSaveTimeoutRef = useRef(null)
   const lastSavedDataRef = useRef(null)
 
   const handleInputChange = (field, value) => {
@@ -60,7 +59,7 @@ const AdminBulkCV = () => {
   }
 
   // Auto-save functionality
-  const autoSave = async () => {
+  const autoSave = useCallback(async () => {
     if (!hasUnsavedChanges || !cvData.name.trim()) return
 
     try {
@@ -81,7 +80,7 @@ const AdminBulkCV = () => {
       setAutoSaveStatus('Auto-save failed')
       setTimeout(() => setAutoSaveStatus(''), 3000)
     }
-  }
+  }, [hasUnsavedChanges, cvData])
 
   // Set up auto-save interval
   useEffect(() => {
@@ -92,7 +91,7 @@ const AdminBulkCV = () => {
     }, 10000) // Auto-save every 10 seconds
 
     return () => clearInterval(interval)
-  }, [hasUnsavedChanges, cvData])
+  }, [hasUnsavedChanges, cvData, autoSave])
 
   // Load saved draft on component mount
   useEffect(() => {
@@ -167,7 +166,7 @@ const AdminBulkCV = () => {
       }
 
       // Insert CV into database
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('cvs')
         .insert([cvRecord])
         .select()

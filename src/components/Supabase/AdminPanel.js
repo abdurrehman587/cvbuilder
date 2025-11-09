@@ -85,7 +85,7 @@ const AdminPanel = () => {
     if (isAdmin) {
       loadAdminData()
     }
-  }, [isAdmin])
+  }, [isAdmin, loadAdminData])
 
   // Delete user
   const deleteUser = async (userId) => {

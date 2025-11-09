@@ -9,7 +9,6 @@ import Form2 from './components/template2/Form2';
 import Preview2 from './components/template2/Preview2';
 import useAutoSave from './components/Supabase/useAutoSave';
 import { authService } from './components/Supabase/supabase';
-import { dbHelpers } from './components/Supabase/database';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -62,17 +61,7 @@ function App() {
 
   // Auto-save happens automatically every 10 seconds
 
-  // Clear draft function
-  const clearDraft = () => {
-    setHasUnsavedChanges(false);
-    setAutoSaveStatus('');
-    setFormData({});
-  };
-
-  // Mark as changed
-  const markAsChanged = () => {
-    setHasUnsavedChanges(true);
-  };
+  // Mark as changed - using hook's markAsChanged instead
 
   // Update form data
   const updateFormData = (newData) => {
@@ -138,7 +127,7 @@ function App() {
     return () => {
       window.removeEventListener('userAuthenticated', handleAuth);
     };
-  }, []);
+  }, [currentView]);
 
   const handleLogout = async () => {
     try {

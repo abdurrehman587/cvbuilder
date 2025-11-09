@@ -213,7 +213,7 @@ const usePreviewHandler = (passedFormData = null) => {
   const updatePreviewData = useCallback(() => {
     const newData = getFormData();
     setFormData(newData);
-  }, []);
+  }, [getFormData]);
 
   // Function to get profile image URL - memoized to prevent flickering
   const getProfileImageUrl = useMemo(() => {
