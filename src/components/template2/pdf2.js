@@ -216,8 +216,8 @@ const handleMultiPagePDF = (pdf, canvas, contentWidth, contentHeight, imgHeight)
     
     const pageImgData = pageCanvas.toDataURL('image/jpeg', PDF_CONFIG.imageQuality);
     
-    // Add image to PDF at the correct position
-    pdf.addImage(pageImgData, 'JPEG', PDF_CONFIG.margin, PDF_CONFIG.margin, contentWidth, pageImgHeight);
+    // Add image to PDF at the correct position (no margins for edge-to-edge printing)
+    pdf.addImage(pageImgData, 'JPEG', 0, 0, contentWidth, pageImgHeight);
   }
 };
 
