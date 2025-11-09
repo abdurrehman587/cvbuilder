@@ -129,7 +129,8 @@ function App() {
     return () => {
       window.removeEventListener('userAuthenticated', handleAuth);
     };
-  }, []); // Only run on mount, not on currentView changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount, not on currentView changes - intentionally excluded to prevent logout on view change
 
   const handleLogout = async () => {
     try {
