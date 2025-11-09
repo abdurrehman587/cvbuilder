@@ -9,7 +9,8 @@ const PDF_CONFIG = {
   format: 'a4',
   pageWidth: 210, // A4 width in mm
   pageHeight: 297, // A4 height in mm
-  margin: 8, // Increased margin to prevent text cut-off at page boundaries
+  margin: 0, // No margins for edge-to-edge printing
+  marginRight: 0, // No right margin
   scale: 3, // Canvas scale for better compatibility
   imageQuality: 2, // JPEG quality
   imageTimeout: 15000 // Timeout for images
@@ -166,14 +167,14 @@ const createPDF = (canvas) => {
     format: PDF_CONFIG.format
   });
 
-  const contentWidth = PDF_CONFIG.pageWidth - (PDF_CONFIG.margin * 2);
-  const contentHeight = PDF_CONFIG.pageHeight - (PDF_CONFIG.margin * 2);
+  const contentWidth = PDF_CONFIG.pageWidth;
+  const contentHeight = PDF_CONFIG.pageHeight;
   const imgWidth = contentWidth;
   const imgHeight = (canvas.height * contentWidth) / canvas.width;
 
   // Single page or multi-page handling
   if (imgHeight <= contentHeight) {
-    pdf.addImage(imgData, 'JPEG', PDF_CONFIG.margin, PDF_CONFIG.margin, imgWidth, imgHeight);
+    pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
   } else {
     handleMultiPagePDF(pdf, canvas, contentWidth, contentHeight, imgHeight);
   }
