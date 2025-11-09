@@ -456,12 +456,11 @@
 
 .template2-root .info-item span {
   font-size: 16px !important;
-  font-weight: 500 !important;
   color: white !important;
   line-height: 1.3 !important;
 }
 
-.template2-root .info-label {
+.template2-root .info-item .info-label {
   color: white !important;
   font-size: 16px !important;
   font-weight: 600 !important;
@@ -470,7 +469,7 @@
   text-transform: none !important;
 }
 
-.template2-root .info-value {
+.template2-root .info-item .info-value {
   color: white !important;
   font-size: 16px !important;
   font-weight: 600 !important;
