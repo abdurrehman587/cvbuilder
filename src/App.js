@@ -95,22 +95,24 @@ function App() {
   };
 
   useEffect(() => {
-    // Force logout on page reload - clear any existing session
-    const forceLogout = async () => {
+    // Check authentication status on mount only
+    const checkAuth = async () => {
       try {
-        console.log('Page reload detected - forcing logout...');
-        await authService.signOut();
-        localStorage.removeItem('cvBuilderAuth');
-        console.log('Session cleared on page reload');
+        const user = await authService.getCurrentUser();
+        if (user) {
+          setIsAuthenticated(true);
+        } else {
+          setIsAuthenticated(false);
+        }
       } catch (error) {
-        console.log('Error clearing session:', error);
+        console.log('Error checking auth:', error);
+        setIsAuthenticated(false);
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    // Always logout on page reload
-    forceLogout();
-    setIsAuthenticated(false);
-    setIsLoading(false);
+    checkAuth();
 
     // Listen for authentication events from Login component
     const handleAuth = () => {
@@ -127,7 +129,7 @@ function App() {
     return () => {
       window.removeEventListener('userAuthenticated', handleAuth);
     };
-  }, [currentView]);
+  }, []); // Only run on mount, not on currentView changes
 
   const handleLogout = async () => {
     try {
