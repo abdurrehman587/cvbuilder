@@ -455,7 +455,7 @@
 .template3-root .cv-preview.pdf-mode .cv-footer {
   position: relative !important;
   background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 50%, #ffa726 100%) !important;
-  padding: 18px 18px 22px 18px !important;
+  padding: 30px 18px 35px 18px !important;
   color: white !important;
   overflow: hidden !important;
   z-index: 1 !important;
