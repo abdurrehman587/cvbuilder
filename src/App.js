@@ -7,6 +7,8 @@ import Form1 from './components/template1/Form1';
 import Preview1 from './components/template1/Preview1';
 import Form2 from './components/template2/Form2';
 import Preview2 from './components/template2/Preview2';
+import Form3 from './components/template3/Form3';
+import Preview3 from './components/template3/Preview3';
 import useAutoSave from './components/Supabase/useAutoSave';
 import { authService } from './components/Supabase/supabase';
 
@@ -249,6 +251,12 @@ function App() {
             >
               Template 2
             </button>
+            <button 
+              className={`template-button ${selectedTemplate === 'template3' ? 'active' : ''}`}
+              onClick={() => handleTemplateSwitch('template3')}
+            >
+              Template 3
+            </button>
           </div>
           
           <div className="header-actions">
@@ -279,20 +287,27 @@ function App() {
         </div>
         <div className="container">
           {/* Form Side */}
-                    {selectedTemplate === 'template1' ? 
-                      <Form1 
-                        key={formResetKey}
-                        formData={formData}
-                        updateFormData={updateFormData}
-                        markAsChanged={hookMarkAsChanged}
-                      /> : 
-                      <Form2 
-                        key={formResetKey}
-                        formData={formData}
-                        updateFormData={updateFormData}
-                        markAsChanged={hookMarkAsChanged}
-                      />
-                    }
+          {selectedTemplate === 'template1' ? 
+            <Form1 
+              key={formResetKey}
+              formData={formData}
+              updateFormData={updateFormData}
+              markAsChanged={hookMarkAsChanged}
+            /> : 
+            selectedTemplate === 'template2' ?
+            <Form2 
+              key={formResetKey}
+              formData={formData}
+              updateFormData={updateFormData}
+              markAsChanged={hookMarkAsChanged}
+            /> :
+            <Form3 
+              key={formResetKey}
+              formData={formData}
+              updateFormData={updateFormData}
+              markAsChanged={hookMarkAsChanged}
+            />
+          }
 
           {/* Preview Side */}
           {selectedTemplate === 'template1' ? 
@@ -301,7 +316,13 @@ function App() {
               autoSaveStatus={autoSaveStatus}
               hasUnsavedChanges={hasUnsavedChanges}
             /> : 
+            selectedTemplate === 'template2' ?
             <Preview2 
+              formData={formData}
+              autoSaveStatus={autoSaveStatus}
+              hasUnsavedChanges={hasUnsavedChanges}
+            /> :
+            <Preview3 
               formData={formData}
               autoSaveStatus={autoSaveStatus}
               hasUnsavedChanges={hasUnsavedChanges}
