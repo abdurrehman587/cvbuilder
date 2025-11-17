@@ -11,12 +11,16 @@ import Form3 from './components/template3/Form3';
 import Preview3 from './components/template3/Preview3';
 import useAutoSave from './components/Supabase/useAutoSave';
 import { authService } from './components/Supabase/supabase';
+import IDCardPrintPage from './components/IDCardPrint/IDCardPrintPage';
+import ProductsPage from './components/Products/ProductsPage';
+import Header from './components/Header/Header';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTemplate, setSelectedTemplate] = useState('template1');
   const [currentView, setCurrentView] = useState('dashboard');
+  const [selectedApp, setSelectedApp] = useState('cv-builder'); // 'cv-builder' or 'id-card-print'
   const [formData, setFormData] = useState({
     name: '',
     position: '',
@@ -115,11 +119,18 @@ function App() {
     };
 
     checkAuth();
+    
+    // Check selected app on mount
+    const app = localStorage.getItem('selectedApp') || 'cv-builder';
+    setSelectedApp(app);
 
     // Listen for authentication events from Login component
     const handleAuth = () => {
       setIsAuthenticated(true);
       setIsLoading(false);
+      // Get selected app from localStorage
+      const app = localStorage.getItem('selectedApp') || 'cv-builder';
+      setSelectedApp(app);
       // If user was on form/preview page, redirect to dashboard after login
       if (currentView === 'cv-builder') {
         setCurrentView('dashboard');
@@ -213,18 +224,53 @@ function App() {
     );
   }
 
+  // Get current product for header
+  const currentProduct = localStorage.getItem('selectedApp') || 'cv-builder';
+
   if (!isAuthenticated) {
-    return <Login />;
+    // Show products page (which includes login form)
+    return (
+      <>
+        <Header 
+          isAuthenticated={false} 
+          currentProduct={null}
+        />
+        <ProductsPage />
+      </>
+    );
   }
 
+  // After login, check if a product was selected from products page
+  const selectedProduct = localStorage.getItem('selectedApp');
+  if (selectedProduct === 'id-card-print') {
+    return (
+      <>
+        <Header 
+          isAuthenticated={true} 
+          onLogout={handleLogout}
+          currentProduct="id-card-print"
+        />
+        <IDCardPrintPage />
+      </>
+    );
+  }
+
+  // Default to CV Builder dashboard
   if (currentView === 'dashboard') {
     return (
-      <Dashboard 
-        onTemplateSelect={handleTemplateSelect}
-        onLogout={handleLogout}
-        onEditCV={handleEditCV}
-        onCreateNewCV={handleMakeNewCV}
-      />
+      <>
+        <Header 
+          isAuthenticated={true} 
+          onLogout={handleLogout}
+          currentProduct="cv-builder"
+        />
+        <Dashboard 
+          onTemplateSelect={handleTemplateSelect}
+          onLogout={handleLogout}
+          onEditCV={handleEditCV}
+          onCreateNewCV={handleMakeNewCV}
+        />
+      </>
     );
   }
 
@@ -234,57 +280,60 @@ function App() {
 
   if (currentView === 'cv-builder') {
     return (
-      <div className="App">
-        <div className="app-header">
-          <h1>CV Builder</h1>
-          
-          <div className="template-selector">
-            <button 
-              className={`template-button ${selectedTemplate === 'template1' ? 'active' : ''}`}
-              onClick={() => handleTemplateSwitch('template1')}
-            >
-              Template 1
-            </button>
-            <button 
-              className={`template-button ${selectedTemplate === 'template2' ? 'active' : ''}`}
-              onClick={() => handleTemplateSwitch('template2')}
-            >
-              Template 2
-            </button>
-            <button 
-              className={`template-button ${selectedTemplate === 'template3' ? 'active' : ''}`}
-              onClick={() => handleTemplateSwitch('template3')}
-            >
-              Template 3
-            </button>
-          </div>
-          
-          <div className="header-actions">
-            <div className="auto-save-status">
-              {hookAutoSaveStatus && (
-                <span className={`status-indicator ${hookAutoSaveStatus.includes('failed') ? 'error' : 'success'}`}>
-                  {hookAutoSaveStatus}
-                </span>
-              )}
-              {hookHasUnsavedChanges && !hookAutoSaveStatus && (
-                <span className="status-indicator warning">
-                  Unsaved changes
-                </span>
-              )}
-              {!hookAutoSaveStatus && !hookHasUnsavedChanges && (
-                <span className="status-indicator success">
-                  All changes saved
-                </span>
-              )}
+      <>
+        <Header 
+          isAuthenticated={true} 
+          onLogout={handleLogout}
+          currentProduct="cv-builder"
+        />
+        <div className="App">
+          <div className="app-header-cv">
+            <h1>CV Builder</h1>
+            
+            <div className="template-selector">
+              <button 
+                className={`template-button ${selectedTemplate === 'template1' ? 'active' : ''}`}
+                onClick={() => handleTemplateSwitch('template1')}
+              >
+                Template 1
+              </button>
+              <button 
+                className={`template-button ${selectedTemplate === 'template2' ? 'active' : ''}`}
+                onClick={() => handleTemplateSwitch('template2')}
+              >
+                Template 2
+              </button>
+              <button 
+                className={`template-button ${selectedTemplate === 'template3' ? 'active' : ''}`}
+                onClick={() => handleTemplateSwitch('template3')}
+              >
+                Template 3
+              </button>
             </div>
-            <button onClick={handleBackToDashboard} className="back-to-dashboard-button">
-              Back to Dashboard
-            </button>
-            <button onClick={handleLogout} className="logout-button">
-              Logout
-            </button>
+            
+            <div className="header-actions">
+              <div className="auto-save-status">
+                {hookAutoSaveStatus && (
+                  <span className={`status-indicator ${hookAutoSaveStatus.includes('failed') ? 'error' : 'success'}`}>
+                    {hookAutoSaveStatus}
+                  </span>
+                )}
+                {hookHasUnsavedChanges && !hookAutoSaveStatus && (
+                  <span className="status-indicator warning">
+                    Unsaved changes
+                  </span>
+                )}
+                {!hookAutoSaveStatus && !hookHasUnsavedChanges && (
+                  <span className="status-indicator success">
+                    All changes saved
+                  </span>
+                )}
+              </div>
+              <button onClick={handleBackToDashboard} className="back-to-dashboard-button">
+                Back to Dashboard
+              </button>
+            </div>
           </div>
-        </div>
         <div className="container">
           {/* Form Side */}
           {selectedTemplate === 'template1' ? 
@@ -330,6 +379,7 @@ function App() {
           }
         </div>
       </div>
+      </>
     );
   }
 

@@ -1,5 +1,5 @@
 .dashboard-container {
-  min-height: 100vh;
+  min-height: calc(100vh - 80px);
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 2rem;
   display: flex;
@@ -9,7 +9,7 @@
 
 .dashboard-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   padding: 1.5rem 2rem;
   margin-bottom: 3rem;
@@ -41,6 +41,10 @@
   transform: translateY(-1px);
 }
 
+.header-content {
+  text-align: center;
+}
+
 .dashboard-header h1 {
   font-size: 2.5rem;
   margin: 0;
@@ -51,6 +55,8 @@
   font-size: 1.2rem;
   opacity: 0.9;
   max-width: 600px;
+  margin: 0.5rem auto;
+  text-align: center;
 }
 
 /* Customer-friendly header content */
@@ -58,18 +64,57 @@
   flex: 1;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.product-switcher {
+  display: flex;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 0.25rem;
+}
+
+.product-switch-button {
+  background: transparent;
+  border: none;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.product-switch-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.product-switch-button.active {
+  background: rgba(255, 255, 255, 0.3);
+  font-weight: 600;
+}
+
 .welcome-message {
   font-size: 1.1rem;
   opacity: 0.95;
-  margin: 0.5rem 0 0.25rem 0;
+  margin: 0.5rem auto 0.25rem auto;
   font-weight: 500;
+  text-align: center;
 }
 
 .sub-message {
   font-size: 0.9rem;
   opacity: 0.8;
-  margin: 0;
+  margin: 0 auto;
   font-weight: 400;
+  text-align: center;
+  color: white;
 }
 
 .dashboard-options {

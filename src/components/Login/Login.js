@@ -29,6 +29,7 @@ function Login() {
         console.log('Login successful:', data);
         setIsAuthenticated(true);
         localStorage.setItem('cvBuilderAuth', 'true');
+        // Don't set selectedApp here - user will choose after login
         window.dispatchEvent(new CustomEvent('userAuthenticated'));
         
       } else {
@@ -80,11 +81,11 @@ function Login() {
     <div className="login-container">
       <div className="login-card">
         <div className="login-header">
-          <h1>Professional CV Builder</h1>
-          <p>{isLogin ? 'Sign in to create your professional CV' : 'Get Started - It\'s Free!'}</p>
+          <h1>Welcome</h1>
+          <p>{isLogin ? 'Sign in to access all products' : 'Get Started - It\'s Free!'}</p>
           {!isLogin && (
             <div className="welcome-message">
-              <p>Create professional CVs in minutes</p>
+              <p>Access all our products with one account</p>
               <p>Your data is automatically saved</p>
               <p>No experience needed - we guide you through it</p>
             </div>

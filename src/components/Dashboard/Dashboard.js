@@ -47,9 +47,6 @@ const Dashboard = ({ onTemplateSelect, onLogout, onEditCV, onCreateNewCV }) => {
           <p className="welcome-message">Welcome! Let's create your professional CV</p>
           <p className="sub-message">Your CVs are automatically saved and secure</p>
         </div>
-        <button onClick={onLogout} className="logout-button">
-          Logout
-        </button>
       </div>
       
       <div className="dashboard-options">
