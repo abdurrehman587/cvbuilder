@@ -296,7 +296,7 @@ const ProductsPage = ({ onProductSelect }) => {
                       <div className="template-card">
                         <div className="template-image-container">
                           <img 
-                            src="/images/templates/template1.jpg" 
+                            src="/images/templates/Template1.jpg" 
                             alt="Template 1 - Two Column Layout"
                             className="template-image"
                             onError={(e) => {
@@ -320,7 +320,7 @@ const ProductsPage = ({ onProductSelect }) => {
                       <div className="template-card">
                         <div className="template-image-container">
                           <img 
-                            src="/images/templates/template2.jpg" 
+                            src="/images/templates/Template2.jpg" 
                             alt="Template 2 - Modern Design"
                             className="template-image"
                             onError={(e) => {
@@ -344,7 +344,7 @@ const ProductsPage = ({ onProductSelect }) => {
                       <div className="template-card">
                         <div className="template-image-container">
                           <img 
-                            src="/images/templates/template3.jpg" 
+                            src="/images/templates/Template3.jpg" 
                             alt="Template 3 - Gradient Design"
                             className="template-image"
                             onError={(e) => {
