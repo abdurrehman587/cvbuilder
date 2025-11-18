@@ -229,11 +229,13 @@ function App() {
 
   if (!isAuthenticated) {
     // Show products page (which includes login form)
+    const selectedProduct = localStorage.getItem('selectedApp');
     return (
       <>
         <Header 
           isAuthenticated={false} 
-          currentProduct={null}
+          currentProduct={selectedProduct}
+          showProductsOnHeader={true}
         />
         <ProductsPage />
       </>

@@ -2,7 +2,7 @@ import React from 'react';
 import './Header.css';
 import { authService } from '../Supabase/supabase';
 
-const Header = ({ isAuthenticated, onLogout, currentProduct }) => {
+const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, showProductsOnHeader = false }) => {
   const handleLogout = async () => {
     try {
       await authService.signOut();
@@ -23,7 +23,32 @@ const Header = ({ isAuthenticated, onLogout, currentProduct }) => {
 
   const switchProduct = (productId) => {
     localStorage.setItem('selectedApp', productId);
-    window.location.reload();
+    if (showProductsOnHeader && window.handleProductSelect) {
+      // If on products page, use window handler to update state
+      window.handleProductSelect(productId);
+      
+      // Scroll to the product section
+      setTimeout(() => {
+        const sectionId = productId === 'cv-builder' ? 'cv-builder-section' : 'id-card-print-section';
+        const element = document.getElementById(sectionId);
+        if (element) {
+          const headerOffset = 100;
+          const elementPosition = element.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+          
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+        }
+      }, 100);
+    } else if (onProductSelect) {
+      // If callback provided, use it
+      onProductSelect(productId);
+    } else {
+      // If authenticated, reload to switch products
+      window.location.reload();
+    }
   };
 
   const goToProducts = () => {
@@ -45,7 +70,7 @@ const Header = ({ isAuthenticated, onLogout, currentProduct }) => {
         </div>
 
         <div className="header-center">
-          {isAuthenticated && (
+          {(isAuthenticated || showProductsOnHeader) && (
             <div className="product-switcher-header">
               <button
                 onClick={() => switchProduct('cv-builder')}
