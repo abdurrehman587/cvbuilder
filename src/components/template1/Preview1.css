@@ -600,7 +600,21 @@
 }
 
 /* Responsive Design */
+@media (max-width: 1024px) {
+  .cv-preview {
+    padding: 10px;
+  }
+  
+  .cv-section {
+    padding: 10px;
+  }
+}
+
 @media (max-width: 768px) {
+  .cv-preview {
+    padding: 8px;
+  }
+  
   .cv-header {
     flex-direction: column;
     align-items: center;
@@ -623,5 +637,61 @@
   
   .header-contact {
     align-items: center;
+  }
+  
+  .cv-section {
+    padding: 10px;
+    margin-bottom: 12px;
+  }
+  
+  .section-heading {
+    font-size: 1.3rem;
+  }
+  
+  .skill-pill,
+  .language-pill,
+  .hobby-pill {
+    font-size: 0.85rem;
+    padding: 4px 8px;
+  }
+  
+  .other-info-grid {
+    grid-template-columns: 1fr !important;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .cv-preview {
+    padding: 6px;
+  }
+  
+  .profile-image-container {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .header-name {
+    font-size: 24px;
+  }
+  
+  .header-title {
+    font-size: 16px;
+  }
+  
+  .cv-section {
+    padding: 8px;
+    margin-bottom: 10px;
+  }
+  
+  .section-heading {
+    font-size: 1.1rem;
+  }
+  
+  .skill-pill,
+  .language-pill,
+  .hobby-pill {
+    font-size: 0.75rem;
+    padding: 3px 6px;
   }
 }

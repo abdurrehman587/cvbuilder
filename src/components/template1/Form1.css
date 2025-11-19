@@ -85,9 +85,122 @@
 }
 
 /* Responsive Design */
+@media (max-width: 1024px) {
+  .section-title {
+    font-size: 15px;
+    padding: 12px 18px;
+  }
+  
+  .styled-input {
+    padding: 10px 14px;
+  }
+}
+
 @media (max-width: 768px) {
   .styled-input {
     font-size: 16px; /* Prevents zoom on iOS */
+    padding: 10px 12px;
+  }
+  
+  .section-title {
+    font-size: 14px;
+    padding: 12px 15px;
+  }
+  
+  .file-label::after {
+    padding: 10px 20px;
+    font-size: 13px;
+  }
+  
+  .add-education-button,
+  .add-experience-button,
+  .add-skill-button,
+  .add-certification-button,
+  .add-information-button,
+  .add-language-button,
+  .add-hobby-button,
+  .add-detail-button,
+  .add-reference-button {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+  
+  .remove-education-button,
+  .remove-experience-button,
+  .remove-skill-button,
+  .remove-certification-button,
+  .remove-language-button,
+  .remove-hobby-button,
+  .remove-detail-button,
+  .remove-reference-button {
+    padding: 6px 10px;
+    font-size: 10px;
+  }
+  
+  .contact-info-section,
+  .professional-summary-section,
+  .education-section,
+  .experience-section,
+  .certifications-section,
+  .skills-section,
+  .other-information-section,
+  .languages-section,
+  .hobbies-section,
+  .custom-section,
+  .references-section {
+    margin-bottom: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .section-title {
+    font-size: 13px;
+    padding: 10px 12px;
+  }
+  
+  .styled-input {
+    font-size: 16px;
+    padding: 8px 10px;
+  }
+  
+  .file-label::after {
+    padding: 8px 16px;
+    font-size: 12px;
+  }
+  
+  .add-education-button,
+  .add-experience-button,
+  .add-skill-button,
+  .add-certification-button,
+  .add-information-button,
+  .add-language-button,
+  .add-hobby-button,
+  .add-detail-button,
+  .add-reference-button {
+    padding: 5px 10px;
+    font-size: 10px;
+  }
+  
+  .remove-education-button,
+  .remove-experience-button,
+  .remove-skill-button,
+  .remove-certification-button,
+  .remove-language-button,
+  .remove-hobby-button,
+  .remove-detail-button,
+  .remove-reference-button {
+    padding: 5px 8px;
+    font-size: 9px;
+  }
+  
+  .input-label,
+  .file-label {
+    font-size: 12px;
+  }
+  
+  .custom-label-input,
+  .custom-value-input {
+    min-width: 100%;
   }
 }
 

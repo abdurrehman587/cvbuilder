@@ -669,19 +669,31 @@
 }
 
 /* Responsive Design */
+@media (max-width: 1024px) {
+  .template2-root .cv-preview {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .template2-root .cv-left-column,
+  .template2-root .cv-right-column {
+    min-height: auto;
+    padding: 25px 20px;
+  }
+}
+
 @media (max-width: 768px) {
   .template2-root .cv-preview {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
     max-width: 100%;
   }
   
   .template2-root .cv-left-column {
-    padding: 20px;
+    padding: 20px 15px;
     min-height: auto;
   }
   
   .template2-root .cv-right-column {
-    padding: 20px;
+    padding: 20px 15px;
     min-height: auto;
   }
   
@@ -711,7 +723,7 @@
   
   /* Other Information grid becomes single column on small screens */
   .template2-root .other-info-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
     gap: 8px;
   }
   
@@ -720,12 +732,61 @@
   .template2-root .hobbies-container {
     flex-direction: row;
     flex-wrap: wrap;
+    gap: 6px;
   }
   
   .template2-root .skill-pill,
   .template2-root .language-pill,
   .template2-root .hobby-pill {
     flex: 1;
-    min-width: 120px;
+    min-width: 100px;
+    font-size: 0.85rem;
+    padding: 4px 8px;
+  }
+  
+  .template2-root .section-heading {
+    font-size: 1.3rem;
+  }
+  
+  .template2-root .cv-section {
+    padding: 10px;
+    margin-bottom: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .template2-root .cv-left-column,
+  .template2-root .cv-right-column {
+    padding: 15px 12px;
+  }
+  
+  .template2-root .profile-image-container {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .template2-root .header-name {
+    font-size: 20px;
+  }
+  
+  .template2-root .header-title {
+    font-size: 14px;
+  }
+  
+  .template2-root .section-heading {
+    font-size: 1.1rem;
+  }
+  
+  .template2-root .cv-section {
+    padding: 8px;
+    margin-bottom: 10px;
+  }
+  
+  .template2-root .skill-pill,
+  .template2-root .language-pill,
+  .template2-root .hobby-pill {
+    min-width: 80px;
+    font-size: 0.75rem;
+    padding: 3px 6px;
   }
 }

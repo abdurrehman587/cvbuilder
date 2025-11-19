@@ -951,6 +951,16 @@
 }
 
 /* Responsive Design */
+@media (max-width: 1024px) {
+  .template3-root .cv-preview {
+    max-width: 100%;
+  }
+  
+  .template3-root .cv-main-content {
+    padding: 25px 20px;
+  }
+}
+
 @media (max-width: 768px) {
   .template3-root .cv-preview {
     max-width: 100%;
@@ -997,12 +1007,67 @@
     padding: 20px 15px;
   }
   
+  .template3-root .section-heading {
+    font-size: 1.2rem;
+  }
+  
+  .template3-root .cv-section {
+    padding: 10px;
+    margin-bottom: 12px;
+  }
+  
+  .template3-root .skill-pill,
+  .template3-root .language-pill,
+  .template3-root .hobby-pill {
+    font-size: 0.85rem;
+    padding: 4px 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .template3-root .cv-header {
+    padding: 15px 12px;
+  }
+  
+  .template3-root .header-name {
+    font-size: 1.4rem;
+  }
+  
+  .template3-root .header-title {
+    font-size: 0.85rem;
+  }
+  
+  .template3-root .profile-image-container {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .template3-root .cv-main-content {
+    padding: 15px 12px;
+  }
+  
+  .template3-root .section-heading {
+    font-size: 1.1rem;
+  }
+  
+  .template3-root .cv-section {
+    padding: 8px;
+    margin-bottom: 10px;
+  }
+  
+  .template3-root .skill-pill,
+  .template3-root .language-pill,
+  .template3-root .hobby-pill {
+    font-size: 0.75rem;
+    padding: 3px 6px;
+  }
+  
   .template3-root .other-info-grid {
     grid-template-columns: 1fr;
   }
   
   .template3-root .cv-footer {
-    padding: 20px 15px;
+    padding: 15px 12px;
   }
 }
 
