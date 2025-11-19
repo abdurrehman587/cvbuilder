@@ -79,6 +79,13 @@ function App() {
 
   // Handle "Make a new CV" button
   const handleMakeNewCV = () => {
+    console.log('handleMakeNewCV called - resetting products page flags');
+    // Reset products page flags to ensure CV builder can be shown
+    setForceShowProductsPage(false);
+    showProductsPageRef.current = false;
+    localStorage.removeItem('showProductsPage');
+    sessionStorage.removeItem('showProductsPage');
+    
     const newFormData = {
       name: '',
       position: '',
@@ -297,6 +304,120 @@ function App() {
   // It will only be reset when user explicitly navigates to a product via Header buttons
   // This ensures products page stays visible and doesn't redirect
 
+  // PRIORITY 0: If user explicitly wants CV Builder (currentView is 'cv-builder'), show it
+  // This takes absolute priority over products page - check BEFORE products page
+  if (currentView === 'cv-builder' && isAuthenticated) {
+    // User explicitly wants CV Builder - show it immediately
+    // Reset products page flags to ensure CV builder shows
+    if (forceShowProductsPage || showProductsPageRef.current) {
+      setForceShowProductsPage(false);
+      showProductsPageRef.current = false;
+    }
+    
+    return (
+      <>
+        <Header 
+          isAuthenticated={true} 
+          onLogout={handleLogout}
+          currentProduct="cv-builder"
+        />
+        <div className="App">
+          <div className="app-header-cv">
+            <h1>CV Builder</h1>
+            
+            <div className="template-selector">
+              <button 
+                className={`template-button ${selectedTemplate === 'template1' ? 'active' : ''}`}
+                onClick={() => handleTemplateSwitch('template1')}
+              >
+                Template 1
+              </button>
+              <button 
+                className={`template-button ${selectedTemplate === 'template2' ? 'active' : ''}`}
+                onClick={() => handleTemplateSwitch('template2')}
+              >
+                Template 2
+              </button>
+              <button 
+                className={`template-button ${selectedTemplate === 'template3' ? 'active' : ''}`}
+                onClick={() => handleTemplateSwitch('template3')}
+              >
+                Template 3
+              </button>
+            </div>
+            
+            <div className="header-actions">
+              <div className="auto-save-status">
+                {hookAutoSaveStatus && (
+                  <span className={`status-indicator ${hookAutoSaveStatus.includes('failed') ? 'error' : 'success'}`}>
+                    {hookAutoSaveStatus}
+                  </span>
+                )}
+                {hookHasUnsavedChanges && !hookAutoSaveStatus && (
+                  <span className="status-indicator warning">
+                    Unsaved changes
+                  </span>
+                )}
+                {!hookAutoSaveStatus && !hookHasUnsavedChanges && (
+                  <span className="status-indicator success">
+                    All changes saved
+                  </span>
+                )}
+              </div>
+              <button onClick={handleBackToDashboard} className="back-to-dashboard-button">
+                Back to Dashboard
+              </button>
+            </div>
+          </div>
+        <div className="container">
+          {/* Form Side */}
+          {selectedTemplate === 'template1' ? 
+            <Form1 
+              key={formResetKey}
+              formData={formData}
+              updateFormData={updateFormData}
+              markAsChanged={hookMarkAsChanged}
+            /> : 
+            selectedTemplate === 'template2' ?
+            <Form2 
+              key={formResetKey}
+              formData={formData}
+              updateFormData={updateFormData}
+              markAsChanged={hookMarkAsChanged}
+            /> :
+            <Form3 
+              key={formResetKey}
+              formData={formData}
+              updateFormData={updateFormData}
+              markAsChanged={hookMarkAsChanged}
+            />
+          }
+
+          {/* Preview Side */}
+          {selectedTemplate === 'template1' ? 
+            <Preview1 
+              formData={formData}
+              autoSaveStatus={autoSaveStatus}
+              hasUnsavedChanges={hasUnsavedChanges}
+            /> : 
+            selectedTemplate === 'template2' ?
+            <Preview2 
+              formData={formData}
+              autoSaveStatus={autoSaveStatus}
+              hasUnsavedChanges={hasUnsavedChanges}
+            /> :
+            <Preview3 
+              formData={formData}
+              autoSaveStatus={autoSaveStatus}
+              hasUnsavedChanges={hasUnsavedChanges}
+            />
+          }
+        </div>
+      </div>
+      </>
+    );
+  }
+
   // PRIORITY 1: Show products page if flag is set (regardless of auth status)
   // OR if user is not authenticated (default behavior for unauthenticated users)
   // OR if ref/state indicates we should show products page (persists through re-renders)
@@ -413,112 +534,6 @@ function App() {
     return <AdminPanel />;
   }
 
-  // CV Builder form view
-  // BUT only if we're not forcing products page to show
-  if (currentView === 'cv-builder' && !forceShowProductsPage && !showProductsPageRef.current) {
-    return (
-      <>
-        <Header 
-          isAuthenticated={true} 
-          onLogout={handleLogout}
-          currentProduct="cv-builder"
-        />
-        <div className="App">
-          <div className="app-header-cv">
-            <h1>CV Builder</h1>
-            
-            <div className="template-selector">
-              <button 
-                className={`template-button ${selectedTemplate === 'template1' ? 'active' : ''}`}
-                onClick={() => handleTemplateSwitch('template1')}
-              >
-                Template 1
-              </button>
-              <button 
-                className={`template-button ${selectedTemplate === 'template2' ? 'active' : ''}`}
-                onClick={() => handleTemplateSwitch('template2')}
-              >
-                Template 2
-              </button>
-              <button 
-                className={`template-button ${selectedTemplate === 'template3' ? 'active' : ''}`}
-                onClick={() => handleTemplateSwitch('template3')}
-              >
-                Template 3
-              </button>
-            </div>
-            
-            <div className="header-actions">
-              <div className="auto-save-status">
-                {hookAutoSaveStatus && (
-                  <span className={`status-indicator ${hookAutoSaveStatus.includes('failed') ? 'error' : 'success'}`}>
-                    {hookAutoSaveStatus}
-                  </span>
-                )}
-                {hookHasUnsavedChanges && !hookAutoSaveStatus && (
-                  <span className="status-indicator warning">
-                    Unsaved changes
-                  </span>
-                )}
-                {!hookAutoSaveStatus && !hookHasUnsavedChanges && (
-                  <span className="status-indicator success">
-                    All changes saved
-                  </span>
-                )}
-              </div>
-              <button onClick={handleBackToDashboard} className="back-to-dashboard-button">
-                Back to Dashboard
-              </button>
-            </div>
-          </div>
-        <div className="container">
-          {/* Form Side */}
-          {selectedTemplate === 'template1' ? 
-            <Form1 
-              key={formResetKey}
-              formData={formData}
-              updateFormData={updateFormData}
-              markAsChanged={hookMarkAsChanged}
-            /> : 
-            selectedTemplate === 'template2' ?
-            <Form2 
-              key={formResetKey}
-              formData={formData}
-              updateFormData={updateFormData}
-              markAsChanged={hookMarkAsChanged}
-            /> :
-            <Form3 
-              key={formResetKey}
-              formData={formData}
-              updateFormData={updateFormData}
-              markAsChanged={hookMarkAsChanged}
-            />
-          }
-
-          {/* Preview Side */}
-          {selectedTemplate === 'template1' ? 
-            <Preview1 
-              formData={formData}
-              autoSaveStatus={autoSaveStatus}
-              hasUnsavedChanges={hasUnsavedChanges}
-            /> : 
-            selectedTemplate === 'template2' ?
-            <Preview2 
-              formData={formData}
-              autoSaveStatus={autoSaveStatus}
-              hasUnsavedChanges={hasUnsavedChanges}
-            /> :
-            <Preview3 
-              formData={formData}
-              autoSaveStatus={autoSaveStatus}
-              hasUnsavedChanges={hasUnsavedChanges}
-            />
-          }
-        </div>
-      </div>
-      </>
-    );
-  }
 
   return null;
 }
