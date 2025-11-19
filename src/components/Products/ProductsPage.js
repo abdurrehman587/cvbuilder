@@ -83,10 +83,42 @@ const ProductsPage = ({ onProductSelect }) => {
   // Expose handler to window for Header to call
   React.useEffect(() => {
     window.handleProductSelect = handleProductSelect;
+    // Expose function to show login form
+    window.showLoginForm = () => {
+      setShowLogin(true);
+    };
     return () => {
       delete window.handleProductSelect;
+      delete window.showLoginForm;
     };
   }, []);
+
+  // Handle escape key to close modal and body scroll lock
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape' && showLogin) {
+        setShowLogin(false);
+        setError('');
+        setEmail('');
+        setPassword('');
+        setConfirmPassword('');
+      }
+    };
+    
+    if (showLogin) {
+      // Prevent body scroll when modal is open
+      document.body.style.overflow = 'hidden';
+      window.addEventListener('keydown', handleEscape);
+    } else {
+      // Restore body scroll when modal is closed
+      document.body.style.overflow = '';
+    }
+    
+    return () => {
+      window.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = '';
+    };
+  }, [showLogin]);
 
   // Auto-rotate carousel
   useEffect(() => {
@@ -194,9 +226,7 @@ const ProductsPage = ({ onProductSelect }) => {
   return (
     <div className="products-page">
       <div className="products-container">
-        {!showLogin ? (
-          <>
-            {/* Animated Product Carousel */}
+        {/* Animated Product Carousel */}
             <div 
               className="products-carousel-container"
               onMouseEnter={() => setIsPaused(true)}
@@ -625,88 +655,96 @@ const ProductsPage = ({ onProductSelect }) => {
                   </div>
                 </div>
               </div>
-          </>
-        ) : (
-          <div className="login-form-container">
-            <div className="login-card-inline">
-              <div className="login-header-inline">
-                <h2>Welcome</h2>
-                <p>{isLogin ? 'Sign in to access all products' : 'Get Started - It\'s Free!'}</p>
-                {!isLogin && (
-                  <div className="welcome-message-inline">
-                    <p>Access all our products with one account</p>
-                    <p>Your data is automatically saved</p>
-                  </div>
-                )}
-              </div>
 
-              <form onSubmit={handleSubmit} className="login-form-inline">
-                <div className="form-group-inline">
-                  <label htmlFor="email">Email Address</label>
-                  <input
-                    type="email"
-                    id="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Enter your email"
-                    required
-                  />
+        {/* Login Form Modal Popup */}
+        {showLogin && (
+          <div className="login-modal-overlay" onClick={() => {
+            setShowLogin(false);
+            setError('');
+            setEmail('');
+            setPassword('');
+            setConfirmPassword('');
+          }}>
+            <div className="login-modal-content" onClick={(e) => e.stopPropagation()}>
+              <button 
+                className="login-modal-close"
+                onClick={() => {
+                  setShowLogin(false);
+                  setError('');
+                  setEmail('');
+                  setPassword('');
+                  setConfirmPassword('');
+                }}
+                aria-label="Close"
+              >
+                ×
+              </button>
+              <div className="login-card-inline">
+                <div className="login-header-inline">
+                  <h2>Welcome</h2>
+                  <p>{isLogin ? 'Sign in to access all products' : 'Get Started - It\'s Free!'}</p>
+                  {!isLogin && (
+                    <div className="welcome-message-inline">
+                      <p>Access all our products with one account</p>
+                      <p>Your data is automatically saved</p>
+                    </div>
+                  )}
                 </div>
 
-                <div className="form-group-inline">
-                  <label htmlFor="password">Password</label>
-                  <input
-                    type="password"
-                    id="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter your password"
-                    required
-                  />
-                </div>
-
-                {!isLogin && (
+                <form onSubmit={handleSubmit} className="login-form-inline">
                   <div className="form-group-inline">
-                    <label htmlFor="confirmPassword">Confirm Password</label>
+                    <label htmlFor="email">Email Address</label>
                     <input
-                      type="password"
-                      id="confirmPassword"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="Confirm your password"
+                      type="email"
+                      id="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Enter your email"
                       required
                     />
                   </div>
-                )}
 
-                {error && <div className="error-message-inline">{error}</div>}
+                  <div className="form-group-inline">
+                    <label htmlFor="password">Password</label>
+                    <input
+                      type="password"
+                      id="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Enter your password"
+                      required
+                    />
+                  </div>
 
-                <button type="submit" className="login-button-inline">
-                  {isLogin ? 'Sign In' : 'Get Started'}
-                </button>
-              </form>
+                  {!isLogin && (
+                    <div className="form-group-inline">
+                      <label htmlFor="confirmPassword">Confirm Password</label>
+                      <input
+                        type="password"
+                        id="confirmPassword"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="Confirm your password"
+                        required
+                      />
+                    </div>
+                  )}
 
-              <div className="login-footer-inline">
-                <p>
-                  {isLogin ? "Don't have an account? " : "Already have an account? "}
-                  <button type="button" onClick={toggleMode} className="toggle-button-inline">
-                    {isLogin ? 'Get Started' : 'Sign In'}
+                  {error && <div className="error-message-inline">{error}</div>}
+
+                  <button type="submit" className="login-button-inline">
+                    {isLogin ? 'Sign In' : 'Get Started'}
                   </button>
-                </p>
-                <button 
-                  type="button" 
-                  onClick={() => {
-                    setShowLogin(false);
-                    setSelectedProduct(null);
-                    setError('');
-                    setEmail('');
-                    setPassword('');
-                    setConfirmPassword('');
-                  }}
-                  className="back-to-products-button"
-                >
-                  ← Back to Products
-                </button>
+                </form>
+
+                <div className="login-footer-inline">
+                  <p>
+                    {isLogin ? "Don't have an account? " : "Already have an account? "}
+                    <button type="button" onClick={toggleMode} className="toggle-button-inline">
+                      {isLogin ? 'Get Started' : 'Sign In'}
+                    </button>
+                  </p>
+                </div>
               </div>
             </div>
           </div>

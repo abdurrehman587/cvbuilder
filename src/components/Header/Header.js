@@ -23,8 +23,38 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
 
   const switchProduct = (productId) => {
     localStorage.setItem('selectedApp', productId);
-    if (showProductsOnHeader && window.handleProductSelect) {
-      // If on products page, use window handler to update state
+    
+    if (showProductsOnHeader && !isAuthenticated) {
+      // If on products page and not authenticated, show login form popup
+      if (window.showLoginForm) {
+        window.showLoginForm();
+      }
+    } else if (showProductsOnHeader && isAuthenticated) {
+      // If on products page and authenticated, navigate to the product
+      // Clear the products page flag to allow navigation
+      localStorage.removeItem('showProductsPage');
+      sessionStorage.removeItem('showProductsPage');
+      
+      // Reset the force show products page flag via window function if available
+      if (window.resetProductsPageFlag) {
+        window.resetProductsPageFlag();
+      }
+      
+      // Navigate to the selected product
+      if (productId === 'cv-builder') {
+        // Set currentView to dashboard for CV Builder
+        // Store in sessionStorage so App.js can read it on reload
+        sessionStorage.setItem('navigateToCVBuilder', 'true');
+        // Navigate to CV Builder dashboard
+        window.location.href = '/';
+        // The App.js will route to CV Builder dashboard based on selectedApp
+      } else if (productId === 'id-card-print') {
+        // Navigate to ID Card Print
+        window.location.href = '/';
+        // The App.js will route to ID Card Print based on selectedApp
+      }
+    } else if (showProductsOnHeader && window.handleProductSelect) {
+      // Fallback: If on products page and window handler exists, use it
       window.handleProductSelect(productId);
       
       // Scroll to the product section
@@ -52,10 +82,30 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
   };
 
   const goToProducts = () => {
-    if (isAuthenticated) {
-      handleLogout();
+    // Navigate to products page without logging out
+    // Always preserve authentication state first
+    const wasAuthenticated = isAuthenticated || localStorage.getItem('cvBuilderAuth') === 'true';
+    
+    if (wasAuthenticated) {
+      // Preserve authentication state
+      localStorage.setItem('cvBuilderAuth', 'true');
+    }
+    
+    // Set flag to show products page - this takes ABSOLUTE priority over other routing
+    // Use multiple storage methods for redundancy
+    localStorage.setItem('showProductsPage', 'true');
+    localStorage.setItem('showProductsPageTimestamp', Date.now().toString());
+    sessionStorage.setItem('showProductsPage', 'true');
+    
+    // Use URL hash as additional indicator (more reliable across page reloads)
+    // Navigate to root with hash to ensure products page is shown
+    // Force a full page reload to ensure flags are processed
+    if (window.location.pathname === '/' && window.location.hash === '#products') {
+      // Already on products page with hash, just reload
+      window.location.reload();
     } else {
-      window.location.href = '/';
+      // Navigate to products page
+      window.location.href = '/#products';
     }
   };
 

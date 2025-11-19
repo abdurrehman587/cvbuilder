@@ -40,6 +40,8 @@ function App() {
   const [autoSaveStatus, setAutoSaveStatus] = useState('');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [formResetKey, setFormResetKey] = useState(0);
+  const showProductsPageRef = React.useRef(false);
+  const [forceShowProductsPage, setForceShowProductsPage] = useState(false);
 
   // Use the useAutoSave hook for Supabase integration
   const { 
@@ -104,15 +106,27 @@ function App() {
     // Check authentication status on mount only
     const checkAuth = async () => {
       try {
+        // First check localStorage flag as a quick check
+        const localAuth = localStorage.getItem('cvBuilderAuth') === 'true';
+        
+        // Then verify with Supabase
         const user = await authService.getCurrentUser();
         if (user) {
           setIsAuthenticated(true);
+          // Ensure localStorage flag is set
+          localStorage.setItem('cvBuilderAuth', 'true');
         } else {
           setIsAuthenticated(false);
+          // Clear localStorage flag if no user
+          if (localAuth) {
+            localStorage.removeItem('cvBuilderAuth');
+          }
         }
       } catch (error) {
         console.log('Error checking auth:', error);
-        setIsAuthenticated(false);
+        // If there's an error but localStorage says authenticated, keep it temporarily
+        const localAuth = localStorage.getItem('cvBuilderAuth') === 'true';
+        setIsAuthenticated(localAuth);
       } finally {
         setIsLoading(false);
       }
@@ -123,6 +137,13 @@ function App() {
     // Check selected app on mount
     const app = localStorage.getItem('selectedApp') || 'cv-builder';
     setSelectedApp(app);
+    
+    // Check if we need to navigate to CV Builder dashboard
+    const navigateToCVBuilder = sessionStorage.getItem('navigateToCVBuilder') === 'true';
+    if (navigateToCVBuilder) {
+      sessionStorage.removeItem('navigateToCVBuilder');
+      setCurrentView('dashboard');
+    }
 
     // Listen for authentication events from Login component
     const handleAuth = () => {
@@ -199,7 +220,122 @@ function App() {
     }
   };
 
-  // Show loading screen while checking authentication
+  // Get current product for header
+  const currentProduct = localStorage.getItem('selectedApp') || 'cv-builder';
+  
+  // Check if user wants to see products page (for both authenticated and unauthenticated users)
+  // Check this FIRST, before ANY other routing logic, to ensure it takes absolute priority
+  // Check multiple sources: localStorage, sessionStorage, and URL hash
+  // IMPORTANT: Read flags BEFORE clearing them
+  const showProductsPageLocal = localStorage.getItem('showProductsPage') === 'true';
+  const showProductsPageSession = sessionStorage.getItem('showProductsPage') === 'true';
+  const showProductsPageHash = window.location.hash === '#products';
+  const showProductsPageFlag = showProductsPageLocal || showProductsPageSession || showProductsPageHash;
+  
+  // Use ref and state to persist the decision through re-renders
+  if (showProductsPageFlag) {
+    showProductsPageRef.current = true;
+    if (!forceShowProductsPage) {
+      setForceShowProductsPage(true);
+    }
+  }
+
+  // Debug logging (remove in production)
+  if (showProductsPageFlag) {
+    console.log('Products page flag detected:', {
+      local: showProductsPageLocal,
+      session: showProductsPageSession,
+      hash: showProductsPageHash,
+      isAuthenticated,
+      refValue: showProductsPageRef.current
+    });
+  }
+
+  // Expose function to reset products page flag (for Header to call)
+  // MUST be called before ANY conditional returns (React Hooks rule)
+  useEffect(() => {
+    window.resetProductsPageFlag = () => {
+      setForceShowProductsPage(false);
+      showProductsPageRef.current = false;
+    };
+    return () => {
+      delete window.resetProductsPageFlag;
+    };
+  }, []);
+
+  // Clear flags in useEffect after component has rendered
+  // MUST be called before ANY conditional returns (React Hooks rule)
+  // Don't clear flags/ref immediately - keep them until user navigates away
+  useEffect(() => {
+    // Only clear flags if we're actually showing the products page
+    // This prevents premature clearing that causes redirects
+    if (forceShowProductsPage || showProductsPageRef.current) {
+      // Clear localStorage/sessionStorage flags after a delay to ensure they're processed
+      // But DON'T reset forceShowProductsPage or the ref - keep them true
+      const clearTimer = setTimeout(() => {
+        if (showProductsPageLocal) {
+          localStorage.removeItem('showProductsPage');
+          localStorage.removeItem('showProductsPageTimestamp');
+        }
+        if (showProductsPageSession) {
+          sessionStorage.removeItem('showProductsPage');
+        }
+        if (showProductsPageHash && window.location.hash === '#products') {
+          window.history.replaceState(null, '', window.location.pathname);
+        }
+      }, 2000); // Longer delay to ensure products page is fully rendered and stable
+      
+      if (showProductsPageFlag && isAuthenticated) {
+        setCurrentView('products');
+      }
+      
+      return () => clearTimeout(clearTimer);
+    }
+  }, [showProductsPageLocal, showProductsPageSession, showProductsPageHash, showProductsPageFlag, isAuthenticated, forceShowProductsPage]);
+  
+  // Keep forceShowProductsPage true once set - don't reset it automatically
+  // It will only be reset when user explicitly navigates to a product via Header buttons
+  // This ensures products page stays visible and doesn't redirect
+
+  // PRIORITY 1: Show products page if flag is set (regardless of auth status)
+  // OR if user is not authenticated (default behavior for unauthenticated users)
+  // OR if ref/state indicates we should show products page (persists through re-renders)
+  // This check MUST happen BEFORE loading checks to ensure it takes absolute priority
+  const shouldShowProductsPage = showProductsPageFlag || showProductsPageRef.current || forceShowProductsPage || !isAuthenticated;
+  
+  // Debug logging for routing decision
+  if (showProductsPageFlag) {
+    console.log('Routing decision:', {
+      shouldShowProductsPage,
+      showProductsPageFlag,
+      refValue: showProductsPageRef.current,
+      isAuthenticated,
+      isLoading
+    });
+  }
+  
+  // If products page flag is set, show products page IMMEDIATELY, even during loading
+  if (shouldShowProductsPage) {
+    // Show products page (which includes login form for unauthenticated users)
+    const selectedProduct = localStorage.getItem('selectedApp');
+    
+    console.log('Rendering ProductsPage - shouldShowProductsPage is true');
+    
+    // IMPORTANT: Return immediately - don't let any other logic interfere
+    return (
+      <>
+        <Header 
+          isAuthenticated={isAuthenticated} 
+          currentProduct={selectedProduct}
+          showProductsOnHeader={true}
+          onLogout={isAuthenticated ? handleLogout : undefined}
+        />
+        <ProductsPage />
+      </>
+    );
+  }
+
+  // Show loading screen while checking authentication (only if not showing products page)
   if (isLoading) {
     return (
       <div style={{ 
@@ -223,28 +359,20 @@ function App() {
       </div>
     );
   }
-
-  // Get current product for header
-  const currentProduct = localStorage.getItem('selectedApp') || 'cv-builder';
-
-  if (!isAuthenticated) {
-    // Show products page (which includes login form)
-    const selectedProduct = localStorage.getItem('selectedApp');
-    return (
-      <>
-        <Header 
-          isAuthenticated={false} 
-          currentProduct={selectedProduct}
-          showProductsOnHeader={true}
-        />
-        <ProductsPage />
-      </>
-    );
+  
+  // Clear any remaining flags if we're not showing products page
+  if (showProductsPageLocal) {
+    localStorage.removeItem('showProductsPage');
+    localStorage.removeItem('showProductsPageTimestamp');
+  }
+  if (showProductsPageSession) {
+    sessionStorage.removeItem('showProductsPage');
   }
 
   // After login, check if a product was selected from products page
+  // BUT only if we're not forcing products page to show
   const selectedProduct = localStorage.getItem('selectedApp');
-  if (selectedProduct === 'id-card-print') {
+  if (selectedProduct === 'id-card-print' && !forceShowProductsPage && !showProductsPageRef.current) {
     return (
       <>
         <Header 
@@ -257,8 +385,13 @@ function App() {
     );
   }
 
+  // Check if user wants to go to CV Builder (when authenticated and selectedApp is cv-builder)
+  // This should take priority over products page if user explicitly clicked CV Builder button
+  const wantsCVBuilder = isAuthenticated && selectedProduct === 'cv-builder' && !forceShowProductsPage && !showProductsPageRef.current;
+  
   // Default to CV Builder dashboard
-  if (currentView === 'dashboard') {
+  // BUT only if we're not forcing products page to show
+  if ((currentView === 'dashboard' || wantsCVBuilder) && !forceShowProductsPage && !showProductsPageRef.current) {
     return (
       <>
         <Header 
@@ -280,7 +413,9 @@ function App() {
     return <AdminPanel />;
   }
 
-  if (currentView === 'cv-builder') {
+  // CV Builder form view
+  // BUT only if we're not forcing products page to show
+  if (currentView === 'cv-builder' && !forceShowProductsPage && !showProductsPageRef.current) {
     return (
       <>
         <Header 
