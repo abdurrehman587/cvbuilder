@@ -118,6 +118,10 @@
   position: relative;
   width: 3.5in;
   height: 2.2in;
+  min-width: 3.5in;
+  min-height: 2.2in;
+  max-width: 3.5in;
+  max-height: 2.2in;
   border: 2px dashed #ccc;
   border-radius: 6px;
   cursor: pointer;
@@ -125,6 +129,10 @@
   background: #fafafa;
   overflow: hidden;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
 }
 
 .image-upload-area:hover {
@@ -146,15 +154,23 @@
   position: absolute;
   top: 0;
   left: 0;
+  right: 0;
+  bottom: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+  object-position: center center;
   border-radius: 6px;
   z-index: 2;
   display: block;
   visibility: visible;
   opacity: 1;
   background: white;
+  /* Ensure image scales to fit container */
+  box-sizing: border-box;
+  margin: auto;
 }
 
 .remove-button {
@@ -651,8 +667,10 @@
 }
 
 .crop-image {
-  max-width: calc(100% - 100px); /* Account for container padding */
-  max-height: calc(100% - 100px); /* Account for container padding */
+  max-width: 50%; /* Reduce image size to 50% of container */
+  max-height: 50%; /* Reduce image size to 50% of container */
+  width: auto;
+  height: auto;
   display: block;
   user-select: none;
   pointer-events: none;
@@ -853,8 +871,8 @@
     margin: 0; /* No margin on mobile */
   }
   .crop-image {
-    max-width: calc(100% - 60px); /* Account for reduced padding */
-    max-height: calc(100% - 60px);
+    max-width: 50%; /* Match desktop size */
+    max-height: 50%;
   }
   .crop-dialog-header {
     padding: 0.75rem 1rem;

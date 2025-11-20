@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { useToast } from '../../../../hooks/use-toast';
 import './IDCardPrinter.css';
 
-type ScanMode = 'original' | 'auto' | 'gray';
+type ScanMode = 'original' | 'auto' | 'gray' | 'black-white';
 
 interface ImageSettings {
   scanMode: ScanMode;
@@ -144,9 +144,9 @@ const IDCardPrinter: React.FC = () => {
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const data = imageData.data;
 
-        // For auto mode, first pass: calculate average brightness
+        // For auto mode and black-white mode, first pass: calculate average brightness
         let avgBrightness = 0;
-        if (scanMode === 'auto') {
+        if (scanMode === 'auto' || scanMode === 'black-white') {
           let totalBrightness = 0;
           let pixelCount = 0;
           for (let i = 0; i < data.length; i += 4) {
@@ -179,6 +179,66 @@ const IDCardPrinter: React.FC = () => {
             data[i] = brightenedGray;
             data[i + 1] = brightenedGray;
             data[i + 2] = brightenedGray;
+          } else if (scanMode === 'black-white') {
+            // Calculate grayscale value with brightness already applied
+            const gray = r * 0.299 + g * 0.587 + b * 0.114;
+            
+            // Apply smart brightness adjustment based on pixel darkness
+            // Preserve all content by intelligently brightening dark areas
+            let brightenedGray = gray;
+            if (gray < 50) {
+              // Very dark pixels - significant boost to preserve text/details
+              brightenedGray = Math.min(255, gray * 2.0);
+            } else if (gray < 100) {
+              // Dark pixels - moderate boost
+              brightenedGray = Math.min(255, gray * 1.5);
+            } else if (gray < 150) {
+              // Medium pixels - light boost
+              brightenedGray = Math.min(255, gray * 1.2);
+            } else {
+              // Bright pixels - minimal or no boost
+              brightenedGray = Math.min(255, gray * 1.05);
+            }
+            
+            // Apply moderate contrast enhancement to improve clarity
+            // This helps separate text from background while preserving details
+            const contrastFactor = 1.3;
+            const midPoint = 128;
+            let enhancedGray = midPoint + (brightenedGray - midPoint) * contrastFactor;
+            enhancedGray = Math.min(255, Math.max(0, enhancedGray));
+            
+            // Calculate adaptive threshold using Otsu-like approach
+            // This ensures optimal separation between foreground (text) and background
+            let threshold = 128;
+            
+            // Adjust threshold based on image brightness, but be conservative
+            if (avgBrightness < 60) {
+              // Very dark image - use low threshold to preserve dark text
+              threshold = 85;
+            } else if (avgBrightness < 90) {
+              // Dark image - use moderate-low threshold
+              threshold = 100;
+            } else if (avgBrightness < 120) {
+              // Medium-dark image - use moderate threshold
+              threshold = 115;
+            } else if (avgBrightness < 150) {
+              // Normal image - use standard threshold
+              threshold = 125;
+            } else if (avgBrightness < 180) {
+              // Bright image - use moderate-high threshold
+              threshold = 135;
+            } else {
+              // Very bright image - use higher threshold
+              threshold = 150;
+            }
+            
+            // Convert to pure black and white with adaptive threshold
+            // The smart brightness adjustment ensures all content is visible
+            const bw = enhancedGray > threshold ? 255 : 0;
+            
+            data[i] = bw;
+            data[i + 1] = bw;
+            data[i + 2] = bw;
           } else if (scanMode === 'auto') {
             // Auto enhance: increase brightness significantly without blurring
             // Use direct pixel manipulation (no averaging or smoothing to avoid blur)
@@ -663,6 +723,21 @@ const IDCardPrinter: React.FC = () => {
                 src={displayImage} 
                 alt={`${side} side`}
                 className="uploaded-image"
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  width: '100%',
+                  height: '100%',
+                  maxWidth: '100%',
+                  maxHeight: '100%',
+                  objectFit: 'contain',
+                  objectPosition: 'center center',
+                  boxSizing: 'border-box',
+                  margin: 'auto'
+                }}
                 onError={(e) => {
                   console.error('Image load error:', e);
                   toast({
@@ -720,6 +795,7 @@ const IDCardPrinter: React.FC = () => {
                 <ToggleGroupItem value="original" aria-label="Original">Original</ToggleGroupItem>
                 <ToggleGroupItem value="auto" aria-label="Auto">Auto</ToggleGroupItem>
                 <ToggleGroupItem value="gray" aria-label="Gray">Gray</ToggleGroupItem>
+                <ToggleGroupItem value="black-white" aria-label="Black & White">Black & White</ToggleGroupItem>
               </ToggleGroup>
             </div>
 
@@ -1036,21 +1112,21 @@ const CropDialog = ({
       const imageContainerRect = container.getBoundingClientRect();
       const imgRect = img.getBoundingClientRect();
       
-      // Calculate offset of image container within crop container
-      const offsetX = imageContainerRect.left - cropContainerRect.left;
-      const offsetY = imageContainerRect.top - cropContainerRect.top;
+      // Image is centered in its container, so get its center position
+      const imageCenterX = imageContainerRect.left + imageContainerRect.width / 2;
+      const imageCenterY = imageContainerRect.top + imageContainerRect.height / 2;
       
-      // Center the crop box in the working space (crop container)
-      const cropContainerCenterX = cropContainerRect.width / 2;
-      const cropContainerCenterY = cropContainerRect.height / 2;
-      
-      // Calculate crop box size based on image display size or container size
-      const maxWidth = Math.min(imgRect.width, cropContainerRect.width - 100);
+      // Calculate crop box size based on image display size
+      const maxWidth = Math.min(imgRect.width * 0.8, cropContainerRect.width - 100);
       const maxHeight = maxWidth / ID_CARD_ASPECT_RATIO;
       
-      // Position crop box centered in crop container (accounting for offset)
-      const x = cropContainerCenterX - maxWidth / 2 - offsetX;
-      const y = cropContainerCenterY - maxHeight / 2 - offsetY;
+      // Position crop box centered on the image
+      // Convert from screen coordinates to container-relative coordinates
+      const cropBoxCenterX = imageCenterX - cropContainerRect.left;
+      const cropBoxCenterY = imageCenterY - cropContainerRect.top;
+      
+      const x = cropBoxCenterX - maxWidth / 2;
+      const y = cropBoxCenterY - maxHeight / 2;
       
       setCropBox({
         x,
@@ -1377,99 +1453,83 @@ const CropDialog = ({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Get the container's displayed dimensions
+    // Get container and image dimensions
     const containerRect = container.getBoundingClientRect();
-    
-    // Get the image's displayed dimensions (accounting for rotation)
     const imgRect = img.getBoundingClientRect();
     
-    // Calculate scale from displayed size to natural size
-    const scaleX = img.naturalWidth / imgRect.width;
-    const scaleY = img.naturalHeight / imgRect.height;
-
-    // Crop box coordinates are relative to the container
-    // We need to transform them to the image's coordinate space
-    // First, get the image's position relative to container
-    const imgLeft = (containerRect.width - imgRect.width) / 2;
-    const imgTop = (containerRect.height - imgRect.height) / 2;
+    // Calculate image position within container (centered)
+    const imgOffsetX = (containerRect.width - imgRect.width) / 2;
+    const imgOffsetY = (containerRect.height - imgRect.height) / 2;
     
-    // Convert crop box coordinates from container space to image space
-    const cropXInImage = (cropBox.x - imgLeft) * scaleX;
-    const cropYInImage = (cropBox.y - imgTop) * scaleY;
-    const cropWidthInImage = cropBox.width * scaleX;
-    const cropHeightInImage = cropBox.height * scaleY;
+    // Convert crop box from container coordinates to image display coordinates
+    const cropXInImage = cropBox.x - imgOffsetX;
+    const cropYInImage = cropBox.y - imgOffsetY;
 
-    // If rotated, rotate the image first, then crop
+    // Handle rotation
     if (Math.abs(cropBox.angle) > 0.01) {
-      // Create a temporary canvas to rotate the entire image
-      const tempCanvas = document.createElement('canvas');
-      const tempCtx = tempCanvas.getContext('2d');
-      if (!tempCtx) return;
+      // Step 1: Create rotated version of the full image
+      const rotatedCanvas = document.createElement('canvas');
+      const rotatedCtx = rotatedCanvas.getContext('2d');
+      if (!rotatedCtx) return;
 
-      // Calculate size needed for rotated image
+      // Calculate bounding box for rotated image
       const cos = Math.abs(Math.cos(cropBox.angle));
       const sin = Math.abs(Math.sin(cropBox.angle));
       const rotatedWidth = img.naturalWidth * cos + img.naturalHeight * sin;
       const rotatedHeight = img.naturalWidth * sin + img.naturalHeight * cos;
 
-      tempCanvas.width = rotatedWidth;
-      tempCanvas.height = rotatedHeight;
+      rotatedCanvas.width = rotatedWidth;
+      rotatedCanvas.height = rotatedHeight;
 
-      // Rotate and draw the entire image
-      tempCtx.translate(rotatedWidth / 2, rotatedHeight / 2);
-      tempCtx.rotate(cropBox.angle);
-      tempCtx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
+      // Draw rotated image centered
+      rotatedCtx.translate(rotatedWidth / 2, rotatedHeight / 2);
+      rotatedCtx.rotate(cropBox.angle);
+      rotatedCtx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
 
-      // Transform crop box coordinates from original image space to rotated image space
-      const centerX = img.naturalWidth / 2;
-      const centerY = img.naturalHeight / 2;
+      // Step 2: Map crop box from displayed (rotated) coordinates to rotated canvas
+      // The displayed image shows the rotated version, so imgRect reflects the rotated bounding box
+      // Calculate scale factors
+      const scaleX = rotatedWidth / imgRect.width;
+      const scaleY = rotatedHeight / imgRect.height;
       
-      // Get crop box corners in original image space
-      const corners = [
-        { x: cropXInImage, y: cropYInImage },
-        { x: cropXInImage + cropWidthInImage, y: cropYInImage },
-        { x: cropXInImage + cropWidthInImage, y: cropYInImage + cropHeightInImage },
-        { x: cropXInImage, y: cropYInImage + cropHeightInImage }
-      ];
+      // Map crop box coordinates to rotated canvas space
+      let cropX = cropXInImage * scaleX;
+      let cropY = cropYInImage * scaleY;
+      let cropW = cropBox.width * scaleX;
+      let cropH = cropBox.height * scaleY;
 
-      // Transform each corner to rotated space
-      const rotatedCorners = corners.map(corner => {
-        const dx = corner.x - centerX;
-        const dy = corner.y - centerY;
-        const rotatedX = dx * Math.cos(cropBox.angle) - dy * Math.sin(cropBox.angle) + rotatedWidth / 2;
-        const rotatedY = dx * Math.sin(cropBox.angle) + dy * Math.cos(cropBox.angle) + rotatedHeight / 2;
-        return { x: rotatedX, y: rotatedY };
-      });
+      // Clamp to rotated canvas bounds
+      cropX = Math.max(0, Math.min(cropX, rotatedWidth - cropW));
+      cropY = Math.max(0, Math.min(cropY, rotatedHeight - cropH));
+      cropW = Math.min(cropW, rotatedWidth - cropX);
+      cropH = Math.min(cropH, rotatedHeight - cropY);
 
-      // Find bounding box of rotated corners
-      const minX = Math.max(0, Math.min(...rotatedCorners.map(c => c.x)));
-      const minY = Math.max(0, Math.min(...rotatedCorners.map(c => c.y)));
-      const maxX = Math.min(rotatedWidth, Math.max(...rotatedCorners.map(c => c.x)));
-      const maxY = Math.min(rotatedHeight, Math.max(...rotatedCorners.map(c => c.y)));
-
-      const rotatedCropX = minX;
-      const rotatedCropY = minY;
-      const rotatedCropWidth = maxX - minX;
-      const rotatedCropHeight = maxY - minY;
-
-      // Set final canvas size to match crop box dimensions
+      // Step 3: Create output canvas with crop box display dimensions
       canvas.width = cropBox.width;
       canvas.height = cropBox.height;
 
-      // Draw the cropped portion from rotated image
+      // Extract and draw the cropped region
       ctx.drawImage(
-        tempCanvas,
-        rotatedCropX, rotatedCropY, rotatedCropWidth, rotatedCropHeight,
+        rotatedCanvas,
+        cropX, cropY, cropW, cropH,
         0, 0, cropBox.width, cropBox.height
       );
     } else {
-      // No rotation - simple crop
+      // No rotation - direct crop from original image
+      const scaleX = img.naturalWidth / imgRect.width;
+      const scaleY = img.naturalHeight / imgRect.height;
+      
+      const cropX = cropXInImage * scaleX;
+      const cropY = cropYInImage * scaleY;
+      const cropW = cropBox.width * scaleX;
+      const cropH = cropBox.height * scaleY;
+      
       canvas.width = cropBox.width;
       canvas.height = cropBox.height;
 
       ctx.drawImage(
         img,
-        cropXInImage, cropYInImage, cropWidthInImage, cropHeightInImage,
+        cropX, cropY, cropW, cropH,
         0, 0, cropBox.width, cropBox.height
       );
     }
@@ -1523,11 +1583,15 @@ const CropDialog = ({
           <div
             ref={imageRef}
             style={{
-              display: 'inline-block',
-              transition: 'none',
-              position: 'relative',
-              maxWidth: '100%',
-              maxHeight: '100%'
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '100%',
+              height: '100%',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              transition: 'none'
             }}
           >
             <img
@@ -1538,10 +1602,12 @@ const CropDialog = ({
                 transform: cropBox ? `rotate(${cropBox.angle}rad)` : 'none',
                 transformOrigin: 'center center',
                 transition: 'none',
-                maxWidth: '100%',
-                maxHeight: '100%',
+                maxWidth: '50%',
+                maxHeight: '50%',
                 width: 'auto',
-                height: 'auto'
+                height: 'auto',
+                display: 'block',
+                margin: 'auto'
               }}
               onLoad={initializeCropBox}
             />
