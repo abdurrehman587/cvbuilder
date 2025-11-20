@@ -97,14 +97,13 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
     localStorage.setItem('showProductsPageTimestamp', Date.now().toString());
     sessionStorage.setItem('showProductsPage', 'true');
     
-    // Use URL hash as additional indicator (more reliable across page reloads)
-    // Navigate to root with hash to ensure products page is shown
-    // Force a full page reload to ensure flags are processed
+    // Always navigate - if already on products page, reload to ensure state is refreshed
     if (window.location.pathname === '/' && window.location.hash === '#products') {
-      // Already on products page with hash, just reload
+      // Already on products page - reload to ensure routing works
       window.location.reload();
     } else {
-      // Navigate to products page
+      // Navigate to products page with hash
+      // This will trigger a page load, and App.js will read the flags on mount
       window.location.href = '/#products';
     }
   };

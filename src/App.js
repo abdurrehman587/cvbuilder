@@ -152,6 +152,40 @@ function App() {
       setCurrentView('dashboard');
     }
 
+    // Expose function to navigate to dashboard from ProductsPage
+    window.navigateToDashboard = () => {
+      setForceShowProductsPage(false);
+      showProductsPageRef.current = false;
+      localStorage.removeItem('showProductsPage');
+      sessionStorage.removeItem('showProductsPage');
+      setCurrentView('dashboard');
+    };
+
+    // Listen for hash changes to handle products page navigation
+    const handleHashChange = () => {
+      if (window.location.hash === '#products') {
+        // Hash changed to #products - ensure flags are set
+        localStorage.setItem('showProductsPage', 'true');
+        sessionStorage.setItem('showProductsPage', 'true');
+        setForceShowProductsPage(true);
+        showProductsPageRef.current = true;
+      } else if (window.location.hash !== '#products' && (forceShowProductsPage || showProductsPageRef.current)) {
+        // Hash changed away from #products - clear products page state
+        setForceShowProductsPage(false);
+        showProductsPageRef.current = false;
+        localStorage.removeItem('showProductsPage');
+        sessionStorage.removeItem('showProductsPage');
+      }
+    };
+    
+    // Check hash on mount to handle page reloads
+    if (window.location.hash === '#products') {
+      localStorage.setItem('showProductsPage', 'true');
+      sessionStorage.setItem('showProductsPage', 'true');
+      setForceShowProductsPage(true);
+      showProductsPageRef.current = true;
+    }
+
     // Listen for authentication events from Login component
     const handleAuth = () => {
       setIsAuthenticated(true);
@@ -166,9 +200,12 @@ function App() {
     };
 
     window.addEventListener('userAuthenticated', handleAuth);
+    window.addEventListener('hashchange', handleHashChange);
     
     return () => {
       window.removeEventListener('userAuthenticated', handleAuth);
+      window.removeEventListener('hashchange', handleHashChange);
+      delete window.navigateToDashboard;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run on mount, not on currentView changes - intentionally excluded to prevent logout on view change
@@ -240,10 +277,22 @@ function App() {
   const showProductsPageFlag = showProductsPageLocal || showProductsPageSession || showProductsPageHash;
   
   // Use ref and state to persist the decision through re-renders
+  // IMPORTANT: Set these IMMEDIATELY when flags are detected, before any other logic
   if (showProductsPageFlag) {
+    // Set ref immediately (synchronous)
     showProductsPageRef.current = true;
+    // Set state if not already set (this will trigger a re-render)
     if (!forceShowProductsPage) {
       setForceShowProductsPage(true);
+    }
+  } else {
+    // Only clear if we're sure we shouldn't show products page
+    // Don't clear if we're already showing it (to prevent flickering)
+    if (!showProductsPageFlag && !forceShowProductsPage && showProductsPageRef.current) {
+      // Only clear if hash is also not set
+      if (window.location.hash !== '#products') {
+        showProductsPageRef.current = false;
+      }
     }
   }
 
@@ -265,38 +314,33 @@ function App() {
       setForceShowProductsPage(false);
       showProductsPageRef.current = false;
     };
+    // Expose function to force show products page (for Header to call)
+    window.forceShowProductsPage = () => {
+      setForceShowProductsPage(true);
+      showProductsPageRef.current = true;
+    };
     return () => {
       delete window.resetProductsPageFlag;
+      delete window.forceShowProductsPage;
     };
   }, []);
 
-  // Clear flags in useEffect after component has rendered
-  // MUST be called before ANY conditional returns (React Hooks rule)
-  // Don't clear flags/ref immediately - keep them until user navigates away
+  // Keep products page state persistent - don't clear flags/hash when on products page
+  // This ensures page reloads keep user on products page
   useEffect(() => {
-    // Only clear flags if we're actually showing the products page
-    // This prevents premature clearing that causes redirects
+    // If we're showing products page, ensure hash is set for reload persistence
     if (forceShowProductsPage || showProductsPageRef.current) {
-      // Clear localStorage/sessionStorage flags after a delay to ensure they're processed
-      // But DON'T reset forceShowProductsPage or the ref - keep them true
-      const clearTimer = setTimeout(() => {
-        if (showProductsPageLocal) {
-          localStorage.removeItem('showProductsPage');
-          localStorage.removeItem('showProductsPageTimestamp');
-        }
-        if (showProductsPageSession) {
-          sessionStorage.removeItem('showProductsPage');
-        }
-        if (showProductsPageHash && window.location.hash === '#products') {
-          window.history.replaceState(null, '', window.location.pathname);
-        }
-      }, 2000); // Longer delay to ensure products page is fully rendered and stable
+      // Ensure hash is set so reload works
+      if (window.location.hash !== '#products') {
+        window.location.hash = '#products';
+      }
+      // Set flags to ensure they persist
+      localStorage.setItem('showProductsPage', 'true');
+      sessionStorage.setItem('showProductsPage', 'true');
       
       if (showProductsPageFlag && isAuthenticated) {
         setCurrentView('products');
       }
-      
-      return () => clearTimeout(clearTimer);
     }
   }, [showProductsPageLocal, showProductsPageSession, showProductsPageHash, showProductsPageFlag, isAuthenticated, forceShowProductsPage]);
   

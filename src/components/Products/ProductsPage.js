@@ -157,8 +157,88 @@ const ProductsPage = ({ onProductSelect }) => {
     }, 100);
   };
 
-  const handleGetStarted = () => {
-    setShowLogin(true);
+  const handleGetStarted = (productId) => {
+    // Check if user is authenticated
+    const checkAuth = async () => {
+      try {
+        const user = await authService.getCurrentUser();
+        if (user) {
+          // User is authenticated - navigate to respective dashboard
+          // Clear products page flags
+          localStorage.removeItem('showProductsPage');
+          sessionStorage.removeItem('showProductsPage');
+          if (window.resetProductsPageFlag) {
+            window.resetProductsPageFlag();
+          }
+          
+          // Set selected product
+          localStorage.setItem('selectedApp', productId);
+          
+          if (productId === 'cv-builder') {
+            // Navigate to CV Builder dashboard
+            // Set flag to navigate to dashboard
+            sessionStorage.setItem('navigateToCVBuilder', 'true');
+            // Clear hash if present
+            if (window.location.hash) {
+              window.history.replaceState(null, '', window.location.pathname);
+            }
+            // Navigate to root - App.js will show dashboard
+            window.location.href = '/';
+          } else if (productId === 'id-card-print') {
+            // Navigate to ID Card Print page
+            // Clear hash if present
+            if (window.location.hash) {
+              window.history.replaceState(null, '', window.location.pathname);
+            }
+            // Navigate to root - App.js will show ID Card Print based on selectedApp
+            window.location.href = '/';
+          }
+        } else {
+          // User is not authenticated - show login form
+          setShowLogin(true);
+        }
+      } catch (error) {
+        console.error('Error checking auth:', error);
+        // On error, show login form
+        setShowLogin(true);
+      }
+    };
+    checkAuth();
+  };
+
+  const handleTemplateClick = (templateNumber) => {
+    // Check if user is authenticated
+    const checkAuth = async () => {
+      try {
+        const user = await authService.getCurrentUser();
+        if (user) {
+          // User is authenticated - navigate to dashboard
+          // Clear products page flags
+          localStorage.removeItem('showProductsPage');
+          sessionStorage.removeItem('showProductsPage');
+          if (window.resetProductsPageFlag) {
+            window.resetProductsPageFlag();
+          }
+          // Set selected template and navigate to dashboard
+          localStorage.setItem('selectedTemplate', `template${templateNumber}`);
+          // Navigate to dashboard via window function
+          if (window.navigateToDashboard) {
+            window.navigateToDashboard();
+          } else {
+            // Fallback: navigate to root
+            window.location.href = '/';
+          }
+        } else {
+          // User is not authenticated - show login form
+          setShowLogin(true);
+        }
+      } catch (error) {
+        console.error('Error checking auth:', error);
+        // On error, show login form
+        setShowLogin(true);
+      }
+    };
+    checkAuth();
   };
 
   const handleSubmit = async (e) => {
@@ -281,8 +361,12 @@ const ProductsPage = ({ onProductSelect }) => {
                           <div className="carousel-product-icon">{product.icon}</div>
                           <h2 className="carousel-product-name">{product.name}</h2>
                           <p className="carousel-product-description">{product.description}</p>
-                          <div className="carousel-product-button">
-                            <span>View Details</span>
+                          <div 
+                            className="carousel-product-button"
+                            onClick={() => handleGetStarted(product.id)}
+                            style={{ cursor: 'pointer' }}
+                          >
+                            <span>Get Started</span>
                             <span className="button-arrow">→</span>
                           </div>
                         </div>
@@ -319,11 +403,11 @@ const ProductsPage = ({ onProductSelect }) => {
                 <div className="product-detail-content">
                   {/* Templates Section */}
                   <div className="templates-section">
-                    <h2 className="section-title">Choose from 3 Professional Templates</h2>
+                    <h2 className="section-title">Choose from Professional Templates</h2>
                     <p className="section-description">Each template is designed to showcase your skills and experience in the best possible way</p>
                     
                     <div className="templates-grid">
-                      <div className="template-card">
+                      <div className="template-card" onClick={() => handleTemplateClick(1)}>
                         <div className="template-image-container">
                           <img 
                             src="/images/templates/Template1.jpg" 
@@ -347,7 +431,7 @@ const ProductsPage = ({ onProductSelect }) => {
                         <p className="template-description">Clean, modern design with blue accents. Ideal for professional and corporate environments.</p>
                       </div>
 
-                      <div className="template-card">
+                      <div className="template-card" onClick={() => handleTemplateClick(2)}>
                         <div className="template-image-container">
                           <img 
                             src="/images/templates/Template2.jpg" 
@@ -371,7 +455,7 @@ const ProductsPage = ({ onProductSelect }) => {
                         <p className="template-description">Two-column layout with purple sidebar. Perfect for highlighting skills and personal information.</p>
                       </div>
 
-                      <div className="template-card">
+                      <div className="template-card" onClick={() => handleTemplateClick(3)}>
                         <div className="template-image-container">
                           <img 
                             src="/images/templates/Template3.jpg" 
