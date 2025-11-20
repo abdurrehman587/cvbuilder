@@ -212,22 +212,24 @@ const ProductsPage = ({ onProductSelect }) => {
       try {
         const user = await authService.getCurrentUser();
         if (user) {
-          // User is authenticated - navigate to dashboard
+          // User is authenticated - navigate to CV Dashboard
           // Clear products page flags
           localStorage.removeItem('showProductsPage');
           sessionStorage.removeItem('showProductsPage');
           if (window.resetProductsPageFlag) {
             window.resetProductsPageFlag();
           }
-          // Set selected template and navigate to dashboard
+          // Set selected template and app
           localStorage.setItem('selectedTemplate', `template${templateNumber}`);
-          // Navigate to dashboard via window function
-          if (window.navigateToDashboard) {
-            window.navigateToDashboard();
-          } else {
-            // Fallback: navigate to root
-            window.location.href = '/';
+          localStorage.setItem('selectedApp', 'cv-builder');
+          // Set flag to navigate to CV Builder dashboard
+          sessionStorage.setItem('navigateToCVBuilder', 'true');
+          // Clear hash if present
+          if (window.location.hash) {
+            window.history.replaceState(null, '', window.location.pathname);
           }
+          // Navigate to root - App.js will show dashboard
+          window.location.href = '/';
         } else {
           // User is not authenticated - show login form
           setShowLogin(true);

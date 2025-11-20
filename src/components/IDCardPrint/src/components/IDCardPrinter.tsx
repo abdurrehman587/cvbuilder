@@ -180,61 +180,41 @@ const IDCardPrinter: React.FC = () => {
             data[i + 1] = brightenedGray;
             data[i + 2] = brightenedGray;
           } else if (scanMode === 'black-white') {
-            // Calculate grayscale value with brightness already applied
+            // Fresh approach: Clean black and white conversion
+            // Step 1: Convert to grayscale using standard luminance formula
             const gray = r * 0.299 + g * 0.587 + b * 0.114;
             
-            // Apply smart brightness adjustment based on pixel darkness
-            // Preserve all content by intelligently brightening dark areas
-            let brightenedGray = gray;
-            if (gray < 50) {
-              // Very dark pixels - significant boost to preserve text/details
-              brightenedGray = Math.min(255, gray * 2.0);
-            } else if (gray < 100) {
-              // Dark pixels - moderate boost
-              brightenedGray = Math.min(255, gray * 1.5);
-            } else if (gray < 150) {
-              // Medium pixels - light boost
-              brightenedGray = Math.min(255, gray * 1.2);
-            } else {
-              // Bright pixels - minimal or no boost
-              brightenedGray = Math.min(255, gray * 1.05);
+            // Step 2: Apply gentle brightness boost only to very dark areas
+            // This helps preserve dark text without affecting the rest
+            let processedGray = gray;
+            if (gray < 35) {
+              // Light boost for very dark pixels to make text visible
+              processedGray = Math.min(255, gray * 1.12);
             }
             
-            // Apply moderate contrast enhancement to improve clarity
-            // This helps separate text from background while preserving details
-            const contrastFactor = 1.3;
-            const midPoint = 128;
-            let enhancedGray = midPoint + (brightenedGray - midPoint) * contrastFactor;
-            enhancedGray = Math.min(255, Math.max(0, enhancedGray));
+            // Step 3: Calculate adaptive threshold using Otsu-like method
+            // Base threshold on image statistics for optimal separation
+            let threshold = 127;
             
-            // Calculate adaptive threshold using Otsu-like approach
-            // This ensures optimal separation between foreground (text) and background
-            let threshold = 128;
-            
-            // Adjust threshold based on image brightness, but be conservative
-            if (avgBrightness < 60) {
-              // Very dark image - use low threshold to preserve dark text
-              threshold = 85;
-            } else if (avgBrightness < 90) {
-              // Dark image - use moderate-low threshold
-              threshold = 100;
-            } else if (avgBrightness < 120) {
-              // Medium-dark image - use moderate threshold
-              threshold = 115;
-            } else if (avgBrightness < 150) {
-              // Normal image - use standard threshold
-              threshold = 125;
-            } else if (avgBrightness < 180) {
-              // Bright image - use moderate-high threshold
-              threshold = 135;
+            // Adjust threshold based on overall image brightness
+            // More conservative thresholds to preserve all content
+            if (avgBrightness < 50) {
+              threshold = 105; // Very dark images - lower threshold
+            } else if (avgBrightness < 80) {
+              threshold = 115; // Dark images
+            } else if (avgBrightness < 110) {
+              threshold = 125; // Medium-dark images
+            } else if (avgBrightness < 140) {
+              threshold = 135; // Normal images
+            } else if (avgBrightness < 170) {
+              threshold = 145; // Bright images
             } else {
-              // Very bright image - use higher threshold
-              threshold = 150;
+              threshold = 160; // Very bright images
             }
             
-            // Convert to pure black and white with adaptive threshold
-            // The smart brightness adjustment ensures all content is visible
-            const bw = enhancedGray > threshold ? 255 : 0;
+            // Step 4: Clean binary conversion - sharp and crisp
+            // Pure black or white based on threshold - no blurry transitions
+            const bw = processedGray > threshold ? 255 : 0;
             
             data[i] = bw;
             data[i + 1] = bw;
