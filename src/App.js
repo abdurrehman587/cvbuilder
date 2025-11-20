@@ -202,13 +202,55 @@ function App() {
     window.addEventListener('userAuthenticated', handleAuth);
     window.addEventListener('hashchange', handleHashChange);
     
+    // Handle page unload (tab/window close) - logout user
+    const handleBeforeUnload = (e) => {
+      // Only logout if user is authenticated
+      if (isAuthenticated || localStorage.getItem('cvBuilderAuth') === 'true') {
+        // Clear authentication state immediately (synchronous)
+        localStorage.removeItem('cvBuilderAuth');
+        localStorage.removeItem('selectedApp');
+        sessionStorage.removeItem('showProductsPage');
+        sessionStorage.removeItem('navigateToCVBuilder');
+        
+        // Attempt async logout (may not complete if page closes quickly)
+        // Use a flag to indicate logout is in progress
+        sessionStorage.setItem('logoutOnClose', 'true');
+        
+        // Try to sign out (non-blocking)
+        authService.signOut().catch(() => {
+          // Ignore errors during unload - state is already cleared
+        });
+      }
+    };
+    
+    // Also handle pagehide event (more reliable than beforeunload)
+    const handlePageHide = (e) => {
+      if (isAuthenticated || localStorage.getItem('cvBuilderAuth') === 'true') {
+        // Clear authentication state
+        localStorage.removeItem('cvBuilderAuth');
+        localStorage.removeItem('selectedApp');
+        sessionStorage.removeItem('showProductsPage');
+        sessionStorage.removeItem('navigateToCVBuilder');
+        
+        // Attempt logout
+        authService.signOut().catch(() => {
+          // Ignore errors
+        });
+      }
+    };
+    
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('pagehide', handlePageHide);
+    
     return () => {
       window.removeEventListener('userAuthenticated', handleAuth);
       window.removeEventListener('hashchange', handleHashChange);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('pagehide', handlePageHide);
       delete window.navigateToDashboard;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run on mount, not on currentView changes - intentionally excluded to prevent logout on view change
+  }, [isAuthenticated]); // Include isAuthenticated to have current value
 
   const handleLogout = async () => {
     try {
