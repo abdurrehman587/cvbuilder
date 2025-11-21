@@ -21,66 +21,6 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
     }
   };
 
-  const switchProduct = (productId) => {
-    localStorage.setItem('selectedApp', productId);
-    
-    if (showProductsOnHeader && !isAuthenticated) {
-      // If on products page and not authenticated, show login form popup
-      if (window.showLoginForm) {
-        window.showLoginForm();
-      }
-    } else if (showProductsOnHeader && isAuthenticated) {
-      // If on products page and authenticated, navigate to the product
-      // Clear the products page flag to allow navigation
-      localStorage.removeItem('showProductsPage');
-      sessionStorage.removeItem('showProductsPage');
-      
-      // Reset the force show products page flag via window function if available
-      if (window.resetProductsPageFlag) {
-        window.resetProductsPageFlag();
-      }
-      
-      // Navigate to the selected product
-      if (productId === 'cv-builder') {
-        // Set currentView to dashboard for CV Builder
-        // Store in sessionStorage so App.js can read it on reload
-        sessionStorage.setItem('navigateToCVBuilder', 'true');
-        // Navigate to CV Builder dashboard
-        window.location.href = '/';
-        // The App.js will route to CV Builder dashboard based on selectedApp
-      } else if (productId === 'id-card-print') {
-        // Navigate to ID Card Print
-        window.location.href = '/';
-        // The App.js will route to ID Card Print based on selectedApp
-      }
-    } else if (showProductsOnHeader && window.handleProductSelect) {
-      // Fallback: If on products page and window handler exists, use it
-      window.handleProductSelect(productId);
-      
-      // Scroll to the product section
-      setTimeout(() => {
-        const sectionId = productId === 'cv-builder' ? 'cv-builder-section' : 'id-card-print-section';
-        const element = document.getElementById(sectionId);
-        if (element) {
-          const headerOffset = 100;
-          const elementPosition = element.getBoundingClientRect().top;
-          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-          
-          window.scrollTo({
-            top: offsetPosition,
-            behavior: 'smooth'
-          });
-        }
-      }, 100);
-    } else if (onProductSelect) {
-      // If callback provided, use it
-      onProductSelect(productId);
-    } else {
-      // If authenticated, reload to switch products
-      window.location.reload();
-    }
-  };
-
   const goToProducts = () => {
     // Navigate to products page without logging out
     // Always preserve authentication state first
@@ -108,10 +48,88 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
     }
   };
 
+  const handleSignIn = () => {
+    // If on products page and login form function is available, show login form popup
+    if (showProductsOnHeader && window.showLoginForm) {
+      window.showLoginForm();
+    } else {
+      // If not on products page, navigate to products page with login form
+      localStorage.setItem('showProductsPage', 'true');
+      sessionStorage.setItem('showProductsPage', 'true');
+      window.location.href = '/#products';
+    }
+  };
+
+  const navigateToCVBuilder = () => {
+    if (!isAuthenticated) {
+      // User is not signed in: Show login form
+      sessionStorage.setItem('navigateToCVBuilder', 'true');
+      localStorage.setItem('selectedApp', 'cv-builder');
+      if (showProductsOnHeader && window.showLoginForm) {
+        window.showLoginForm();
+      } else {
+        localStorage.setItem('showProductsPage', 'true');
+        sessionStorage.setItem('showProductsPage', 'true');
+        window.location.href = '/#products';
+      }
+    } else {
+      // User is signed in: Navigate directly to CV Builder dashboard
+      sessionStorage.setItem('isReloading', 'true');
+      localStorage.setItem('selectedApp', 'cv-builder');
+      sessionStorage.setItem('navigateToCVBuilder', 'true');
+      localStorage.removeItem('showProductsPage');
+      sessionStorage.removeItem('showProductsPage');
+      if (window.resetProductsPageFlag) {
+        window.resetProductsPageFlag();
+      }
+      window.location.href = '/';
+    }
+  };
+
+  const navigateToIDCardDashboard = () => {
+    if (!isAuthenticated) {
+      // User is not signed in: Show login form
+      sessionStorage.setItem('navigateToIDCardPrint', 'true');
+      localStorage.setItem('selectedApp', 'id-card-print');
+      if (showProductsOnHeader && window.showLoginForm) {
+        window.showLoginForm();
+      } else {
+        localStorage.setItem('showProductsPage', 'true');
+        sessionStorage.setItem('showProductsPage', 'true');
+        window.location.href = '/#products';
+      }
+    } else {
+      // User is signed in: Navigate directly to ID Card Dashboard
+      sessionStorage.setItem('isReloading', 'true');
+      localStorage.setItem('selectedApp', 'id-card-print');
+      sessionStorage.setItem('navigateToIDCardPrint', 'true');
+      // Reset idCardView to dashboard
+      if (window.setIdCardView) {
+        window.setIdCardView('dashboard');
+      }
+      localStorage.removeItem('showProductsPage');
+      sessionStorage.removeItem('showProductsPage');
+      if (window.resetProductsPageFlag) {
+        window.resetProductsPageFlag();
+      }
+      window.location.href = '/';
+    }
+  };
+
   return (
     <header className="app-header">
       <div className="header-container">
         <div className="header-left">
+          <img 
+            src="/images/glory-logo.png" 
+            alt="Glory Logo" 
+            className="glory-logo"
+            onClick={goToProducts}
+            onError={(e) => {
+              // Fallback if logo doesn't exist - hide it
+              e.target.style.display = 'none';
+            }}
+          />
           <div className="logo" onClick={goToProducts} style={{ cursor: 'pointer' }}>
             <span className="logo-icon">🚀</span>
             <span className="logo-text">My Products</span>
@@ -119,21 +137,21 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
         </div>
 
         <div className="header-center">
-          {(isAuthenticated || showProductsOnHeader) && (
-            <div className="product-switcher-header">
+          {isAuthenticated && (
+            <nav className="header-navigation">
               <button
-                onClick={() => switchProduct('cv-builder')}
-                className={`product-switch-btn ${currentProduct === 'cv-builder' ? 'active' : ''}`}
+                onClick={navigateToCVBuilder}
+                className={`nav-button ${currentProduct === 'cv-builder' ? 'active' : ''}`}
               >
                 CV Builder
               </button>
               <button
-                onClick={() => switchProduct('id-card-print')}
-                className={`product-switch-btn ${currentProduct === 'id-card-print' ? 'active' : ''}`}
+                onClick={navigateToIDCardDashboard}
+                className={`nav-button ${currentProduct === 'id-card-print' ? 'active' : ''}`}
               >
                 ID Card Print
               </button>
-            </div>
+            </nav>
           )}
         </div>
 
@@ -143,9 +161,9 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
               Logout
             </button>
           ) : (
-            <div className="header-auth-status">
-              <span>Not signed in</span>
-            </div>
+            <button onClick={handleSignIn} className="signin-btn-header">
+              Sign In
+            </button>
           )}
         </div>
       </div>

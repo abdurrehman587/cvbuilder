@@ -9,6 +9,7 @@ const ProductsPage = ({ onProductSelect }) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
+  const [loginSuccess, setLoginSuccess] = useState(false);
   const products = [
     {
       id: 'cv-builder',
@@ -176,6 +177,8 @@ const ProductsPage = ({ onProductSelect }) => {
           
           if (productId === 'cv-builder') {
             // Navigate to CV Builder dashboard
+            // Set flag to indicate this is a reload, not a close
+            sessionStorage.setItem('isReloading', 'true');
             // Set flag to navigate to dashboard
             sessionStorage.setItem('navigateToCVBuilder', 'true');
             // Clear hash if present
@@ -185,16 +188,33 @@ const ProductsPage = ({ onProductSelect }) => {
             // Navigate to root - App.js will show dashboard
             window.location.href = '/';
           } else if (productId === 'id-card-print') {
-            // Navigate to ID Card Print page
+            // Navigate to ID Card Print dashboard
+            // Set flag to indicate this is a reload, not a close
+            sessionStorage.setItem('isReloading', 'true');
+            // Set flag to navigate to ID Card Print dashboard
+            sessionStorage.setItem('navigateToIDCardPrint', 'true');
+            // Also set in localStorage as backup
+            localStorage.setItem('navigateToIDCardPrint', 'true');
+            console.log('Setting navigateToIDCardPrint flag:', sessionStorage.getItem('navigateToIDCardPrint'));
             // Clear hash if present
             if (window.location.hash) {
               window.history.replaceState(null, '', window.location.pathname);
             }
-            // Navigate to root - App.js will show ID Card Print based on selectedApp
+            // Navigate to root - App.js will show ID Card Print dashboard
             window.location.href = '/';
           }
         } else {
           // User is not authenticated - show login form
+          // Set flag to navigate to respective dashboard after login
+          if (productId === 'id-card-print') {
+            sessionStorage.setItem('navigateToIDCardPrint', 'true');
+            localStorage.setItem('navigateToIDCardPrint', 'true'); // Backup in localStorage
+            localStorage.setItem('selectedApp', 'id-card-print');
+            console.log('Setting navigateToIDCardPrint flag for unauthenticated user:', sessionStorage.getItem('navigateToIDCardPrint'));
+          } else if (productId === 'cv-builder') {
+            sessionStorage.setItem('navigateToCVBuilder', 'true');
+            localStorage.setItem('selectedApp', 'cv-builder');
+          }
           setShowLogin(true);
         }
       } catch (error) {
@@ -213,6 +233,8 @@ const ProductsPage = ({ onProductSelect }) => {
         const user = await authService.getCurrentUser();
         if (user) {
           // User is authenticated - navigate to CV Dashboard
+          // Set flag to indicate this is a reload, not a close
+          sessionStorage.setItem('isReloading', 'true');
           // Clear products page flags
           localStorage.removeItem('showProductsPage');
           sessionStorage.removeItem('showProductsPage');
@@ -232,11 +254,19 @@ const ProductsPage = ({ onProductSelect }) => {
           window.location.href = '/';
         } else {
           // User is not authenticated - show login form
+          // Set flag to navigate to CV Builder dashboard after login
+          sessionStorage.setItem('navigateToCVBuilder', 'true');
+          localStorage.setItem('selectedTemplate', `template${templateNumber}`);
+          localStorage.setItem('selectedApp', 'cv-builder');
           setShowLogin(true);
         }
       } catch (error) {
         console.error('Error checking auth:', error);
         // On error, show login form
+        // Set flag to navigate to CV Builder dashboard after login
+        sessionStorage.setItem('navigateToCVBuilder', 'true');
+        localStorage.setItem('selectedTemplate', `template${templateNumber}`);
+        localStorage.setItem('selectedApp', 'cv-builder');
         setShowLogin(true);
       }
     };
@@ -261,8 +291,50 @@ const ProductsPage = ({ onProductSelect }) => {
         
         console.log('Login successful:', data);
         localStorage.setItem('cvBuilderAuth', 'true');
+        // Show success message
+        setLoginSuccess(true);
+        setError('');
+        // Dispatch authentication event
         window.dispatchEvent(new CustomEvent('userAuthenticated'));
-        window.location.reload();
+        
+        // Check if user wants to navigate to CV Builder or ID Card Print
+        const navigateToCVBuilder = sessionStorage.getItem('navigateToCVBuilder') === 'true' || localStorage.getItem('navigateToCVBuilder') === 'true';
+        const navigateToIDCardPrint = sessionStorage.getItem('navigateToIDCardPrint') === 'true' || localStorage.getItem('navigateToIDCardPrint') === 'true';
+        
+        console.log('Login successful - checking navigation flags:', {
+          navigateToCVBuilder,
+          navigateToIDCardPrint,
+          sessionStorageCV: sessionStorage.getItem('navigateToCVBuilder'),
+          sessionStorageID: sessionStorage.getItem('navigateToIDCardPrint'),
+          localStorageCV: localStorage.getItem('navigateToCVBuilder'),
+          localStorageID: localStorage.getItem('navigateToIDCardPrint')
+        });
+        
+        // Ensure flags are set in both storages for persistence
+        if (navigateToIDCardPrint) {
+          sessionStorage.setItem('navigateToIDCardPrint', 'true');
+          localStorage.setItem('navigateToIDCardPrint', 'true');
+        }
+        if (navigateToCVBuilder) {
+          sessionStorage.setItem('navigateToCVBuilder', 'true');
+        }
+        
+        if (navigateToCVBuilder || navigateToIDCardPrint) {
+          // Clear products page flags to allow navigation
+          localStorage.removeItem('showProductsPage');
+          sessionStorage.removeItem('showProductsPage');
+        }
+        
+        // Wait a moment to show success message, then proceed
+        setTimeout(() => {
+          // Set flag to indicate this is a reload, not a close
+          sessionStorage.setItem('isReloading', 'true');
+          // Close login modal
+          setShowLogin(false);
+          setLoginSuccess(false);
+          // Reload to trigger navigation
+          window.location.reload();
+        }, 2000); // Show success message for 2 seconds
         
       } else {
         // Real Supabase signup
@@ -560,7 +632,7 @@ const ProductsPage = ({ onProductSelect }) => {
                   <div className="cta-section">
                     <h2 className="cta-title">Ready to Create Your Professional CV?</h2>
                     <p className="cta-description">Join thousands of professionals who have created their CVs with our builder</p>
-                    <button className="cta-button" onClick={handleGetStarted}>
+                    <button className="cta-button" onClick={() => handleGetStarted('cv-builder')}>
                       Get Started Now →
                     </button>
                   </div>
@@ -735,7 +807,7 @@ const ProductsPage = ({ onProductSelect }) => {
                   <div className="cta-section">
                     <h2 className="cta-title">Ready to Print Your ID Cards?</h2>
                     <p className="cta-description">Create and print professional ID cards with front and back support</p>
-                    <button className="cta-button" onClick={handleGetStarted}>
+                    <button className="cta-button" onClick={() => handleGetStarted('id-card-print')}>
                       Get Started Now →
                     </button>
                   </div>
@@ -747,6 +819,7 @@ const ProductsPage = ({ onProductSelect }) => {
           <div className="login-modal-overlay" onClick={() => {
             setShowLogin(false);
             setError('');
+            setLoginSuccess(false);
             setEmail('');
             setPassword('');
             setConfirmPassword('');
@@ -757,6 +830,7 @@ const ProductsPage = ({ onProductSelect }) => {
                 onClick={() => {
                   setShowLogin(false);
                   setError('');
+                  setLoginSuccess(false);
                   setEmail('');
                   setPassword('');
                   setConfirmPassword('');
@@ -777,7 +851,19 @@ const ProductsPage = ({ onProductSelect }) => {
                   )}
                 </div>
 
-                <form onSubmit={handleSubmit} className="login-form-inline">
+                {loginSuccess && (
+                  <div className="login-success-message">
+                    <div className="success-icon">✓</div>
+                    <div className="success-text">
+                      <h3>Login Successful!</h3>
+                      <p>You are now logged in. Redirecting...</p>
+                    </div>
+                  </div>
+                )}
+                {error && !loginSuccess && (
+                  <div className="error-message-inline">{error}</div>
+                )}
+                <form onSubmit={handleSubmit} className="login-form-inline" style={{ display: loginSuccess ? 'none' : 'block' }}>
                   <div className="form-group-inline">
                     <label htmlFor="email">Email Address</label>
                     <input
@@ -816,7 +902,7 @@ const ProductsPage = ({ onProductSelect }) => {
                     </div>
                   )}
 
-                  {error && <div className="error-message-inline">{error}</div>}
+                  {error && !loginSuccess && <div className="error-message-inline">{error}</div>}
 
                   <button type="submit" className="login-button-inline">
                     {isLogin ? 'Sign In' : 'Get Started'}
