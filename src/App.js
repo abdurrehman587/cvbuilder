@@ -108,6 +108,10 @@ function App() {
     setAutoSaveStatus('');
     setFormResetKey(prev => prev + 1); // Force form re-render
     createNewCV(); // Reset the hook state
+    // Set default template if none is selected
+    if (!selectedTemplate || selectedTemplate === 'dashboard') {
+      setSelectedTemplate('template1');
+    }
     setCurrentView('cv-builder'); // Ensure we're in the CV builder view
   };
 
@@ -761,6 +765,91 @@ function App() {
   // BUT NOT if user wants ID Card Print
   const wantsCVBuilder = isAuthenticated && selectedProduct === 'cv-builder' && !forceShowProductsPage && !showProductsPageRef.current && !navigateToCVBuilderFlag && !navigateToIDCardPrintFlag;
   
+  // Render Form and Preview when currentView is 'cv-builder'
+  if (currentView === 'cv-builder' && isAuthenticated && !forceShowProductsPage && !showProductsPageRef.current && !isLoading && selectedProduct !== 'id-card-print') {
+    const renderFormAndPreview = () => {
+      switch (selectedTemplate) {
+        case 'template1':
+          return (
+            <>
+              <Form1 
+                key={formResetKey}
+                formData={formData}
+                updateFormData={updateFormData}
+                markAsChanged={hookMarkAsChanged}
+              />
+              <Preview1 
+                formData={formData}
+                autoSaveStatus={hookAutoSaveStatus}
+                hasUnsavedChanges={hookHasUnsavedChanges}
+              />
+            </>
+          );
+        case 'template2':
+          return (
+            <>
+              <Form2 
+                key={formResetKey}
+                formData={formData}
+                updateFormData={updateFormData}
+                markAsChanged={hookMarkAsChanged}
+              />
+              <Preview2 
+                formData={formData}
+                autoSaveStatus={hookAutoSaveStatus}
+                hasUnsavedChanges={hookHasUnsavedChanges}
+              />
+            </>
+          );
+        case 'template3':
+          return (
+            <>
+              <Form3 
+                key={formResetKey}
+                formData={formData}
+                updateFormData={updateFormData}
+                markAsChanged={hookMarkAsChanged}
+              />
+              <Preview3 
+                formData={formData}
+                autoSaveStatus={hookAutoSaveStatus}
+                hasUnsavedChanges={hookHasUnsavedChanges}
+              />
+            </>
+          );
+        default:
+          return (
+            <>
+              <Form1 
+                key={formResetKey}
+                formData={formData}
+                updateFormData={updateFormData}
+                markAsChanged={hookMarkAsChanged}
+              />
+              <Preview1 
+                formData={formData}
+                autoSaveStatus={hookAutoSaveStatus}
+                hasUnsavedChanges={hookHasUnsavedChanges}
+              />
+            </>
+          );
+      }
+    };
+
+    return (
+      <>
+        <Header 
+          isAuthenticated={true} 
+          onLogout={handleLogout}
+          currentProduct="cv-builder"
+        />
+        <div className="container">
+          {renderFormAndPreview()}
+        </div>
+      </>
+    );
+  }
+
   // Default to CV Builder dashboard
   // BUT only if we're not forcing products page to show
   // AND only if user doesn't want ID Card Print
