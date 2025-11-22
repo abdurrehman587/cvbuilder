@@ -3,13 +3,13 @@ import { supabase, useAuth } from './index'
 import AdminBulkCV from './AdminBulkCV'
 import './AdminPanel.css'
 
-const AdminPanel = () => {
+const AdminPanel = ({ initialView = 'marketplace' }) => {
   const { user, signOut } = useAuth()
   const [isAdmin, setIsAdmin] = useState(false)
   const [allUsers, setAllUsers] = useState([])
   const [allCVs, setAllCVs] = useState([])
   const [loading, setLoading] = useState(false)
-  const [currentView, setCurrentView] = useState('dashboard')
+  const [currentView, setCurrentView] = useState(initialView)
   const [stats, setStats] = useState({
     totalUsers: 0,
     totalCVs: 0,
@@ -168,11 +168,18 @@ const AdminPanel = () => {
     return <AdminBulkCV />
   }
 
+
   return (
     <div className="admin-panel">
       <div className="admin-header">
         <h1>Admin Panel</h1>
         <div className="admin-actions">
+          <button 
+            onClick={() => setCurrentView('dashboard')} 
+            className="admin-nav-button"
+          >
+            Dashboard
+          </button>
           <button 
             onClick={() => setCurrentView('create-cv')} 
             className="create-cv-button"

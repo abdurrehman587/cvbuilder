@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
-import { SupabaseProvider, AdminPanel } from './components/Supabase';
+import { SupabaseProvider } from './components/Supabase';
 import Login from './components/Login/Login';
-import Dashboard from './components/Dashboard/Dashboard';
+import CVDashboard from './components/Dashboard/CVDashboard';
 import Form1 from './components/template1/Form1';
 import Preview1 from './components/template1/Preview1';
 import Form2 from './components/template2/Form2';
@@ -13,8 +13,10 @@ import useAutoSave from './components/Supabase/useAutoSave';
 import { authService } from './components/Supabase/supabase';
 import IDCardPrintPage from './components/IDCardPrint/IDCardPrintPage';
 import IDCardDashboard from './components/IDCardDashboard/IDCardDashboard';
-import ProductsPage from './components/Products/ProductsPage';
+import ProductsPage from './components/Products/HomePage';
 import Header from './components/Header/Header';
+import MarketplaceAdmin from './components/MarketplaceAdmin/MarketplaceAdmin';
+import ProductDetail from './components/Products/ProductDetail';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -175,6 +177,12 @@ function App() {
         sessionStorage.setItem('showProductsPage', 'true');
         setForceShowProductsPage(true);
         showProductsPageRef.current = true;
+      } else if (window.location.hash === '#admin') {
+        // Hash changed to #admin - clear products page flags
+        setForceShowProductsPage(false);
+        showProductsPageRef.current = false;
+        localStorage.removeItem('showProductsPage');
+        sessionStorage.removeItem('showProductsPage');
       } else if (window.location.hash !== '#products' && (forceShowProductsPage || showProductsPageRef.current)) {
         // Hash changed away from #products - clear products page state
         setForceShowProductsPage(false);
@@ -200,8 +208,14 @@ function App() {
       const app = localStorage.getItem('selectedApp') || 'cv-builder';
       setSelectedApp(app);
       
+      // Check if user is on products page (check hash and flags)
+      const isOnProductsPage = window.location.hash === '#products' || 
+                                localStorage.getItem('showProductsPage') === 'true' ||
+                                sessionStorage.getItem('showProductsPage') === 'true';
+      
       // Check if user wants to navigate to ID Card Print dashboard after login (check FIRST)
-      const navigateToIDCardPrint = sessionStorage.getItem('navigateToIDCardPrint') === 'true';
+      const navigateToIDCardPrint = sessionStorage.getItem('navigateToIDCardPrint') === 'true' || 
+                                     localStorage.getItem('navigateToIDCardPrint') === 'true';
       if (navigateToIDCardPrint) {
         // Don't remove the flag here - let PRIORITY 0 routing check handle it
         // Clear products page flags to allow navigation
@@ -216,7 +230,8 @@ function App() {
       }
       // Check if user wants to navigate to CV Builder dashboard after login
       else {
-        const navigateToCVBuilder = sessionStorage.getItem('navigateToCVBuilder') === 'true';
+        const navigateToCVBuilder = sessionStorage.getItem('navigateToCVBuilder') === 'true' ||
+                                     localStorage.getItem('navigateToCVBuilder') === 'true';
         if (navigateToCVBuilder) {
           // Don't remove the flag here - let PRIORITY 0 routing check handle it
           setCurrentView('dashboard');
@@ -226,6 +241,17 @@ function App() {
           localStorage.removeItem('showProductsPage');
           sessionStorage.removeItem('showProductsPage');
           console.log('handleAuth: CV Builder flag detected, setting currentView to dashboard');
+        } else if (isOnProductsPage) {
+          // User is on products page and logged in - keep them on products page
+          // Ensure products page flags are set
+          setForceShowProductsPage(true);
+          showProductsPageRef.current = true;
+          localStorage.setItem('showProductsPage', 'true');
+          sessionStorage.setItem('showProductsPage', 'true');
+          if (window.location.hash !== '#products') {
+            window.location.hash = '#products';
+          }
+          console.log('handleAuth: User on products page, keeping them on products page');
         } else if (currentView === 'cv-builder') {
           // If user was on form/preview page, redirect to dashboard after login
           setCurrentView('dashboard');
@@ -363,6 +389,13 @@ function App() {
   // Get current product for header
   const currentProduct = localStorage.getItem('selectedApp') || 'cv-builder';
   
+  // Check if user wants to see admin panel
+  const showAdminPanel = window.location.hash === '#admin' && isAuthenticated && !isLoading;
+  
+  // Check if user wants to see product detail page
+  const productDetailMatch = window.location.hash.match(/^#product\/([a-f0-9-]+)$/i);
+  const productDetailId = productDetailMatch ? productDetailMatch[1] : null;
+
   // Check if user wants to see products page (for both authenticated and unauthenticated users)
   // Check this FIRST, before ANY other routing logic, to ensure it takes absolute priority
   // Check multiple sources: localStorage, sessionStorage, and URL hash
@@ -372,27 +405,13 @@ function App() {
   const showProductsPageHash = window.location.hash === '#products';
   const showProductsPageFlag = showProductsPageLocal || showProductsPageSession || showProductsPageHash;
   
-  // Use ref and state to persist the decision through re-renders
-  // IMPORTANT: Move state updates to useEffect to prevent infinite loops
+  // Use ref to persist the decision through re-renders
+  // IMPORTANT: Only update ref, don't update state here to avoid infinite loops
+  // The render logic will use showProductsPageFlag and showProductsPageRef.current directly
   useEffect(() => {
-    if (showProductsPageFlag) {
-      // Set ref immediately (synchronous)
-      showProductsPageRef.current = true;
-      // Set state if not already set (this will trigger a re-render)
-      if (!forceShowProductsPage) {
-        setForceShowProductsPage(true);
-      }
-    } else {
-      // Only clear if we're sure we shouldn't show products page
-      // Don't clear if we're already showing it (to prevent flickering)
-      if (!showProductsPageFlag && !forceShowProductsPage && showProductsPageRef.current) {
-        // Only clear if hash is also not set
-        if (window.location.hash !== '#products') {
-          showProductsPageRef.current = false;
-        }
-      }
-    }
-
+    // Update ref based on flags (refs don't cause re-renders)
+    showProductsPageRef.current = showProductsPageFlag;
+    
     // Debug logging (remove in production)
     if (showProductsPageFlag) {
       console.log('Products page flag detected:', {
@@ -403,7 +422,8 @@ function App() {
         refValue: showProductsPageRef.current
       });
     }
-  }, [showProductsPageLocal, showProductsPageSession, showProductsPageHash, showProductsPageFlag, forceShowProductsPage, isAuthenticated]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showProductsPageLocal, showProductsPageSession, showProductsPageHash]);
 
   // Expose function to reset products page flag (for Header to call)
   // MUST be called before ANY conditional returns (React Hooks rule)
@@ -430,22 +450,8 @@ function App() {
 
   // Keep products page state persistent - don't clear flags/hash when on products page
   // This ensures page reloads keep user on products page
-  useEffect(() => {
-    // If we're showing products page, ensure hash is set for reload persistence
-    if (forceShowProductsPage || showProductsPageRef.current) {
-      // Ensure hash is set so reload works
-      if (window.location.hash !== '#products') {
-        window.location.hash = '#products';
-      }
-      // Set flags to ensure they persist
-      localStorage.setItem('showProductsPage', 'true');
-      sessionStorage.setItem('showProductsPage', 'true');
-      
-      if (showProductsPageFlag && isAuthenticated) {
-        setCurrentView('products');
-      }
-    }
-  }, [showProductsPageLocal, showProductsPageSession, showProductsPageHash, showProductsPageFlag, isAuthenticated, forceShowProductsPage]);
+  // REMOVED: This useEffect was causing infinite loops by setting hash which changed dependencies
+  // The hash and storage are set by other parts of the code when needed
   
   // Handle navigateToCVBuilder flag - must be before any conditional returns
   const navigateToCVBuilderFlagRaw = sessionStorage.getItem('navigateToCVBuilder');
@@ -478,6 +484,7 @@ function App() {
   if (navigateToIDCardPrintFlag) {
     console.log('✓ navigateToIDCardPrintFlag is TRUE - should navigate to ID Card Dashboard');
   }
+  // This useEffect clears products page flags to prepare for navigation
   useEffect(() => {
     if (navigateToCVBuilderFlag && isAuthenticated && !isLoading) {
       // Clear products page flags to allow navigation to CV Builder
@@ -485,14 +492,12 @@ function App() {
       showProductsPageRef.current = false;
       localStorage.removeItem('showProductsPage');
       sessionStorage.removeItem('showProductsPage');
-      // Set current view to dashboard
-      setCurrentView('dashboard');
       // Remove hash if present
       if (window.location.hash === '#products') {
         window.location.hash = '';
       }
-      // Don't clear the flag immediately - let it persist for routing check
-      // It will be cleared after routing completes
+      // Set current view to dashboard to ensure we're on the dashboard
+      setCurrentView('dashboard');
     }
     if (navigateToIDCardPrintFlag && isAuthenticated && !isLoading) {
       // Clear products page flags to allow navigation to ID Card Print
@@ -504,14 +509,58 @@ function App() {
       if (window.location.hash === '#products') {
         window.location.hash = '';
       }
-      // Don't clear the flag immediately - let it persist for routing check
-      // It will be cleared after routing completes
     }
   }, [navigateToCVBuilderFlag, navigateToIDCardPrintFlag, isAuthenticated, isLoading]);
+  
+  // Clear navigation flags only after we've successfully navigated to the dashboard
+  useEffect(() => {
+    if (currentView === 'dashboard' && isAuthenticated && !isLoading) {
+      // Only clear if the flag was set (to avoid clearing on normal dashboard visits)
+      if (sessionStorage.getItem('navigateToCVBuilder') === 'true' || localStorage.getItem('navigateToCVBuilder') === 'true') {
+        // Clear flags after a short delay to ensure PRIORITY 0 has completed
+        const clearFlagTimeout = setTimeout(() => {
+          sessionStorage.removeItem('navigateToCVBuilder');
+          localStorage.removeItem('navigateToCVBuilder');
+          sessionStorage.removeItem('goToCVForm');
+          localStorage.removeItem('goToCVForm');
+        }, 200);
+        
+        return () => clearTimeout(clearFlagTimeout);
+      }
+    }
+  }, [currentView, isAuthenticated, isLoading]);
   
   // Keep forceShowProductsPage true once set - don't reset it automatically
   // It will only be reset when user explicitly navigates to a product via Header buttons
   // This ensures products page stays visible and doesn't redirect
+
+  // PRIORITY -1: Check if user wants to see product detail page (HIGHEST PRIORITY)
+  if (productDetailId) {
+    return (
+      <>
+        <Header 
+          isAuthenticated={isAuthenticated} 
+          onLogout={handleLogout}
+          showProductsOnHeader={true}
+        />
+        <ProductDetail productId={productDetailId} />
+      </>
+    );
+  }
+
+  // PRIORITY -1: Check if user wants to see admin panel (HIGHEST PRIORITY)
+  if (showAdminPanel) {
+    return (
+      <>
+        <Header 
+          isAuthenticated={isAuthenticated} 
+          onLogout={handleLogout}
+          currentProduct={currentProduct}
+        />
+        <MarketplaceAdmin />
+      </>
+    );
+  }
 
   // PRIORITY 0: Check if user wants to navigate to ID Card Print - MUST be checked FIRST
   // This takes absolute priority over products page and CV Builder
@@ -577,11 +626,11 @@ function App() {
       );
     }
   }
-  
+
   // PRIORITY 0: Check if user wants to navigate to CV Builder - MUST be checked FIRST
   // This takes absolute priority over products page
   if (navigateToCVBuilderFlag && isAuthenticated && !isLoading) {
-    console.log('PRIORITY 0: Navigating to CV Builder Dashboard - navigateToCVBuilderFlag detected', {
+    console.log('PRIORITY 0: Navigating to CV Builder - navigateToCVBuilderFlag detected', {
       navigateToCVBuilderFlag,
       isAuthenticated,
       isLoading,
@@ -589,17 +638,114 @@ function App() {
       showProductsPageRef: showProductsPageRef.current
     });
     
-    // Clear the navigateToCVBuilder flag after routing decision is made
-    sessionStorage.removeItem('navigateToCVBuilder');
-    // Also clear products page flags to ensure clean navigation
-    setForceShowProductsPage(false);
-    showProductsPageRef.current = false;
-    localStorage.removeItem('showProductsPage');
-    sessionStorage.removeItem('showProductsPage');
-    if (window.location.hash === '#products') {
-      window.location.hash = '';
+    // Check if user wants to go directly to CV form (when template is selected and goToCVForm flag is set)
+    const goToCVForm = sessionStorage.getItem('goToCVForm') === 'true' || localStorage.getItem('goToCVForm') === 'true';
+    const selectedTemplateFromStorage = localStorage.getItem('selectedTemplate');
+    
+    // Note: Products page flags are cleared by useEffect to avoid triggering re-renders here
+    
+    // If template is selected and goToCVForm flag is set, go directly to CV form
+    if (goToCVForm && selectedTemplateFromStorage) {
+      setSelectedTemplate(selectedTemplateFromStorage);
+      setCurrentView('cv-builder');
+      
+      // Render CV form directly
+      const renderFormAndPreview = () => {
+        switch (selectedTemplateFromStorage) {
+          case 'template1':
+            return (
+              <>
+                <Form1 formData={formData} updateFormData={updateFormData} />
+                <Preview1 formData={formData} />
+              </>
+            );
+          case 'template2':
+            return (
+              <>
+                <Form2 formData={formData} updateFormData={updateFormData} />
+                <Preview2 formData={formData} />
+              </>
+            );
+          case 'template3':
+            return (
+              <>
+                <Form3 formData={formData} updateFormData={updateFormData} />
+                <Preview3 formData={formData} />
+              </>
+            );
+          default:
+            return (
+              <>
+                <Form1 formData={formData} updateFormData={updateFormData} />
+                <Preview1 formData={formData} />
+              </>
+            );
+        }
+      };
+      
+      return (
+        <>
+          <Header 
+            isAuthenticated={true} 
+            onLogout={handleLogout}
+            currentProduct="cv-builder"
+          />
+          <div className="app-header-cv">
+            <h1>CV Builder</h1>
+            <div className="header-actions">
+              <div className="template-selector">
+                <button
+                  className={`template-button ${selectedTemplateFromStorage === 'template1' ? 'active' : ''}`}
+                  onClick={() => handleTemplateSelect('template1')}
+                >
+                  Template 1
+                </button>
+                <button
+                  className={`template-button ${selectedTemplateFromStorage === 'template2' ? 'active' : ''}`}
+                  onClick={() => handleTemplateSelect('template2')}
+                >
+                  Template 2
+                </button>
+                <button
+                  className={`template-button ${selectedTemplateFromStorage === 'template3' ? 'active' : ''}`}
+                  onClick={() => handleTemplateSelect('template3')}
+                >
+                  Template 3
+                </button>
+              </div>
+              <div className="auto-save-status">
+                {hookAutoSaveStatus ? (
+                  <div className={`status-indicator ${
+                    hookAutoSaveStatus.includes('saved') || hookAutoSaveStatus.includes('Saved') || hookAutoSaveStatus === 'Ready' ? 'success' : 
+                    hookAutoSaveStatus.includes('Saving') || hookAutoSaveStatus.includes('saving') ? 'warning' : 
+                    'error'
+                  }`}>
+                    {hookAutoSaveStatus}
+                  </div>
+                ) : hookHasUnsavedChanges ? (
+                  <div className="status-indicator warning">
+                    Unsaved Changes
+                  </div>
+                ) : (
+                  <div className="status-indicator success">
+                    Saved
+                  </div>
+                )}
+              </div>
+              <button onClick={handleBackToDashboard} className="back-to-dashboard-button">
+                Back to Dashboard
+              </button>
+            </div>
+          </div>
+          <div className="container">
+            {renderFormAndPreview()}
+          </div>
+        </>
+      );
     }
     
+    // Show CV Dashboard (when clicking template, it should go here)
+    // Don't clear flags here - let useEffect handle it after navigation completes
     return (
       <>
         <Header 
@@ -607,7 +753,7 @@ function App() {
           onLogout={handleLogout}
           currentProduct="cv-builder"
         />
-        <Dashboard 
+        <CVDashboard 
           onTemplateSelect={handleTemplateSelect}
           onLogout={handleLogout}
           onEditCV={handleEditCV}
@@ -619,8 +765,19 @@ function App() {
   
   // PRIORITY 1: Show products page if flag is set (regardless of auth status)
   // OR if user is not authenticated (default behavior for unauthenticated users)
-  // OR if ref/state indicates we should show products page (persists through re-renders)
-  const shouldShowProductsPage = showProductsPageFlag || showProductsPageRef.current || forceShowProductsPage || !isAuthenticated;
+  // OR if ref indicates we should show products page (persists through re-renders)
+  // OR by default for authenticated users (Products Page is the default landing page)
+  // Only show CV Dashboard if there's an explicit navigation flag
+  // NOTE: Use ref directly, don't use forceShowProductsPage state to avoid loops
+  const hasExplicitNavigation = navigateToCVBuilderFlag || navigateToIDCardPrintFlag;
+  // For authenticated users, show products page by default UNLESS there's explicit navigation
+  // If products page flag is explicitly set, show it regardless of currentView
+  // Otherwise, don't show products page if we're already on the dashboard (currentView === 'dashboard')
+  // Use ref directly instead of state to avoid re-render loops
+  const hasExplicitProductsPageFlag = showProductsPageFlag || showProductsPageRef.current || showProductsPageHash;
+  const shouldShowProductsPage = hasExplicitProductsPageFlag 
+    ? true // If flag is explicitly set, always show products page
+    : ((!isAuthenticated || (!hasExplicitNavigation && isAuthenticated)) && currentView !== 'dashboard');
   
   // Debug logging for routing decision - ALWAYS log navigateToCVBuilderFlag
   console.log('Routing decision:', {
@@ -630,9 +787,11 @@ function App() {
       forceShowProductsPage,
       isAuthenticated,
       isLoading,
+      hasExplicitNavigation,
       navigateToCVBuilderFlag: navigateToCVBuilderFlag,
       navigateToCVBuilderFlagValue: sessionStorage.getItem('navigateToCVBuilder'),
-      selectedApp: localStorage.getItem('selectedApp')
+      selectedApp: localStorage.getItem('selectedApp'),
+      currentView
     });
   
   // If products page flag is set, show products page IMMEDIATELY, even during loading
@@ -909,7 +1068,7 @@ function App() {
           onLogout={handleLogout}
           currentProduct="cv-builder"
         />
-        <Dashboard 
+        <CVDashboard 
           onTemplateSelect={handleTemplateSelect}
           onLogout={handleLogout}
           onEditCV={handleEditCV}
@@ -918,12 +1077,7 @@ function App() {
       </>
     );
   }
-
-  if (currentView === 'admin') {
-    return <AdminPanel />;
-  }
-
-
+  
   return null;
 }
 

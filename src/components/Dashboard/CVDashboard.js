@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import './Dashboard.css';
+import './CVDashboard.css';
 import SearchCV from './SearchCV';
 
-const Dashboard = ({ onTemplateSelect, onLogout, onEditCV, onCreateNewCV }) => {
+const CVDashboard = ({ onTemplateSelect, onLogout, onEditCV, onCreateNewCV }) => {
   const [currentView, setCurrentView] = useState('dashboard');
 
   const handleMakeNewCV = () => {
@@ -22,7 +22,7 @@ const Dashboard = ({ onTemplateSelect, onLogout, onEditCV, onCreateNewCV }) => {
   };
 
   const handleEditCV = (cv) => {
-    console.log('Dashboard - CV selected for editing:', cv);
+    console.log('CV Dashboard - CV selected for editing:', cv);
     if (onEditCV) {
       onEditCV(cv);
     }
@@ -40,8 +40,8 @@ const Dashboard = ({ onTemplateSelect, onLogout, onEditCV, onCreateNewCV }) => {
   }
 
   return (
-    <div className="dashboard-container">
-      <div className="dashboard-header">
+    <div className="cv-dashboard-container">
+      <div className="cv-dashboard-header">
         <div className="header-content">
           <h1>My CV Dashboard</h1>
           <p className="welcome-message">Welcome! Let's create your professional CV</p>
@@ -49,7 +49,7 @@ const Dashboard = ({ onTemplateSelect, onLogout, onEditCV, onCreateNewCV }) => {
         </div>
       </div>
       
-      <div className="dashboard-options">
+      <div className="cv-dashboard-options">
         <div className="option-card" onClick={handleMakeNewCV}>
           <div className="option-icon">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -79,4 +79,6 @@ const Dashboard = ({ onTemplateSelect, onLogout, onEditCV, onCreateNewCV }) => {
   );
 };
 
-export default Dashboard;
+export default CVDashboard;
+
+

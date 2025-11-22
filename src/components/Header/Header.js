@@ -1,8 +1,59 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import './Header.css';
-import { authService } from '../Supabase/supabase';
+import { authService, supabase } from '../Supabase/supabase';
 
 const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, showProductsOnHeader = false }) => {
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isOnAdminPage, setIsOnAdminPage] = useState(false);
+
+  // Check if user is admin
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (!isAuthenticated) {
+        setIsAdmin(false);
+        return;
+      }
+
+      try {
+        const user = await authService.getCurrentUser();
+        if (!user) {
+          setIsAdmin(false);
+          return;
+        }
+
+        const { data, error } = await supabase
+          .from('users')
+          .select('is_admin')
+          .eq('email', user.email)
+          .single();
+
+        if (error) throw error;
+        setIsAdmin(data?.is_admin || false);
+      } catch (err) {
+        console.error('Error checking admin status:', err);
+        setIsAdmin(false);
+      }
+    };
+
+    checkAdminStatus();
+  }, [isAuthenticated]);
+
+  // Check if we're on the admin panel page
+  useEffect(() => {
+    const checkAdminPage = () => {
+      setIsOnAdminPage(window.location.hash === '#admin');
+    };
+
+    // Check on mount
+    checkAdminPage();
+
+    // Listen for hash changes
+    window.addEventListener('hashchange', checkAdminPage);
+
+    return () => {
+      window.removeEventListener('hashchange', checkAdminPage);
+    };
+  }, []);
   const handleLogout = async () => {
     try {
       await authService.signOut();
@@ -118,18 +169,54 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
 
   // Handle navigation to sections on products page
   const scrollToSection = (sectionId) => {
+    setTimeout(() => {
     const element = document.getElementById(sectionId);
     if (element) {
+        // Find the scrollable products-page container
+        const productsPage = document.querySelector('.products-page');
+        if (productsPage) {
+          // Get the header height for offset calculation
+          const header = document.querySelector('.app-header');
+          const headerOffset = 20; // Extra spacing from top of container
+          
+          // Get current scroll position of the container
+          const currentScrollTop = productsPage.scrollTop;
+          
+          // Get bounding rectangles
+          const containerRect = productsPage.getBoundingClientRect();
+          const elementRect = element.getBoundingClientRect();
+          
+          // Calculate element's position relative to the container's scrollable content
+          // elementRect.top is relative to viewport
+          // containerRect.top is container's top relative to viewport
+          // We need: element position in container's content = current scroll + (element top - container top)
+          const elementTopInContainer = currentScrollTop + (elementRect.top - containerRect.top);
+          
+          // Calculate final scroll position with header offset
+          const offsetPosition = elementTopInContainer - headerOffset;
+          
+          // Scroll the products-page container
+          productsPage.scrollTo({
+            top: Math.max(0, offsetPosition),
+            behavior: 'smooth'
+          });
+        } else {
+          // Fallback: if products-page not found, try window scroll (for compatibility)
       const headerOffset = 100;
       const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+          const offsetPosition = elementPosition + (window.pageYOffset || window.scrollY || 0) - headerOffset;
       
       window.scrollTo({
         top: offsetPosition,
         behavior: 'smooth'
       });
     }
+      } else {
+        console.warn(`Section with id "${sectionId}" not found. Please ensure you are on the products page.`);
+      }
+    }, 100);
   };
+
 
 
   return (
@@ -198,9 +285,29 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
 
         <div className="header-right">
           {isAuthenticated ? (
-            <button onClick={handleLogout} className="logout-btn-header">
-              Logout
-            </button>
+            <>
+              {isAdmin && !isOnAdminPage && (
+                <button 
+                  onClick={() => {
+                    // Clear any products page flags
+                    localStorage.removeItem('showProductsPage');
+                    sessionStorage.removeItem('showProductsPage');
+                    // Clear any other navigation flags
+                    localStorage.removeItem('selectedApp');
+                    sessionStorage.removeItem('navigateToCVBuilder');
+                    sessionStorage.removeItem('navigateToIDCardPrint');
+                    // Navigate to admin panel
+                    window.location.href = '/#admin';
+                  }}
+                  className="admin-btn-header"
+                >
+                  Admin Panel
+                </button>
+              )}
+              <button onClick={handleLogout} className="logout-btn-header">
+                Logout
+              </button>
+            </>
           ) : (
             <button onClick={handleSignIn} className="signin-btn-header">
               Sign In

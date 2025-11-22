@@ -27,7 +27,7 @@
   gap: 1rem;
 }
 
-.create-cv-button, .refresh-button, .logout-button {
+.admin-nav-button, .create-cv-button, .refresh-button, .logout-button {
   background: rgba(255, 255, 255, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.3);
   color: white;
@@ -36,6 +36,11 @@
   cursor: pointer;
   font-weight: 500;
   transition: all 0.3s ease;
+}
+
+.admin-nav-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
 }
 
 .create-cv-button {
