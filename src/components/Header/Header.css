@@ -7,16 +7,21 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   width: 100%;
   position: relative;
+  overflow: visible;
+  min-height: 55px;
 }
 
 .header-container {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 1rem 2rem;
+  padding: 0.5rem 2rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 2rem;
+  position: relative;
+  overflow: visible;
+  min-height: 55px;
 }
 
 .header-left {
@@ -24,27 +29,21 @@
   align-items: center;
   gap: 1rem;
   flex-shrink: 0;
-  margin-left: 220px; /* Add margin to make room for absolutely positioned logo */
+  margin-left: 220px; /* Space for absolutely positioned logo */
 }
 
 .glory-logo {
-  height: 60px;
+  height: 55px;
   width: auto;
-  max-width: 200px;
+  max-width: 220px;
   object-fit: contain;
   cursor: pointer;
   transition: opacity 0.2s ease;
   position: absolute;
-  left: 0;
+  left: 1rem;
   top: 50%;
   transform: translateY(-50%);
   z-index: 10;
-}
-
-/* Position logo at exact left corner of header */
-.app-header .glory-logo {
-  position: absolute;
-  left: 2rem;
 }
 
 .glory-logo:hover {
@@ -153,21 +152,100 @@
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
+/* Header Dropdown Styles */
+.header-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.header-dropdown-toggle {
+  background: transparent;
+  border: 1px solid #e5e7eb;
+  color: #6b7280;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.header-dropdown-toggle:hover {
+  background: #f3f4f6;
+  color: #333;
+  border-color: #d1d5db;
+}
+
+.dropdown-arrow {
+  font-size: 0.7rem;
+  transition: transform 0.2s ease;
+}
+
+.header-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 180px;
+  z-index: 1000;
+  overflow: hidden;
+  animation: dropdownFadeIn 0.2s ease-out;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.header-dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  border: none;
+  color: #333;
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.header-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.header-dropdown-item:hover {
+  background: #f3f4f6;
+  color: #667eea;
+}
+
 .header-right {
   display: flex;
   align-items: center;
   gap: 1rem;
   flex-shrink: 0;
+  margin-left: auto;
 }
 
-/* Position Sign In/Logout button at exact right corner of header - same as logo on left */
-.app-header .signin-btn-header,
-.app-header .logout-btn-header {
-  position: absolute;
-  right: 3rem;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 10;
+/* Sign In/Logout button in header-right */
+.signin-btn-header,
+.logout-btn-header {
+  /* Button styles are defined below */
 }
 
 .signin-btn-header {
@@ -185,7 +263,6 @@
 
 .signin-btn-header:hover {
   background: #2563eb;
-  transform: translateY(calc(-50% - 1px));
   box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
 }
 
@@ -204,7 +281,6 @@
 
 .logout-btn-header:hover {
   background: #dc2626;
-  transform: translateY(calc(-50% - 1px));
   box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
 }
 
@@ -228,10 +304,7 @@
   .glory-logo {
     height: 45px;
     max-width: 150px;
-  }
-  
-  .app-header .glory-logo {
-    left: 1.5rem;
+    left: 1rem;
   }
 
   .logo {
@@ -261,6 +334,23 @@
     text-align: center;
   }
 
+  .header-dropdown {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  .header-dropdown-toggle {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .header-dropdown-menu {
+    left: 50%;
+    transform: translateX(-50%);
+    min-width: 200px;
+  }
+
   .product-switcher-header {
     gap: 0.25rem;
     padding: 0.2rem;
@@ -275,10 +365,6 @@
     text-align: center;
   }
 
-  .app-header .signin-btn-header,
-  .app-header .logout-btn-header {
-    right: 2rem;
-  }
 
   .signin-btn-header,
   .logout-btn-header {
@@ -304,9 +390,6 @@
   .glory-logo {
     height: 35px;
     max-width: 120px;
-  }
-  
-  .app-header .glory-logo {
     left: 1rem;
   }
 
@@ -323,10 +406,6 @@
     font-size: 0.75rem;
   }
 
-  .app-header .signin-btn-header,
-  .app-header .logout-btn-header {
-    right: 1.5rem;
-  }
 
   .signin-btn-header,
   .logout-btn-header {

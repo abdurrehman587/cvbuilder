@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import './Header.css';
 import { authService } from '../Supabase/supabase';
 
 const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, showProductsOnHeader = false }) => {
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
   const handleLogout = async () => {
     try {
       await authService.signOut();
@@ -116,6 +118,39 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
     }
   };
 
+  // Handle navigation to sections on products page
+  const scrollToSection = (sectionId) => {
+    setDropdownOpen(false);
+    const element = document.getElementById(sectionId);
+    if (element) {
+      const headerOffset = 100;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+      
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    };
+
+    if (dropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [dropdownOpen]);
+
   return (
     <header className="app-header">
       <div className="header-container">
@@ -137,7 +172,7 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
         </div>
 
         <div className="header-center">
-          {isAuthenticated && (
+          {isAuthenticated && !showProductsOnHeader && (
             <nav className="header-navigation">
               <button
                 onClick={navigateToCVBuilder}
@@ -152,6 +187,32 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
                 ID Card Print
               </button>
             </nav>
+          )}
+          {showProductsOnHeader && (
+            <div className="header-dropdown" ref={dropdownRef}>
+              <button
+                className="header-dropdown-toggle"
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+              >
+                Navigate <span className="dropdown-arrow">{dropdownOpen ? '▲' : '▼'}</span>
+              </button>
+              {dropdownOpen && (
+                <div className="header-dropdown-menu">
+                  <button
+                    className="header-dropdown-item"
+                    onClick={() => scrollToSection('cv-builder-section')}
+                  >
+                    CV Builder
+                  </button>
+                  <button
+                    className="header-dropdown-item"
+                    onClick={() => scrollToSection('id-card-print-section')}
+                  >
+                    ID Card Printer
+                  </button>
+                </div>
+              )}
+            </div>
           )}
         </div>
 
