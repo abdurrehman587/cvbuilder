@@ -1,10 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React from 'react';
 import './Header.css';
 import { authService } from '../Supabase/supabase';
 
 const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, showProductsOnHeader = false }) => {
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
   const handleLogout = async () => {
     try {
       await authService.signOut();
@@ -120,7 +118,6 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
 
   // Handle navigation to sections on products page
   const scrollToSection = (sectionId) => {
-    setDropdownOpen(false);
     const element = document.getElementById(sectionId);
     if (element) {
       const headerOffset = 100;
@@ -134,22 +131,6 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
     }
   };
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setDropdownOpen(false);
-      }
-    };
-
-    if (dropdownOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [dropdownOpen]);
 
   return (
     <header className="app-header">
@@ -189,30 +170,29 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
             </nav>
           )}
           {showProductsOnHeader && (
-            <div className="header-dropdown" ref={dropdownRef}>
+            <nav className="header-navigation header-products-navigation">
               <button
-                className="header-dropdown-toggle"
-                onClick={() => setDropdownOpen(!dropdownOpen)}
+                onClick={() => scrollToSection('marketplace-section')}
+                className="header-products-nav-button"
               >
-                Navigate <span className="dropdown-arrow">{dropdownOpen ? '▲' : '▼'}</span>
+                <span className="nav-icon">🛒</span>
+                <span className="nav-text">Market Place</span>
               </button>
-              {dropdownOpen && (
-                <div className="header-dropdown-menu">
-                  <button
-                    className="header-dropdown-item"
-                    onClick={() => scrollToSection('cv-builder-section')}
-                  >
-                    CV Builder
-                  </button>
-                  <button
-                    className="header-dropdown-item"
-                    onClick={() => scrollToSection('id-card-print-section')}
-                  >
-                    ID Card Printer
-                  </button>
-                </div>
-              )}
-            </div>
+              <button
+                onClick={() => scrollToSection('cv-builder-section')}
+                className="header-products-nav-button"
+              >
+                <span className="nav-icon">📄</span>
+                <span className="nav-text">CV Builder</span>
+              </button>
+              <button
+                onClick={() => scrollToSection('id-card-print-section')}
+                className="header-products-nav-button"
+              >
+                <span className="nav-icon">🪪</span>
+                <span className="nav-text">ID Card Printer</span>
+              </button>
+            </nav>
           )}
         </div>
 

@@ -843,6 +843,41 @@ function App() {
           onLogout={handleLogout}
           currentProduct="cv-builder"
         />
+        <div className="app-header-cv">
+          <h1>CV Builder</h1>
+          <div className="header-actions">
+            <div className="template-selector">
+              <button
+                className={`template-button ${selectedTemplate === 'template1' ? 'active' : ''}`}
+                onClick={() => handleTemplateSwitch('template1')}
+              >
+                Template 1
+              </button>
+              <button
+                className={`template-button ${selectedTemplate === 'template2' ? 'active' : ''}`}
+                onClick={() => handleTemplateSwitch('template2')}
+              >
+                Template 2
+              </button>
+              <button
+                className={`template-button ${selectedTemplate === 'template3' ? 'active' : ''}`}
+                onClick={() => handleTemplateSwitch('template3')}
+              >
+                Template 3
+              </button>
+            </div>
+            <div className="auto-save-status">
+              {hookAutoSaveStatus && (
+                <div className={`status-indicator ${hookAutoSaveStatus === 'saved' ? 'success' : hookAutoSaveStatus === 'saving' ? 'warning' : 'error'}`}>
+                  {hookAutoSaveStatus === 'saved' ? '✓ Saved' : hookAutoSaveStatus === 'saving' ? 'Saving...' : 'Error'}
+                </div>
+              )}
+            </div>
+            <button onClick={handleBackToDashboard} className="back-to-dashboard-button">
+              Back to Dashboard
+            </button>
+          </div>
+        </div>
         <div className="container">
           {renderFormAndPreview()}
         </div>

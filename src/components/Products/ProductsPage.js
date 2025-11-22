@@ -468,17 +468,23 @@ const ProductsPage = ({ onProductSelect }) => {
 
             {/* CV Builder Detailed View - Always visible */}
             <div id="cv-builder-section" className="product-detail-view-inline">
-              <div className="product-detail-header">
-                <div className="product-detail-icon">📄</div>
-                <h1 className="product-detail-title">CV Builder</h1>
-                <p className="product-detail-subtitle">Create professional CVs that stand out from the crowd</p>
-              </div>
+              <div className="product-detail-content">
+                {/* Templates Section with CV Builder Header */}
+                <div className="templates-section">
+                  {/* CV Builder Header */}
+                  <div className="product-detail-header">
+                    <div className="product-detail-header-content">
+                      <div className="product-detail-icon-large">📄</div>
+                      <div className="product-detail-text-content">
+                        <h1 className="product-detail-title">CV Builder</h1>
+                        <p className="product-detail-subtitle">Create professional CVs that stand out from the crowd</p>
+                        <p className="product-detail-instruction">Fill the form and get your CV Ready.</p>
+                      </div>
+                    </div>
+                  </div>
 
-                <div className="product-detail-content">
-                  {/* Templates Section */}
-                  <div className="templates-section">
-                    <h2 className="section-title">Choose from Professional Templates</h2>
-                    <p className="section-description">Each template is designed to showcase your skills and experience in the best possible way</p>
+                  <h2 className="section-title">Choose from Professional Templates</h2>
+                  <p className="section-description">Each template is designed to showcase your skills and experience in the best possible way</p>
                     
                     <div className="templates-grid">
                       <div className="template-card" onClick={() => handleTemplateClick(1)}>

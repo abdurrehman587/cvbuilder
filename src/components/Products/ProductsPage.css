@@ -1153,15 +1153,16 @@
 }
 
 .product-detail-header {
-  text-align: center;
-  margin-bottom: 4rem;
+  text-align: left;
+  margin-bottom: 2rem;
   position: relative;
-  padding: 3rem 2rem;
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);
-  border-radius: 24px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  padding: 0;
+  background: #f1f5f9;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   animation: slideDown 0.8s ease-out;
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  border: none;
+  overflow: hidden;
 }
 
 .product-detail-header::before {
@@ -1171,10 +1172,16 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #3b82f6, #10b981, #3b82f6);
-  background-size: 200% 100%;
-  border-radius: 24px 24px 0 0;
-  animation: gradientShift 3s linear infinite;
+  background: linear-gradient(90deg, #60a5fa 0%, #34d399 100%);
+  border-radius: 12px 12px 0 0;
+}
+
+.product-detail-header-content {
+  display: flex;
+  align-items: center;
+  gap: 3rem;
+  padding: 2rem 2.5rem;
+  flex-wrap: nowrap;
 }
 
 @keyframes gradientShift {
@@ -1194,71 +1201,92 @@
   }
 }
 
-.product-detail-icon {
-  font-size: 5rem;
-  margin-bottom: 1rem;
-  animation: floatIcon 3s ease-in-out infinite;
-  display: inline-block;
-  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.1));
-  position: relative;
+.product-detail-icon-large {
+  font-size: 8rem;
+  flex-shrink: 0;
+  animation: logoFloat 3s ease-in-out infinite;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
+  line-height: 1;
 }
 
-.product-detail-icon::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 150px;
-  height: 150px;
-  background: radial-gradient(circle, rgba(59, 130, 246, 0.25) 0%, rgba(59, 130, 246, 0.1) 50%, transparent 70%);
-  border-radius: 50%;
-  animation: pulse 3s ease-in-out infinite;
-  z-index: -1;
-  filter: blur(20px);
-}
-
-@keyframes floatIcon {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  25% { transform: translateY(-10px) rotate(2deg); }
-  75% { transform: translateY(-8px) rotate(-2deg); }
+.product-detail-text-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+  align-items: center;
+  text-align: center;
+  justify-content: center;
 }
 
 .product-detail-title {
   font-size: 3.5rem;
   font-weight: 800;
-  margin: 0 0 1rem 0;
+  margin: 0;
   color: #0f172a;
   text-shadow: none;
+  line-height: 1.2;
+  text-align: center;
 }
 
 .product-detail-subtitle {
-  font-size: 1.5rem;
+  font-size: 1.1rem;
   opacity: 1;
   margin: 0;
   font-weight: 400;
   color: #334155;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.product-detail-instruction {
+  font-size: 1.4rem;
+  opacity: 1;
+  margin: 0.5rem 0 0 0;
+  font-weight: 600;
+  color: #667eea;
+  font-style: italic;
+  text-align: center;
+  letter-spacing: 0.3px;
+}
+
+@keyframes logoFloat {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(-10px) scale(1.05);
+    opacity: 0.9;
+  }
 }
 
 .product-detail-content {
   display: flex;
   flex-direction: column;
-  gap: 5rem;
+  gap: 2rem;
 }
 
 /* Templates Section */
 .templates-section {
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 30%, #f1f5f9 60%, #ffffff 100%);
-  backdrop-filter: blur(10px);
-  border-radius: 24px;
-  padding: 3rem 2rem;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 0 2rem 3rem 2rem;
   border: 1px solid rgba(0, 0, 0, 0.08);
   width: 100%;
   box-sizing: border-box;
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   position: relative;
   overflow: hidden;
   animation: slideUp 0.8s ease-out 0.2s backwards;
+}
+
+.templates-section .product-detail-header {
+  margin: 0 -2rem 2rem -2rem;
+  border-radius: 12px 12px 0 0;
+  box-shadow: none;
+  border: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 @keyframes slideUp {
@@ -1325,22 +1353,42 @@
   z-index: 0;
 }
 
-.section-title {
-  font-size: 3rem;
+.templates-section .section-title {
+  font-size: 2rem;
   font-weight: 800;
-  margin: 0 0 1.5rem 0;
+  margin: 0;
   text-align: center;
-  color: #0f172a;
+  color: #ffffff;
   text-shadow: none;
   letter-spacing: -0.02em;
   line-height: 1.2;
+  padding: 1.5rem 2rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #3b82f6 100%);
+  border-radius: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-left: -2rem;
+  margin-right: -2rem;
+  width: calc(100% + 4rem);
+}
+
+.templates-section .section-title::after {
+  content: '▼';
+  font-size: 1rem;
+  opacity: 0.8;
+  margin-left: 1rem;
+  flex-shrink: 0;
+  position: absolute;
+  right: 2rem;
 }
 
 .section-description {
-  font-size: 1.4rem;
+  font-size: 1rem;
   text-align: center;
   opacity: 1;
-  margin: 0 0 4rem 0;
+  margin: 1.5rem 0 2rem 0;
   font-weight: 400;
   color: #334155;
   text-shadow: none;
@@ -2431,20 +2479,36 @@
   }
 
   .product-detail-header {
-    padding: 2rem 1rem;
     margin-bottom: 2rem;
   }
 
-  .product-detail-icon {
-    font-size: 3rem;
+  .product-detail-header-content {
+    flex-direction: column;
+    gap: 2rem;
+    padding: 2rem 1.5rem;
+    text-align: center;
+  }
+
+  .product-detail-icon-large {
+    font-size: 5rem;
+  }
+
+  .product-detail-text-content {
+    align-items: center;
+    text-align: center;
   }
 
   .product-detail-title {
-    font-size: 2rem;
+    font-size: 2.5rem;
   }
 
   .product-detail-subtitle {
     font-size: 1rem;
+  }
+
+  .product-detail-instruction {
+    font-size: 1.1rem;
+    text-align: center;
   }
 
   /* Templates Mobile */
@@ -2628,20 +2692,36 @@
   }
 
   .product-detail-header {
-    padding: 1.5rem 0.75rem;
     margin-bottom: 1.5rem;
   }
 
-  .product-detail-icon {
-    font-size: 2.5rem;
+  .product-detail-header-content {
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 1.5rem 1rem;
+    text-align: center;
+  }
+
+  .product-detail-icon-large {
+    font-size: 4rem;
+  }
+
+  .product-detail-text-content {
+    align-items: center;
+    text-align: center;
   }
 
   .product-detail-title {
-    font-size: 1.75rem;
+    font-size: 2rem;
   }
 
   .product-detail-subtitle {
     font-size: 0.9rem;
+  }
+
+  .product-detail-instruction {
+    font-size: 1rem;
+    text-align: center;
   }
 
   /* Templates Small Mobile */
