@@ -755,9 +755,19 @@
 }
 
 @media (max-width: 480px) {
+  .template2-root .cv-preview {
+    font-size: 0.85rem;
+  }
+  
   .template2-root .cv-left-column,
   .template2-root .cv-right-column {
     padding: 15px 12px;
+  }
+  
+  .template2-root .cv-header {
+    gap: 15px;
+    padding-bottom: 15px;
+    margin-bottom: 15px;
   }
   
   .template2-root .profile-image-container {
@@ -767,14 +777,22 @@
   
   .template2-root .header-name {
     font-size: 20px;
+    line-height: 1.2;
   }
   
   .template2-root .header-title {
     font-size: 14px;
+    line-height: 1.3;
+  }
+  
+  .template2-root .header-contact {
+    flex-direction: column;
+    gap: 6px;
   }
   
   .template2-root .section-heading {
     font-size: 1.1rem;
+    margin-bottom: 8px;
   }
   
   .template2-root .cv-section {
@@ -785,8 +803,62 @@
   .template2-root .skill-pill,
   .template2-root .language-pill,
   .template2-root .hobby-pill {
-    min-width: 80px;
     font-size: 0.75rem;
     padding: 3px 6px;
+    min-width: 80px;
+  }
+  
+  .template2-root .other-info-grid {
+    gap: 6px;
+  }
+  
+  .template2-root .info-item {
+    padding: 5px 8px;
+  }
+  
+  .template2-root .info-label,
+  .template2-root .info-value {
+    font-size: 1rem !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .template2-root .cv-preview {
+    font-size: 0.8rem;
+  }
+  
+  .template2-root .cv-left-column,
+  .template2-root .cv-right-column {
+    padding: 12px 10px;
+  }
+  
+  .template2-root .profile-image-container {
+    width: 90px;
+    height: 90px;
+  }
+  
+  .template2-root .header-name {
+    font-size: 18px;
+  }
+  
+  .template2-root .header-title {
+    font-size: 12px;
+  }
+  
+  .template2-root .section-heading {
+    font-size: 1rem;
+  }
+  
+  .template2-root .cv-section {
+    padding: 6px;
+    margin-bottom: 8px;
+  }
+  
+  .template2-root .skill-pill,
+  .template2-root .language-pill,
+  .template2-root .hobby-pill {
+    font-size: 0.7rem;
+    padding: 2px 5px;
+    min-width: 70px;
   }
 }

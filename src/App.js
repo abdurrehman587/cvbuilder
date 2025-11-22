@@ -867,9 +867,21 @@ function App() {
               </button>
             </div>
             <div className="auto-save-status">
-              {hookAutoSaveStatus && (
-                <div className={`status-indicator ${hookAutoSaveStatus === 'saved' ? 'success' : hookAutoSaveStatus === 'saving' ? 'warning' : 'error'}`}>
-                  {hookAutoSaveStatus === 'saved' ? '✓ Saved' : hookAutoSaveStatus === 'saving' ? 'Saving...' : 'Error'}
+              {hookAutoSaveStatus ? (
+                <div className={`status-indicator ${
+                  hookAutoSaveStatus.includes('saved') || hookAutoSaveStatus.includes('Saved') || hookAutoSaveStatus === 'Ready' ? 'success' : 
+                  hookAutoSaveStatus.includes('Saving') || hookAutoSaveStatus.includes('saving') ? 'warning' : 
+                  'error'
+                }`}>
+                  {hookAutoSaveStatus}
+                </div>
+              ) : hookHasUnsavedChanges ? (
+                <div className="status-indicator warning">
+                  Unsaved Changes
+                </div>
+              ) : (
+                <div className="status-indicator success">
+                  Saved
                 </div>
               )}
             </div>

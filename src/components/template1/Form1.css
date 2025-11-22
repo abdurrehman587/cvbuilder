@@ -85,7 +85,7 @@
 }
 
 /* Responsive Design */
-@media (max-width: 1024px) {
+@media (max-width: 1200px) {
   .section-title {
     font-size: 15px;
     padding: 12px 18px;
@@ -94,12 +94,41 @@
   .styled-input {
     padding: 10px 14px;
   }
+  
+  .input-label,
+  .file-label {
+    font-size: 12.5px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .section-title {
+    font-size: 15px;
+    padding: 12px 18px;
+  }
+  
+  .styled-input {
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+  
+  .input-label,
+  .file-label {
+    font-size: 12.5px;
+  }
+  
+  .file-label::after {
+    padding: 10px 20px;
+    font-size: 13px;
+  }
 }
 
 @media (max-width: 768px) {
   .styled-input {
     font-size: 16px; /* Prevents zoom on iOS */
     padding: 10px 12px;
+    width: 100%;
+    box-sizing: border-box;
   }
   
   .section-title {
@@ -107,9 +136,18 @@
     padding: 12px 15px;
   }
   
+  .input-label,
+  .file-label {
+    font-size: 12px;
+    margin-bottom: 6px;
+  }
+  
   .file-label::after {
     padding: 10px 20px;
     font-size: 13px;
+    width: 100%;
+    text-align: center;
+    box-sizing: border-box;
   }
   
   .add-education-button,
@@ -123,6 +161,8 @@
   .add-reference-button {
     padding: 6px 12px;
     font-size: 11px;
+    width: 100%;
+    box-sizing: border-box;
   }
   
   .remove-education-button,
@@ -150,6 +190,37 @@
   .references-section {
     margin-bottom: 8px;
   }
+  
+  .input-group {
+    margin-bottom: 6px;
+  }
+  
+  .education-item,
+  .experience-item,
+  .certification-item,
+  .reference-item {
+    padding: 10px;
+    margin-bottom: 8px;
+  }
+  
+  .skills-container,
+  .languages-container,
+  .hobbies-container {
+    gap: 6px;
+  }
+  
+  .skill-input-wrapper,
+  .language-input-wrapper,
+  .hobby-input-wrapper {
+    flex-direction: column;
+    gap: 6px;
+  }
+  
+  .skill-input,
+  .language-input,
+  .hobby-input {
+    width: 100%;
+  }
 }
 
 @media (max-width: 480px) {
@@ -159,13 +230,18 @@
   }
   
   .styled-input {
-    font-size: 16px;
+    font-size: 16px; /* Prevents zoom on iOS */
     padding: 8px 10px;
+    width: 100%;
+    box-sizing: border-box;
   }
   
   .file-label::after {
     padding: 8px 16px;
     font-size: 12px;
+    width: 100%;
+    text-align: center;
+    box-sizing: border-box;
   }
   
   .add-education-button,
@@ -177,8 +253,10 @@
   .add-hobby-button,
   .add-detail-button,
   .add-reference-button {
-    padding: 5px 10px;
+    padding: 6px 10px;
     font-size: 10px;
+    width: 100%;
+    box-sizing: border-box;
   }
   
   .remove-education-button,
@@ -191,16 +269,114 @@
   .remove-reference-button {
     padding: 5px 8px;
     font-size: 9px;
+    width: 100%;
+    box-sizing: border-box;
   }
   
   .input-label,
   .file-label {
-    font-size: 12px;
+    font-size: 11px;
+    margin-bottom: 4px;
+  }
+  
+  .input-group {
+    margin-bottom: 4px;
+  }
+  
+  .contact-info-section,
+  .professional-summary-section,
+  .education-section,
+  .experience-section,
+  .certifications-section,
+  .skills-section,
+  .other-information-section,
+  .languages-section,
+  .hobbies-section,
+  .custom-section,
+  .references-section {
+    margin-bottom: 6px;
+  }
+  
+  .education-item,
+  .experience-item,
+  .certification-item,
+  .reference-item {
+    padding: 8px;
+    margin-bottom: 6px;
   }
   
   .custom-label-input,
   .custom-value-input {
     min-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .skills-container,
+  .languages-container,
+  .hobbies-container {
+    gap: 4px;
+  }
+  
+  .skill-input-wrapper,
+  .language-input-wrapper,
+  .hobby-input-wrapper {
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .skill-input,
+  .language-input,
+  .hobby-input {
+    width: 100%;
+  }
+}
+
+/* Extra small devices */
+@media (max-width: 360px) {
+  .section-title {
+    font-size: 12px;
+    padding: 8px 10px;
+  }
+  
+  .styled-input {
+    font-size: 16px;
+    padding: 6px 8px;
+  }
+  
+  .input-label,
+  .file-label {
+    font-size: 10px;
+  }
+  
+  .file-label::after {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+  
+  .add-education-button,
+  .add-experience-button,
+  .add-skill-button,
+  .add-certification-button,
+  .add-information-button,
+  .add-language-button,
+  .add-hobby-button,
+  .add-detail-button,
+  .add-reference-button {
+    padding: 5px 8px;
+    font-size: 9px;
+  }
+  
+  .remove-education-button,
+  .remove-experience-button,
+  .remove-skill-button,
+  .remove-certification-button,
+  .remove-language-button,
+  .remove-hobby-button,
+  .remove-detail-button,
+  .remove-reference-button {
+    padding: 4px 6px;
+    font-size: 8px;
   }
 }
 

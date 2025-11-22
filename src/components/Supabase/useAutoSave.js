@@ -3,7 +3,7 @@ import { cvService, authService, supabase } from './supabase';
 import { dbHelpers } from './database';
 
 const useAutoSave = (formData, saveInterval = 10000) => {
-  const [autoSaveStatus, setAutoSaveStatus] = useState('');
+  const [autoSaveStatus, setAutoSaveStatus] = useState('Ready');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [currentCVId, setCurrentCVId] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(true);
@@ -51,7 +51,7 @@ const useAutoSave = (formData, saveInterval = 10000) => {
       if (!user) {
         console.log('No authenticated user found');
         setAutoSaveStatus('Please log in to save');
-        setTimeout(() => setAutoSaveStatus(''), 3000);
+        // Keep status visible for errors
         return;
       }
 
@@ -66,14 +66,14 @@ const useAutoSave = (formData, saveInterval = 10000) => {
         if (testError) {
           console.error('Supabase connection test failed:', testError);
           setAutoSaveStatus('Database connection failed: ' + testError.message);
-          setTimeout(() => setAutoSaveStatus(''), 5000);
+          // Keep status visible for errors
           return;
         }
         console.log('Supabase connection test successful');
       } catch (testErr) {
         console.error('Supabase connection test error:', testErr);
         setAutoSaveStatus('Database connection test failed: ' + testErr.message);
-        setTimeout(() => setAutoSaveStatus(''), 5000);
+        // Keep status visible for errors
         return;
       }
 
@@ -128,15 +128,14 @@ const useAutoSave = (formData, saveInterval = 10000) => {
         profileImageData: formData.profileImage?.data || null
       };
       setHasUnsavedChanges(false);
-      setAutoSaveStatus('Auto-saved to database');
+      setAutoSaveStatus('Saved');
       
-      // Clear status after 2 seconds
-      setTimeout(() => setAutoSaveStatus(''), 2000);
+      // Keep status visible - don't clear it
     } catch (err) {
       console.error('Auto-save error:', err);
       console.error('Error details:', err.message, err.details, err.hint);
       setAutoSaveStatus('Auto-save failed: ' + err.message);
-      setTimeout(() => setAutoSaveStatus(''), 5000);
+      // Keep status visible for errors
     }
   }, [formData, currentCVId, hasUnsavedChanges]);
 
@@ -208,7 +207,7 @@ const useAutoSave = (formData, saveInterval = 10000) => {
   // Clear draft function
   const clearDraft = () => {
     setHasUnsavedChanges(false);
-    setAutoSaveStatus('');
+    setAutoSaveStatus('Saved');
   };
 
   // Mark as changed
@@ -254,7 +253,7 @@ const useAutoSave = (formData, saveInterval = 10000) => {
   const createNewCV = () => {
     setCurrentCVId(null);
     setHasUnsavedChanges(false);
-    setAutoSaveStatus('');
+    setAutoSaveStatus('Ready');
     // Clear the last saved data reference to ensure new CV starts fresh
     lastSavedDataRef.current = null;
   };
