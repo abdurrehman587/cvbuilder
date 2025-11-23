@@ -695,9 +695,6 @@ const ProductsPage = ({ onProductSelect }) => {
                                   </div>
                                   <div className="product-card-body">
                                     <h4 className="product-card-name">{product.name}</h4>
-                                    {product.description && (
-                                      <p className="product-card-description">{product.description}</p>
-                                    )}
                                     <div className="product-card-footer">
                                       <span className="product-card-price">Rs. {product.price?.toLocaleString() || '0'}</span>
                                       <span className="product-card-arrow">→</span>

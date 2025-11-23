@@ -226,6 +226,81 @@
   margin: 0;
 }
 
+.product-detail-description-list {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin: 0;
+}
+
+.product-detail-description-list li {
+  font-size: 1.1rem;
+  color: #475569;
+  line-height: 1.8;
+  margin-bottom: 0.5rem;
+}
+
+.product-detail-description-list li:last-child {
+  margin-bottom: 0;
+}
+
+.product-detail-description-html {
+  font-size: 1.1rem;
+  color: #475569;
+  line-height: 1.8;
+}
+
+.product-detail-description-html p {
+  margin: 0.5rem 0;
+  font-size: 1.1rem;
+  color: #475569;
+  line-height: 1.8;
+}
+
+.product-detail-description-html p:first-child {
+  margin-top: 0;
+}
+
+.product-detail-description-html p:last-child {
+  margin-bottom: 0;
+}
+
+.product-detail-description-html ul,
+.product-detail-description-html ol {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+.product-detail-description-html ol {
+  list-style-type: decimal;
+}
+
+.product-detail-description-html li {
+  font-size: 1.1rem;
+  color: #475569;
+  line-height: 1.8;
+  margin-bottom: 0.5rem;
+}
+
+.product-detail-description-html li:last-child {
+  margin-bottom: 0;
+}
+
+.product-detail-description-html strong,
+.product-detail-description-html b {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.product-detail-description-html em,
+.product-detail-description-html i {
+  font-style: italic;
+}
+
+.product-detail-description-html u {
+  text-decoration: underline;
+}
+
 .product-detail-actions {
   margin-top: auto;
   padding-top: 2rem;
@@ -435,6 +510,37 @@
     line-height: 1.6;
   }
 
+  .product-detail-description-list {
+    padding-left: 1.25rem;
+  }
+
+  .product-detail-description-list li {
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-bottom: 0.4rem;
+  }
+
+  .product-detail-description-html {
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  .product-detail-description-html p {
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  .product-detail-description-html ul,
+  .product-detail-description-html ol {
+    padding-left: 1.25rem;
+  }
+
+  .product-detail-description-html li {
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-bottom: 0.4rem;
+  }
+
   .product-detail-actions {
     padding-top: 1.5rem;
   }
@@ -536,6 +642,37 @@
     line-height: 1.6;
   }
 
+  .product-detail-description-list {
+    padding-left: 1.1rem;
+  }
+
+  .product-detail-description-list li {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 0.35rem;
+  }
+
+  .product-detail-description-html {
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+
+  .product-detail-description-html p {
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+
+  .product-detail-description-html ul,
+  .product-detail-description-html ol {
+    padding-left: 1.1rem;
+  }
+
+  .product-detail-description-html li {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 0.35rem;
+  }
+
   .product-detail-actions {
     padding-top: 1.25rem;
   }
@@ -625,6 +762,37 @@
 
   .product-detail-description p {
     font-size: 0.9rem;
+  }
+
+  .product-detail-description-list {
+    padding-left: 1rem;
+  }
+
+  .product-detail-description-list li {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-bottom: 0.3rem;
+  }
+
+  .product-detail-description-html {
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  .product-detail-description-html p {
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  .product-detail-description-html ul,
+  .product-detail-description-html ol {
+    padding-left: 1rem;
+  }
+
+  .product-detail-description-html li {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-bottom: 0.3rem;
   }
 
   .product-detail-actions {
@@ -721,6 +889,37 @@
   .product-detail-description p {
     font-size: 0.85rem;
     line-height: 1.5;
+  }
+
+  .product-detail-description-list {
+    padding-left: 0.9rem;
+  }
+
+  .product-detail-description-list li {
+    font-size: 0.85rem;
+    line-height: 1.5;
+    margin-bottom: 0.25rem;
+  }
+
+  .product-detail-description-html {
+    font-size: 0.85rem;
+    line-height: 1.5;
+  }
+
+  .product-detail-description-html p {
+    font-size: 0.85rem;
+    line-height: 1.5;
+  }
+
+  .product-detail-description-html ul,
+  .product-detail-description-html ol {
+    padding-left: 0.9rem;
+  }
+
+  .product-detail-description-html li {
+    font-size: 0.85rem;
+    line-height: 1.5;
+    margin-bottom: 0.25rem;
   }
 
   .product-detail-actions {

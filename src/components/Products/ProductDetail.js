@@ -105,6 +105,36 @@ const ProductDetail = ({ productId }) => {
 
   const images = getProductImages(product);
 
+  // Helper function to render description (HTML or plain text)
+  const renderDescription = (description) => {
+    if (!description) return null;
+    
+    // Check if description contains HTML tags
+    const isHtml = /<[a-z][\s\S]*>/i.test(description);
+    
+    if (isHtml) {
+      // Render HTML content (from rich text editor)
+      return (
+        <div 
+          className="product-detail-description-html"
+          dangerouslySetInnerHTML={{ __html: description }}
+        />
+      );
+    } else {
+      // Plain text - convert to bulleted list (backward compatibility)
+      const lines = description.split('\n').filter(line => line.trim().length > 0);
+      if (lines.length === 0) return null;
+      
+      return (
+        <ul className="product-detail-description-list">
+          {lines.map((line, index) => (
+            <li key={index}>{line.trim()}</li>
+          ))}
+        </ul>
+      );
+    }
+  };
+
   return (
     <div className="product-detail-page">
       <div className="product-detail-container">
@@ -186,7 +216,7 @@ const ProductDetail = ({ productId }) => {
             {product.description && (
               <div className="product-detail-description">
                 <h2>Description</h2>
-                <p>{product.description}</p>
+                {renderDescription(product.description)}
               </div>
             )}
 

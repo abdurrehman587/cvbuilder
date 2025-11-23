@@ -1,12 +1,50 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../Supabase/supabase';
 import './MarketplaceAdmin.css';
+import RichTextEditor from './RichTextEditor';
 
 const MarketplaceAdmin = () => {
   const [sections, setSections] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('sections');
+
+  // Helper function to convert HTML to plain text (preserving line breaks)
+  const htmlToPlainText = (html) => {
+    if (!html) return '';
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    
+    // Replace block elements with newlines
+    const blockElements = tempDiv.querySelectorAll('p, div, li, br');
+    blockElements.forEach(el => {
+      if (el.tagName.toLowerCase() === 'br') {
+        el.replaceWith('\n');
+      } else {
+        if (el.textContent.trim()) {
+          el.textContent = el.textContent.trim() + '\n';
+        }
+      }
+    });
+    
+    // Get text content and clean up
+    let text = tempDiv.textContent || tempDiv.innerText || '';
+    // Remove extra newlines (more than 2 consecutive)
+    text = text.replace(/\n{3,}/g, '\n\n');
+    // Trim each line
+    text = text.split('\n').map(line => line.trim()).join('\n');
+    
+    return text.trim();
+  };
+
+  // Helper function to convert plain text to HTML for editing
+  const plainTextToHtml = (text) => {
+    if (!text) return '';
+    // Convert newlines to paragraphs
+    const lines = text.split('\n').filter(line => line.trim().length > 0);
+    if (lines.length === 0) return '';
+    return lines.map(line => `<p>${line.trim()}</p>`).join('');
+  };
 
   // Form states for sections
   const [sectionForm, setSectionForm] = useState({
@@ -23,6 +61,7 @@ const MarketplaceAdmin = () => {
     section_id: '',
     description: ''
   });
+  const [descriptionHtml, setDescriptionHtml] = useState('');
   const [editingProduct, setEditingProduct] = useState(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadingImageIndex, setUploadingImageIndex] = useState(null);
@@ -195,11 +234,13 @@ const MarketplaceAdmin = () => {
     e.preventDefault();
     try {
       setLoading(true);
+      // Store HTML description to preserve formatting
       const { data, error } = await supabase
         .from('marketplace_products')
         .insert([{
           ...productForm,
-          price: parseFloat(productForm.price)
+          price: parseFloat(productForm.price),
+          description: descriptionHtml || ''
         }])
         .select()
         .single();
@@ -207,6 +248,7 @@ const MarketplaceAdmin = () => {
       if (error) throw error;
       await loadProducts();
       setProductForm({ name: '', price: '', image_urls: [], section_id: '', description: '' });
+      setDescriptionHtml('');
       alert('Product added successfully!');
     } catch (err) {
       console.error('Error adding product:', err);
@@ -220,6 +262,7 @@ const MarketplaceAdmin = () => {
     e.preventDefault();
     try {
       setLoading(true);
+      // Store HTML description to preserve formatting
       const { data, error } = await supabase
         .from('marketplace_products')
         .update({
@@ -228,7 +271,7 @@ const MarketplaceAdmin = () => {
           image_urls: productForm.image_urls.length > 0 ? productForm.image_urls : null,
           image_url: productForm.image_urls.length > 0 ? productForm.image_urls[0] : null,
           section_id: productForm.section_id,
-          description: productForm.description || null
+          description: descriptionHtml || null
         })
         .eq('id', editingProduct.id)
         .select()
@@ -238,6 +281,7 @@ const MarketplaceAdmin = () => {
       await loadProducts();
       setEditingProduct(null);
       setProductForm({ name: '', price: '', image_urls: [], section_id: '', description: '' });
+      setDescriptionHtml('');
       alert('Product updated successfully!');
     } catch (err) {
       console.error('Error updating product:', err);
@@ -412,12 +456,16 @@ const MarketplaceAdmin = () => {
                 </option>
               ))}
             </select>
-            <textarea
-              placeholder="Description"
-              value={productForm.description}
-              onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
-              rows="4"
-            />
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#374151' }}>
+                Product Feature (Description)
+              </label>
+              <RichTextEditor
+                value={descriptionHtml}
+                onChange={setDescriptionHtml}
+                placeholder="Enter product description..."
+              />
+            </div>
             <div className="image-upload">
               <label>Product Images (You can upload multiple images)</label>
               <input
@@ -463,6 +511,7 @@ const MarketplaceAdmin = () => {
               <button type="button" onClick={() => {
                 setEditingProduct(null);
                 setProductForm({ name: '', price: '', image_urls: [], section_id: '', description: '' });
+                setDescriptionHtml('');
               }}>
                 Cancel
               </button>
@@ -507,6 +556,7 @@ const MarketplaceAdmin = () => {
                       <td>
                         <button onClick={() => {
                           setEditingProduct(product);
+                          const description = product.description || '';
                           setProductForm({
                             name: product.name,
                             price: product.price?.toString() || '',
@@ -514,8 +564,17 @@ const MarketplaceAdmin = () => {
                               ? product.image_urls 
                               : (product.image_url ? [product.image_url] : []),
                             section_id: product.section_id || '',
-                            description: product.description || ''
+                            description: description
                           });
+                          // Check if description is HTML (contains tags) or plain text
+                          const isHtml = description && /<[a-z][\s\S]*>/i.test(description);
+                          if (isHtml) {
+                            // Already HTML, use directly
+                            setDescriptionHtml(description);
+                          } else {
+                            // Plain text, convert to HTML for the editor
+                            setDescriptionHtml(plainTextToHtml(description));
+                          }
                         }}>
                           Edit
                         </button>
