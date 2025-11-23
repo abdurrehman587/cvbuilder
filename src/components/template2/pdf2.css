@@ -60,6 +60,8 @@
   margin: 0 0 8px 0 !important;
   line-height: 1.2 !important;
   font-family: 'Arial', sans-serif !important;
+  text-align: center !important;
+  width: 100% !important;
 }
 
 /* Header Title */
