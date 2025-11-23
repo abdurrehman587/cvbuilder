@@ -83,12 +83,19 @@ function App() {
 
   // Handle "Make a new CV" button
   const handleMakeNewCV = () => {
-    console.log('handleMakeNewCV called - resetting products page flags');
+    console.log('handleMakeNewCV called - resetting products page flags and setting cv-builder view');
     // Reset products page flags to ensure CV builder can be shown
     setForceShowProductsPage(false);
     showProductsPageRef.current = false;
     localStorage.removeItem('showProductsPage');
     sessionStorage.removeItem('showProductsPage');
+    // Clear products page hash if present
+    if (window.location.hash === '#products') {
+      window.location.hash = '';
+    }
+    
+    // Set selected product to cv-builder
+    localStorage.setItem('selectedApp', 'cv-builder');
     
     const newFormData = {
       name: '',
@@ -110,11 +117,11 @@ function App() {
     setAutoSaveStatus('');
     setFormResetKey(prev => prev + 1); // Force form re-render
     createNewCV(); // Reset the hook state
-    // Set default template if none is selected
-    if (!selectedTemplate || selectedTemplate === 'dashboard') {
-      setSelectedTemplate('template1');
-    }
-    setCurrentView('cv-builder'); // Ensure we're in the CV builder view
+    // Always set template to template1 for new CV (ensure it's set before setting currentView)
+    setSelectedTemplate('template1');
+    // Set currentView to cv-builder - this should trigger the form/preview to show
+    setCurrentView('cv-builder');
+    console.log('handleMakeNewCV - currentView set to cv-builder, selectedTemplate set to template1');
   };
 
   useEffect(() => {
@@ -355,6 +362,19 @@ function App() {
   };
 
   const handleBackToDashboard = () => {
+    console.log('handleBackToDashboard called - navigating to CV dashboard');
+    // Clear any products page flags
+    setForceShowProductsPage(false);
+    showProductsPageRef.current = false;
+    localStorage.removeItem('showProductsPage');
+    sessionStorage.removeItem('showProductsPage');
+    // Clear products page hash if present
+    if (window.location.hash === '#products') {
+      window.location.hash = '';
+    }
+    // Ensure selectedApp is set to cv-builder
+    localStorage.setItem('selectedApp', 'cv-builder');
+    // Navigate to dashboard
     setCurrentView('dashboard');
   };
 
@@ -771,13 +791,13 @@ function App() {
   // NOTE: Use ref directly, don't use forceShowProductsPage state to avoid loops
   const hasExplicitNavigation = navigateToCVBuilderFlag || navigateToIDCardPrintFlag;
   // For authenticated users, show products page by default UNLESS there's explicit navigation
-  // If products page flag is explicitly set, show it regardless of currentView
-  // Otherwise, don't show products page if we're already on the dashboard (currentView === 'dashboard')
+  // If products page flag is explicitly set, show it regardless of currentView (unless currentView is cv-builder)
+  // Otherwise, don't show products page if we're already on the dashboard or cv-builder
   // Use ref directly instead of state to avoid re-render loops
   const hasExplicitProductsPageFlag = showProductsPageFlag || showProductsPageRef.current || showProductsPageHash;
   const shouldShowProductsPage = hasExplicitProductsPageFlag 
-    ? true // If flag is explicitly set, always show products page
-    : ((!isAuthenticated || (!hasExplicitNavigation && isAuthenticated)) && currentView !== 'dashboard');
+    ? (currentView !== 'cv-builder') // If flag is explicitly set, show products page unless we're in cv-builder
+    : ((!isAuthenticated || (!hasExplicitNavigation && isAuthenticated)) && currentView !== 'dashboard' && currentView !== 'cv-builder');
   
   // Debug logging for routing decision - ALWAYS log navigateToCVBuilderFlag
   console.log('Routing decision:', {
@@ -794,8 +814,172 @@ function App() {
       currentView
     });
   
+  // PRIORITY 1.5: Check if we should show CV Builder form/preview BEFORE products page
+  // This ensures that when currentView is 'cv-builder', we show the form instead of products page
+  // ABSOLUTE PRIORITY: If currentView is 'cv-builder', show it regardless of products page flags
+  if (currentView === 'cv-builder' && isAuthenticated && !isLoading) {
+    const selectedProduct = localStorage.getItem('selectedApp');
+    if (selectedProduct !== 'id-card-print') {
+      console.log('Rendering CV Builder form/preview - currentView is cv-builder');
+      const renderFormAndPreview = () => {
+        switch (selectedTemplate) {
+          case 'template1':
+            return (
+              <>
+                <Form1 
+                  key={formResetKey}
+                  formData={formData}
+                  updateFormData={updateFormData}
+                  markAsChanged={hookMarkAsChanged}
+                />
+                <Preview1 
+                  formData={formData}
+                  autoSaveStatus={hookAutoSaveStatus}
+                  hasUnsavedChanges={hookHasUnsavedChanges}
+                />
+              </>
+            );
+          case 'template2':
+            return (
+              <>
+                <Form2 
+                  key={formResetKey}
+                  formData={formData}
+                  updateFormData={updateFormData}
+                  markAsChanged={hookMarkAsChanged}
+                />
+                <Preview2 
+                  formData={formData}
+                  autoSaveStatus={hookAutoSaveStatus}
+                  hasUnsavedChanges={hookHasUnsavedChanges}
+                />
+              </>
+            );
+          case 'template3':
+            return (
+              <>
+                <Form3 
+                  key={formResetKey}
+                  formData={formData}
+                  updateFormData={updateFormData}
+                  markAsChanged={hookMarkAsChanged}
+                />
+                <Preview3 
+                  formData={formData}
+                  autoSaveStatus={hookAutoSaveStatus}
+                  hasUnsavedChanges={hookHasUnsavedChanges}
+                />
+              </>
+            );
+          default:
+            return (
+              <>
+                <Form1 
+                  key={formResetKey}
+                  formData={formData}
+                  updateFormData={updateFormData}
+                  markAsChanged={hookMarkAsChanged}
+                />
+                <Preview1 
+                  formData={formData}
+                  autoSaveStatus={hookAutoSaveStatus}
+                  hasUnsavedChanges={hookHasUnsavedChanges}
+                />
+              </>
+            );
+        }
+      };
+
+      console.log('Rendering CV Builder with header - currentView:', currentView, 'selectedTemplate:', selectedTemplate);
+
+      return (
+        <>
+          <Header 
+            isAuthenticated={true} 
+            onLogout={handleLogout}
+            currentProduct="cv-builder"
+          />
+          <div className="app-header-cv" style={{ 
+            display: 'flex', 
+            visibility: 'visible', 
+            opacity: 1, 
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
+            padding: '24px 20px 12px 20px', 
+            position: 'fixed',
+            top: 'calc(var(--header-height, 80px) + 5px)',
+            left: 0,
+            right: 0,
+            zIndex: 999,
+            width: '100%',
+            minHeight: '80px',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            margin: 0
+          }}>
+            <h1 style={{ color: 'white', margin: 0, fontSize: '24px', fontWeight: 700 }}>CV Builder</h1>
+            <div className="header-actions" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <div className="template-selector" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <button
+                  className={`template-button ${selectedTemplate === 'template1' ? 'active' : ''}`}
+                  onClick={() => handleTemplateSwitch('template1')}
+                  style={{ visibility: 'visible', opacity: 1 }}
+                >
+                  Template 1
+                </button>
+                <button
+                  className={`template-button ${selectedTemplate === 'template2' ? 'active' : ''}`}
+                  onClick={() => handleTemplateSwitch('template2')}
+                  style={{ visibility: 'visible', opacity: 1 }}
+                >
+                  Template 2
+                </button>
+                <button
+                  className={`template-button ${selectedTemplate === 'template3' ? 'active' : ''}`}
+                  onClick={() => handleTemplateSwitch('template3')}
+                  style={{ visibility: 'visible', opacity: 1 }}
+                >
+                  Template 3
+                </button>
+              </div>
+              <div className="auto-save-status" style={{ display: 'flex', alignItems: 'center', visibility: 'visible' }}>
+                {hookAutoSaveStatus ? (
+                  <div className={`status-indicator ${
+                    hookAutoSaveStatus.includes('saved') || hookAutoSaveStatus.includes('Saved') || hookAutoSaveStatus === 'Ready' ? 'success' : 
+                    hookAutoSaveStatus.includes('Saving') || hookAutoSaveStatus.includes('saving') ? 'warning' : 
+                    'error'
+                  }`} style={{ visibility: 'visible', opacity: 1 }}>
+                    {hookAutoSaveStatus}
+                  </div>
+                ) : hookHasUnsavedChanges ? (
+                  <div className="status-indicator warning" style={{ visibility: 'visible', opacity: 1 }}>
+                    Unsaved Changes
+                  </div>
+                ) : (
+                  <div className="status-indicator success" style={{ visibility: 'visible', opacity: 1 }}>
+                    Saved
+                  </div>
+                )}
+              </div>
+              <button 
+                onClick={handleBackToDashboard} 
+                className="back-to-dashboard-button"
+                style={{ visibility: 'visible', opacity: 1, display: 'block' }}
+              >
+                Back to Dashboard
+              </button>
+            </div>
+          </div>
+          <div className="container">
+            {renderFormAndPreview()}
+          </div>
+        </>
+      );
+    }
+  }
+  
   // If products page flag is set, show products page IMMEDIATELY, even during loading
-  if (shouldShowProductsPage) {
+  // BUT NOT if currentView is cv-builder (cv-builder takes absolute priority)
+  if (shouldShowProductsPage && currentView !== 'cv-builder') {
     // Show products page (which includes login form for unauthenticated users)
     const selectedProduct = localStorage.getItem('selectedApp');
     
@@ -923,138 +1107,6 @@ function App() {
   // This should take priority over products page if user explicitly clicked CV Builder button
   // BUT NOT if user wants ID Card Print
   const wantsCVBuilder = isAuthenticated && selectedProduct === 'cv-builder' && !forceShowProductsPage && !showProductsPageRef.current && !navigateToCVBuilderFlag && !navigateToIDCardPrintFlag;
-  
-  // Render Form and Preview when currentView is 'cv-builder'
-  if (currentView === 'cv-builder' && isAuthenticated && !forceShowProductsPage && !showProductsPageRef.current && !isLoading && selectedProduct !== 'id-card-print') {
-    const renderFormAndPreview = () => {
-      switch (selectedTemplate) {
-        case 'template1':
-          return (
-            <>
-              <Form1 
-                key={formResetKey}
-                formData={formData}
-                updateFormData={updateFormData}
-                markAsChanged={hookMarkAsChanged}
-              />
-              <Preview1 
-                formData={formData}
-                autoSaveStatus={hookAutoSaveStatus}
-                hasUnsavedChanges={hookHasUnsavedChanges}
-              />
-            </>
-          );
-        case 'template2':
-          return (
-            <>
-              <Form2 
-                key={formResetKey}
-                formData={formData}
-                updateFormData={updateFormData}
-                markAsChanged={hookMarkAsChanged}
-              />
-              <Preview2 
-                formData={formData}
-                autoSaveStatus={hookAutoSaveStatus}
-                hasUnsavedChanges={hookHasUnsavedChanges}
-              />
-            </>
-          );
-        case 'template3':
-          return (
-            <>
-              <Form3 
-                key={formResetKey}
-                formData={formData}
-                updateFormData={updateFormData}
-                markAsChanged={hookMarkAsChanged}
-              />
-              <Preview3 
-                formData={formData}
-                autoSaveStatus={hookAutoSaveStatus}
-                hasUnsavedChanges={hookHasUnsavedChanges}
-              />
-            </>
-          );
-        default:
-          return (
-            <>
-              <Form1 
-                key={formResetKey}
-                formData={formData}
-                updateFormData={updateFormData}
-                markAsChanged={hookMarkAsChanged}
-              />
-              <Preview1 
-                formData={formData}
-                autoSaveStatus={hookAutoSaveStatus}
-                hasUnsavedChanges={hookHasUnsavedChanges}
-              />
-            </>
-          );
-      }
-    };
-
-    return (
-      <>
-        <Header 
-          isAuthenticated={true} 
-          onLogout={handleLogout}
-          currentProduct="cv-builder"
-        />
-        <div className="app-header-cv">
-          <h1>CV Builder</h1>
-          <div className="header-actions">
-            <div className="template-selector">
-              <button
-                className={`template-button ${selectedTemplate === 'template1' ? 'active' : ''}`}
-                onClick={() => handleTemplateSwitch('template1')}
-              >
-                Template 1
-              </button>
-              <button
-                className={`template-button ${selectedTemplate === 'template2' ? 'active' : ''}`}
-                onClick={() => handleTemplateSwitch('template2')}
-              >
-                Template 2
-              </button>
-              <button
-                className={`template-button ${selectedTemplate === 'template3' ? 'active' : ''}`}
-                onClick={() => handleTemplateSwitch('template3')}
-              >
-                Template 3
-              </button>
-            </div>
-            <div className="auto-save-status">
-              {hookAutoSaveStatus ? (
-                <div className={`status-indicator ${
-                  hookAutoSaveStatus.includes('saved') || hookAutoSaveStatus.includes('Saved') || hookAutoSaveStatus === 'Ready' ? 'success' : 
-                  hookAutoSaveStatus.includes('Saving') || hookAutoSaveStatus.includes('saving') ? 'warning' : 
-                  'error'
-                }`}>
-                  {hookAutoSaveStatus}
-                </div>
-              ) : hookHasUnsavedChanges ? (
-                <div className="status-indicator warning">
-                  Unsaved Changes
-                </div>
-              ) : (
-                <div className="status-indicator success">
-                  Saved
-                </div>
-              )}
-            </div>
-            <button onClick={handleBackToDashboard} className="back-to-dashboard-button">
-              Back to Dashboard
-            </button>
-          </div>
-        </div>
-        <div className="container">
-          {renderFormAndPreview()}
-        </div>
-      </>
-    );
-  }
 
   // Default to CV Builder dashboard
   // BUT only if we're not forcing products page to show
