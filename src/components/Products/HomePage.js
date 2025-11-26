@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './HomePage.css';
 import { authService, supabase } from '../Supabase/supabase';
+import { addToCart } from '../../utils/cart';
 
 // Move products array outside component to keep it stable
 const products = [
@@ -51,6 +52,12 @@ const ProductsPage = ({ onProductSelect }) => {
   const [marketplaceSections, setMarketplaceSections] = useState([]);
   const [marketplaceProducts, setMarketplaceProducts] = useState([]);
   const [loadingMarketplace, setLoadingMarketplace] = useState(false);
+  const [cartNotification, setCartNotification] = useState({ 
+    show: false, 
+    message: '', 
+    productName: '',
+    position: { top: 0, left: 0 }
+  });
 
   const [selectedCarouselProduct, setSelectedCarouselProduct] = useState(() => {
     // Initialize from localStorage or default to cv-builder
@@ -657,6 +664,58 @@ const ProductsPage = ({ onProductSelect }) => {
                                   console.log('Product clicked:', product);
                                   window.location.href = `/#product/${product.id}`;
                                 };
+
+                                const handleAddToCart = (e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  addToCart(product);
+                                  
+                                  // Calculate position relative to the clicked card
+                                  const cardElement = e.target.closest('.product-card-fresh');
+                                  if (cardElement) {
+                                    const cardRect = cardElement.getBoundingClientRect();
+                                    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                                    const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+                                    
+                                    // Notification dimensions (approximate)
+                                    const notificationWidth = window.innerWidth > 768 ? 320 : Math.min(300, window.innerWidth - 20);
+                                    
+                                    // Position notification near the top of the card
+                                    let top = cardRect.top + scrollTop + 10;
+                                    let left = cardRect.left + scrollLeft + (cardRect.width / 2) - (notificationWidth / 2);
+                                    
+                                    // Ensure notification stays within viewport
+                                    if (left < scrollLeft + 10) {
+                                      left = scrollLeft + 10;
+                                    } else if (left + notificationWidth > scrollLeft + window.innerWidth - 10) {
+                                      left = scrollLeft + window.innerWidth - notificationWidth - 10;
+                                    }
+                                    
+                                    // On mobile, position it at the top of the card
+                                    if (window.innerWidth <= 768) {
+                                      top = cardRect.top + scrollTop + 5;
+                                      left = scrollLeft + (window.innerWidth / 2) - (notificationWidth / 2);
+                                    }
+                                    
+                                    // Show clear notification message
+                                    setCartNotification({
+                                      show: true,
+                                      message: 'Added to cart!',
+                                      productName: product.name,
+                                      position: { top, left }
+                                    });
+                                    
+                                    // Hide notification after 3 seconds
+                                    setTimeout(() => {
+                                      setCartNotification({ 
+                                        show: false, 
+                                        message: '', 
+                                        productName: '',
+                                        position: { top: 0, left: 0 }
+                                      });
+                                    }, 3000);
+                                  }
+                                };
                                 
                                 return (
                                 <div key={product.id} className="product-card-fresh" onClick={handleProductClick}>
@@ -696,8 +755,23 @@ const ProductsPage = ({ onProductSelect }) => {
                                   <div className="product-card-body">
                                     <h4 className="product-card-name">{product.name}</h4>
                                     <div className="product-card-footer">
-                                      <span className="product-card-price">Rs. {product.price?.toLocaleString() || '0'}</span>
-                                      <span className="product-card-arrow">→</span>
+                                      <div className="product-card-price-container">
+                                        {product.original_price && product.original_price > product.price ? (
+                                          <>
+                                            <span className="product-card-price-discounted">Rs. {product.price?.toLocaleString() || '0'}</span>
+                                            <span className="product-card-price-original">Rs. {product.original_price?.toLocaleString() || '0'}</span>
+                                          </>
+                                        ) : (
+                                          <span className="product-card-price">Rs. {product.price?.toLocaleString() || '0'}</span>
+                                        )}
+                                      </div>
+                                      <button 
+                                        className="product-card-add-to-cart-btn"
+                                        onClick={handleAddToCart}
+                                        title="Add to Cart"
+                                      >
+                                        🛒
+                                      </button>
                                     </div>
                                   </div>
                                 </div>
@@ -1144,6 +1218,25 @@ const ProductsPage = ({ onProductSelect }) => {
         )}
       </div>
     </div>
+
+    {/* Cart Notification */}
+    {cartNotification.show && (
+      <div 
+        className="cart-notification"
+        style={{
+          top: `${cartNotification.position.top}px`,
+          left: `${cartNotification.position.left}px`
+        }}
+      >
+        <div className="cart-notification-content">
+          <span className="cart-notification-icon">✓</span>
+          <div className="cart-notification-text">
+            <div className="cart-notification-message">{cartNotification.message}</div>
+            <div className="cart-notification-product">{cartNotification.productName}</div>
+          </div>
+        </div>
+      </div>
+    )}
 
     </>
   );

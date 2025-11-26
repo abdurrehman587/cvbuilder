@@ -4070,10 +4070,29 @@
   border-top: 1px solid #f1f5f9;
 }
 
+.product-card-price-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
 .product-card-price {
   font-size: 1.5rem;
   font-weight: 700;
   color: #f59e0b;
+}
+
+.product-card-price-discounted {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #10b981;
+}
+
+.product-card-price-original {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #94a3b8;
+  text-decoration: line-through;
 }
 
 .product-card-arrow {
@@ -4085,6 +4104,28 @@
 .product-card-fresh:hover .product-card-arrow {
   transform: translateX(5px);
   color: #3b82f6;
+}
+
+.product-card-add-to-cart-btn {
+  background: #f59e0b;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.product-card-add-to-cart-btn:hover {
+  background: #d97706;
+  transform: scale(1.1);
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
 }
 
 /* Empty State */
@@ -4565,8 +4606,13 @@
     font-size: 0.9rem;
   }
 
-  .product-card-price {
+  .product-card-price,
+  .product-card-price-discounted {
     font-size: 1.25rem;
+  }
+
+  .product-card-price-original {
+    font-size: 0.875rem;
   }
 
   .category-title-fresh {
@@ -4791,8 +4837,13 @@
     margin-top: 0.5rem;
   }
 
-  .product-card-price {
+  .product-card-price,
+  .product-card-price-discounted {
     font-size: 1.1rem;
+  }
+
+  .product-card-price-original {
+    font-size: 0.8rem;
   }
 
   .product-card-arrow {
@@ -4977,8 +5028,13 @@
     font-size: 0.8rem;
   }
 
-  .product-card-price {
+  .product-card-price,
+  .product-card-price-discounted {
     font-size: 1rem;
+  }
+
+  .product-card-price-original {
+    font-size: 0.75rem;
   }
 
   .template-card-body {
@@ -5024,6 +5080,138 @@
   .cta-button-fresh {
     padding: 0.75rem 1.25rem;
     font-size: 0.9rem;
+  }
+}
+
+/* Cart Notification */
+.cart-notification {
+  position: absolute;
+  z-index: 10000;
+  animation: slideInRight 0.3s ease-out;
+  pointer-events: none; /* Allow clicks to pass through */
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.cart-notification-content {
+  background: white;
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 300px;
+  max-width: 350px;
+  border-left: 4px solid #10b981;
+}
+
+.cart-notification-icon {
+  background: #10b981;
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.cart-notification-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.cart-notification-message {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.cart-notification-product {
+  font-size: 0.9rem;
+  color: #64748b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Responsive Notification */
+@media (max-width: 768px) {
+  .cart-notification {
+    animation: slideInBottom 0.3s ease-out;
+    /* Position will be calculated dynamically, but ensure it fits on screen */
+    max-width: calc(100vw - 20px);
+  }
+
+  @keyframes slideInBottom {
+    from {
+      transform: translateY(-20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .cart-notification-content {
+    min-width: auto;
+    max-width: 100%;
+    padding: 0.875rem 1.25rem;
+  }
+
+  .cart-notification-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 1.25rem;
+  }
+
+  .cart-notification-message {
+    font-size: 1rem;
+  }
+
+  .cart-notification-product {
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .cart-notification {
+    max-width: calc(100vw - 10px);
+  }
+
+  .cart-notification-content {
+    padding: 0.75rem 1rem;
+    min-width: 250px;
+  }
+
+  .cart-notification-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 1.1rem;
+  }
+
+  .cart-notification-message {
+    font-size: 0.95rem;
+  }
+
+  .cart-notification-product {
+    font-size: 0.8rem;
   }
 }
 

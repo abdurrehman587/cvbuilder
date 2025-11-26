@@ -2,6 +2,26 @@
   padding: 8px;
 }
 
+/* App content wrapper when navbar is present */
+.app-content-with-navbar {
+  margin-left: 70px;
+  margin-top: var(--header-height, 80px);
+  min-height: calc(100vh - var(--header-height, 80px));
+  transition: margin-left 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  .app-content-with-navbar {
+    margin-left: 60px;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-content-with-navbar {
+    margin-left: 60px;
+  }
+}
+
 /* App Header */
 .app-header {
   display: flex;
@@ -25,7 +45,7 @@
   margin: 0;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   position: fixed;
-  top: calc(var(--header-height, 80px) + 5px);
+  top: var(--header-height, 80px);
   left: 0;
   right: 0;
   z-index: 999;
@@ -305,7 +325,9 @@ p {
     align-items: flex-start;
     padding: 20px 15px 12px 15px;
     gap: 12px;
-    top: calc(var(--header-height, 80px) + 5px);
+    top: var(--header-height, 80px);
+    left: 0;
+    width: 100%;
     margin: 0;
     min-height: auto;
   }
@@ -396,7 +418,9 @@ p {
   .app-header-cv {
     padding: 18px 12px 10px 12px;
     gap: 10px;
-    top: calc(var(--header-height, 80px) + 5px);
+    top: var(--header-height, 80px);
+    left: 0;
+    width: 100%;
     margin: 0;
     min-height: auto;
   }
@@ -464,7 +488,9 @@ p {
   .app-header-cv {
     padding: 16px 10px 10px 10px;
     gap: 8px;
-    top: calc(var(--header-height, 80px) + 5px);
+    top: var(--header-height, 80px);
+    left: 0;
+    width: 100%;
     margin: 0;
   }
   

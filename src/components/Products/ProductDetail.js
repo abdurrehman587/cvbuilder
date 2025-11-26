@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../Supabase/supabase';
+import { addToCart, isInCart } from '../../utils/cart';
 import './ProductDetail.css';
 
 const ProductDetail = ({ productId }) => {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [addedToCart, setAddedToCart] = useState(false);
+  const [inCart, setInCart] = useState(false);
 
   useEffect(() => {
     const loadProduct = async () => {
@@ -19,6 +22,10 @@ const ProductDetail = ({ productId }) => {
 
         if (error) throw error;
         setProduct(data);
+        // Check if product is already in cart
+        if (data) {
+          setInCart(isInCart(data.id));
+        }
       } catch (err) {
         console.error('Error loading product:', err);
       } finally {
@@ -30,6 +37,18 @@ const ProductDetail = ({ productId }) => {
       loadProduct();
     }
   }, [productId]);
+
+  // Listen for cart updates
+  useEffect(() => {
+    const handleCartUpdate = () => {
+      if (product) {
+        setInCart(isInCart(product.id));
+      }
+    };
+
+    window.addEventListener('cartUpdated', handleCartUpdate);
+    return () => window.removeEventListener('cartUpdated', handleCartUpdate);
+  }, [product]);
 
   // Helper function to get product images
   const getProductImages = (product) => {
@@ -104,6 +123,20 @@ const ProductDetail = ({ productId }) => {
   }
 
   const images = getProductImages(product);
+
+  // Handle add to cart
+  const handleAddToCart = () => {
+    if (!product) return;
+    
+    addToCart(product);
+    setAddedToCart(true);
+    setInCart(true);
+    
+    // Reset success message after 3 seconds
+    setTimeout(() => {
+      setAddedToCart(false);
+    }, 3000);
+  };
 
   // Helper function to render description (HTML or plain text)
   const renderDescription = (description) => {
@@ -204,7 +237,16 @@ const ProductDetail = ({ productId }) => {
           {/* Product Details Section */}
           <div className="product-detail-info-section">
             <h1 className="product-detail-title">{product.name}</h1>
-            <div className="product-detail-price">Rs. {product.price?.toLocaleString() || '0'}</div>
+            <div className="product-detail-price-container">
+              {product.original_price && product.original_price > product.price ? (
+                <>
+                  <div className="product-detail-price-discounted">Rs. {product.price?.toLocaleString() || '0'}</div>
+                  <div className="product-detail-price-original">Rs. {product.original_price?.toLocaleString() || '0'}</div>
+                </>
+              ) : (
+                <div className="product-detail-price">Rs. {product.price?.toLocaleString() || '0'}</div>
+              )}
+            </div>
             
             {product.marketplace_sections && (
               <div className="product-detail-category">
@@ -221,8 +263,12 @@ const ProductDetail = ({ productId }) => {
             )}
 
             <div className="product-detail-actions">
-              <button className="product-detail-contact-btn">
-                Contact Seller
+              <button 
+                className={`product-detail-contact-btn ${inCart ? 'in-cart' : ''}`}
+                onClick={handleAddToCart}
+                disabled={addedToCart}
+              >
+                {addedToCart ? '✓ Added to Cart' : inCart ? 'Already in Cart' : 'Add to Cart'}
               </button>
             </div>
           </div>

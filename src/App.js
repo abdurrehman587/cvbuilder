@@ -17,13 +17,21 @@ import ProductsPage from './components/Products/HomePage';
 import Header from './components/Header/Header';
 import MarketplaceAdmin from './components/MarketplaceAdmin/MarketplaceAdmin';
 import ProductDetail from './components/Products/ProductDetail';
+import Cart from './components/Cart/Cart';
+import Checkout from './components/Checkout/Checkout';
+import OrderDetails from './components/OrderDetails/OrderDetails';
+import LeftNavbar from './components/Navbar/LeftNavbar';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTemplate, setSelectedTemplate] = useState('template1');
   const [currentView, setCurrentView] = useState('dashboard');
-  const [idCardView, setIdCardView] = useState('dashboard'); // 'dashboard' or 'print'
+  // Initialize idCardView from localStorage if available, otherwise default to 'dashboard'
+  const [idCardView, setIdCardView] = useState(() => {
+    const savedView = localStorage.getItem('idCardView');
+    return savedView === 'print' ? 'print' : 'dashboard';
+  });
   const [selectedApp, setSelectedApp] = useState('cv-builder'); // 'cv-builder' or 'id-card-print'
   const [formData, setFormData] = useState({
     name: '',
@@ -46,6 +54,8 @@ function App() {
   const [formResetKey, setFormResetKey] = useState(0);
   const showProductsPageRef = React.useRef(false);
   const [forceShowProductsPage, setForceShowProductsPage] = useState(false);
+  const [hashKey, setHashKey] = useState(0); // Force re-render on hash change
+  const [currentHash, setCurrentHash] = useState(window.location.hash); // Track current hash for routing
 
   // Use the useAutoSave hook for Supabase integration
   const { 
@@ -154,11 +164,29 @@ function App() {
       }
     };
 
-    // Clear isReloading flag on mount (after reload completes)
+    // Clear navigation flag on mount (after reload completes)
     // This ensures that if the page was reloaded (not closed), we don't logout
-    sessionStorage.removeItem('isReloading');
+    sessionStorage.removeItem('isNavigating');
     
     checkAuth();
+
+    // Listen for auth state changes (handles OAuth callbacks)
+    const authStateSubscription = authService.onAuthStateChange((event, session) => {
+      console.log('Auth state changed:', event, session?.user?.email);
+      if (event === 'SIGNED_IN' && session?.user) {
+        setIsAuthenticated(true);
+        localStorage.setItem('cvBuilderAuth', 'true');
+        // Clear OAuth hash from URL if present
+        if (window.location.hash.includes('access_token') || window.location.hash.includes('code')) {
+          window.location.hash = '';
+        }
+        // Trigger auth event for other components
+        window.dispatchEvent(new CustomEvent('userAuthenticated'));
+      } else if (event === 'SIGNED_OUT') {
+        setIsAuthenticated(false);
+        localStorage.removeItem('cvBuilderAuth');
+      }
+    });
     
     // Check selected app on mount
     const app = localStorage.getItem('selectedApp') || 'cv-builder';
@@ -178,6 +206,12 @@ function App() {
 
     // Listen for hash changes to handle products page navigation
     const handleHashChange = () => {
+      // Update current hash state to trigger re-render
+      setCurrentHash(window.location.hash);
+      
+      // Force re-render when hash changes
+      setHashKey(prev => prev + 1);
+      
       if (window.location.hash === '#products') {
         // Hash changed to #products - ensure flags are set
         localStorage.setItem('showProductsPage', 'true');
@@ -199,6 +233,9 @@ function App() {
       }
     };
     
+    // Check hash on mount
+    setCurrentHash(window.location.hash);
+    
     // Check hash on mount to handle page reloads
     if (window.location.hash === '#products') {
       localStorage.setItem('showProductsPage', 'true');
@@ -208,77 +245,42 @@ function App() {
     }
 
     // Listen for authentication events from Login component
-    const handleAuth = () => {
-      setIsAuthenticated(true);
-      setIsLoading(false);
-      // Get selected app from localStorage
-      const app = localStorage.getItem('selectedApp') || 'cv-builder';
-      setSelectedApp(app);
-      
-      // Check if user is on products page (check hash and flags)
-      const isOnProductsPage = window.location.hash === '#products' || 
-                                localStorage.getItem('showProductsPage') === 'true' ||
-                                sessionStorage.getItem('showProductsPage') === 'true';
-      
-      // Check if user wants to navigate to ID Card Print dashboard after login (check FIRST)
-      const navigateToIDCardPrint = sessionStorage.getItem('navigateToIDCardPrint') === 'true' || 
-                                     localStorage.getItem('navigateToIDCardPrint') === 'true';
-      if (navigateToIDCardPrint) {
-        // Don't remove the flag here - let PRIORITY 0 routing check handle it
-        // Clear products page flags to allow navigation
-        setForceShowProductsPage(false);
-        showProductsPageRef.current = false;
-        localStorage.removeItem('showProductsPage');
-        sessionStorage.removeItem('showProductsPage');
-        // Set idCardView to dashboard
-        setIdCardView('dashboard');
-        // DO NOT set currentView to 'dashboard' - this would trigger CV Builder routing
-        console.log('handleAuth: ID Card Print flag detected, setting idCardView to dashboard');
-      }
-      // Check if user wants to navigate to CV Builder dashboard after login
-      else {
-        const navigateToCVBuilder = sessionStorage.getItem('navigateToCVBuilder') === 'true' ||
-                                     localStorage.getItem('navigateToCVBuilder') === 'true';
-        if (navigateToCVBuilder) {
-          // Don't remove the flag here - let PRIORITY 0 routing check handle it
-          setCurrentView('dashboard');
-          // Clear products page flags to allow navigation
-          setForceShowProductsPage(false);
-          showProductsPageRef.current = false;
-          localStorage.removeItem('showProductsPage');
-          sessionStorage.removeItem('showProductsPage');
-          console.log('handleAuth: CV Builder flag detected, setting currentView to dashboard');
-        } else if (isOnProductsPage) {
-          // User is on products page and logged in - keep them on products page
-          // Ensure products page flags are set
-          setForceShowProductsPage(true);
-          showProductsPageRef.current = true;
-          localStorage.setItem('showProductsPage', 'true');
-          sessionStorage.setItem('showProductsPage', 'true');
-          if (window.location.hash !== '#products') {
-            window.location.hash = '#products';
-          }
-          console.log('handleAuth: User on products page, keeping them on products page');
-        } else if (currentView === 'cv-builder') {
-          // If user was on form/preview page, redirect to dashboard after login
-          setCurrentView('dashboard');
-        }
-      }
-    };
-
     window.addEventListener('userAuthenticated', handleAuth);
     window.addEventListener('hashchange', handleHashChange);
     
     // Handle page unload (tab/window close) - logout user
-    // Only logout on actual close, not on page reload
+    // Use multiple events to reliably detect tab/window close
+    let isNavigating = false;
+    
+    // Detect navigation (reload, link click, etc.) to prevent logout
+    const handleNavigation = () => {
+      isNavigating = true;
+      // Set a flag that will be checked in unload handlers
+      sessionStorage.setItem('isNavigating', 'true');
+    };
+    
+    // Listen for navigation events
+    window.addEventListener('click', (e) => {
+      // Check if click is on a link or button that causes navigation
+      const target = e.target.closest('a, button');
+      if (target && (target.tagName === 'A' || target.onclick || target.getAttribute('href'))) {
+        handleNavigation();
+      }
+    }, true);
+    
+    // Detect reload (F5, Ctrl+R, etc.)
+    window.addEventListener('keydown', (e) => {
+      if ((e.key === 'F5') || (e.ctrlKey && e.key === 'r') || (e.ctrlKey && e.key === 'R')) {
+        handleNavigation();
+      }
+    });
+    
+    // Handle beforeunload - fires when tab/window is closing
     const handleBeforeUnload = (e) => {
-      // Check if this is a reload (navigation) or actual close
-      // If it's a reload, the performance.navigation.type will be 1 (reload)
-      // But we can't access that in beforeunload, so we use a flag
-      const isReload = sessionStorage.getItem('isReloading') === 'true';
+      const isNav = sessionStorage.getItem('isNavigating') === 'true';
       
-      // Only logout if user is authenticated AND it's not a reload
-      if (!isReload && (isAuthenticated || localStorage.getItem('cvBuilderAuth') === 'true')) {
+      // Only logout if user is authenticated AND it's not a navigation/reload
+      if (!isNav && (isAuthenticated || localStorage.getItem('cvBuilderAuth') === 'true')) {
         // Clear authentication state immediately (synchronous)
         localStorage.removeItem('cvBuilderAuth');
         localStorage.removeItem('selectedApp');
@@ -287,27 +289,23 @@ function App() {
         sessionStorage.removeItem('navigateToIDCardPrint');
         localStorage.removeItem('navigateToIDCardPrint');
         
-        // Attempt async logout (may not complete if page closes quickly)
-        // Use a flag to indicate logout is in progress
-        sessionStorage.setItem('logoutOnClose', 'true');
-        
-        // Try to sign out (non-blocking)
+        // Attempt logout (may not complete if page closes quickly, but state is cleared)
         authService.signOut().catch(() => {
           // Ignore errors during unload - state is already cleared
         });
       } else {
-        // If it's a reload, DON'T clear navigation flags - they're needed for routing after reload
-        // The isReloading flag will be cleared on mount
+        // If it's a navigation, clear the flag for next time
+        sessionStorage.removeItem('isNavigating');
       }
     };
     
-    // Also handle pagehide event (more reliable than beforeunload)
+    // Handle pagehide event (more reliable than beforeunload for mobile)
     const handlePageHide = (e) => {
-      // Check if this is a reload or actual close
-      const isReload = sessionStorage.getItem('isReloading') === 'true';
+      const isNav = sessionStorage.getItem('isNavigating') === 'true';
       
-      // Only logout if it's not a reload
-      if (!isReload && (isAuthenticated || localStorage.getItem('cvBuilderAuth') === 'true')) {
+      // pagehide.persisted is true when page is cached (not closed)
+      // If persisted is false, the page is being unloaded (closed)
+      if (!e.persisted && !isNav && (isAuthenticated || localStorage.getItem('cvBuilderAuth') === 'true')) {
         // Clear authentication state
         localStorage.removeItem('cvBuilderAuth');
         localStorage.removeItem('selectedApp');
@@ -320,21 +318,49 @@ function App() {
         authService.signOut().catch(() => {
           // Ignore errors
         });
+      } else if (isNav) {
+        // Clear navigation flag
+        sessionStorage.removeItem('isNavigating');
+      }
+    };
+    
+    // Handle visibility change (when tab becomes hidden)
+    const handleVisibilityChange = () => {
+      // Only logout if page is hidden AND it's not a navigation
+      // This is a backup method for cases where beforeunload/pagehide don't fire
+      if (document.hidden) {
+        const isNav = sessionStorage.getItem('isNavigating') === 'true';
+        // Use a timeout to check if page is still hidden after a delay
+        // If it stays hidden, it's likely a close, not just a tab switch
+        setTimeout(() => {
+          if (document.hidden && !isNav && (isAuthenticated || localStorage.getItem('cvBuilderAuth') === 'true')) {
+            // Page is still hidden - likely closed
+            localStorage.removeItem('cvBuilderAuth');
+            localStorage.removeItem('selectedApp');
+            authService.signOut().catch(() => {});
+          }
+        }, 1000); // Wait 1 second to see if page becomes visible again
       } else {
-        // If it's a reload, DON'T clear navigation flags - they're needed for routing after reload
-        // The isReloading flag will be cleared on mount
+        // Page became visible - clear navigation flag
+        sessionStorage.removeItem('isNavigating');
       }
     };
     
     window.addEventListener('beforeunload', handleBeforeUnload);
     window.addEventListener('pagehide', handlePageHide);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
     
     return () => {
       window.removeEventListener('userAuthenticated', handleAuth);
       window.removeEventListener('hashchange', handleHashChange);
       window.removeEventListener('beforeunload', handleBeforeUnload);
       window.removeEventListener('pagehide', handlePageHide);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       delete window.navigateToDashboard;
+      // Cleanup auth state change subscription
+      if (authStateSubscription && authStateSubscription.data && authStateSubscription.data.subscription) {
+        authStateSubscription.data.subscription.unsubscribe();
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]); // Include isAuthenticated to have current value
@@ -353,6 +379,77 @@ function App() {
       // Reset to dashboard view so when user logs back in, they go to dashboard
       setCurrentView('dashboard');
     }
+  };
+
+  // Handle authentication from Login component
+  const handleAuth = () => {
+    setIsAuthenticated(true);
+    setIsLoading(false);
+    // Get selected app from localStorage
+    const app = localStorage.getItem('selectedApp') || 'cv-builder';
+    setSelectedApp(app);
+    
+    // Check if user is on products page (check hash and flags)
+    const isOnProductsPage = window.location.hash === '#products' || 
+                              localStorage.getItem('showProductsPage') === 'true' ||
+                              sessionStorage.getItem('showProductsPage') === 'true';
+    
+    // Check if user wants to navigate to ID Card Print dashboard after login (check FIRST)
+    const navigateToIDCardPrint = sessionStorage.getItem('navigateToIDCardPrint') === 'true' || 
+                                   localStorage.getItem('navigateToIDCardPrint') === 'true';
+    if (navigateToIDCardPrint) {
+      // Don't remove the flag here - let PRIORITY 0 routing check handle it
+      // Clear products page flags to allow navigation
+      setForceShowProductsPage(false);
+      showProductsPageRef.current = false;
+      localStorage.removeItem('showProductsPage');
+      sessionStorage.removeItem('showProductsPage');
+      // Set idCardView to dashboard
+      setIdCardView('dashboard');
+      // DO NOT set currentView to 'dashboard' - this would trigger CV Builder routing
+      console.log('handleAuth: ID Card Print flag detected, setting idCardView to dashboard');
+    }
+    // Check if user wants to navigate to CV Builder dashboard after login
+    else {
+      const navigateToCVBuilder = sessionStorage.getItem('navigateToCVBuilder') === 'true' ||
+                                   localStorage.getItem('navigateToCVBuilder') === 'true';
+      if (navigateToCVBuilder) {
+        // Don't remove the flag here - let PRIORITY 0 routing check handle it
+        setCurrentView('dashboard');
+        // Clear products page flags to allow navigation
+        setForceShowProductsPage(false);
+        showProductsPageRef.current = false;
+        localStorage.removeItem('showProductsPage');
+        sessionStorage.removeItem('showProductsPage');
+        console.log('handleAuth: CV Builder flag detected, setting currentView to dashboard');
+      } else if (isOnProductsPage) {
+        // User is on products page and logged in - keep them on products page
+        // Ensure products page flags are set
+        setForceShowProductsPage(true);
+        showProductsPageRef.current = true;
+        localStorage.setItem('showProductsPage', 'true');
+        sessionStorage.setItem('showProductsPage', 'true');
+        if (window.location.hash !== '#products') {
+          window.location.hash = '#products';
+        }
+        console.log('handleAuth: User on products page, keeping them on products page');
+      } else if (currentView === 'cv-builder') {
+        // If user was on form/preview page, redirect to dashboard after login
+        setCurrentView('dashboard');
+      }
+    }
+  };
+
+  // Helper function to wrap content with navbar
+  const wrapWithNavbar = (content) => {
+    return (
+      <>
+        <LeftNavbar isAuthenticated={isAuthenticated} />
+        <div className="app-content-with-navbar">
+          {content}
+        </div>
+      </>
+    );
   };
 
   const handleTemplateSelect = (templateId) => {
@@ -416,6 +513,11 @@ function App() {
   const productDetailMatch = window.location.hash.match(/^#product\/([a-f0-9-]+)$/i);
   const productDetailId = productDetailMatch ? productDetailMatch[1] : null;
 
+  // Check if user wants to see cart
+  const showCart = currentHash === '#cart';
+  const showCheckout = currentHash === '#checkout';
+  const showOrderDetails = currentHash.startsWith('#order-details');
+
   // Check if user wants to see products page (for both authenticated and unauthenticated users)
   // Check this FIRST, before ANY other routing logic, to ensure it takes absolute priority
   // Check multiple sources: localStorage, sessionStorage, and URL hash
@@ -460,6 +562,8 @@ function App() {
     // Expose function to set ID Card view (for Header to call)
     window.setIdCardView = (view) => {
       setIdCardView(view);
+      // Save to localStorage to persist through page reloads
+      localStorage.setItem('idCardView', view);
     };
     return () => {
       delete window.resetProductsPageFlag;
@@ -556,7 +660,7 @@ function App() {
 
   // PRIORITY -1: Check if user wants to see product detail page (HIGHEST PRIORITY)
   if (productDetailId) {
-    return (
+    return wrapWithNavbar(
       <>
         <Header 
           isAuthenticated={isAuthenticated} 
@@ -568,9 +672,49 @@ function App() {
     );
   }
 
+  // PRIORITY -1: Check if user wants to see cart (HIGHEST PRIORITY)
+  if (showCart) {
+    return wrapWithNavbar(
+      <>
+        <Header 
+          isAuthenticated={isAuthenticated} 
+          onLogout={handleLogout}
+          showProductsOnHeader={true}
+        />
+        <Cart />
+      </>
+    );
+  }
+
+  if (showCheckout) {
+    return wrapWithNavbar(
+      <>
+        <Header 
+          isAuthenticated={isAuthenticated} 
+          onLogout={handleLogout}
+          showProductsOnHeader={true}
+        />
+        <Checkout />
+      </>
+    );
+  }
+
+  if (showOrderDetails) {
+    return wrapWithNavbar(
+      <>
+        <Header 
+          isAuthenticated={isAuthenticated} 
+          onLogout={handleLogout}
+          showProductsOnHeader={true}
+        />
+        <OrderDetails />
+      </>
+    );
+  }
+
   // PRIORITY -1: Check if user wants to see admin panel (HIGHEST PRIORITY)
   if (showAdminPanel) {
-    return (
+    return wrapWithNavbar(
       <>
         <Header 
           isAuthenticated={isAuthenticated} 
@@ -592,6 +736,14 @@ function App() {
     idCardView,
     willTrigger: navigateToIDCardPrintFlag && isAuthenticated && !isLoading
   });
+  
+  // If navigation flag is set but user is not authenticated, show Login page
+  if ((navigateToIDCardPrintFlag || navigateToCVBuilderFlag) && !isAuthenticated && !isLoading) {
+    return wrapWithNavbar(
+      <Login onAuth={handleAuth} />
+    );
+  }
+  
   if (navigateToIDCardPrintFlag && isAuthenticated && !isLoading) {
     console.log('PRIORITY 0: Navigating to ID Card - navigateToIDCardPrintFlag detected', {
       navigateToIDCardPrintFlag,
@@ -602,6 +754,15 @@ function App() {
       forceShowProductsPage,
       showProductsPageRef: showProductsPageRef.current
     });
+    
+    // Update selectedApp state to ensure routing works correctly
+    setSelectedApp('id-card-print');
+    
+    // Ensure idCardView is set to dashboard if not already set
+    const savedIdCardView = localStorage.getItem('idCardView');
+    if (savedIdCardView === 'dashboard' && idCardView !== 'dashboard') {
+      setIdCardView('dashboard');
+    }
     
     // Clear the navigateToIDCardPrint flag after routing decision is made
     sessionStorage.removeItem('navigateToIDCardPrint');
@@ -617,7 +778,7 @@ function App() {
     
     // Check if user wants to go directly to print page or dashboard
     if (idCardView === 'print') {
-      return (
+      return wrapWithNavbar(
         <>
           <Header 
             isAuthenticated={true} 
@@ -629,7 +790,7 @@ function App() {
       );
     } else {
       // Show ID Card Dashboard (default)
-      return (
+      return wrapWithNavbar(
         <>
           <Header 
             isAuthenticated={true} 
@@ -703,7 +864,7 @@ function App() {
         }
       };
       
-      return (
+      return wrapWithNavbar(
         <>
           <Header 
             isAuthenticated={true} 
@@ -906,7 +1067,7 @@ function App() {
             background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
             padding: '24px 20px 12px 20px', 
             position: 'fixed',
-            top: 'calc(var(--header-height, 80px) + 5px)',
+            top: 'var(--header-height, 80px)',
             left: 0,
             right: 0,
             zIndex: 999,
@@ -986,7 +1147,7 @@ function App() {
     console.log('Rendering ProductsPage - shouldShowProductsPage is true');
     
     // IMPORTANT: Return immediately - don't let any other logic interfere
-    return (
+    return wrapWithNavbar(
       <>
         <Header 
           isAuthenticated={isAuthenticated} 
@@ -1001,7 +1162,7 @@ function App() {
 
   // Show loading screen while checking authentication (only if not showing products page)
   if (isLoading) {
-    return (
+    return wrapWithNavbar(
       <div style={{ 
         display: 'flex', 
         justifyContent: 'center', 
@@ -1015,12 +1176,12 @@ function App() {
     );
   }
 
-  if (isLoading) {
-    return (
-      <div className="loading-container">
-        <div className="loading-spinner"></div>
-        <p>Loading...</p>
-      </div>
+  // EARLY RETURN: If user is not authenticated and no specific route matches, show Login page
+  // This must come BEFORE any authenticated-only routes to ensure unauthenticated users always see Login
+  if (!isAuthenticated && !isLoading) {
+    console.log('Rendering Login page - user not authenticated');
+    return wrapWithNavbar(
+      <Login onAuth={handleAuth} />
     );
   }
   
@@ -1031,6 +1192,15 @@ function App() {
   }
   if (showProductsPageSession) {
     sessionStorage.removeItem('showProductsPage');
+  }
+
+  // All routes below this point require authentication
+  // If we reach here and user is not authenticated, something went wrong
+  if (!isAuthenticated) {
+    console.warn('Unexpected: Reached authenticated routes but user is not authenticated');
+    return wrapWithNavbar(
+      <Login onAuth={handleAuth} />
+    );
   }
 
   // After login, check if a product was selected from products page
@@ -1073,7 +1243,7 @@ function App() {
   // This handles the case when user is already on ID Card Dashboard and clicks "Create New ID Card"
   const wantsIDCardPrint = isAuthenticated && selectedProduct === 'id-card-print' && !forceShowProductsPage && !showProductsPageRef.current;
   if (wantsIDCardPrint && idCardView === 'print') {
-    return (
+    return wrapWithNavbar(
       <>
         <Header 
           isAuthenticated={true} 
@@ -1087,7 +1257,7 @@ function App() {
   
   // Also check if user is on ID Card Dashboard (when authenticated and selectedApp is id-card-print)
   if (wantsIDCardPrint && idCardView === 'dashboard') {
-    return (
+    return wrapWithNavbar(
       <>
         <Header 
           isAuthenticated={true} 
@@ -1113,7 +1283,7 @@ function App() {
   // AND only if user doesn't want ID Card Print
   // AND only if navigateToIDCardPrintFlag is not set (already checked in PRIORITY 0)
   if ((currentView === 'dashboard' || wantsCVBuilder) && !forceShowProductsPage && !showProductsPageRef.current && !isLoading && !navigateToIDCardPrintFlag && selectedProduct !== 'id-card-print') {
-    return (
+    return wrapWithNavbar(
       <>
         <Header 
           isAuthenticated={true} 
@@ -1130,7 +1300,19 @@ function App() {
     );
   }
   
-  return null;
+  // Final fallback: Show products page if nothing else matches (for authenticated users)
+  // Unauthenticated users should have been handled above
+  return wrapWithNavbar(
+    <>
+      <Header 
+        isAuthenticated={isAuthenticated} 
+        currentProduct="products"
+        showProductsOnHeader={true}
+        onLogout={isAuthenticated ? handleLogout : undefined}
+      />
+      <ProductsPage />
+    </>
+  );
 }
 
 // Wrap the entire app with SupabaseProvider

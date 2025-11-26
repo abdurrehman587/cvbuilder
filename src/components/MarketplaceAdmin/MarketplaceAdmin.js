@@ -57,6 +57,7 @@ const MarketplaceAdmin = () => {
   const [productForm, setProductForm] = useState({
     name: '',
     price: '',
+    original_price: '',
     image_urls: [],
     section_id: '',
     description: ''
@@ -240,6 +241,7 @@ const MarketplaceAdmin = () => {
         .insert([{
           ...productForm,
           price: parseFloat(productForm.price),
+          original_price: productForm.original_price ? parseFloat(productForm.original_price) : null,
           description: descriptionHtml || ''
         }])
         .select()
@@ -247,7 +249,7 @@ const MarketplaceAdmin = () => {
 
       if (error) throw error;
       await loadProducts();
-      setProductForm({ name: '', price: '', image_urls: [], section_id: '', description: '' });
+      setProductForm({ name: '', price: '', original_price: '', image_urls: [], section_id: '', description: '' });
       setDescriptionHtml('');
       alert('Product added successfully!');
     } catch (err) {
@@ -268,6 +270,7 @@ const MarketplaceAdmin = () => {
         .update({
           name: productForm.name,
           price: parseFloat(productForm.price),
+          original_price: productForm.original_price ? parseFloat(productForm.original_price) : null,
           image_urls: productForm.image_urls.length > 0 ? productForm.image_urls : null,
           image_url: productForm.image_urls.length > 0 ? productForm.image_urls[0] : null,
           section_id: productForm.section_id,
@@ -280,7 +283,7 @@ const MarketplaceAdmin = () => {
       if (error) throw error;
       await loadProducts();
       setEditingProduct(null);
-      setProductForm({ name: '', price: '', image_urls: [], section_id: '', description: '' });
+      setProductForm({ name: '', price: '', original_price: '', image_urls: [], section_id: '', description: '' });
       setDescriptionHtml('');
       alert('Product updated successfully!');
     } catch (err) {
@@ -444,6 +447,14 @@ const MarketplaceAdmin = () => {
               min="0"
               step="0.01"
             />
+            <input
+              type="number"
+              placeholder="Original Price (PKR) - Optional"
+              value={productForm.original_price}
+              onChange={(e) => setProductForm({ ...productForm, original_price: e.target.value })}
+              min="0"
+              step="0.01"
+            />
             <select
               value={productForm.section_id}
               onChange={(e) => setProductForm({ ...productForm, section_id: e.target.value })}
@@ -510,7 +521,7 @@ const MarketplaceAdmin = () => {
             {editingProduct && (
               <button type="button" onClick={() => {
                 setEditingProduct(null);
-                setProductForm({ name: '', price: '', image_urls: [], section_id: '', description: '' });
+                setProductForm({ name: '', price: '', original_price: '', image_urls: [], section_id: '', description: '' });
                 setDescriptionHtml('');
               }}>
                 Cancel
@@ -560,6 +571,7 @@ const MarketplaceAdmin = () => {
                           setProductForm({
                             name: product.name,
                             price: product.price?.toString() || '',
+                            original_price: product.original_price?.toString() || '',
                             image_urls: product.image_urls && Array.isArray(product.image_urls) 
                               ? product.image_urls 
                               : (product.image_url ? [product.image_url] : []),

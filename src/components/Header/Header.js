@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import './Header.css';
 import { authService, supabase } from '../Supabase/supabase';
+import { getCartItemCount } from '../../utils/cart';
 
 const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, showProductsOnHeader = false }) => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isOnAdminPage, setIsOnAdminPage] = useState(false);
+  const [cartItemCount, setCartItemCount] = useState(0);
 
   // Check if user is admin
   useEffect(() => {
@@ -52,6 +54,23 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
 
     return () => {
       window.removeEventListener('hashchange', checkAdminPage);
+    };
+  }, []);
+
+  // Load and update cart item count
+  useEffect(() => {
+    const updateCartCount = () => {
+      setCartItemCount(getCartItemCount());
+    };
+
+    // Load initial count
+    updateCartCount();
+
+    // Listen for cart updates
+    window.addEventListener('cartUpdated', updateCartCount);
+
+    return () => {
+      window.removeEventListener('cartUpdated', updateCartCount);
     };
   }, []);
   const handleLogout = async () => {
@@ -284,6 +303,20 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
         </div>
 
         <div className="header-right">
+          {/* Cart Button - Show on products page */}
+          {showProductsOnHeader && (
+            <button
+              onClick={() => window.location.href = '/#cart'}
+              className="cart-btn-header"
+              title="View Cart"
+            >
+              <span className="cart-icon">🛒</span>
+              <span className="cart-text">My Cart</span>
+              {cartItemCount > 0 && (
+                <span className="cart-badge">{cartItemCount}</span>
+              )}
+            </button>
+          )}
           {isAuthenticated ? (
             <>
               {isAdmin && !isOnAdminPage && (

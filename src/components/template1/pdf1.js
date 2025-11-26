@@ -64,6 +64,72 @@ const updateButtonState = (text, disabled = false) => {
   return button;
 };
 
+// Helper function to convert blob URL to base64
+const blobToBase64 = async (blobUrl) => {
+  try {
+    const response = await fetch(blobUrl);
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch (error) {
+    console.warn('Failed to convert blob URL to base64:', error);
+    return blobUrl; // Return original if conversion fails
+  }
+};
+
+// Helper function to ensure all images are loaded and convert blob URLs
+const preloadAndConvertImages = async (element) => {
+  const images = element.querySelectorAll('img');
+  const imageData = new Map(); // Store original src and converted base64
+  
+  for (const img of images) {
+    const originalSrc = img.src;
+    
+    // Wait for image to load
+    if (!img.complete || img.naturalHeight === 0) {
+      await new Promise((resolve, reject) => {
+        img.onload = () => resolve();
+        img.onerror = () => {
+          console.warn('Image failed to load:', img.src);
+          resolve(); // Resolve anyway to not block PDF generation
+        };
+        // If image hasn't started loading, trigger it
+        if (!img.src || img.src === '') {
+          resolve();
+        }
+      });
+    }
+    
+    // Convert blob URLs to base64 for better compatibility with html2canvas
+    if (originalSrc && originalSrc.startsWith('blob:')) {
+      try {
+        const base64 = await blobToBase64(originalSrc);
+        img.src = base64;
+        imageData.set(img, originalSrc); // Store original to restore later
+        console.log('Converted blob URL to base64 for PDF generation');
+      } catch (error) {
+        console.warn('Failed to convert blob URL:', error);
+      }
+    }
+  }
+  
+  // Give a small delay to ensure rendering after src changes
+  await new Promise(resolve => setTimeout(resolve, 200));
+  
+  return imageData; // Return map to restore original srcs later
+};
+
+// Helper function to restore original image sources
+const restoreImageSources = (imageData) => {
+  imageData.forEach((originalSrc, img) => {
+    img.src = originalSrc;
+  });
+};
+
 const generateCanvas = async (cvPreview) => {
   console.log('CV preview element found, generating canvas...');
   console.log('CV preview dimensions:', {
@@ -72,6 +138,11 @@ const generateCanvas = async (cvPreview) => {
     offsetWidth: cvPreview.offsetWidth,
     offsetHeight: cvPreview.offsetHeight
   });
+
+  // Preload all images and convert blob URLs to base64
+  console.log('Preloading and converting images...');
+  const imageData = await preloadAndConvertImages(cvPreview);
+  console.log('Images preloaded and converted');
 
   const canvas = await html2canvas(cvPreview, {
     scale: PDF_CONFIG.scale,
@@ -93,9 +164,27 @@ const generateCanvas = async (cvPreview) => {
         clonedPreview.style.display = 'block';
         clonedPreview.style.width = 'auto';
         clonedPreview.style.height = 'auto';
+        
+        // Ensure profile images are visible in cloned document
+        const profileImages = clonedPreview.querySelectorAll('.profile-image');
+        profileImages.forEach((img) => {
+          img.style.visibility = 'visible';
+          img.style.display = 'block';
+          img.style.opacity = '1';
+          // Ensure image container is visible
+          const container = img.closest('.profile-image-container');
+          if (container) {
+            container.style.visibility = 'visible';
+            container.style.display = 'flex';
+            container.style.opacity = '1';
+          }
+        });
       }
     }
   });
+
+  // Restore original image sources after canvas generation
+  restoreImageSources(imageData);
 
   console.log('Canvas generated, creating PDF...');
   console.log('Canvas dimensions:', {

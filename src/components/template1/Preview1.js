@@ -306,7 +306,8 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges })
               <div className="custom-section-content">
                 {displayData.customSection.map((custom, index) => (
                   <div key={index} className="custom-section-item">
-                    {custom.heading && (
+                    {/* Only show heading for items after the first one, since first item's heading is used as main section heading */}
+                    {index > 0 && custom.heading && (
                       <h4 className="custom-section-subheading">{custom.heading}</h4>
                     )}
                     {custom.detail && (
