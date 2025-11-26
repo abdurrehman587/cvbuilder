@@ -171,10 +171,14 @@ export const authService = {
 
   // Sign in with Google OAuth
   async signInWithGoogle() {
+    // Use environment variable for redirect URL, or fallback to current origin
+    // In production, set REACT_APP_SITE_URL=https://getglory.pk
+    const redirectUrl = process.env.REACT_APP_SITE_URL || window.location.origin;
+    
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/`
+        redirectTo: `${redirectUrl}/`
       }
     })
     
