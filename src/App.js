@@ -633,6 +633,147 @@ function App() {
   // Get current selectedApp from localStorage - default to 'marketplace' for homepage
   const currentSelectedApp = localStorage.getItem('selectedApp') || 'marketplace';
   
+  // PRIORITY: Check if we should show CV Builder form/preview FIRST
+  // This ensures that when currentView is 'cv-builder', we show the form instead of dashboard
+  if (currentView === 'cv-builder' && isAuthenticated && !isLoading) {
+    const selectedProduct = localStorage.getItem('selectedApp');
+    if (selectedProduct !== 'id-card-print') {
+      console.log('Rendering CV Builder form/preview - currentView is cv-builder');
+      const renderFormAndPreview = () => {
+        switch (selectedTemplate) {
+          case 'template1':
+            return (
+              <>
+                <Form1 
+                  key={formResetKey}
+                  formData={formData}
+                  updateFormData={updateFormData}
+                  markAsChanged={hookMarkAsChanged}
+                />
+                <Preview1 
+                  formData={formData}
+                  autoSaveStatus={hookAutoSaveStatus}
+                  hasUnsavedChanges={hookHasUnsavedChanges}
+                />
+              </>
+            );
+          case 'template2':
+            return (
+              <>
+                <Form2 
+                  key={formResetKey}
+                  formData={formData}
+                  updateFormData={updateFormData}
+                  markAsChanged={hookMarkAsChanged}
+                />
+                <Preview2 
+                  formData={formData}
+                  autoSaveStatus={hookAutoSaveStatus}
+                  hasUnsavedChanges={hookHasUnsavedChanges}
+                />
+              </>
+            );
+          case 'template3':
+            return (
+              <>
+                <Form3 
+                  key={formResetKey}
+                  formData={formData}
+                  updateFormData={updateFormData}
+                  markAsChanged={hookMarkAsChanged}
+                />
+                <Preview3 
+                  formData={formData}
+                  autoSaveStatus={hookAutoSaveStatus}
+                  hasUnsavedChanges={hookHasUnsavedChanges}
+                />
+              </>
+            );
+          default:
+            return (
+              <>
+                <Form1 
+                  key={formResetKey}
+                  formData={formData}
+                  updateFormData={updateFormData}
+                  markAsChanged={hookMarkAsChanged}
+                />
+                <Preview1 
+                  formData={formData}
+                  autoSaveStatus={hookAutoSaveStatus}
+                  hasUnsavedChanges={hookHasUnsavedChanges}
+                />
+              </>
+            );
+        }
+      };
+
+      return wrapWithNavbar(
+        <>
+          <Header 
+            isAuthenticated={true} 
+            onLogout={handleLogout}
+            currentProduct="cv-builder"
+          />
+          <div className="app-header-cv">
+            <h1>CV Builder</h1>
+            <div className="header-actions">
+              <div className="template-selector">
+                <button
+                  onClick={() => handleTemplateSwitch('template1')}
+                  className={selectedTemplate === 'template1' ? 'active' : ''}
+                >
+                  Template 1
+                </button>
+                <button
+                  onClick={() => handleTemplateSwitch('template2')}
+                  className={selectedTemplate === 'template2' ? 'active' : ''}
+                >
+                  Template 2
+                </button>
+                <button
+                  onClick={() => handleTemplateSwitch('template3')}
+                  className={selectedTemplate === 'template3' ? 'active' : ''}
+                >
+                  Template 3
+                </button>
+              </div>
+              <div className="auto-save-status">
+                {hookAutoSaveStatus ? (
+                  <div className={`status-indicator ${
+                    hookAutoSaveStatus.includes('saved') || hookAutoSaveStatus.includes('Saved') || hookAutoSaveStatus === 'Ready' ? 'success' : 
+                    hookAutoSaveStatus.includes('Saving') || hookAutoSaveStatus.includes('saving') ? 'warning' : 
+                    'error'
+                  }`} style={{ visibility: 'visible', opacity: 1 }}>
+                    {hookAutoSaveStatus}
+                  </div>
+                ) : hookHasUnsavedChanges ? (
+                  <div className="status-indicator warning" style={{ visibility: 'visible', opacity: 1 }}>
+                    Unsaved Changes
+                  </div>
+                ) : (
+                  <div className="status-indicator success" style={{ visibility: 'visible', opacity: 1 }}>
+                    Saved
+                  </div>
+                )}
+              </div>
+              <button 
+                onClick={handleBackToDashboard} 
+                className="back-to-dashboard-button"
+                style={{ visibility: 'visible', opacity: 1, display: 'block' }}
+              >
+                Back to Dashboard
+              </button>
+            </div>
+          </div>
+          <div className="container">
+            {renderFormAndPreview()}
+          </div>
+        </>
+      );
+    }
+  }
+  
   // If user is not authenticated and trying to access a dashboard, show login
   if (!isAuthenticated && !isLoading && (currentSelectedApp === 'cv-builder' || currentSelectedApp === 'id-card-print')) {
     return wrapWithNavbar(
@@ -966,7 +1107,7 @@ function App() {
   }
   
   // Show products page if URL hash indicates marketplace
-  if (shouldShowProductsPage && currentView !== 'cv-builder') {
+  if (shouldShowProductsPage) {
     return wrapWithNavbar(
       <>
         <Header 

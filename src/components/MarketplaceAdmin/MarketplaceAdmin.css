@@ -2,16 +2,49 @@
   min-height: calc(100vh - var(--header-height, 80px));
   background: #f5f5f5;
   padding: 2rem;
-  margin-top: var(--header-height, 80px);
   position: fixed;
   top: var(--header-height, 80px);
-  left: 0;
+  left: 70px; /* Account for left navbar width */
   right: 0;
   bottom: 0;
+  width: calc(100% - 70px); /* Subtract navbar width from total width */
+  box-sizing: border-box;
   overflow-y: auto;
   overflow-x: hidden;
-  width: 100%;
-  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .marketplace-admin {
+    left: 60px;
+    width: calc(100% - 60px);
+    padding: 1rem;
+  }
+
+  .admin-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .admin-form {
+    padding: 1rem;
+  }
+
+  .admin-table {
+    font-size: 0.875rem;
+  }
+
+  .admin-table th,
+  .admin-table td {
+    padding: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .marketplace-admin {
+    left: 60px;
+    width: calc(100% - 60px);
+  }
 }
 
 .admin-header {
@@ -255,28 +288,4 @@
   border-radius: 4px;
 }
 
-@media (max-width: 768px) {
-  .marketplace-admin {
-    padding: 1rem;
-  }
-
-  .admin-header {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: flex-start;
-  }
-
-  .admin-form {
-    padding: 1rem;
-  }
-
-  .admin-table {
-    font-size: 0.875rem;
-  }
-
-  .admin-table th,
-  .admin-table td {
-    padding: 0.5rem;
-  }
-}
 
