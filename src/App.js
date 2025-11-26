@@ -630,8 +630,8 @@ function App() {
   // Simple routing based on selectedApp from localStorage
   // Check URL hash first for marketplace pages, then check selectedApp for dashboards
   
-  // Get current selectedApp from localStorage
-  const currentSelectedApp = localStorage.getItem('selectedApp') || 'cv-builder';
+  // Get current selectedApp from localStorage - default to 'marketplace' for homepage
+  const currentSelectedApp = localStorage.getItem('selectedApp') || 'marketplace';
   
   // If user is not authenticated and trying to access a dashboard, show login
   if (!isAuthenticated && !isLoading && (currentSelectedApp === 'cv-builder' || currentSelectedApp === 'id-card-print')) {
@@ -996,27 +996,57 @@ function App() {
     );
   }
 
-  // If user is not authenticated, show Login page
+  // If user is not authenticated, show homepage (ProductsPage) instead of login
+  // Only show login if they're trying to access a dashboard
   if (!isAuthenticated && !isLoading) {
+    // If trying to access a dashboard, show login
+    if (currentSelectedApp === 'cv-builder' || currentSelectedApp === 'id-card-print') {
+      return wrapWithNavbar(
+        <Login onAuth={handleAuth} />
+      );
+    }
+    // Otherwise, show homepage (ProductsPage)
     return wrapWithNavbar(
-      <Login onAuth={handleAuth} />
+      <>
+        <Header 
+          isAuthenticated={false} 
+          currentProduct="products"
+          showProductsOnHeader={true}
+        />
+        <ProductsPage />
+      </>
     );
   }
   
-  // Final fallback: Show CV Builder Dashboard (default for authenticated users)
+  // For authenticated users, default to CV Builder Dashboard if no specific route
+  if (currentSelectedApp === 'cv-builder' || !currentSelectedApp || currentSelectedApp === 'marketplace') {
+    return wrapWithNavbar(
+      <>
+        <Header 
+          isAuthenticated={true} 
+          onLogout={handleLogout}
+          currentProduct="cv-builder"
+        />
+        <CVDashboard 
+          onTemplateSelect={handleTemplateSelect}
+          onLogout={handleLogout}
+          onEditCV={handleEditCV}
+          onCreateNewCV={handleMakeNewCV}
+        />
+      </>
+    );
+  }
+  
+  // Final fallback: Show homepage
   return wrapWithNavbar(
     <>
       <Header 
-        isAuthenticated={true} 
-        onLogout={handleLogout}
-        currentProduct="cv-builder"
+        isAuthenticated={isAuthenticated} 
+        currentProduct="products"
+        showProductsOnHeader={true}
+        onLogout={isAuthenticated ? handleLogout : undefined}
       />
-      <CVDashboard 
-        onTemplateSelect={handleTemplateSelect}
-        onLogout={handleLogout}
-        onEditCV={handleEditCV}
-        onCreateNewCV={handleMakeNewCV}
-      />
+      <ProductsPage />
     </>
   );
 }
