@@ -518,34 +518,8 @@ function App() {
   const showCheckout = currentHash === '#checkout';
   const showOrderDetails = currentHash.startsWith('#order-details');
 
-  // Check if user wants to see products page (for both authenticated and unauthenticated users)
-  // Check this FIRST, before ANY other routing logic, to ensure it takes absolute priority
-  // Check multiple sources: localStorage, sessionStorage, and URL hash
-  // IMPORTANT: Read flags BEFORE clearing them
-  const showProductsPageLocal = localStorage.getItem('showProductsPage') === 'true';
-  const showProductsPageSession = sessionStorage.getItem('showProductsPage') === 'true';
-  const showProductsPageHash = window.location.hash === '#products';
-  const showProductsPageFlag = showProductsPageLocal || showProductsPageSession || showProductsPageHash;
-  
-  // Use ref to persist the decision through re-renders
-  // IMPORTANT: Only update ref, don't update state here to avoid infinite loops
-  // The render logic will use showProductsPageFlag and showProductsPageRef.current directly
-  useEffect(() => {
-    // Update ref based on flags (refs don't cause re-renders)
-    showProductsPageRef.current = showProductsPageFlag;
-    
-    // Debug logging (remove in production)
-    if (showProductsPageFlag) {
-      console.log('Products page flag detected:', {
-        local: showProductsPageLocal,
-        session: showProductsPageSession,
-        hash: showProductsPageHash,
-        isAuthenticated,
-        refValue: showProductsPageRef.current
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showProductsPageLocal, showProductsPageSession, showProductsPageHash]);
+  // Simple check: Show products page if URL hash is #products
+  const showProductsPageHash = currentHash === '#products';
 
   // Expose function to reset products page flag (for Header to call)
   // MUST be called before ANY conditional returns (React Hooks rule)
@@ -572,87 +546,14 @@ function App() {
     };
   }, []);
 
-  // Keep products page state persistent - don't clear flags/hash when on products page
-  // This ensures page reloads keep user on products page
-  // REMOVED: This useEffect was causing infinite loops by setting hash which changed dependencies
-  // The hash and storage are set by other parts of the code when needed
-  
-  // Handle navigateToCVBuilder flag - must be before any conditional returns
-  const navigateToCVBuilderFlagRaw = sessionStorage.getItem('navigateToCVBuilder');
-  const navigateToCVBuilderFlag = navigateToCVBuilderFlagRaw === 'true';
-  
-  // Handle navigateToIDCardPrint flag - must be before any conditional returns
-  // Check both sessionStorage and localStorage (localStorage as backup)
-  const navigateToIDCardPrintFlagRaw = sessionStorage.getItem('navigateToIDCardPrint') || localStorage.getItem('navigateToIDCardPrint');
-  const navigateToIDCardPrintFlag = navigateToIDCardPrintFlagRaw === 'true';
-  
-  // Debug: Always log the flag values
-  console.log('=== Navigation flags check ===', {
-    navigateToCVBuilderFlag: {
-      raw: navigateToCVBuilderFlagRaw,
-      isTrue: navigateToCVBuilderFlag
-    },
-    navigateToIDCardPrintFlag: {
-      raw: navigateToIDCardPrintFlagRaw,
-      isTrue: navigateToIDCardPrintFlag
-    },
-    isAuthenticated,
-    isLoading,
-    willCheckIDCard: navigateToIDCardPrintFlag && isAuthenticated && !isLoading,
-    willCheckCV: navigateToCVBuilderFlag && isAuthenticated && !isLoading
-  });
-  
-  if (navigateToCVBuilderFlag) {
-    console.log('✓ navigateToCVBuilderFlag is TRUE - should navigate to CV Dashboard');
-  }
-  if (navigateToIDCardPrintFlag) {
-    console.log('✓ navigateToIDCardPrintFlag is TRUE - should navigate to ID Card Dashboard');
-  }
-  // This useEffect clears products page flags to prepare for navigation
+  // Simple routing: Use localStorage.selectedApp to determine which dashboard to show
+  // Initialize selectedApp from localStorage on mount
   useEffect(() => {
-    if (navigateToCVBuilderFlag && isAuthenticated && !isLoading) {
-      // Clear products page flags to allow navigation to CV Builder
-      setForceShowProductsPage(false);
-      showProductsPageRef.current = false;
-      localStorage.removeItem('showProductsPage');
-      sessionStorage.removeItem('showProductsPage');
-      // Remove hash if present
-      if (window.location.hash === '#products') {
-        window.location.hash = '';
-      }
-      // Set current view to dashboard to ensure we're on the dashboard
-      setCurrentView('dashboard');
+    const savedApp = localStorage.getItem('selectedApp');
+    if (savedApp) {
+      setSelectedApp(savedApp);
     }
-    if (navigateToIDCardPrintFlag && isAuthenticated && !isLoading) {
-      // Clear products page flags to allow navigation to ID Card Print
-      setForceShowProductsPage(false);
-      showProductsPageRef.current = false;
-      localStorage.removeItem('showProductsPage');
-      sessionStorage.removeItem('showProductsPage');
-      // Remove hash if present
-      if (window.location.hash === '#products') {
-        window.location.hash = '';
-      }
-    }
-  }, [navigateToCVBuilderFlag, navigateToIDCardPrintFlag, isAuthenticated, isLoading]);
-  
-  // Clear navigation flags only after we've successfully navigated to the dashboard
-  useEffect(() => {
-    if (currentView === 'dashboard' && isAuthenticated && !isLoading) {
-      // Only clear if the flag was set (to avoid clearing on normal dashboard visits)
-      if (sessionStorage.getItem('navigateToCVBuilder') === 'true' || localStorage.getItem('navigateToCVBuilder') === 'true') {
-        // Clear flags after a short delay to ensure PRIORITY 0 has completed
-        const clearFlagTimeout = setTimeout(() => {
-          sessionStorage.removeItem('navigateToCVBuilder');
-          localStorage.removeItem('navigateToCVBuilder');
-          sessionStorage.removeItem('goToCVForm');
-          localStorage.removeItem('goToCVForm');
-        }, 200);
-        
-        return () => clearTimeout(clearFlagTimeout);
-      }
-    }
-  }, [currentView, isAuthenticated, isLoading]);
+  }, []);
   
   // Keep forceShowProductsPage true once set - don't reset it automatically
   // It will only be reset when user explicitly navigates to a product via Header buttons
@@ -726,58 +627,24 @@ function App() {
     );
   }
 
-  // PRIORITY 0: Check if user wants to navigate to ID Card Print - MUST be checked FIRST
-  // This takes absolute priority over products page and CV Builder
-  console.log('Checking ID Card Print flag:', {
-    navigateToIDCardPrintFlag,
-    raw: navigateToIDCardPrintFlagRaw,
-    isAuthenticated,
-    isLoading,
-    idCardView,
-    willTrigger: navigateToIDCardPrintFlag && isAuthenticated && !isLoading
-  });
+  // Simple routing based on selectedApp from localStorage
+  // Check URL hash first for marketplace pages, then check selectedApp for dashboards
   
-  // If navigation flag is set but user is not authenticated, show Login page
-  if ((navigateToIDCardPrintFlag || navigateToCVBuilderFlag) && !isAuthenticated && !isLoading) {
+  // Get current selectedApp from localStorage
+  const currentSelectedApp = localStorage.getItem('selectedApp') || 'cv-builder';
+  
+  // If user is not authenticated and trying to access a dashboard, show login
+  if (!isAuthenticated && !isLoading && (currentSelectedApp === 'cv-builder' || currentSelectedApp === 'id-card-print')) {
     return wrapWithNavbar(
       <Login onAuth={handleAuth} />
     );
   }
   
-  if (navigateToIDCardPrintFlag && isAuthenticated && !isLoading) {
-    console.log('PRIORITY 0: Navigating to ID Card - navigateToIDCardPrintFlag detected', {
-      navigateToIDCardPrintFlag,
-      raw: navigateToIDCardPrintFlagRaw,
-      isAuthenticated,
-      isLoading,
-      idCardView,
-      forceShowProductsPage,
-      showProductsPageRef: showProductsPageRef.current
-    });
-    
-    // Update selectedApp state to ensure routing works correctly
-    setSelectedApp('id-card-print');
-    
-    // Ensure idCardView is set to dashboard if not already set
+  // Route to ID Card Printer Dashboard
+  if (isAuthenticated && !isLoading && currentSelectedApp === 'id-card-print') {
+    // Ensure idCardView is set correctly
     const savedIdCardView = localStorage.getItem('idCardView');
-    if (savedIdCardView === 'dashboard' && idCardView !== 'dashboard') {
-      setIdCardView('dashboard');
-    }
-    
-    // Clear the navigateToIDCardPrint flag after routing decision is made
-    sessionStorage.removeItem('navigateToIDCardPrint');
-    localStorage.removeItem('navigateToIDCardPrint');
-    // Also clear products page flags to ensure clean navigation
-    setForceShowProductsPage(false);
-    showProductsPageRef.current = false;
-    localStorage.removeItem('showProductsPage');
-    sessionStorage.removeItem('showProductsPage');
-    if (window.location.hash === '#products') {
-      window.location.hash = '';
-    }
-    
-    // Check if user wants to go directly to print page or dashboard
-    if (idCardView === 'print') {
+    if (idCardView === 'print' || savedIdCardView === 'print') {
       return wrapWithNavbar(
         <>
           <Header 
@@ -789,7 +656,7 @@ function App() {
         </>
       );
     } else {
-      // Show ID Card Dashboard (default)
+      // Show ID Card Dashboard
       return wrapWithNavbar(
         <>
           <Header 
@@ -799,7 +666,6 @@ function App() {
           />
           <IDCardDashboard 
             onCreateNewIDCard={() => {
-              // Navigate to ID Card Print page
               setIdCardView('print');
             }}
           />
@@ -808,22 +674,11 @@ function App() {
     }
   }
 
-  // PRIORITY 0: Check if user wants to navigate to CV Builder - MUST be checked FIRST
-  // This takes absolute priority over products page
-  if (navigateToCVBuilderFlag && isAuthenticated && !isLoading) {
-    console.log('PRIORITY 0: Navigating to CV Builder - navigateToCVBuilderFlag detected', {
-      navigateToCVBuilderFlag,
-      isAuthenticated,
-      isLoading,
-      forceShowProductsPage,
-      showProductsPageRef: showProductsPageRef.current
-    });
-    
+  // Route to CV Builder Dashboard
+  if (isAuthenticated && !isLoading && currentSelectedApp === 'cv-builder') {
     // Check if user wants to go directly to CV form (when template is selected and goToCVForm flag is set)
     const goToCVForm = sessionStorage.getItem('goToCVForm') === 'true' || localStorage.getItem('goToCVForm') === 'true';
     const selectedTemplateFromStorage = localStorage.getItem('selectedTemplate');
-    
-    // Note: Products page flags are cleared by useEffect to avoid triggering re-renders here
     
     // If template is selected and goToCVForm flag is set, go directly to CV form
     if (goToCVForm && selectedTemplateFromStorage) {
@@ -944,36 +799,8 @@ function App() {
     );
   }
   
-  // PRIORITY 1: Show products page if flag is set (regardless of auth status)
-  // OR if user is not authenticated (default behavior for unauthenticated users)
-  // OR if ref indicates we should show products page (persists through re-renders)
-  // OR by default for authenticated users (Products Page is the default landing page)
-  // Only show CV Dashboard if there's an explicit navigation flag
-  // NOTE: Use ref directly, don't use forceShowProductsPage state to avoid loops
-  const hasExplicitNavigation = navigateToCVBuilderFlag || navigateToIDCardPrintFlag;
-  // For authenticated users, show products page by default UNLESS there's explicit navigation
-  // If products page flag is explicitly set, show it regardless of currentView (unless currentView is cv-builder)
-  // Otherwise, don't show products page if we're already on the dashboard or cv-builder
-  // Use ref directly instead of state to avoid re-render loops
-  const hasExplicitProductsPageFlag = showProductsPageFlag || showProductsPageRef.current || showProductsPageHash;
-  const shouldShowProductsPage = hasExplicitProductsPageFlag 
-    ? (currentView !== 'cv-builder') // If flag is explicitly set, show products page unless we're in cv-builder
-    : ((!isAuthenticated || (!hasExplicitNavigation && isAuthenticated)) && currentView !== 'dashboard' && currentView !== 'cv-builder');
-  
-  // Debug logging for routing decision - ALWAYS log navigateToCVBuilderFlag
-  console.log('Routing decision:', {
-      shouldShowProductsPage,
-      showProductsPageFlag,
-      refValue: showProductsPageRef.current,
-      forceShowProductsPage,
-      isAuthenticated,
-      isLoading,
-      hasExplicitNavigation,
-      navigateToCVBuilderFlag: navigateToCVBuilderFlag,
-      navigateToCVBuilderFlagValue: sessionStorage.getItem('navigateToCVBuilder'),
-      selectedApp: localStorage.getItem('selectedApp'),
-      currentView
-    });
+  // Simple products page check: Show if URL hash indicates marketplace page
+  const shouldShowProductsPage = showProductsPageHash || currentHash === '#products';
   
   // PRIORITY 1.5: Check if we should show CV Builder form/preview BEFORE products page
   // This ensures that when currentView is 'cv-builder', we show the form instead of products page
@@ -1138,15 +965,8 @@ function App() {
     }
   }
   
-  // If products page flag is set, show products page IMMEDIATELY, even during loading
-  // BUT NOT if currentView is cv-builder (cv-builder takes absolute priority)
+  // Show products page if URL hash indicates marketplace
   if (shouldShowProductsPage && currentView !== 'cv-builder') {
-    // Show products page (which includes login form for unauthenticated users)
-    const selectedProduct = localStorage.getItem('selectedApp');
-    
-    console.log('Rendering ProductsPage - shouldShowProductsPage is true');
-    
-    // IMPORTANT: Return immediately - don't let any other logic interfere
     return wrapWithNavbar(
       <>
         <Header 
@@ -1159,8 +979,8 @@ function App() {
       </>
     );
   }
-
-  // Show loading screen while checking authentication (only if not showing products page)
+  
+  // Show loading screen while checking authentication
   if (isLoading) {
     return wrapWithNavbar(
       <div style={{ 
@@ -1176,141 +996,27 @@ function App() {
     );
   }
 
-  // EARLY RETURN: If user is not authenticated and no specific route matches, show Login page
-  // This must come BEFORE any authenticated-only routes to ensure unauthenticated users always see Login
+  // If user is not authenticated, show Login page
   if (!isAuthenticated && !isLoading) {
-    console.log('Rendering Login page - user not authenticated');
     return wrapWithNavbar(
       <Login onAuth={handleAuth} />
     );
   }
   
-  // Clear any remaining flags if we're not showing products page
-  if (showProductsPageLocal) {
-    localStorage.removeItem('showProductsPage');
-    localStorage.removeItem('showProductsPageTimestamp');
-  }
-  if (showProductsPageSession) {
-    sessionStorage.removeItem('showProductsPage');
-  }
-
-  // All routes below this point require authentication
-  // If we reach here and user is not authenticated, something went wrong
-  if (!isAuthenticated) {
-    console.warn('Unexpected: Reached authenticated routes but user is not authenticated');
-    return wrapWithNavbar(
-      <Login onAuth={handleAuth} />
-    );
-  }
-
-  // After login, check if a product was selected from products page
-  // BUT only if we're not forcing products page to show
-  const selectedProduct = localStorage.getItem('selectedApp');
-  if (selectedProduct === 'id-card-print' && !forceShowProductsPage && !showProductsPageRef.current && !navigateToIDCardPrintFlag) {
-    // Check if user wants to go to ID Card Print page directly or dashboard
-    if (idCardView === 'print') {
-      return (
-        <>
-          <Header 
-            isAuthenticated={true} 
-            onLogout={handleLogout}
-            currentProduct="id-card-print"
-          />
-          <IDCardPrintPage />
-        </>
-      );
-    } else {
-      // Show ID Card Dashboard (default view)
-      return (
-        <>
-          <Header 
-            isAuthenticated={true} 
-            onLogout={handleLogout}
-            currentProduct="id-card-print"
-          />
-          <IDCardDashboard 
-            onCreateNewIDCard={() => {
-              setIdCardView('print');
-            }}
-          />
-        </>
-      );
-    }
-  }
-
-  // Check if user wants to go to ID Card Print (when authenticated and selectedApp is id-card-print)
-  // This should take priority over CV Builder if user explicitly clicked ID Card Print button
-  // This handles the case when user is already on ID Card Dashboard and clicks "Create New ID Card"
-  const wantsIDCardPrint = isAuthenticated && selectedProduct === 'id-card-print' && !forceShowProductsPage && !showProductsPageRef.current;
-  if (wantsIDCardPrint && idCardView === 'print') {
-    return wrapWithNavbar(
-      <>
-        <Header 
-          isAuthenticated={true} 
-          onLogout={handleLogout}
-          currentProduct="id-card-print"
-        />
-        <IDCardPrintPage />
-      </>
-    );
-  }
-  
-  // Also check if user is on ID Card Dashboard (when authenticated and selectedApp is id-card-print)
-  if (wantsIDCardPrint && idCardView === 'dashboard') {
-    return wrapWithNavbar(
-      <>
-        <Header 
-          isAuthenticated={true} 
-          onLogout={handleLogout}
-          currentProduct="id-card-print"
-        />
-        <IDCardDashboard 
-          onCreateNewIDCard={() => {
-            setIdCardView('print');
-          }}
-        />
-      </>
-    );
-  }
-  
-  // Check if user wants to go to CV Builder (when authenticated and selectedApp is cv-builder)
-  // This should take priority over products page if user explicitly clicked CV Builder button
-  // BUT NOT if user wants ID Card Print
-  const wantsCVBuilder = isAuthenticated && selectedProduct === 'cv-builder' && !forceShowProductsPage && !showProductsPageRef.current && !navigateToCVBuilderFlag && !navigateToIDCardPrintFlag;
-
-  // Default to CV Builder dashboard
-  // BUT only if we're not forcing products page to show
-  // AND only if user doesn't want ID Card Print
-  // AND only if navigateToIDCardPrintFlag is not set (already checked in PRIORITY 0)
-  if ((currentView === 'dashboard' || wantsCVBuilder) && !forceShowProductsPage && !showProductsPageRef.current && !isLoading && !navigateToIDCardPrintFlag && selectedProduct !== 'id-card-print') {
-    return wrapWithNavbar(
-      <>
-        <Header 
-          isAuthenticated={true} 
-          onLogout={handleLogout}
-          currentProduct="cv-builder"
-        />
-        <CVDashboard 
-          onTemplateSelect={handleTemplateSelect}
-          onLogout={handleLogout}
-          onEditCV={handleEditCV}
-          onCreateNewCV={handleMakeNewCV}
-        />
-      </>
-    );
-  }
-  
-  // Final fallback: Show products page if nothing else matches (for authenticated users)
-  // Unauthenticated users should have been handled above
+  // Final fallback: Show CV Builder Dashboard (default for authenticated users)
   return wrapWithNavbar(
     <>
       <Header 
-        isAuthenticated={isAuthenticated} 
-        currentProduct="products"
-        showProductsOnHeader={true}
-        onLogout={isAuthenticated ? handleLogout : undefined}
+        isAuthenticated={true} 
+        onLogout={handleLogout}
+        currentProduct="cv-builder"
       />
-      <ProductsPage />
+      <CVDashboard 
+        onTemplateSelect={handleTemplateSelect}
+        onLogout={handleLogout}
+        onEditCV={handleEditCV}
+        onCreateNewCV={handleMakeNewCV}
+      />
     </>
   );
 }
