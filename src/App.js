@@ -176,10 +176,41 @@ function App() {
       if (event === 'SIGNED_IN' && session?.user) {
         setIsAuthenticated(true);
         localStorage.setItem('cvBuilderAuth', 'true');
-        // Clear OAuth hash from URL if present
-        if (window.location.hash.includes('access_token') || window.location.hash.includes('code')) {
-          window.location.hash = '';
+        
+        // Check if this is an OAuth callback (Google login)
+        const isOAuthCallback = window.location.hash.includes('access_token') || 
+                                window.location.hash.includes('code') ||
+                                window.location.search.includes('code');
+        
+        if (isOAuthCallback) {
+          // Clear OAuth hash/query from URL
+          if (window.location.hash.includes('access_token') || window.location.hash.includes('code')) {
+            window.location.hash = '';
+          }
+          if (window.location.search.includes('code')) {
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }
+          
+          // For Google OAuth login, redirect to homepage (products page)
+          // Clear any navigation flags to ensure user lands on homepage
+          sessionStorage.removeItem('navigateToCVBuilder');
+          localStorage.removeItem('navigateToCVBuilder');
+          sessionStorage.removeItem('navigateToIDCardPrint');
+          localStorage.removeItem('navigateToIDCardPrint');
+          
+          // Set homepage flags
+          localStorage.setItem('selectedApp', 'marketplace');
+          localStorage.setItem('showProductsPage', 'true');
+          sessionStorage.setItem('showProductsPage', 'true');
+          setForceShowProductsPage(true);
+          showProductsPageRef.current = true;
+          
+          // Navigate to products page
+          if (window.location.hash !== '#products') {
+            window.location.hash = '#products';
+          }
         }
+        
         // Trigger auth event for other components
         window.dispatchEvent(new CustomEvent('userAuthenticated'));
       } else if (event === 'SIGNED_OUT') {
