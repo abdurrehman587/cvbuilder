@@ -32,7 +32,15 @@ function App() {
     const savedView = localStorage.getItem('idCardView');
     return savedView === 'print' ? 'print' : 'dashboard';
   });
-  const [selectedApp, setSelectedApp] = useState('cv-builder'); // 'cv-builder' or 'id-card-print'
+  const [selectedApp, setSelectedApp] = useState(() => {
+    // Default to marketplace (homepage) on initial load
+    const savedApp = localStorage.getItem('selectedApp');
+    const hash = window.location.hash;
+    if (!hash && !savedApp) {
+      return 'marketplace';
+    }
+    return savedApp || 'marketplace';
+  }); // 'marketplace', 'cv-builder', or 'id-card-print'
   const [formData, setFormData] = useState({
     name: '',
     position: '',
@@ -241,8 +249,26 @@ function App() {
     });
     
     // Check selected app on mount
-    const app = localStorage.getItem('selectedApp') || 'cv-builder';
-    setSelectedApp(app);
+    // Default to marketplace (homepage) if no hash and no specific app selected
+    const hash = window.location.hash;
+    const savedApp = localStorage.getItem('selectedApp');
+    
+    // If no hash and no saved app, default to homepage
+    if (!hash && !savedApp) {
+      localStorage.setItem('selectedApp', 'marketplace');
+      localStorage.setItem('showProductsPage', 'true');
+      sessionStorage.setItem('showProductsPage', 'true');
+      setSelectedApp('marketplace');
+      setForceShowProductsPage(true);
+      showProductsPageRef.current = true;
+      // Set hash to products page
+      if (window.location.hash !== '#products') {
+        window.location.hash = '#products';
+      }
+    } else {
+      const app = savedApp || 'marketplace';
+      setSelectedApp(app);
+    }
     
     // DON'T remove navigateToCVBuilder flag here - let the PRIORITY 0 routing check handle it
     // The flag will be removed after routing decision is made
@@ -823,7 +849,10 @@ function App() {
   // Check URL hash first for marketplace pages, then check selectedApp for dashboards
   
   // Get current selectedApp from localStorage - default to 'marketplace' for homepage
-  const currentSelectedApp = localStorage.getItem('selectedApp') || 'marketplace';
+  // On page reload, if no hash and no saved app, show homepage
+  const hash = window.location.hash;
+  const savedApp = localStorage.getItem('selectedApp');
+  const currentSelectedApp = (hash || savedApp) ? (savedApp || 'marketplace') : 'marketplace';
   
   // PRIORITY: Check if we should show CV Builder form/preview FIRST
   // This ensures that when currentView is 'cv-builder', we show the form instead of dashboard
@@ -1351,8 +1380,9 @@ function App() {
     );
   }
   
-  // For authenticated users, default to CV Builder Dashboard if no specific route
-  if (currentSelectedApp === 'cv-builder' || !currentSelectedApp || currentSelectedApp === 'marketplace') {
+  // For authenticated users, default to homepage if no specific route
+  // Only show CV Builder Dashboard if explicitly selected
+  if (currentSelectedApp === 'cv-builder' && !shouldShowProductsPage) {
     return wrapWithNavbar(
       <>
         <Header 
@@ -1366,6 +1396,21 @@ function App() {
           onEditCV={handleEditCV}
           onCreateNewCV={handleMakeNewCV}
         />
+      </>
+    );
+  }
+  
+  // Default to homepage for authenticated users if no specific route
+  if (!currentSelectedApp || currentSelectedApp === 'marketplace' || (!hash && !savedApp)) {
+    return wrapWithNavbar(
+      <>
+        <Header 
+          isAuthenticated={isAuthenticated} 
+          currentProduct="products"
+          showProductsOnHeader={true}
+          onLogout={isAuthenticated ? handleLogout : undefined}
+        />
+        <ProductsPage />
       </>
     );
   }
