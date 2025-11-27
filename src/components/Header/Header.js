@@ -101,20 +101,15 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
       localStorage.setItem('cvBuilderAuth', 'true');
     }
     
-    // Set flag to show products page - this takes ABSOLUTE priority over other routing
-    // Use multiple storage methods for redundancy
+    // Set flag to show products page
+    localStorage.setItem('selectedApp', 'marketplace');
     localStorage.setItem('showProductsPage', 'true');
-    localStorage.setItem('showProductsPageTimestamp', Date.now().toString());
     sessionStorage.setItem('showProductsPage', 'true');
     
-    // Always navigate - if already on products page, reload to ensure state is refreshed
-    if (window.location.pathname === '/' && window.location.hash === '#products') {
-      // Already on products page - reload to ensure routing works
-      window.location.reload();
-    } else {
-      // Navigate to products page with hash
-      // This will trigger a page load, and App.js will read the flags on mount
-      window.location.href = '/#products';
+    // Use hash-based navigation instead of page reload to preserve session
+    if (window.location.hash !== '#products') {
+      window.location.hash = '#products';
+      window.dispatchEvent(new CustomEvent('navigateToMarketplace'));
     }
   };
 
@@ -140,13 +135,13 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
       } else {
         localStorage.setItem('showProductsPage', 'true');
         sessionStorage.setItem('showProductsPage', 'true');
-        window.location.href = '/#products';
+        window.location.hash = '#products';
       }
     } else {
       // User is signed in: Navigate directly to CV Builder dashboard
-      // Set navigation flags FIRST to prevent logout on page reload
+      // Set navigation flags to prevent logout
       sessionStorage.setItem('isNavigating', 'true');
-      sessionStorage.setItem('isReloading', 'true');
+      sessionStorage.setItem('navigationTimestamp', Date.now().toString());
       localStorage.setItem('selectedApp', 'cv-builder');
       sessionStorage.setItem('navigateToCVBuilder', 'true');
       localStorage.removeItem('showProductsPage');
@@ -154,7 +149,9 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
       if (window.resetProductsPageFlag) {
         window.resetProductsPageFlag();
       }
-      window.location.href = '/';
+      // Use hash-based navigation instead of page reload
+      window.location.hash = '';
+      window.dispatchEvent(new CustomEvent('navigateToCVBuilder'));
     }
   };
 
@@ -168,11 +165,13 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
       } else {
         localStorage.setItem('showProductsPage', 'true');
         sessionStorage.setItem('showProductsPage', 'true');
-        window.location.href = '/#products';
+        window.location.hash = '#products';
       }
     } else {
       // User is signed in: Navigate directly to ID Card Dashboard
-      sessionStorage.setItem('isReloading', 'true');
+      // Set navigation flags to prevent logout
+      sessionStorage.setItem('isNavigating', 'true');
+      sessionStorage.setItem('navigationTimestamp', Date.now().toString());
       localStorage.setItem('selectedApp', 'id-card-print');
       sessionStorage.setItem('navigateToIDCardPrint', 'true');
       // Reset idCardView to dashboard
@@ -184,7 +183,9 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
       if (window.resetProductsPageFlag) {
         window.resetProductsPageFlag();
       }
-      window.location.href = '/';
+      // Use hash-based navigation instead of page reload
+      window.location.hash = '';
+      window.dispatchEvent(new CustomEvent('navigateToIDCardPrinter'));
     }
   };
 
@@ -254,15 +255,18 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
               e.target.style.display = 'none';
             }}
           />
-          <div className="logo" onClick={goToProducts} style={{ cursor: 'pointer' }}>
-            <span className="logo-icon">🚀</span>
-            <span className="logo-text">My Products</span>
-          </div>
         </div>
 
         <div className="header-center">
           {isAuthenticated && !showProductsOnHeader && (
             <nav className="header-navigation">
+              <button
+                onClick={goToProducts}
+                className={`nav-button ${currentProduct === 'marketplace' || currentProduct === 'products' ? 'active' : ''}`}
+              >
+                <span className="nav-icon">🛒</span>
+                <span className="nav-text">Market Place</span>
+              </button>
               <button
                 onClick={navigateToCVBuilder}
                 className={`nav-button ${currentProduct === 'cv-builder' ? 'active' : ''}`}
@@ -299,6 +303,17 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
               >
                 <span className="nav-icon">🪪</span>
                 <span className="nav-text">ID Card Printer</span>
+              </button>
+            </nav>
+          )}
+          {!isAuthenticated && !showProductsOnHeader && (
+            <nav className="header-navigation">
+              <button
+                onClick={goToProducts}
+                className="nav-button"
+              >
+                <span className="nav-icon">🛒</span>
+                <span className="nav-text">Market Place</span>
               </button>
             </nav>
           )}

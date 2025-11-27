@@ -6,21 +6,44 @@ const LeftNavbar = ({ isAuthenticated }) => {
 
   useEffect(() => {
     // Determine active section based on current route
-    const hash = window.location.hash;
-    
-    if (hash === '#products' || hash.startsWith('#product/') || hash === '#cart' || hash === '#checkout' || hash.startsWith('#order-details') || hash === '#admin') {
-      setActiveSection('marketplace');
-    } else {
-      // Check localStorage for selected app
-      const selectedApp = localStorage.getItem('selectedApp') || 'cv-builder';
-      if (selectedApp === 'id-card-print') {
-        setActiveSection('id-card-printer');
-      } else if (selectedApp === 'cv-builder') {
-        setActiveSection('cv-builder');
-      } else {
+    const updateActiveSection = () => {
+      const hash = window.location.hash;
+      
+      if (hash === '#products' || hash.startsWith('#product/') || hash === '#cart' || hash === '#checkout' || hash.startsWith('#order-details') || hash === '#admin') {
         setActiveSection('marketplace');
+      } else {
+        // Check localStorage for selected app
+        const selectedApp = localStorage.getItem('selectedApp') || 'cv-builder';
+        if (selectedApp === 'id-card-print') {
+          setActiveSection('id-card-printer');
+        } else if (selectedApp === 'cv-builder') {
+          setActiveSection('cv-builder');
+        } else {
+          setActiveSection('marketplace');
+        }
       }
-    }
+    };
+    
+    // Update on mount
+    updateActiveSection();
+    
+    // Listen for hash changes
+    window.addEventListener('hashchange', updateActiveSection);
+    
+    // Listen for custom navigation events
+    const handleNavigate = () => {
+      setTimeout(updateActiveSection, 100);
+    };
+    window.addEventListener('navigateToMarketplace', handleNavigate);
+    window.addEventListener('navigateToCVBuilder', handleNavigate);
+    window.addEventListener('navigateToIDCardPrinter', handleNavigate);
+    
+    return () => {
+      window.removeEventListener('hashchange', updateActiveSection);
+      window.removeEventListener('navigateToMarketplace', handleNavigate);
+      window.removeEventListener('navigateToCVBuilder', handleNavigate);
+      window.removeEventListener('navigateToIDCardPrinter', handleNavigate);
+    };
   }, []);
 
   const navigateToMarketplace = () => {
@@ -31,9 +54,14 @@ const LeftNavbar = ({ isAuthenticated }) => {
       return;
     }
     
-    // Navigate to marketplace
+    // Navigate to marketplace using hash (no page reload)
     localStorage.setItem('selectedApp', 'marketplace');
+    localStorage.setItem('showProductsPage', 'true');
+    sessionStorage.setItem('showProductsPage', 'true');
+    // Use hash change instead of page reload to preserve session
     window.location.hash = '#products';
+    // Trigger a custom event to notify App.js
+    window.dispatchEvent(new CustomEvent('navigateToMarketplace'));
   };
 
   const navigateToCVBuilder = () => {
@@ -42,21 +70,23 @@ const LeftNavbar = ({ isAuthenticated }) => {
       // Store intent to navigate to CV Builder after login
       localStorage.setItem('selectedApp', 'cv-builder');
       sessionStorage.setItem('navigateToCVBuilder', 'true');
-      sessionStorage.setItem('isNavigating', 'true');
-      window.location.href = '/';
+      // Navigate to products page to show login
+      window.location.hash = '#products';
       return;
     }
     
-    // Navigate to CV Builder dashboard
-    // Set navigation flags FIRST to prevent logout on page reload
+    // Navigate to CV Builder dashboard using hash-based routing
+    // Set navigation flags to prevent logout
     sessionStorage.setItem('isNavigating', 'true');
-    sessionStorage.setItem('isReloading', 'true');
+    sessionStorage.setItem('navigationTimestamp', Date.now().toString());
     sessionStorage.setItem('navigateToCVBuilder', 'true');
     localStorage.setItem('selectedApp', 'cv-builder');
     localStorage.removeItem('showProductsPage');
     sessionStorage.removeItem('showProductsPage');
+    // Clear hash to show dashboard
     window.location.hash = '';
-    window.location.href = '/';
+    // Trigger a custom event to notify App.js
+    window.dispatchEvent(new CustomEvent('navigateToCVBuilder'));
   };
 
   const navigateToIDCardPrinter = () => {
@@ -66,22 +96,24 @@ const LeftNavbar = ({ isAuthenticated }) => {
       localStorage.setItem('selectedApp', 'id-card-print');
       localStorage.setItem('idCardView', 'dashboard');
       sessionStorage.setItem('navigateToIDCardPrint', 'true');
-      sessionStorage.setItem('isNavigating', 'true');
-      window.location.href = '/';
+      // Navigate to products page to show login
+      window.location.hash = '#products';
       return;
     }
     
-    // Navigate to ID Card Printer dashboard
-    // Set navigation flags FIRST to prevent logout on page reload
+    // Navigate to ID Card Printer dashboard using hash-based routing
+    // Set navigation flags to prevent logout
     sessionStorage.setItem('isNavigating', 'true');
-    sessionStorage.setItem('isReloading', 'true');
+    sessionStorage.setItem('navigationTimestamp', Date.now().toString());
     sessionStorage.setItem('navigateToIDCardPrint', 'true');
     localStorage.setItem('selectedApp', 'id-card-print');
     localStorage.setItem('idCardView', 'dashboard');
     localStorage.removeItem('showProductsPage');
     sessionStorage.removeItem('showProductsPage');
+    // Clear hash to show dashboard
     window.location.hash = '';
-    window.location.href = '/';
+    // Trigger a custom event to notify App.js
+    window.dispatchEvent(new CustomEvent('navigateToIDCardPrinter'));
   };
 
   return (

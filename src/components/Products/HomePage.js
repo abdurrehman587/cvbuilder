@@ -462,29 +462,36 @@ const ProductsPage = ({ onProductSelect }) => {
         
         // Wait a moment to show success message, then proceed
         setTimeout(() => {
-          // Set flag to indicate this is a reload, not a close
-          sessionStorage.setItem('isReloading', 'true');
           // Close login modal
           setShowLogin(false);
           setLoginSuccess(false);
+          setEmail('');
+          setPassword('');
+          setConfirmPassword('');
           
           if (navigateToCVBuilder || navigateToIDCardPrint) {
+            // User wants to navigate to a specific product after login
             // Clear products page flags to allow navigation to specific product
             localStorage.removeItem('showProductsPage');
             sessionStorage.removeItem('showProductsPage');
-          // Reload to trigger navigation
-          window.location.reload();
+            // Set flag to indicate this is a navigation, not a close
+            sessionStorage.setItem('isNavigating', 'true');
+            sessionStorage.setItem('navigationTimestamp', Date.now().toString());
+            // Reload to trigger navigation
+            window.location.reload();
           } else {
-            // No navigation flags - user should stay on products page
+            // No navigation flags - user should stay on products page (homepage)
             // Ensure products page flags are set
+            localStorage.setItem('selectedApp', 'marketplace');
             localStorage.setItem('showProductsPage', 'true');
             sessionStorage.setItem('showProductsPage', 'true');
             // Set hash to products page
             window.location.hash = '#products';
-            // Reload to refresh authentication state while keeping products page
-            window.location.reload();
+            // Don't reload - just update the hash to trigger re-render
+            // The auth state change will handle the UI update
+            console.log('Login from homepage - staying on homepage');
           }
-        }, 2000); // Show success message for 2 seconds
+        }, 1500); // Show success message for 1.5 seconds
         
       } else {
         // Real Supabase signup
