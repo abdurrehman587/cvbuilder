@@ -283,12 +283,15 @@ function App() {
     // Handle page unload (tab/window close) - logout user
     // Use multiple events to reliably detect tab/window close
     let isNavigating = false;
+    let navigationTimestamp = 0;
     
     // Detect navigation (reload, link click, etc.) to prevent logout
     const handleNavigation = () => {
       isNavigating = true;
+      navigationTimestamp = Date.now();
       // Set a flag that will be checked in unload handlers
       sessionStorage.setItem('isNavigating', 'true');
+      sessionStorage.setItem('navigationTimestamp', navigationTimestamp.toString());
     };
     
     // Listen for navigation events
@@ -303,6 +306,8 @@ function App() {
     // Detect reload (F5, Ctrl+R, etc.)
     window.addEventListener('keydown', (e) => {
       if ((e.key === 'F5') || (e.ctrlKey && e.key === 'r') || (e.ctrlKey && e.key === 'R')) {
+        sessionStorage.setItem('isReloading', 'true');
+        sessionStorage.setItem('reloadTimestamp', Date.now().toString());
         handleNavigation();
       }
     });
@@ -311,14 +316,24 @@ function App() {
     const handleBeforeUnload = (e) => {
       const isNav = sessionStorage.getItem('isNavigating') === 'true';
       const isReloading = sessionStorage.getItem('isReloading') === 'true';
-      const hasNavigationFlags = sessionStorage.getItem('navigateToCVBuilder') === 'true' ||
-                                  sessionStorage.getItem('navigateToIDCardPrint') === 'true' ||
-                                  localStorage.getItem('navigateToCVBuilder') === 'true' ||
-                                  localStorage.getItem('navigateToIDCardPrint') === 'true';
+      const navTimestamp = parseInt(sessionStorage.getItem('navigationTimestamp') || '0', 10);
+      const reloadTimestamp = parseInt(sessionStorage.getItem('reloadTimestamp') || '0', 10);
+      const now = Date.now();
       
-      // Only logout if user is authenticated AND it's not a navigation/reload
-      // Don't logout if there are navigation flags set (user is navigating within the app)
-      if (!isNav && !isReloading && !hasNavigationFlags && (isAuthenticated || localStorage.getItem('cvBuilderAuth') === 'true')) {
+      // Only prevent logout if navigation/reload happened very recently (within 2 seconds)
+      // This ensures that stale flags don't prevent logout on actual tab/browser closure
+      const isRecentNavigation = isNav && (now - navTimestamp) < 2000;
+      const isRecentReload = isReloading && (now - reloadTimestamp) < 2000;
+      
+      // Check for navigation flags (only if set very recently)
+      const hasRecentNavigationFlags = (sessionStorage.getItem('navigateToCVBuilder') === 'true' ||
+                                         sessionStorage.getItem('navigateToIDCardPrint') === 'true') &&
+                                        (now - navTimestamp) < 2000;
+      
+      // Logout if user is authenticated AND it's not a recent navigation/reload
+      // Always logout on tab/browser closure unless we're certain it's a navigation/reload
+      if ((isAuthenticated || localStorage.getItem('cvBuilderAuth') === 'true') && 
+          !isRecentNavigation && !isRecentReload && !hasRecentNavigationFlags) {
         // Clear authentication state immediately (synchronous)
         localStorage.removeItem('cvBuilderAuth');
         localStorage.removeItem('selectedApp');
@@ -334,22 +349,38 @@ function App() {
       } else {
         // If it's a navigation, clear the flag for next time
         sessionStorage.removeItem('isNavigating');
+        sessionStorage.removeItem('isReloading');
       }
     };
     
     // Handle pagehide event (more reliable than beforeunload for mobile)
     const handlePageHide = (e) => {
-      const isNav = sessionStorage.getItem('isNavigating') === 'true';
-      const isReloading = sessionStorage.getItem('isReloading') === 'true';
-      const hasNavigationFlags = sessionStorage.getItem('navigateToCVBuilder') === 'true' ||
-                                  sessionStorage.getItem('navigateToIDCardPrint') === 'true' ||
-                                  localStorage.getItem('navigateToCVBuilder') === 'true' ||
-                                  localStorage.getItem('navigateToIDCardPrint') === 'true';
-      
       // pagehide.persisted is true when page is cached (not closed)
       // If persisted is false, the page is being unloaded (closed)
-      // Don't logout if there are navigation flags set (user is navigating within the app)
-      if (!e.persisted && !isNav && !isReloading && !hasNavigationFlags && (isAuthenticated || localStorage.getItem('cvBuilderAuth') === 'true')) {
+      if (e.persisted) {
+        // Page is being cached, not closed - don't logout
+        return;
+      }
+      
+      // Page is being closed - check if it's a recent navigation/reload
+      const isNav = sessionStorage.getItem('isNavigating') === 'true';
+      const isReloading = sessionStorage.getItem('isReloading') === 'true';
+      const navTimestamp = parseInt(sessionStorage.getItem('navigationTimestamp') || '0', 10);
+      const reloadTimestamp = parseInt(sessionStorage.getItem('reloadTimestamp') || '0', 10);
+      const now = Date.now();
+      
+      // Only prevent logout if navigation/reload happened very recently (within 2 seconds)
+      const isRecentNavigation = isNav && (now - navTimestamp) < 2000;
+      const isRecentReload = isReloading && (now - reloadTimestamp) < 2000;
+      
+      // Check for navigation flags (only if set very recently)
+      const hasRecentNavigationFlags = (sessionStorage.getItem('navigateToCVBuilder') === 'true' ||
+                                         sessionStorage.getItem('navigateToIDCardPrint') === 'true') &&
+                                        (now - navTimestamp) < 2000;
+      
+      // Logout on tab/browser closure unless we're certain it's a recent navigation/reload
+      if ((isAuthenticated || localStorage.getItem('cvBuilderAuth') === 'true') && 
+          !isRecentNavigation && !isRecentReload && !hasRecentNavigationFlags) {
         // Clear authentication state
         localStorage.removeItem('cvBuilderAuth');
         localStorage.removeItem('selectedApp');
@@ -366,6 +397,8 @@ function App() {
         // Clear navigation flags
         sessionStorage.removeItem('isNavigating');
         sessionStorage.removeItem('isReloading');
+        sessionStorage.removeItem('navigationTimestamp');
+        sessionStorage.removeItem('reloadTimestamp');
       }
     };
     
