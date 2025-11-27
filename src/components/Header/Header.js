@@ -144,6 +144,8 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
       }
     } else {
       // User is signed in: Navigate directly to CV Builder dashboard
+      // Set navigation flags FIRST to prevent logout on page reload
+      sessionStorage.setItem('isNavigating', 'true');
       sessionStorage.setItem('isReloading', 'true');
       localStorage.setItem('selectedApp', 'cv-builder');
       sessionStorage.setItem('navigateToCVBuilder', 'true');

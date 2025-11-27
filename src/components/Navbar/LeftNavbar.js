@@ -41,11 +41,17 @@ const LeftNavbar = ({ isAuthenticated }) => {
     if (!isAuthenticated) {
       // Store intent to navigate to CV Builder after login
       localStorage.setItem('selectedApp', 'cv-builder');
+      sessionStorage.setItem('navigateToCVBuilder', 'true');
+      sessionStorage.setItem('isNavigating', 'true');
       window.location.href = '/';
       return;
     }
     
     // Navigate to CV Builder dashboard
+    // Set navigation flags FIRST to prevent logout on page reload
+    sessionStorage.setItem('isNavigating', 'true');
+    sessionStorage.setItem('isReloading', 'true');
+    sessionStorage.setItem('navigateToCVBuilder', 'true');
     localStorage.setItem('selectedApp', 'cv-builder');
     localStorage.removeItem('showProductsPage');
     sessionStorage.removeItem('showProductsPage');
@@ -59,11 +65,17 @@ const LeftNavbar = ({ isAuthenticated }) => {
       // Store intent to navigate to ID Card Printer after login
       localStorage.setItem('selectedApp', 'id-card-print');
       localStorage.setItem('idCardView', 'dashboard');
+      sessionStorage.setItem('navigateToIDCardPrint', 'true');
+      sessionStorage.setItem('isNavigating', 'true');
       window.location.href = '/';
       return;
     }
     
     // Navigate to ID Card Printer dashboard
+    // Set navigation flags FIRST to prevent logout on page reload
+    sessionStorage.setItem('isNavigating', 'true');
+    sessionStorage.setItem('isReloading', 'true');
+    sessionStorage.setItem('navigateToIDCardPrint', 'true');
     localStorage.setItem('selectedApp', 'id-card-print');
     localStorage.setItem('idCardView', 'dashboard');
     localStorage.removeItem('showProductsPage');

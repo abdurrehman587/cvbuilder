@@ -164,9 +164,10 @@ function App() {
       }
     };
 
-    // Clear navigation flag on mount (after reload completes)
+    // Clear navigation flags on mount (after reload completes)
     // This ensures that if the page was reloaded (not closed), we don't logout
     sessionStorage.removeItem('isNavigating');
+    sessionStorage.removeItem('isReloading');
     
     checkAuth();
 
@@ -309,9 +310,15 @@ function App() {
     // Handle beforeunload - fires when tab/window is closing
     const handleBeforeUnload = (e) => {
       const isNav = sessionStorage.getItem('isNavigating') === 'true';
+      const isReloading = sessionStorage.getItem('isReloading') === 'true';
+      const hasNavigationFlags = sessionStorage.getItem('navigateToCVBuilder') === 'true' ||
+                                  sessionStorage.getItem('navigateToIDCardPrint') === 'true' ||
+                                  localStorage.getItem('navigateToCVBuilder') === 'true' ||
+                                  localStorage.getItem('navigateToIDCardPrint') === 'true';
       
       // Only logout if user is authenticated AND it's not a navigation/reload
-      if (!isNav && (isAuthenticated || localStorage.getItem('cvBuilderAuth') === 'true')) {
+      // Don't logout if there are navigation flags set (user is navigating within the app)
+      if (!isNav && !isReloading && !hasNavigationFlags && (isAuthenticated || localStorage.getItem('cvBuilderAuth') === 'true')) {
         // Clear authentication state immediately (synchronous)
         localStorage.removeItem('cvBuilderAuth');
         localStorage.removeItem('selectedApp');
@@ -333,10 +340,16 @@ function App() {
     // Handle pagehide event (more reliable than beforeunload for mobile)
     const handlePageHide = (e) => {
       const isNav = sessionStorage.getItem('isNavigating') === 'true';
+      const isReloading = sessionStorage.getItem('isReloading') === 'true';
+      const hasNavigationFlags = sessionStorage.getItem('navigateToCVBuilder') === 'true' ||
+                                  sessionStorage.getItem('navigateToIDCardPrint') === 'true' ||
+                                  localStorage.getItem('navigateToCVBuilder') === 'true' ||
+                                  localStorage.getItem('navigateToIDCardPrint') === 'true';
       
       // pagehide.persisted is true when page is cached (not closed)
       // If persisted is false, the page is being unloaded (closed)
-      if (!e.persisted && !isNav && (isAuthenticated || localStorage.getItem('cvBuilderAuth') === 'true')) {
+      // Don't logout if there are navigation flags set (user is navigating within the app)
+      if (!e.persisted && !isNav && !isReloading && !hasNavigationFlags && (isAuthenticated || localStorage.getItem('cvBuilderAuth') === 'true')) {
         // Clear authentication state
         localStorage.removeItem('cvBuilderAuth');
         localStorage.removeItem('selectedApp');
@@ -349,9 +362,10 @@ function App() {
         authService.signOut().catch(() => {
           // Ignore errors
         });
-      } else if (isNav) {
-        // Clear navigation flag
+      } else if (isNav || isReloading) {
+        // Clear navigation flags
         sessionStorage.removeItem('isNavigating');
+        sessionStorage.removeItem('isReloading');
       }
     };
     

@@ -269,7 +269,8 @@ const ProductsPage = ({ onProductSelect }) => {
             }, 100);
           } else if (productId === 'cv-builder') {
             // Navigate to CV Builder dashboard
-            // Set flags BEFORE clearing products page flags
+            // Set navigation flags FIRST to prevent logout on page reload
+            sessionStorage.setItem('isNavigating', 'true');
             sessionStorage.setItem('isReloading', 'true');
             sessionStorage.setItem('navigateToCVBuilder', 'true');
             localStorage.setItem('navigateToCVBuilder', 'true'); // Backup in localStorage
@@ -291,6 +292,8 @@ const ProductsPage = ({ onProductSelect }) => {
             window.location.href = '/';
           } else if (productId === 'id-card-print') {
             // Navigate to ID Card Print dashboard
+            // Set navigation flags FIRST to prevent logout on page reload
+            sessionStorage.setItem('isNavigating', 'true');
             sessionStorage.setItem('isReloading', 'true');
             sessionStorage.setItem('navigateToIDCardPrint', 'true');
             localStorage.setItem('navigateToIDCardPrint', 'true');
@@ -365,7 +368,8 @@ const ProductsPage = ({ onProductSelect }) => {
         
         if (isAuthenticated) {
           // User is authenticated - navigate to CV Dashboard with selected template
-          // Set flags BEFORE clearing products page flags
+          // Set navigation flag FIRST to prevent logout on page reload
+          sessionStorage.setItem('isNavigating', 'true');
           sessionStorage.setItem('isReloading', 'true');
           sessionStorage.setItem('navigateToCVBuilder', 'true');
           localStorage.setItem('navigateToCVBuilder', 'true'); // Backup in localStorage
@@ -386,6 +390,7 @@ const ProductsPage = ({ onProductSelect }) => {
           }
           
           // Navigate to root - App.js will show CV Dashboard
+          // sessionStorage is synchronous, so flags are set before navigation
           window.location.href = '/';
         } else {
           // User is not authenticated - show login form
