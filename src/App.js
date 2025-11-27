@@ -355,38 +355,17 @@ function App() {
       }
     };
     
-    // Handle visibility change (when tab becomes hidden)
-    const handleVisibilityChange = () => {
-      // Only logout if page is hidden AND it's not a navigation
-      // This is a backup method for cases where beforeunload/pagehide don't fire
-      if (document.hidden) {
-        const isNav = sessionStorage.getItem('isNavigating') === 'true';
-        // Use a timeout to check if page is still hidden after a delay
-        // If it stays hidden, it's likely a close, not just a tab switch
-        setTimeout(() => {
-          if (document.hidden && !isNav && (isAuthenticated || localStorage.getItem('cvBuilderAuth') === 'true')) {
-            // Page is still hidden - likely closed
-            localStorage.removeItem('cvBuilderAuth');
-            localStorage.removeItem('selectedApp');
-            authService.signOut().catch(() => {});
-          }
-        }, 1000); // Wait 1 second to see if page becomes visible again
-      } else {
-        // Page became visible - clear navigation flag
-        sessionStorage.removeItem('isNavigating');
-      }
-    };
+    // Note: Removed visibilitychange handler - it was causing logout on tab switches
+    // Only beforeunload and pagehide are used to detect tab/window closes
     
     window.addEventListener('beforeunload', handleBeforeUnload);
     window.addEventListener('pagehide', handlePageHide);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
     
     return () => {
       window.removeEventListener('userAuthenticated', handleAuth);
       window.removeEventListener('hashchange', handleHashChange);
       window.removeEventListener('beforeunload', handleBeforeUnload);
       window.removeEventListener('pagehide', handlePageHide);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
       delete window.navigateToDashboard;
       // Cleanup auth state change subscription
       if (authStateSubscription && authStateSubscription.data && authStateSubscription.data.subscription) {
