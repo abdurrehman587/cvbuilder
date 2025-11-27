@@ -59,6 +59,19 @@
   border: none;
 }
 
+/* When navbar is present, adjust CV header position */
+.app-content-with-navbar .app-header-cv {
+  left: 70px;
+  width: calc(100% - 70px);
+}
+
+@media (max-width: 768px) {
+  .app-content-with-navbar .app-header-cv {
+    left: 60px;
+    width: calc(100% - 60px);
+  }
+}
+
 /* Template Selector */
 .template-selector {
   display: flex !important;

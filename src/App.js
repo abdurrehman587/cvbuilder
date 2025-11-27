@@ -1115,7 +1115,7 @@ function App() {
     
     // Show CV Dashboard (when clicking template, it should go here)
     // Don't clear flags here - let useEffect handle it after navigation completes
-    return (
+    return wrapWithNavbar(
       <>
         <Header 
           isAuthenticated={true} 
