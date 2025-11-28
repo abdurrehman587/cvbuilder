@@ -403,59 +403,38 @@ function App() {
     
     // Handle beforeunload - fires when tab/window is closing
     const handleBeforeUnload = (e) => {
-      // Don't logout if user just logged in (within last 10 seconds)
-      const justLoggedIn = sessionStorage.getItem('justLoggedIn');
-      if (justLoggedIn) {
-        const loginTimestamp = parseInt(justLoggedIn, 10);
-        const now = Date.now();
-        if (now - loginTimestamp < 10000) {
-          // User just logged in, don't logout
-          return;
-        }
-      }
-      
-      // Check if this is a navigation within the app (hash change, etc.)
+      // Check if this is a very recent navigation/reload (within 1 second)
+      // This prevents logout during page reloads or hash-based navigation
       const isNav = sessionStorage.getItem('isNavigating') === 'true';
       const isReloading = sessionStorage.getItem('isReloading') === 'true';
       const navTimestamp = parseInt(sessionStorage.getItem('navigationTimestamp') || '0', 10);
       const reloadTimestamp = parseInt(sessionStorage.getItem('reloadTimestamp') || '0', 10);
       const now = Date.now();
       
-      // Only prevent logout if navigation/reload happened very recently (within 3 seconds)
-      // This ensures that stale flags don't prevent logout on actual tab/browser closure
-      const isRecentNavigation = isNav && (now - navTimestamp) < 3000;
-      const isRecentReload = isReloading && (now - reloadTimestamp) < 3000;
+      // Only skip logout if navigation/reload happened very recently (within 1 second)
+      const isRecentNavigation = isNav && (now - navTimestamp) < 1000;
+      const isRecentReload = isReloading && (now - reloadTimestamp) < 1000;
       
-      // Check for navigation flags (only if set very recently)
-      const hasRecentNavigationFlags = (sessionStorage.getItem('navigateToCVBuilder') === 'true' ||
-                                         sessionStorage.getItem('navigateToIDCardPrint') === 'true') &&
-                                        (now - navTimestamp) < 3000;
+      // If it's a recent navigation/reload, don't logout
+      if (isRecentNavigation || isRecentReload) {
+        return;
+      }
       
-      // Only logout if this is NOT a recent navigation/reload
-      // This means it's an actual tab/browser close
-      if (!isRecentNavigation && !isRecentReload && !hasRecentNavigationFlags) {
-        // Check if user is authenticated via localStorage (synchronous check)
-        if (localStorage.getItem('cvBuilderAuth') === 'true') {
-          // Clear authentication state immediately (synchronous)
-          localStorage.removeItem('cvBuilderAuth');
-          localStorage.removeItem('selectedApp');
-          sessionStorage.removeItem('showProductsPage');
-          sessionStorage.removeItem('navigateToCVBuilder');
-          sessionStorage.removeItem('navigateToIDCardPrint');
-          localStorage.removeItem('navigateToIDCardPrint');
-          
-          // Attempt logout (may not complete if page closes quickly, but state is cleared)
-          supabase.auth.signOut().catch(() => {
-            // Ignore errors during unload - state is already cleared
-          });
-        }
-      } else {
-        // If it's a navigation, clear the flags after a delay to allow navigation to complete
-        // Don't clear immediately as navigation might still be in progress
-        setTimeout(() => {
-          sessionStorage.removeItem('isNavigating');
-          sessionStorage.removeItem('isReloading');
-        }, 100);
+      // Tab/browser is closing - logout user
+      if (localStorage.getItem('cvBuilderAuth') === 'true') {
+        // Clear authentication state immediately (synchronous)
+        localStorage.removeItem('cvBuilderAuth');
+        localStorage.removeItem('selectedApp');
+        sessionStorage.removeItem('showProductsPage');
+        sessionStorage.removeItem('navigateToCVBuilder');
+        sessionStorage.removeItem('navigateToIDCardPrint');
+        localStorage.removeItem('navigateToIDCardPrint');
+        sessionStorage.removeItem('justLoggedIn');
+        
+        // Attempt logout (may not complete if page closes quickly, but state is cleared)
+        supabase.auth.signOut().catch(() => {
+          // Ignore errors during unload - state is already cleared
+        });
       }
     };
     
@@ -468,59 +447,38 @@ function App() {
         return;
       }
       
-      // Don't logout if user just logged in (within last 10 seconds)
-      const justLoggedIn = sessionStorage.getItem('justLoggedIn');
-      if (justLoggedIn) {
-        const loginTimestamp = parseInt(justLoggedIn, 10);
-        const now = Date.now();
-        if (now - loginTimestamp < 10000) {
-          // User just logged in, don't logout
-          return;
-        }
-      }
-      
-      // Page is being closed - check if it's a recent navigation/reload
+      // Check if this is a very recent navigation/reload (within 1 second)
+      // This prevents logout during page reloads or hash-based navigation
       const isNav = sessionStorage.getItem('isNavigating') === 'true';
       const isReloading = sessionStorage.getItem('isReloading') === 'true';
       const navTimestamp = parseInt(sessionStorage.getItem('navigationTimestamp') || '0', 10);
       const reloadTimestamp = parseInt(sessionStorage.getItem('reloadTimestamp') || '0', 10);
       const now = Date.now();
       
-      // Only prevent logout if navigation/reload happened very recently (within 3 seconds)
-      const isRecentNavigation = isNav && (now - navTimestamp) < 3000;
-      const isRecentReload = isReloading && (now - reloadTimestamp) < 3000;
+      // Only skip logout if navigation/reload happened very recently (within 1 second)
+      const isRecentNavigation = isNav && (now - navTimestamp) < 1000;
+      const isRecentReload = isReloading && (now - reloadTimestamp) < 1000;
       
-      // Check for navigation flags (only if set very recently)
-      const hasRecentNavigationFlags = (sessionStorage.getItem('navigateToCVBuilder') === 'true' ||
-                                         sessionStorage.getItem('navigateToIDCardPrint') === 'true') &&
-                                        (now - navTimestamp) < 3000;
+      // If it's a recent navigation/reload, don't logout
+      if (isRecentNavigation || isRecentReload) {
+        return;
+      }
       
-      // Only logout if this is NOT a recent navigation/reload
-      // This means it's an actual tab/browser close
-      if (!isRecentNavigation && !isRecentReload && !hasRecentNavigationFlags) {
-        // Check if user is authenticated via localStorage (synchronous check for unload handler)
-        if (localStorage.getItem('cvBuilderAuth') === 'true') {
-          // Clear authentication state immediately
-          localStorage.removeItem('cvBuilderAuth');
-          localStorage.removeItem('selectedApp');
-          sessionStorage.removeItem('showProductsPage');
-          sessionStorage.removeItem('navigateToCVBuilder');
-          sessionStorage.removeItem('navigateToIDCardPrint');
-          localStorage.removeItem('navigateToIDCardPrint');
-          
-          // Attempt logout (async, may not complete if page closes quickly)
-          supabase.auth.signOut().catch(() => {
-            // Ignore errors during unload
-          });
-        }
-      } else if (isNav || isReloading) {
-        // Clear navigation flags after a delay
-        setTimeout(() => {
-          sessionStorage.removeItem('isNavigating');
-          sessionStorage.removeItem('isReloading');
-          sessionStorage.removeItem('navigationTimestamp');
-          sessionStorage.removeItem('reloadTimestamp');
-        }, 100);
+      // Tab/browser is closing - logout user
+      if (localStorage.getItem('cvBuilderAuth') === 'true') {
+        // Clear authentication state immediately
+        localStorage.removeItem('cvBuilderAuth');
+        localStorage.removeItem('selectedApp');
+        sessionStorage.removeItem('showProductsPage');
+        sessionStorage.removeItem('navigateToCVBuilder');
+        sessionStorage.removeItem('navigateToIDCardPrint');
+        localStorage.removeItem('navigateToIDCardPrint');
+        sessionStorage.removeItem('justLoggedIn');
+        
+        // Attempt logout (async, may not complete if page closes quickly)
+        supabase.auth.signOut().catch(() => {
+          // Ignore errors during unload
+        });
       }
     };
     
@@ -996,10 +954,19 @@ function App() {
   }
   
   // If user is not authenticated and trying to access a dashboard, show login
-  if (!isAuthenticated && !isLoading && (currentSelectedApp === 'cv-builder' || currentSelectedApp === 'id-card-print')) {
-    return wrapWithNavbar(
-      <Login onAuth={handleAuth} />
-    );
+  // Only show login if there's explicit navigation intent (not just from localStorage)
+  if (!isAuthenticated && !isLoading) {
+    const hasNavigationIntent = sessionStorage.getItem('navigateToCVBuilder') === 'true' ||
+                                 sessionStorage.getItem('navigateToIDCardPrint') === 'true' ||
+                                 localStorage.getItem('navigateToCVBuilder') === 'true' ||
+                                 localStorage.getItem('navigateToIDCardPrint') === 'true';
+    
+    // Only show login if user explicitly wants to access a dashboard AND no hash (meaning they're trying to access dashboard, not products)
+    if (hasNavigationIntent && (currentSelectedApp === 'cv-builder' || currentSelectedApp === 'id-card-print') && !hash) {
+      return wrapWithNavbar(
+        <Login onAuth={handleAuth} />
+      );
+    }
   }
   
   // Route to ID Card Printer Dashboard
@@ -1364,6 +1331,23 @@ function App() {
     // Get current hash
     const currentHash = window.location.hash;
     
+    // Always clear any saved dashboard selection for unauthenticated users visiting directly
+    // This ensures homepage is shown instead of login page
+    if (!currentHash) {
+      // Clear any dashboard selections that might cause login page to show
+      const savedApp = localStorage.getItem('selectedApp');
+      if (savedApp === 'cv-builder' || savedApp === 'id-card-print') {
+        localStorage.setItem('selectedApp', 'marketplace');
+      }
+      localStorage.setItem('showProductsPage', 'true');
+      sessionStorage.setItem('showProductsPage', 'true');
+      setForceShowProductsPage(true);
+      showProductsPageRef.current = true;
+      if (window.location.hash !== '#products') {
+        window.location.hash = '#products';
+      }
+    }
+    
     // Check if user has explicit navigation intent to a dashboard
     const hasNavigationIntent = sessionStorage.getItem('navigateToCVBuilder') === 'true' ||
                                  sessionStorage.getItem('navigateToIDCardPrint') === 'true' ||
@@ -1378,20 +1362,7 @@ function App() {
       );
     }
     
-    // Always show homepage for unauthenticated users when visiting the domain directly
-    // Clear any saved app selection to ensure homepage is shown
-    if (!currentHash) {
-      localStorage.setItem('selectedApp', 'marketplace');
-      localStorage.setItem('showProductsPage', 'true');
-      sessionStorage.setItem('showProductsPage', 'true');
-      setForceShowProductsPage(true);
-      showProductsPageRef.current = true;
-      if (window.location.hash !== '#products') {
-        window.location.hash = '#products';
-      }
-    }
-    
-    // Show homepage (ProductsPage)
+    // Show homepage (ProductsPage) for all unauthenticated users
     return wrapWithNavbar(
       <>
         <Header 
