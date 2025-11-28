@@ -953,21 +953,9 @@ function App() {
     }
   }
   
-  // If user is not authenticated and trying to access a dashboard, show login
-  // Only show login if there's explicit navigation intent (not just from localStorage)
-  if (!isAuthenticated && !isLoading) {
-    const hasNavigationIntent = sessionStorage.getItem('navigateToCVBuilder') === 'true' ||
-                                 sessionStorage.getItem('navigateToIDCardPrint') === 'true' ||
-                                 localStorage.getItem('navigateToCVBuilder') === 'true' ||
-                                 localStorage.getItem('navigateToIDCardPrint') === 'true';
-    
-    // Only show login if user explicitly wants to access a dashboard AND no hash (meaning they're trying to access dashboard, not products)
-    if (hasNavigationIntent && (currentSelectedApp === 'cv-builder' || currentSelectedApp === 'id-card-print') && !hash) {
-      return wrapWithNavbar(
-        <Login onAuth={handleAuth} />
-      );
-    }
-  }
+  // Skip early login check for unauthenticated users visiting domain directly (no hash)
+  // This prevents stale localStorage flags from showing login page on new tabs
+  // The later routing logic will handle showing homepage for direct domain visits
   
   // Route to ID Card Printer Dashboard
   if (isAuthenticated && !isLoading && currentSelectedApp === 'id-card-print') {
@@ -1331,14 +1319,21 @@ function App() {
     // Get current hash
     const currentHash = window.location.hash;
     
-    // Always clear any saved dashboard selection for unauthenticated users visiting directly
-    // This ensures homepage is shown instead of login page
+    // Always clear any saved dashboard selection and navigation flags for unauthenticated users visiting directly
+    // This ensures homepage is shown instead of login page (especially in new tabs)
     if (!currentHash) {
       // Clear any dashboard selections that might cause login page to show
       const savedApp = localStorage.getItem('selectedApp');
       if (savedApp === 'cv-builder' || savedApp === 'id-card-print') {
         localStorage.setItem('selectedApp', 'marketplace');
       }
+      
+      // Clear any stale navigation flags that might persist from previous sessions
+      sessionStorage.removeItem('navigateToCVBuilder');
+      sessionStorage.removeItem('navigateToIDCardPrint');
+      localStorage.removeItem('navigateToCVBuilder');
+      localStorage.removeItem('navigateToIDCardPrint');
+      
       localStorage.setItem('showProductsPage', 'true');
       sessionStorage.setItem('showProductsPage', 'true');
       setForceShowProductsPage(true);
@@ -1349,6 +1344,7 @@ function App() {
     }
     
     // Check if user has explicit navigation intent to a dashboard
+    // Only check AFTER we've cleared stale flags for direct visits
     const hasNavigationIntent = sessionStorage.getItem('navigateToCVBuilder') === 'true' ||
                                  sessionStorage.getItem('navigateToIDCardPrint') === 'true' ||
                                  localStorage.getItem('navigateToCVBuilder') === 'true' ||
