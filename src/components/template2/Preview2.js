@@ -304,27 +304,33 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges })
           )}
 
           {/* Custom Section - Right Column */}
-          {displayData.customSection && displayData.customSection.length > 0 && (
-            <div className="cv-section right-column">
-              <h3 className="section-heading right-column">
-                {displayData.customSection[0]?.heading || 'Custom Section'}
-              </h3>
-              <div className="section-content">
-                <div className="custom-section-content">
-                  {displayData.customSection.map((custom, index) => (
-                    <div key={index} className="custom-section-item">
-                      {custom.heading && (
-                        <h4 className="custom-section-subheading">{custom.heading}</h4>
-                      )}
-                      {custom.detail && (
-                        <p className="custom-section-detail">{custom.detail}</p>
-                      )}
-                    </div>
-                  ))}
+          {displayData.customSection && displayData.customSection.length > 0 && displayData.customSection.map((custom, sectionIndex) => {
+            // Handle both old format (with 'detail') and new format (with 'details' array)
+            const details = custom.details || (custom.detail ? [custom.detail] : []);
+            const heading = custom.heading || '';
+            
+            // Skip sections without heading or details
+            if (!heading && details.length === 0) return null;
+            
+            return (
+              <div key={sectionIndex} className="cv-section right-column">
+                <h3 className="section-heading right-column">
+                  {heading || 'Custom Section'}
+                </h3>
+                <div className="section-content">
+                  <div className="custom-section-content">
+                    {details.map((detail, detailIndex) => (
+                      detail && (
+                        <div key={detailIndex} className="custom-section-item">
+                          <p className="custom-section-detail">{detail}</p>
+                        </div>
+                      )
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            );
+          })}
 
           {/* References Section - Right Column */}
           {displayData.references && displayData.references.length > 0 && (

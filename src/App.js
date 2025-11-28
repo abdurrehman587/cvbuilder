@@ -136,7 +136,7 @@ function App() {
     setFormResetKey(prev => prev + 1); // Force form re-render
     createNewCV(); // Reset the hook state
     // Always set template to template1 for new CV (ensure it's set before setting currentView)
-    setSelectedTemplate('template1');
+      setSelectedTemplate('template1');
     // Set currentView to cv-builder - this should trigger the form/preview to show
     setCurrentView('cv-builder');
     console.log('handleMakeNewCV - currentView set to cv-builder, selectedTemplate set to template1');
@@ -161,7 +161,7 @@ function App() {
           localStorage.setItem('cvBuilderAuth', 'true');
         } else {
           setIsAuthenticated(false);
-          localStorage.removeItem('cvBuilderAuth');
+            localStorage.removeItem('cvBuilderAuth');
         }
       } catch (error) {
         console.log('Error getting initial session:', error);
@@ -253,8 +253,27 @@ function App() {
     const hash = window.location.hash;
     const savedApp = localStorage.getItem('selectedApp');
     
-    // If no hash and no saved app, default to homepage
-    if (!hash && !savedApp) {
+    // Check if user is navigating to a dashboard (has navigation flags)
+    const hasNavigationIntent = sessionStorage.getItem('navigateToCVBuilder') === 'true' ||
+                                 sessionStorage.getItem('navigateToIDCardPrint') === 'true' ||
+                                 localStorage.getItem('navigateToCVBuilder') === 'true' ||
+                                 localStorage.getItem('navigateToIDCardPrint') === 'true';
+    
+    // If navigating to a dashboard, ensure we don't set hash to #products
+    if (hasNavigationIntent && (savedApp === 'cv-builder' || savedApp === 'id-card-print')) {
+      // Clear products page flags
+      localStorage.removeItem('showProductsPage');
+      sessionStorage.removeItem('showProductsPage');
+      setForceShowProductsPage(false);
+      showProductsPageRef.current = false;
+      // Ensure hash is NOT #products
+      if (window.location.hash === '#products') {
+        window.history.replaceState(null, '', window.location.pathname);
+      }
+      // Set the selected app
+      setSelectedApp(savedApp);
+    } else if (!hash && !savedApp && !hasNavigationIntent) {
+      // If no hash and no saved app, default to homepage
       localStorage.setItem('selectedApp', 'marketplace');
       localStorage.setItem('showProductsPage', 'true');
       sessionStorage.setItem('showProductsPage', 'true');
@@ -266,8 +285,9 @@ function App() {
         window.location.hash = '#products';
       }
     } else {
+      // If there's a saved app or navigation intent, use it
       const app = savedApp || 'marketplace';
-      setSelectedApp(app);
+    setSelectedApp(app);
     }
     
     // DON'T remove navigateToCVBuilder flag here - let the PRIORITY 0 routing check handle it
@@ -329,10 +349,10 @@ function App() {
     
     const handleNavigateToCVBuilder = () => {
       localStorage.setItem('selectedApp', 'cv-builder');
-      localStorage.removeItem('showProductsPage');
-      sessionStorage.removeItem('showProductsPage');
-      setForceShowProductsPage(false);
-      showProductsPageRef.current = false;
+        localStorage.removeItem('showProductsPage');
+        sessionStorage.removeItem('showProductsPage');
+          setForceShowProductsPage(false);
+          showProductsPageRef.current = false;
       setSelectedApp('cv-builder');
       setCurrentHash('');
       setHashKey(prev => prev + 1);
@@ -341,8 +361,8 @@ function App() {
     const handleNavigateToIDCardPrinter = () => {
       localStorage.setItem('selectedApp', 'id-card-print');
       localStorage.setItem('idCardView', 'dashboard');
-      localStorage.removeItem('showProductsPage');
-      sessionStorage.removeItem('showProductsPage');
+          localStorage.removeItem('showProductsPage');
+          sessionStorage.removeItem('showProductsPage');
       setForceShowProductsPage(false);
       showProductsPageRef.current = false;
       setSelectedApp('id-card-print');
@@ -356,8 +376,8 @@ function App() {
     
     // Check hash on mount to handle page reloads
     if (window.location.hash === '#products') {
-      localStorage.setItem('showProductsPage', 'true');
-      sessionStorage.setItem('showProductsPage', 'true');
+          localStorage.setItem('showProductsPage', 'true');
+          sessionStorage.setItem('showProductsPage', 'true');
       setForceShowProductsPage(true);
       showProductsPageRef.current = true;
     }
@@ -540,9 +560,14 @@ function App() {
                               localStorage.getItem('showProductsPage') === 'true' ||
                               sessionStorage.getItem('showProductsPage') === 'true';
     
+    // Check if user clicked on a template - if so, navigate to CV Dashboard after login
+    const templateClicked = sessionStorage.getItem('templateClicked') === 'true' || 
+                            localStorage.getItem('templateClicked') === 'true';
+    
     // If user logged in from homepage (products page), keep them there
+    // UNLESS they clicked on a template - in that case, navigate to CV Dashboard
     // This is the default behavior when logging in from header signin button
-    if (isOnProductsPage) {
+    if (isOnProductsPage && !templateClicked) {
       // Clear any navigation flags that might redirect away from homepage
       sessionStorage.removeItem('navigateToCVBuilder');
       localStorage.removeItem('navigateToCVBuilder');
@@ -564,6 +589,12 @@ function App() {
       
       console.log('handleAuth: User logged in from homepage, keeping them on homepage');
       return; // Exit early to prevent any redirects
+    }
+    
+    // If template was clicked, clear the flag after using it
+    if (templateClicked) {
+      sessionStorage.removeItem('templateClicked');
+      localStorage.removeItem('templateClicked');
     }
     
     // If not on products page, check for navigation flags
@@ -810,7 +841,11 @@ function App() {
   // On page reload, if no hash and no saved app, show homepage
   const hash = window.location.hash;
   const savedApp = localStorage.getItem('selectedApp');
-  const currentSelectedApp = (hash || savedApp) ? (savedApp || 'marketplace') : 'marketplace';
+  
+  // Prioritize savedApp - if it's set to a dashboard (cv-builder or id-card-print), always use it
+  // This ensures that when navigating to a dashboard, it stays there even if hash changes
+  const currentSelectedApp = (savedApp === 'cv-builder' || savedApp === 'id-card-print') ? savedApp :
+                              (hash === '#products' ? 'marketplace' : (savedApp || 'marketplace'));
   
   // PRIORITY: Check if we should show CV Builder form/preview FIRST
   // This ensures that when currentView is 'cv-builder', we show the form instead of dashboard
@@ -821,7 +856,7 @@ function App() {
       const renderFormAndPreview = () => {
         switch (selectedTemplate) {
           case 'template1':
-            return (
+      return (
               <>
                 <Form1 
                   key={formResetKey}
@@ -1117,7 +1152,9 @@ function App() {
   }
   
   // Simple products page check: Show if URL hash indicates marketplace page
-  const shouldShowProductsPage = showProductsPageHash || currentHash === '#products';
+  // BUT don't show products page if user is navigating to a dashboard (has selectedApp set to cv-builder or id-card-print)
+  const hasDashboardNavigation = currentSelectedApp === 'cv-builder' || currentSelectedApp === 'id-card-print';
+  const shouldShowProductsPage = (showProductsPageHash || currentHash === '#products') && !hasDashboardNavigation;
   
   // PRIORITY 1.5: Check if we should show CV Builder form/preview BEFORE products page
   // This ensures that when currentView is 'cv-builder', we show the form instead of products page
@@ -1126,84 +1163,84 @@ function App() {
     const selectedProduct = localStorage.getItem('selectedApp');
     if (selectedProduct !== 'id-card-print') {
       console.log('Rendering CV Builder form/preview - currentView is cv-builder');
-      const renderFormAndPreview = () => {
-        switch (selectedTemplate) {
-          case 'template1':
-            return (
-              <>
-                <Form1 
-                  key={formResetKey}
-                  formData={formData}
-                  updateFormData={updateFormData}
-                  markAsChanged={hookMarkAsChanged}
-                />
-                <Preview1 
-                  formData={formData}
-                  autoSaveStatus={hookAutoSaveStatus}
-                  hasUnsavedChanges={hookHasUnsavedChanges}
-                />
-              </>
-            );
-          case 'template2':
-            return (
-              <>
-                <Form2 
-                  key={formResetKey}
-                  formData={formData}
-                  updateFormData={updateFormData}
-                  markAsChanged={hookMarkAsChanged}
-                />
-                <Preview2 
-                  formData={formData}
-                  autoSaveStatus={hookAutoSaveStatus}
-                  hasUnsavedChanges={hookHasUnsavedChanges}
-                />
-              </>
-            );
-          case 'template3':
-            return (
-              <>
-                <Form3 
-                  key={formResetKey}
-                  formData={formData}
-                  updateFormData={updateFormData}
-                  markAsChanged={hookMarkAsChanged}
-                />
-                <Preview3 
-                  formData={formData}
-                  autoSaveStatus={hookAutoSaveStatus}
-                  hasUnsavedChanges={hookHasUnsavedChanges}
-                />
-              </>
-            );
-          default:
-            return (
-              <>
-                <Form1 
-                  key={formResetKey}
-                  formData={formData}
-                  updateFormData={updateFormData}
-                  markAsChanged={hookMarkAsChanged}
-                />
-                <Preview1 
-                  formData={formData}
-                  autoSaveStatus={hookAutoSaveStatus}
-                  hasUnsavedChanges={hookHasUnsavedChanges}
-                />
-              </>
-            );
-        }
-      };
+    const renderFormAndPreview = () => {
+      switch (selectedTemplate) {
+        case 'template1':
+          return (
+            <>
+              <Form1 
+                key={formResetKey}
+                formData={formData}
+                updateFormData={updateFormData}
+                markAsChanged={hookMarkAsChanged}
+              />
+              <Preview1 
+                formData={formData}
+                autoSaveStatus={hookAutoSaveStatus}
+                hasUnsavedChanges={hookHasUnsavedChanges}
+              />
+            </>
+          );
+        case 'template2':
+          return (
+            <>
+              <Form2 
+                key={formResetKey}
+                formData={formData}
+                updateFormData={updateFormData}
+                markAsChanged={hookMarkAsChanged}
+              />
+              <Preview2 
+                formData={formData}
+                autoSaveStatus={hookAutoSaveStatus}
+                hasUnsavedChanges={hookHasUnsavedChanges}
+              />
+            </>
+          );
+        case 'template3':
+          return (
+            <>
+              <Form3 
+                key={formResetKey}
+                formData={formData}
+                updateFormData={updateFormData}
+                markAsChanged={hookMarkAsChanged}
+              />
+              <Preview3 
+                formData={formData}
+                autoSaveStatus={hookAutoSaveStatus}
+                hasUnsavedChanges={hookHasUnsavedChanges}
+              />
+            </>
+          );
+        default:
+          return (
+            <>
+              <Form1 
+                key={formResetKey}
+                formData={formData}
+                updateFormData={updateFormData}
+                markAsChanged={hookMarkAsChanged}
+              />
+              <Preview1 
+                formData={formData}
+                autoSaveStatus={hookAutoSaveStatus}
+                hasUnsavedChanges={hookHasUnsavedChanges}
+              />
+            </>
+          );
+      }
+    };
 
       console.log('Rendering CV Builder with header - currentView:', currentView, 'selectedTemplate:', selectedTemplate);
 
-      return (
-        <>
-          <Header 
-            isAuthenticated={true} 
-            onLogout={handleLogout}
-            currentProduct="cv-builder"
-          />
+    return (
+      <>
+        <Header 
+          isAuthenticated={true} 
+          onLogout={handleLogout}
+          currentProduct="cv-builder"
+        />
           <div className="app-header-cv" style={{ 
             display: 'flex', 
             visibility: 'visible', 
@@ -1224,61 +1261,61 @@ function App() {
             <h1 style={{ color: 'white', margin: 0, fontSize: '24px', fontWeight: 700 }}>CV Builder</h1>
             <div className="header-actions" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
               <div className="template-selector" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <button
-                  className={`template-button ${selectedTemplate === 'template1' ? 'active' : ''}`}
-                  onClick={() => handleTemplateSwitch('template1')}
+              <button
+                className={`template-button ${selectedTemplate === 'template1' ? 'active' : ''}`}
+                onClick={() => handleTemplateSwitch('template1')}
                   style={{ visibility: 'visible', opacity: 1 }}
-                >
-                  Template 1
-                </button>
-                <button
-                  className={`template-button ${selectedTemplate === 'template2' ? 'active' : ''}`}
-                  onClick={() => handleTemplateSwitch('template2')}
+              >
+                Template 1
+              </button>
+              <button
+                className={`template-button ${selectedTemplate === 'template2' ? 'active' : ''}`}
+                onClick={() => handleTemplateSwitch('template2')}
                   style={{ visibility: 'visible', opacity: 1 }}
-                >
-                  Template 2
-                </button>
-                <button
-                  className={`template-button ${selectedTemplate === 'template3' ? 'active' : ''}`}
-                  onClick={() => handleTemplateSwitch('template3')}
+              >
+                Template 2
+              </button>
+              <button
+                className={`template-button ${selectedTemplate === 'template3' ? 'active' : ''}`}
+                onClick={() => handleTemplateSwitch('template3')}
                   style={{ visibility: 'visible', opacity: 1 }}
-                >
-                  Template 3
-                </button>
-              </div>
+              >
+                Template 3
+              </button>
+            </div>
               <div className="auto-save-status" style={{ display: 'flex', alignItems: 'center', visibility: 'visible' }}>
-                {hookAutoSaveStatus ? (
-                  <div className={`status-indicator ${
-                    hookAutoSaveStatus.includes('saved') || hookAutoSaveStatus.includes('Saved') || hookAutoSaveStatus === 'Ready' ? 'success' : 
-                    hookAutoSaveStatus.includes('Saving') || hookAutoSaveStatus.includes('saving') ? 'warning' : 
-                    'error'
+              {hookAutoSaveStatus ? (
+                <div className={`status-indicator ${
+                  hookAutoSaveStatus.includes('saved') || hookAutoSaveStatus.includes('Saved') || hookAutoSaveStatus === 'Ready' ? 'success' : 
+                  hookAutoSaveStatus.includes('Saving') || hookAutoSaveStatus.includes('saving') ? 'warning' : 
+                  'error'
                   }`} style={{ visibility: 'visible', opacity: 1 }}>
-                    {hookAutoSaveStatus}
-                  </div>
-                ) : hookHasUnsavedChanges ? (
+                  {hookAutoSaveStatus}
+                </div>
+              ) : hookHasUnsavedChanges ? (
                   <div className="status-indicator warning" style={{ visibility: 'visible', opacity: 1 }}>
-                    Unsaved Changes
-                  </div>
-                ) : (
+                  Unsaved Changes
+                </div>
+              ) : (
                   <div className="status-indicator success" style={{ visibility: 'visible', opacity: 1 }}>
-                    Saved
-                  </div>
-                )}
-              </div>
+                  Saved
+                </div>
+              )}
+            </div>
               <button 
                 onClick={handleBackToDashboard} 
                 className="back-to-dashboard-button"
                 style={{ visibility: 'visible', opacity: 1, display: 'block' }}
               >
-                Back to Dashboard
-              </button>
-            </div>
+              Back to Dashboard
+            </button>
           </div>
-          <div className="container">
-            {renderFormAndPreview()}
-          </div>
-        </>
-      );
+        </div>
+        <div className="container">
+          {renderFormAndPreview()}
+        </div>
+      </>
+    );
     }
   }
   

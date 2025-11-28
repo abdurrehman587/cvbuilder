@@ -12,6 +12,7 @@ function Form({ formData, updateFormData, markAsChanged }) {
         addLanguageInput, 
         addHobbyInput, 
         addCustomSectionDetail, 
+        addCustomSection,
         addReferenceInput,
         handleInputChange,
         handleReferenceChange,
@@ -774,65 +775,164 @@ function Form({ formData, updateFormData, markAsChanged }) {
             <div id="custom-section" className={`custom-section ${activeSection === 'custom-section' ? 'active' : ''}`}>
                 <h3 className="section-title" onClick={() => toggleSection('custom-section')} >Custom Section</h3>
 
-                <div className="custom-section-heading-input-container input-group">
-                    <label htmlFor="custom-section-heading-input" className="custom-section-heading-label input-label">
-                        Custom Section Heading
-                    </label>
-                    <input
-                        id="custom-section-heading-input"
-                        className="custom-section-heading-input styled-input"
-                        type="text"
-                        name="customSectionHeading"
-                        placeholder="Enter custom section heading"
-                        value={formData.customSection?.[0]?.heading || ''}
-                        onChange={(e) => {
-                            const heading = e.target.value;
-                            const existing = formData.customSection && formData.customSection.length > 0 ? formData.customSection[0] : { heading: '', detail: '' };
-                            const newCustomSection = [{ ...existing, heading }];
-                            handleInputChange('customSection', newCustomSection);
-                        }}
-                    />
-                </div>
+                {/* Render all custom sections */}
+                {formData.customSection && formData.customSection.length > 0 && formData.customSection.map((custom, sectionIndex) => {
+                    // Handle both old format (with 'detail') and new format (with 'details' array)
+                    const details = custom.details || (custom.detail ? [custom.detail] : ['']);
+                    
+                    return (
+                        <div key={sectionIndex} className="custom-section-group">
+                            <div className="custom-section-heading-input-container input-group">
+                                <label htmlFor={`custom-section-heading-input-${sectionIndex}`} className="custom-section-heading-label input-label">
+                                    Custom Section Heading {sectionIndex > 0 ? `#${sectionIndex + 1}` : ''}
+                                </label>
+                                <div className="custom-section-heading-wrapper">
+                                    <input
+                                        id={`custom-section-heading-input-${sectionIndex}`}
+                                        className="custom-section-heading-input styled-input"
+                                        type="text"
+                                        name="customSectionHeading"
+                                        placeholder="Enter custom section heading"
+                                        value={custom.heading || ''}
+                                        onChange={(e) => {
+                                            const heading = e.target.value;
+                                            const newCustomSection = [...(formData.customSection || [])];
+                                            const currentDetails = newCustomSection[sectionIndex]?.details || (newCustomSection[sectionIndex]?.detail ? [newCustomSection[sectionIndex].detail] : ['']);
+                                            newCustomSection[sectionIndex] = { heading, details: currentDetails };
+                                            handleInputChange('customSection', newCustomSection);
+                                        }}
+                                    />
+                                    {sectionIndex > 0 && (
+                                        <button 
+                                            type="button" 
+                                            className="remove-section-button"
+                                            onClick={() => {
+                                                const newCustomSection = [...(formData.customSection || [])];
+                                                newCustomSection.splice(sectionIndex, 1);
+                                                handleInputChange('customSection', newCustomSection);
+                                            }}
+                                        >
+                                            Remove Section
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
 
-                {/* Render all custom section details from form state */}
-                {formData.customSection && formData.customSection.map((custom, index) => (
-                    <div key={index} className="custom-detail-container input-group">
-                        <div className="custom-detail-wrapper">
+                            {/* Render all details for this section */}
+                            <div className="custom-section-details-container">
+                                <label className="input-label">Custom Section Details</label>
+                                {details.map((detail, detailIndex) => (
+                                    <div key={detailIndex} className="custom-detail-container input-group">
+                                        <div className="custom-detail-wrapper">
+                                            <input
+                                                id={`custom-detail-input-${sectionIndex}-${detailIndex}`}
+                                                className="custom-detail-input styled-input"
+                                                type="text"
+                                                name="customDetail"
+                                                placeholder="Enter custom section detail"
+                                                value={detail || ''}
+                                                onChange={(e) => {
+                                                    const newCustomSection = [...(formData.customSection || [])];
+                                                    const currentDetails = newCustomSection[sectionIndex]?.details || (newCustomSection[sectionIndex]?.detail ? [newCustomSection[sectionIndex].detail] : ['']);
+                                                    currentDetails[detailIndex] = e.target.value;
+                                                    newCustomSection[sectionIndex] = { 
+                                                        ...newCustomSection[sectionIndex], 
+                                                        heading: newCustomSection[sectionIndex]?.heading || '',
+                                                        details: currentDetails 
+                                                    };
+                                                    handleInputChange('customSection', newCustomSection);
+                                                }}
+                                            />
+                                            {detailIndex > 0 && (
+                                                <button 
+                                                    type="button" 
+                                                    className="remove-detail-button"
+                                                    onClick={() => {
+                                                        const newCustomSection = [...(formData.customSection || [])];
+                                                        const currentDetails = newCustomSection[sectionIndex]?.details || (newCustomSection[sectionIndex]?.detail ? [newCustomSection[sectionIndex].detail] : ['']);
+                                                        currentDetails.splice(detailIndex, 1);
+                                                        newCustomSection[sectionIndex] = { 
+                                                            ...newCustomSection[sectionIndex], 
+                                                            heading: newCustomSection[sectionIndex]?.heading || '',
+                                                            details: currentDetails 
+                                                        };
+                                                        handleInputChange('customSection', newCustomSection);
+                                                    }}
+                                                >
+                                                    Remove
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                                
+                                {/* Add Details button for this section */}
+                                <div className="add-detail-container">
+                                    <button 
+                                        type="button" 
+                                        onClick={() => addCustomSectionDetail(sectionIndex)} 
+                                        className="add-detail-button"
+                                    >
+                                        Add Details
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })}
+
+                {/* If no custom sections exist, initialize with one */}
+                {(!formData.customSection || formData.customSection.length === 0) && (
+                    <div className="custom-section-group">
+                        <div className="custom-section-heading-input-container input-group">
+                            <label htmlFor="custom-section-heading-input-0" className="custom-section-heading-label input-label">
+                                Custom Section Heading
+                            </label>
                             <input
-                                id={`custom-detail-input-${index}`}
-                                className="custom-detail-input styled-input"
+                                id="custom-section-heading-input-0"
+                                className="custom-section-heading-input styled-input"
                                 type="text"
-                                name="customDetail"
-                                placeholder="Enter custom section detail"
-                                value={custom.detail || ''}
+                                name="customSectionHeading"
+                                placeholder="Enter custom section heading"
+                                value=""
                                 onChange={(e) => {
-                                    console.log('Custom detail input changed:', { index, value: e.target.value });
-                                    const newCustomSection = [...(formData.customSection || [])];
-                                    newCustomSection[index] = { ...newCustomSection[index], detail: e.target.value };
-                                    console.log('New custom section array:', newCustomSection);
-                                    handleInputChange('customSection', newCustomSection);
+                                    const heading = e.target.value;
+                                    handleInputChange('customSection', [{ heading, details: [''] }]);
                                 }}
                             />
-                            {index > 0 && (
+                        </div>
+                        <div className="custom-section-details-container">
+                            <label className="input-label">Custom Section Details</label>
+                            <div className="custom-detail-container input-group">
+                                <input
+                                    id="custom-detail-input-0-0"
+                                    className="custom-detail-input styled-input"
+                                    type="text"
+                                    name="customDetail"
+                                    placeholder="Enter custom section detail"
+                                    value=""
+                                    onChange={(e) => {
+                                        handleInputChange('customSection', [{ heading: '', details: [e.target.value] }]);
+                                    }}
+                                />
+                            </div>
+                            <div className="add-detail-container">
                                 <button 
                                     type="button" 
-                                    className="remove-detail-button"
-                                    onClick={() => {
-                                        const newCustomSection = [...(formData.customSection || [])];
-                                        newCustomSection.splice(index, 1);
-                                        handleInputChange('customSection', newCustomSection);
-                                    }}
+                                    onClick={() => addCustomSectionDetail(0)} 
+                                    className="add-detail-button"
                                 >
-                                    Remove
+                                    Add Details
                                 </button>
-                            )}
+                            </div>
                         </div>
                     </div>
-                ))}
+                )}
 
-                <div className="add-detail-container">
-                    <button type="button" onClick={addCustomSectionDetail} className="add-detail-button">
-                        Add Detail
+                {/* Add Section button */}
+                <div className="add-section-container">
+                    <button type="button" onClick={addCustomSection} className="add-section-button">
+                        Add Section
                     </button>
                 </div>
             </div>

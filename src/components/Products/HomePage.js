@@ -272,6 +272,7 @@ const ProductsPage = ({ onProductSelect }) => {
             // Set navigation flags FIRST to prevent logout on page reload
             sessionStorage.setItem('isNavigating', 'true');
             sessionStorage.setItem('isReloading', 'true');
+            sessionStorage.setItem('navigationTimestamp', Date.now().toString());
             sessionStorage.setItem('navigateToCVBuilder', 'true');
             localStorage.setItem('navigateToCVBuilder', 'true'); // Backup in localStorage
             localStorage.setItem('selectedApp', 'cv-builder');
@@ -283,12 +284,18 @@ const ProductsPage = ({ onProductSelect }) => {
               window.resetProductsPageFlag();
             }
             
-            // Clear hash if present
+            // Ensure selectedApp is set to cv-builder (already set above, but ensure it's correct)
+            localStorage.setItem('selectedApp', 'cv-builder');
+            
+            // Clear hash if present - this ensures shouldShowProductsPage will be false
             if (window.location.hash) {
               window.history.replaceState(null, '', window.location.pathname);
             }
             
-            // Navigate to root - App.js will show CV Builder dashboard
+            // Navigate to root - App.js will show CV Dashboard
+            // All flags are set in localStorage/sessionStorage before navigation
+            // The routing check at line 1006 in App.js will detect currentSelectedApp === 'cv-builder'
+            // and show the CV Dashboard
             window.location.href = '/';
           } else if (productId === 'id-card-print') {
             // Navigate to ID Card Print dashboard
@@ -366,15 +373,22 @@ const ProductsPage = ({ onProductSelect }) => {
         const user = await authService.getCurrentUser();
         const isAuthenticated = user !== null || isAuthInStorage;
         
+        // Set template selection and navigation flags FIRST (for both authenticated and unauthenticated)
+        // This ensures navigation works correctly after login
+        sessionStorage.setItem('navigateToCVBuilder', 'true');
+        localStorage.setItem('navigateToCVBuilder', 'true');
+        localStorage.setItem('selectedTemplate', `template${templateNumber}`);
+        localStorage.setItem('selectedApp', 'cv-builder');
+        // Set a special flag to indicate template was clicked - this prevents handleAuth from clearing navigation flags
+        sessionStorage.setItem('templateClicked', 'true');
+        localStorage.setItem('templateClicked', 'true');
+        
         if (isAuthenticated) {
           // User is authenticated - navigate to CV Dashboard with selected template
-          // Set navigation flag FIRST to prevent logout on page reload
+          // Set navigation flag to prevent logout on page reload
           sessionStorage.setItem('isNavigating', 'true');
           sessionStorage.setItem('isReloading', 'true');
-          sessionStorage.setItem('navigateToCVBuilder', 'true');
-          localStorage.setItem('navigateToCVBuilder', 'true'); // Backup in localStorage
-          localStorage.setItem('selectedTemplate', `template${templateNumber}`);
-          localStorage.setItem('selectedApp', 'cv-builder');
+          sessionStorage.setItem('navigationTimestamp', Date.now().toString());
           // Do NOT set goToCVForm - we want to go to Dashboard, not form
           
           // Clear products page flags to ensure navigation works
@@ -384,30 +398,33 @@ const ProductsPage = ({ onProductSelect }) => {
             window.resetProductsPageFlag();
           }
           
-          // Clear hash if present
+          // Ensure selectedApp is set to cv-builder (already set above, but ensure it's correct)
+          localStorage.setItem('selectedApp', 'cv-builder');
+          
+          // Clear hash if present - this ensures shouldShowProductsPage will be false
           if (window.location.hash) {
             window.history.replaceState(null, '', window.location.pathname);
           }
           
           // Navigate to root - App.js will show CV Dashboard
-          // sessionStorage is synchronous, so flags are set before navigation
+          // All flags are set in localStorage/sessionStorage before navigation
+          // The routing check at line 1006 in App.js will detect currentSelectedApp === 'cv-builder'
+          // and show the CV Dashboard
           window.location.href = '/';
         } else {
           // User is not authenticated - show login form
-          // Set flags to navigate to CV Builder dashboard after login
-          sessionStorage.setItem('navigateToCVBuilder', 'true');
-          localStorage.setItem('navigateToCVBuilder', 'true'); // Backup in localStorage
-          localStorage.setItem('selectedTemplate', `template${templateNumber}`);
-          localStorage.setItem('selectedApp', 'cv-builder');
+          // Flags are already set above, so after login, user will be navigated to CV Dashboard
           setShowLogin(true);
         }
       } catch (error) {
         console.error('Error checking auth:', error);
         // On error, show login form and set flags
         sessionStorage.setItem('navigateToCVBuilder', 'true');
-        localStorage.setItem('navigateToCVBuilder', 'true'); // Backup in localStorage
+        localStorage.setItem('navigateToCVBuilder', 'true');
         localStorage.setItem('selectedTemplate', `template${templateNumber}`);
         localStorage.setItem('selectedApp', 'cv-builder');
+        sessionStorage.setItem('templateClicked', 'true');
+        localStorage.setItem('templateClicked', 'true');
         setShowLogin(true);
       }
     };

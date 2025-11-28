@@ -175,11 +175,24 @@ const useFormHandler = (formData, updateFormData, markAsChanged) => {
     };
 
 
-  // Function to add new custom section detail
-  const addCustomSectionDetail = () => {
-    // Simply add a new empty detail to the form state
+  // Function to add a detail to a specific custom section
+  const addCustomSectionDetail = (sectionIndex) => {
     const newCustomSection = [...(formData.customSection || [])];
-    newCustomSection.push({ heading: '', detail: '' });
+    if (!newCustomSection[sectionIndex]) {
+      newCustomSection[sectionIndex] = { heading: '', details: [''] };
+    }
+    if (!newCustomSection[sectionIndex].details) {
+      newCustomSection[sectionIndex].details = [''];
+    }
+    newCustomSection[sectionIndex].details.push('');
+    updateFormData({ ...formData, customSection: newCustomSection });
+    markAsChanged();
+  };
+
+  // Function to add a new custom section (adds a completely new section with heading and one detail)
+  const addCustomSection = () => {
+    const newCustomSection = [...(formData.customSection || [])];
+    newCustomSection.push({ heading: '', details: [''] });
     updateFormData({ ...formData, customSection: newCustomSection });
     markAsChanged();
   };
@@ -219,6 +232,7 @@ const useFormHandler = (formData, updateFormData, markAsChanged) => {
         addLanguageInput,
         addHobbyInput,
         addCustomSectionDetail,
+        addCustomSection,
         addReferenceInput,
         handleInputChange,
         handleReferenceChange,
