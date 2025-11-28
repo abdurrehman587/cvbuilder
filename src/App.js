@@ -1359,15 +1359,39 @@ function App() {
   }
 
   // If user is not authenticated, show homepage (ProductsPage) instead of login
-  // Only show login if they're trying to access a dashboard
+  // Only show login if they're explicitly trying to access a dashboard (with navigation flags)
   if (!isAuthenticated && !isLoading) {
-    // If trying to access a dashboard, show login
-    if (currentSelectedApp === 'cv-builder' || currentSelectedApp === 'id-card-print') {
+    // Get current hash
+    const currentHash = window.location.hash;
+    
+    // Check if user has explicit navigation intent to a dashboard
+    const hasNavigationIntent = sessionStorage.getItem('navigateToCVBuilder') === 'true' ||
+                                 sessionStorage.getItem('navigateToIDCardPrint') === 'true' ||
+                                 localStorage.getItem('navigateToCVBuilder') === 'true' ||
+                                 localStorage.getItem('navigateToIDCardPrint') === 'true';
+    
+    // Only show login if there's explicit navigation intent AND no hash (meaning they're trying to access a dashboard)
+    // If there's a hash, let the routing handle it (might be products page, etc.)
+    if (hasNavigationIntent && !currentHash) {
       return wrapWithNavbar(
         <Login onAuth={handleAuth} />
       );
     }
-    // Otherwise, show homepage (ProductsPage)
+    
+    // Always show homepage for unauthenticated users when visiting the domain directly
+    // Clear any saved app selection to ensure homepage is shown
+    if (!currentHash) {
+      localStorage.setItem('selectedApp', 'marketplace');
+      localStorage.setItem('showProductsPage', 'true');
+      sessionStorage.setItem('showProductsPage', 'true');
+      setForceShowProductsPage(true);
+      showProductsPageRef.current = true;
+      if (window.location.hash !== '#products') {
+        window.location.hash = '#products';
+      }
+    }
+    
+    // Show homepage (ProductsPage)
     return wrapWithNavbar(
       <>
         <Header 

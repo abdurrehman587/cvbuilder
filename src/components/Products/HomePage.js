@@ -4,41 +4,41 @@ import { authService, supabase } from '../Supabase/supabase';
 import { addToCart } from '../../utils/cart';
 
 // Move products array outside component to keep it stable
-const products = [
-  {
-    id: 'marketplace',
-    name: 'Market Place',
-    description: 'Discover and explore a wide range of professional services, templates, and resources for your career needs.',
-    icon: '🛒',
-    color: '#f59e0b',
-    textColor: '#f59e0b',
-    gradient: 'linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%)',
-    image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1920&h=1080&fit=crop&q=90',
-    overlay: 'rgba(255, 255, 255, 0.85)'
-  },
-  {
-    id: 'cv-builder',
-    name: 'CV Builder',
-    description: 'Create professional CVs with multiple templates. Build, edit, and download your resume in PDF format.',
-    icon: '📄',
-    color: '#60a5fa',
-    textColor: '#60a5fa',
-    gradient: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 50%, #2563eb 100%)',
-    image: 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=1920&h=1080&fit=crop&q=90',
-    overlay: 'rgba(255, 255, 255, 0.85)'
-  },
-  {
-    id: 'id-card-print',
-    name: 'ID Card Printing Utility',
-    description: 'Print multiple ID cards on A4 paper with perfect alignment. Supports front and back printing.',
-    icon: '🪪',
-    color: '#34d399',
-    textColor: '#34d399',
-    gradient: 'linear-gradient(135deg, #34d399 0%, #10b981 50%, #059669 100%)',
-    image: 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=1920&h=1080&fit=crop&q=90',
-    overlay: 'rgba(255, 255, 255, 0.85)'
-  },
-];
+  const products = [
+    {
+      id: 'marketplace',
+      name: 'Market Place',
+      description: 'Discover and explore a wide range of professional services, templates, and resources for your career needs.',
+      icon: '🛒',
+      color: '#f59e0b',
+      textColor: '#f59e0b',
+      gradient: 'linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%)',
+      image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1920&h=1080&fit=crop&q=90',
+      overlay: 'rgba(255, 255, 255, 0.85)'
+    },
+    {
+      id: 'cv-builder',
+      name: 'CV Builder',
+      description: 'Create professional CVs with multiple templates. Build, edit, and download your resume in PDF format.',
+      icon: '📄',
+      color: '#60a5fa',
+      textColor: '#60a5fa',
+      gradient: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 50%, #2563eb 100%)',
+      image: 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=1920&h=1080&fit=crop&q=90',
+      overlay: 'rgba(255, 255, 255, 0.85)'
+    },
+    {
+      id: 'id-card-print',
+      name: 'ID Card Printing Utility',
+      description: 'Print multiple ID cards on A4 paper with perfect alignment. Supports front and back printing.',
+      icon: '🪪',
+      color: '#34d399',
+      textColor: '#34d399',
+      gradient: 'linear-gradient(135deg, #34d399 0%, #10b981 50%, #059669 100%)',
+      image: 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=1920&h=1080&fit=crop&q=90',
+      overlay: 'rgba(255, 255, 255, 0.85)'
+    },
+  ];
 
 const ProductsPage = ({ onProductSelect }) => {
   console.log('ProductsPage component is rendering');
@@ -477,8 +477,8 @@ const ProductsPage = ({ onProductSelect }) => {
             // Set flag to indicate this is a navigation, not a close
             sessionStorage.setItem('isNavigating', 'true');
             sessionStorage.setItem('navigationTimestamp', Date.now().toString());
-            // Reload to trigger navigation
-            window.location.reload();
+          // Reload to trigger navigation
+          window.location.reload();
           } else {
             // No navigation flags - user should stay on products page (homepage)
             // Ensure products page flags are set
@@ -794,7 +794,7 @@ const ProductsPage = ({ onProductSelect }) => {
                                             <span className="product-card-price-original">Rs. {product.original_price?.toLocaleString() || '0'}</span>
                                           </>
                                         ) : (
-                                          <span className="product-card-price">Rs. {product.price?.toLocaleString() || '0'}</span>
+                                      <span className="product-card-price">Rs. {product.price?.toLocaleString() || '0'}</span>
                                         )}
                                       </div>
                                       <button 

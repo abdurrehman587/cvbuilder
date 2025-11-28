@@ -475,7 +475,7 @@ const MarketplaceAdmin = () => {
                 value={descriptionHtml}
                 onChange={setDescriptionHtml}
                 placeholder="Enter product description..."
-              />
+            />
             </div>
             <div className="image-upload">
               <label>Product Images (You can upload multiple images)</label>
