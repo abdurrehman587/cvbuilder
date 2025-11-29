@@ -19,10 +19,12 @@
 }
 
 .left-navbar-content {
-  padding: 1.5rem 0;
+  padding: 0;
+  padding-top: 70px;
   height: 100%;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
 }
 
 .left-navbar-header {
@@ -71,16 +73,17 @@
   align-items: center;
   justify-content: flex-start;
   gap: 0.75rem;
-  padding: 1rem 1.5rem;
+  padding: 0.875rem 1.5rem;
   background: transparent;
   border: none;
   color: #4a5568;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
   text-align: left;
   border-left: 3px solid transparent;
+  margin: 0;
 }
 
 .left-navbar-item:hover {
@@ -122,9 +125,15 @@
 @media (max-width: 768px) {
   .left-navbar {
     width: 180px !important;
+    top: 0 !important;
+    height: 100vh !important;
     display: flex !important;
     visibility: visible !important;
     opacity: 1 !important;
+  }
+  
+  .left-navbar-content {
+    padding-top: 70px;
   }
 
   .left-navbar-header h2 {
@@ -144,9 +153,15 @@
 @media (max-width: 480px) {
   .left-navbar {
     width: 160px !important;
+    top: 0 !important;
+    height: 100vh !important;
     display: flex !important;
     visibility: visible !important;
     opacity: 1 !important;
+  }
+  
+  .left-navbar-content {
+    padding-top: 70px;
   }
 
   .left-navbar-item .nav-text {

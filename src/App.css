@@ -19,14 +19,14 @@ html {
 /* App content wrapper when navbar is present */
 .app-content-with-navbar {
   margin-left: 200px;
-  margin-top: var(--header-height, 80px);
-  min-height: calc(100vh - var(--header-height, 80px));
+  margin-top: 70px;
+  min-height: calc(100vh - 70px);
   width: calc(100% - 200px);
   max-width: calc(100% - 200px);
   transition: margin-left 0.3s ease, width 0.3s ease;
   overflow-x: hidden !important;
   box-sizing: border-box;
-  padding: 0;
+  padding: 20px;
   position: relative;
 }
 
@@ -82,7 +82,7 @@ html {
   margin: 0;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   position: fixed;
-  top: var(--header-height, 80px);
+  top: 70px;
   left: 0;
   right: 0;
   z-index: 999;
@@ -245,7 +245,7 @@ html {
   height: auto;
   min-height: calc(100vh - 120px);
   overflow: visible;
-  margin-top: calc(var(--header-height, 80px) + 100px);
+  margin-top: calc(70px + 100px);
   padding-top: 10px;
 }
 
@@ -382,7 +382,7 @@ p {
     align-items: flex-start;
     padding: 20px 15px 12px 15px;
     gap: 12px;
-    top: var(--header-height, 80px);
+    top: 70px;
     left: 0;
     width: 100%;
     margin: 0;
@@ -390,7 +390,7 @@ p {
   }
   
   .container {
-    margin-top: calc(var(--header-height, 80px) + 160px);
+    margin-top: calc(70px + 160px);
     padding-top: 10px;
   }
   
@@ -443,7 +443,7 @@ p {
     height: auto;
     gap: 15px;
     padding: 10px 0 0 0;
-    margin-top: calc(var(--header-height, 80px) + 160px);
+    margin-top: calc(70px + 160px);
   }
   
   .left-container,
@@ -475,7 +475,7 @@ p {
   .app-header-cv {
     padding: 18px 12px 10px 12px;
     gap: 10px;
-    top: var(--header-height, 80px);
+    top: 70px;
     left: 0;
     width: 100%;
     margin: 0;
@@ -520,7 +520,7 @@ p {
   .container {
     gap: 10px;
     padding: 10px 0 0 0;
-    margin-top: calc(var(--header-height, 80px) + 180px);
+    margin-top: calc(70px + 180px);
   }
   
   .left-container,
@@ -545,7 +545,7 @@ p {
   .app-header-cv {
     padding: 16px 10px 10px 10px;
     gap: 8px;
-    top: var(--header-height, 80px);
+    top: 70px;
     left: 0;
     width: 100%;
     margin: 0;
