@@ -1,0 +1,282 @@
+/* PDF Generation Styles for Template 4 - Exact Preview Match */
+
+/* Ensure PDF mode preserves preview styles exactly */
+.template4-root.cv-preview.pdf-mode {
+  /* Keep all preview styles - don't override */
+  background: #ffffff !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  font-family: 'Arial', 'Helvetica', sans-serif !important;
+  color: #1a1a1a !important;
+  font-size: 0.85rem !important;
+  line-height: 1.4 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+  height: auto !important;
+}
+
+/* Preserve two-column layout */
+.cv-preview.pdf-mode .cv-content-grid {
+  display: grid !important;
+  grid-template-columns: 35% 65% !important;
+  gap: 0 !important;
+  width: 100% !important;
+}
+
+.cv-preview.pdf-mode .cv-left-column {
+  background: #f8f9fa !important;
+  padding: 10px 8px !important;
+  border-right: 1px solid #e0e0e0 !important;
+}
+
+.cv-preview.pdf-mode .cv-right-column {
+  background: #ffffff !important;
+  padding: 10px 8px !important;
+}
+
+/* Ensure PDF mode doesn't change header */
+.cv-preview.pdf-mode .cv-header {
+  background: transparent !important;
+  color: #1a1a1a !important;
+  padding: 12px 16px !important;
+  margin-bottom: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  border-bottom: 1px solid #e0e0e0 !important;
+}
+
+/* Preserve profile image size */
+.cv-preview.pdf-mode .profile-image-container {
+  width: 100px !important;
+  height: 100px !important;
+  border-radius: 4px !important;
+  border: 5px solid #2c3e50 !important;
+  background: #2c3e50 !important;
+  box-shadow: 0 0 0 2px #2c3e50 !important;
+}
+
+/* Preserve header name size */
+.cv-preview.pdf-mode .header-name {
+  font-size: 2rem !important;
+  font-weight: 700 !important;
+  color: #1a1a1a !important;
+  margin: 0 0 3px 0 !important;
+  line-height: 1.2 !important;
+}
+
+/* Preserve header title */
+.cv-preview.pdf-mode .header-title {
+  font-size: 0.95rem !important;
+  font-weight: 400 !important;
+  color: #555 !important;
+  margin: 0 0 6px 0 !important;
+}
+
+/* Preserve contact items */
+.cv-preview.pdf-mode .header-contact {
+  gap: 4px !important;
+  line-height: 1.1 !important;
+}
+
+.cv-preview.pdf-mode .contact-item {
+  font-size: 0.8rem !important;
+  color: #555 !important;
+  line-height: 1.1 !important;
+  font-weight: 600 !important;
+}
+
+/* Preserve section styles */
+.cv-preview.pdf-mode .cv-section {
+  margin-bottom: 0 !important;
+  padding: 8px 12px !important;
+  background: transparent !important;
+  border-bottom: 1px solid #e0e0e0 !important;
+  border-left: none !important;
+  border-right: none !important;
+}
+
+/* Preserve section headings */
+.cv-preview.pdf-mode .section-heading {
+  font-size: 1.1rem !important;
+  font-weight: 700 !important;
+  color: #2c3e50 !important;
+  margin: 0 0 6px 0 !important;
+  padding-bottom: 0 !important;
+  border-bottom: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+}
+
+/* Preserve section content */
+.cv-preview.pdf-mode .section-content {
+  line-height: 1.4 !important;
+}
+
+/* Preserve professional summary */
+.cv-preview.pdf-mode .professional-summary-text {
+  font-size: 0.85rem !important;
+  color: #444 !important;
+  line-height: 1.4 !important;
+}
+
+/* Preserve education styles */
+.cv-preview.pdf-mode .education-item {
+  margin-bottom: 6px !important;
+  padding: 0 !important;
+  padding-left: 0 !important;
+  border-left: none !important;
+  border-right: none !important;
+}
+
+.cv-preview.pdf-mode .education-degree {
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+  color: #1a1a1a !important;
+}
+
+.cv-preview.pdf-mode .education-board {
+  font-size: 0.85rem !important;
+  color: #666 !important;
+}
+
+.cv-preview.pdf-mode .education-year {
+  font-size: 0.8rem !important;
+  color: #2c3e50 !important;
+}
+
+.cv-preview.pdf-mode .education-marks {
+  font-size: 0.8rem !important;
+  color: #888 !important;
+}
+
+/* Preserve experience styles */
+.cv-preview.pdf-mode .experience-item {
+  margin-bottom: 8px !important;
+  padding: 6px 0 !important;
+  padding-left: 0 !important;
+  border-left: none !important;
+  border-right: none !important;
+}
+
+.cv-preview.pdf-mode .experience-job-title {
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+  color: #1a1a1a !important;
+}
+
+.cv-preview.pdf-mode .experience-duration {
+  font-size: 0.8rem !important;
+  color: #2c3e50 !important;
+}
+
+.cv-preview.pdf-mode .experience-company {
+  font-size: 0.85rem !important;
+  color: #555 !important;
+}
+
+.cv-preview.pdf-mode .experience-details {
+  font-size: 0.85rem !important;
+  color: #555 !important;
+  line-height: 1.4 !important;
+}
+
+.cv-preview.pdf-mode .experience-detail-item {
+  font-size: 0.85rem !important;
+  color: #555 !important;
+  line-height: 1.4 !important;
+  display: inline !important;
+}
+
+/* Preserve skills, languages, hobbies */
+.cv-preview.pdf-mode .skill-item,
+.cv-preview.pdf-mode .language-item,
+.cv-preview.pdf-mode .hobby-item {
+  background: #e0e0e0 !important;
+  padding: 3px 8px !important;
+  border-radius: 3px !important;
+  border: 1px solid #ccc !important;
+  font-size: 0.8rem !important;
+  color: #444 !important;
+}
+
+/* Preserve certifications */
+.cv-preview.pdf-mode .certification-item {
+  background: transparent !important;
+  padding: 3px 0 !important;
+  padding-left: 0 !important;
+  border-left: none !important;
+  border-right: none !important;
+  font-size: 0.85rem !important;
+  color: #444 !important;
+}
+
+/* Preserve other info */
+.cv-preview.pdf-mode .other-info-item {
+  font-size: 0.85rem !important;
+  color: #444 !important;
+  line-height: 1.4 !important;
+}
+
+.cv-preview.pdf-mode .other-info-label {
+  font-weight: 600 !important;
+  color: #2c3e50 !important;
+}
+
+.cv-preview.pdf-mode .other-info-value {
+  color: #555 !important;
+}
+
+/* Preserve custom section */
+.cv-preview.pdf-mode .custom-section-item {
+  background: transparent !important;
+  padding: 3px 0 !important;
+  padding-left: 0 !important;
+  border-left: none !important;
+  border-right: none !important;
+}
+
+.cv-preview.pdf-mode .custom-section-detail {
+  font-size: 0.85rem !important;
+  color: #555 !important;
+  line-height: 1.4 !important;
+}
+
+/* Preserve references */
+.cv-preview.pdf-mode .reference-item {
+  background: transparent !important;
+  padding: 3px 0 !important;
+  padding-left: 0 !important;
+  border-left: none !important;
+  border-right: none !important;
+  font-size: 0.85rem !important;
+  color: #444 !important;
+}
+
+/* Prevent page breaks in critical sections */
+.cv-preview.pdf-mode .cv-section {
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+}
+
+.cv-preview.pdf-mode .experience-item,
+.cv-preview.pdf-mode .education-item {
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+}
+
+/* Ensure all text uses correct font */
+.cv-preview.pdf-mode * {
+  font-family: 'Arial', 'Helvetica', sans-serif !important;
+}
+
+/* Ensure base font sizes are preserved */
+.cv-preview.pdf-mode p,
+.cv-preview.pdf-mode div,
+.cv-preview.pdf-mode span {
+  font-size: inherit !important;
+  line-height: inherit !important;
+}

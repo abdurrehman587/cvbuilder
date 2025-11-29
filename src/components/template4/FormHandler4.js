@@ -58,7 +58,7 @@ const useFormHandler = (formData, updateFormData, markAsChanged) => {
 
     // Initialize languages with default values on component mount
     useEffect(() => {
-        console.log('FormHandler3 - Checking languages:', formData.languages);
+        console.log('FormHandler4 - Checking languages:', formData.languages);
         if (!formData.languages || formData.languages.length === 0) {
             console.log('Initializing default languages...');
             const newFormData = { ...formData, languages: ['English', 'Urdu', 'Punjabi'] };
@@ -241,6 +241,7 @@ const useFormHandler = (formData, updateFormData, markAsChanged) => {
         addLanguageInput,
         addHobbyInput,
         addCustomSectionDetail,
+        addCustomSection,
         addReferenceInput,
         handleInputChange,
         handleReferenceChange,

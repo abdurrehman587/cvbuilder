@@ -55,7 +55,7 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges })
     hobbies: formData.hobbies && formData.hobbies.length > 0 ? formData.hobbies.filter(hobby => hobby && hobby.trim() !== '') : [],
     otherInfo: formData.otherInfo && formData.otherInfo.length > 0 ? formData.otherInfo.filter(info => info.value && info.value.trim() !== '') : [],
     customSection: formData.customSection && formData.customSection.length > 0 ? formData.customSection : [],
-    references: formData.references && formData.references.length > 0 ? formData.references.filter(ref => ref && ref.trim() !== '') : ['References would be furnished on demand.']
+    references: formData.references && formData.references.length > 0 ? formData.references.filter(ref => ref && ref.trim() !== '') : []
   };
   
   // Create local getProfileImageUrl function that uses the merged formData

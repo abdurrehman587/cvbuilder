@@ -69,9 +69,14 @@ const LeftNavbar = ({ isAuthenticated }) => {
     if (!isAuthenticated) {
       // Store intent to navigate to CV Builder after login
       localStorage.setItem('selectedApp', 'cv-builder');
+      localStorage.setItem('navigateToCVBuilder', 'true');
       sessionStorage.setItem('navigateToCVBuilder', 'true');
       // Navigate to products page to show login
       window.location.hash = '#products';
+      // Trigger a small delay to ensure hash change is processed
+      setTimeout(() => {
+        window.dispatchEvent(new Event('hashchange'));
+      }, 50);
       return;
     }
     
@@ -95,9 +100,14 @@ const LeftNavbar = ({ isAuthenticated }) => {
       // Store intent to navigate to ID Card Printer after login
       localStorage.setItem('selectedApp', 'id-card-print');
       localStorage.setItem('idCardView', 'dashboard');
+      localStorage.setItem('navigateToIDCardPrint', 'true');
       sessionStorage.setItem('navigateToIDCardPrint', 'true');
       // Navigate to products page to show login
       window.location.hash = '#products';
+      // Trigger a small delay to ensure hash change is processed
+      setTimeout(() => {
+        window.dispatchEvent(new Event('hashchange'));
+      }, 50);
       return;
     }
     

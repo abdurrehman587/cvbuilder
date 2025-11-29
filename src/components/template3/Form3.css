@@ -343,16 +343,20 @@
 .other-information-section .dob-input-container,
 .other-information-section .marital-status-input-container,
 .other-information-section .religion-input-container,
+.other-information-section .custom-info-container,
 .other-information-section .add-information-container,
 .languages-section .english-language-container,
 .languages-section .urdu-language-container,
 .languages-section .punjabi-language-container,
+.languages-section .language-input-container,
 .languages-section .add-language-container,
 .hobbies-section .hobby-input-container,
 .hobbies-section .add-hobby-container,
 .custom-section .custom-section-heading-input-container,
 .custom-section .custom-section-detail-input-container,
+.custom-section .custom-section-group,
 .custom-section .add-detail-container,
+.custom-section .add-section-container,
 .references-section .reference-input-container,
 .references-section .add-reference-container {
   display: none;
@@ -399,6 +403,7 @@
 .other-information-section.active .dob-input-container,
 .other-information-section.active .marital-status-input-container,
 .other-information-section.active .religion-input-container,
+.other-information-section.active .custom-info-container,
 .other-information-section.active .add-information-container,
 .languages-section.active .english-language-container,
 .languages-section.active .urdu-language-container,
@@ -408,7 +413,9 @@
 .hobbies-section.active .add-hobby-container,
 .custom-section.active .custom-section-heading-input-container,
 .custom-section.active .custom-section-detail-input-container,
+.custom-section.active .custom-section-group,
 .custom-section.active .add-detail-container,
+.custom-section.active .add-section-container,
 .references-section.active .reference-input-container,
 .references-section.active .add-reference-container {
   display: block !important;
@@ -945,6 +952,90 @@
 
 .add-detail-button:active {
   transform: translateY(0);
+}
+
+/* Custom Section Group */
+.custom-section-group {
+  margin-bottom: 15px;
+  padding: 12px;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+}
+
+.custom-section-group:last-of-type {
+  margin-bottom: 10px;
+}
+
+/* Custom Section Heading Wrapper */
+.custom-section-heading-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.custom-section-heading-input {
+  flex: 1;
+}
+
+/* Remove Section Button */
+.remove-section-button {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.remove-section-button:hover {
+  background: #c82333;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+}
+
+.remove-section-button:active {
+  transform: translateY(0);
+}
+
+/* Add Section Button */
+.add-section-container {
+  margin-top: 15px;
+  text-align: center;
+  padding: 8px;
+}
+
+.add-section-button {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.add-section-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+}
+
+.add-section-button:active {
+  transform: translateY(0);
+}
+
+/* Custom Section Details Container */
+.custom-section-details-container {
+  margin-top: 10px;
 }
 
 /* Custom Detail Wrapper */

@@ -5,16 +5,30 @@
 .app-header {
   position: fixed;
   top: 0;
-  left: 0;
+  left: 200px;
   right: 0;
-  z-index: 1000;
+  z-index: 10000;
   background: white;
   border-bottom: 1px solid #e5e7eb;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  width: 100%;
+  width: calc(100% - 200px);
   overflow: visible;
   min-height: 55px;
   height: var(--header-height);
+}
+
+@media (max-width: 768px) {
+  .app-header {
+    left: 180px;
+    width: calc(100% - 180px);
+  }
+}
+
+@media (max-width: 480px) {
+  .app-header {
+    left: 160px;
+    width: calc(100% - 160px);
+  }
 }
 
 .header-container {
@@ -35,7 +49,7 @@
   align-items: center;
   gap: 1rem;
   flex-shrink: 0;
-  margin-left: 220px; /* Space for absolutely positioned logo */
+  margin-left: 0; /* Header is already offset by navbar */
 }
 
 .glory-logo {

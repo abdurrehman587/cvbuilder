@@ -3,7 +3,13 @@ import { useState, useEffect, useCallback } from 'react';
 
 const useFormHandler = (formData, updateFormData, markAsChanged) => {
     // Local state for references input
-    const [referenceText, setReferenceText] = useState('References would be furnished on demand.');
+    // Initialize with default only if formData has no references
+    const [referenceText, setReferenceText] = useState(
+        formData.references && formData.references.length > 0 
+            ? formData.references[0] 
+            : 'References would be furnished on demand.'
+    );
+    const [referencesCleared, setReferencesCleared] = useState(false);
     
     // State for active section
     const [activeSection, setActiveSection] = useState('contact-info');
@@ -12,10 +18,13 @@ const useFormHandler = (formData, updateFormData, markAsChanged) => {
     useEffect(() => {
         if (formData.references && formData.references.length > 0) {
             setReferenceText(formData.references[0]);
-        } else {
-            setReferenceText('References would be furnished on demand.');
+            setReferencesCleared(false);
+        } else if (referencesCleared) {
+            // If user has explicitly cleared it, keep it empty
+            setReferenceText('');
         }
-    }, [formData.references]);
+        // Don't reset to default if empty - let user control it
+    }, [formData.references, referencesCleared]);
 
     // Handle input changes and trigger auto-save
     const handleInputChange = (field, value) => {
@@ -30,17 +39,17 @@ const useFormHandler = (formData, updateFormData, markAsChanged) => {
     const handleReferenceChange = (e) => {
         const value = e.target.value;
         setReferenceText(value);
+        // If user clears the text, mark as cleared
+        if (!value.trim()) {
+            setReferencesCleared(true);
+        } else {
+            // If user adds text back, reset cleared flag
+            setReferencesCleared(false);
+        }
         const newFormData = { ...formData, references: value.trim() ? [value] : [] };
         updateFormData(newFormData);
         markAsChanged();
     };
-
-    // Sync local reference text with form data
-    useEffect(() => {
-        if (formData.references && formData.references.length > 0) {
-            setReferenceText(formData.references[0]);
-        }
-    }, [formData.references]);
 
     // React-based toggle section function
     const toggleSection = (sectionId) => {
@@ -175,11 +184,24 @@ const useFormHandler = (formData, updateFormData, markAsChanged) => {
     };
 
 
-  // Function to add new custom section detail
-  const addCustomSectionDetail = () => {
-    // Simply add a new empty detail to the form state
+  // Function to add a detail to a specific custom section
+  const addCustomSectionDetail = (sectionIndex) => {
     const newCustomSection = [...(formData.customSection || [])];
-    newCustomSection.push({ heading: '', detail: '' });
+    if (!newCustomSection[sectionIndex]) {
+      newCustomSection[sectionIndex] = { heading: '', details: [''] };
+    }
+    if (!newCustomSection[sectionIndex].details) {
+      newCustomSection[sectionIndex].details = [''];
+    }
+    newCustomSection[sectionIndex].details.push('');
+    updateFormData({ ...formData, customSection: newCustomSection });
+    markAsChanged();
+  };
+
+  // Function to add a new custom section (adds a completely new section with heading and one detail)
+  const addCustomSection = () => {
+    const newCustomSection = [...(formData.customSection || [])];
+    newCustomSection.push({ heading: '', details: [''] });
     updateFormData({ ...formData, customSection: newCustomSection });
     markAsChanged();
   };
@@ -219,6 +241,7 @@ const useFormHandler = (formData, updateFormData, markAsChanged) => {
         addLanguageInput,
         addHobbyInput,
         addCustomSectionDetail,
+        addCustomSection,
         addReferenceInput,
         handleInputChange,
         handleReferenceChange,

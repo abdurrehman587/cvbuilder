@@ -1,48 +1,59 @@
-/* CV Preview Container */
+/* CV Preview Container - Fresh Design */
 .cv-preview {
-  background: white;
+  background: #f8f9fa;
   min-height: 100vh;
-  padding: 12px;
+  padding: 15px;
+  max-width: 1000px;
+  margin: 0 auto;
   font-family: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
   color: #333;
-  font-size: 0.95rem;
+  font-size: 14pt;
   line-height: 1.3;
 }
 
-/* Ensure consistent base font size for all text elements */
+/* Base text elements */
 .cv-preview p,
 .cv-preview div,
 .cv-preview span,
 .cv-preview li {
-  font-size: 0.95rem;
+  font-size: 14pt;
   line-height: 1.3;
 }
-
 
 /* CV Header */
 .cv-header {
   display: flex;
-  align-items: flex-start;
-  gap: 18px;
-  margin-bottom: 18px;
-  padding-bottom: 10px;
-  border-bottom: 2px solid #e0e0e0;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 8px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
 }
 
 /* Profile Image Container */
 .profile-image-container {
   flex-shrink: 0;
-  width: 140px;
-  height: 140px;
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
   overflow: hidden;
-  border: 4px solid #667eea;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 2px solid #667eea;
+  background: #f5f5f5;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
+}
+
+.cv-header .profile-image-container {
+  border: 2px solid #ffffff;
+}
+
+.cv-header .profile-image-container .profile-placeholder {
+  background: #ffffff;
+  color: #667eea;
 }
 
 .profile-image {
@@ -58,9 +69,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #667eea;
   color: white;
-  font-size: 14px;
+  font-size: 14pt;
   font-weight: 600;
   text-align: center;
   border-radius: 50%;
@@ -71,103 +82,98 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  justify-content: center;
   align-items: flex-start;
 }
 
 .header-name {
-  font-size: 2.0rem;
+  font-size: 20pt;
   font-weight: 700;
-  color: #2c3e50;
+  color: #ffffff;
   margin: 0 0 4px 0;
   line-height: 1.2;
-  text-align: left;
-  width: 100%;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .header-title {
-  font-size: 1.4rem;
-  font-weight: 500;
-  color: #667eea;
-  margin: 0 0 8px 0;
-  line-height: 1.3;
+  font-size: 14pt;
+  font-weight: 600;
+  color: #ffd700;
+  margin: 0 0 6px 0;
+  line-height: 1.2;
 }
 
 .header-contact {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 2px;
+  width: 100%;
 }
 
 .contact-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 0.95rem;
-  color: #555;
-  line-height: 1.4;
+  gap: 8px;
+  font-size: 14pt;
+  color: #ffffff;
+  line-height: 1.3;
 }
 
 .contact-icon {
-  width: 24px;
-  height: 24px;
-  color: #667eea;
+  width: 20px;
+  height: 20px;
+  color: #ffd700;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.0rem;
+  font-size: 14pt;
   flex-shrink: 0;
-  transform: translateY(-1px);
 }
 
 /* CV Section Styling */
 .cv-section {
-  margin-bottom: 14px;
-  padding: 12px;
-  background: #f8f9fa;
-  border-radius: 8px;
+  margin-bottom: 6px;
+  padding: 12px 16px;
+  background: #ffffff;
   border-left: 4px solid #667eea;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .section-heading {
-  font-size: 1.6rem;
-  font-weight: 600;
-  color: #2c3e50;
+  font-size: 18pt;
+  font-weight: 700;
+  color: #667eea;
   margin: 0 0 8px 0;
-  padding-bottom: 4px;
-  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 6px;
+  border-bottom: 2px solid #e8ecf4;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .section-content {
-  line-height: 1.35;
+  line-height: 1.3;
 }
 
 .professional-summary-text {
-  font-size: 0.95rem;
+  font-size: 14pt;
   color: #555;
   margin: 0;
-  line-height: 1.35;
+  line-height: 1.4;
   text-align: justify;
-  font-style: italic;
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border-left: 3px solid #667eea;
 }
 
 /* Education Section Styling */
 .education-item {
   margin-bottom: 6px;
-  padding: 6px 10px;
-  background: white;
+  padding: 8px 12px;
+  background: #f8f9fa;
   border-radius: 4px;
   border-left: 3px solid #667eea;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-}
-
-.education-item:hover {
-  transform: translateX(2px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 .education-item:last-child {
@@ -178,48 +184,41 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 2px;
+  gap: 6px;
   line-height: 1.3;
 }
 
 .education-degree {
-  font-size: 1.3rem !important;
-  font-weight: 600;
+  font-size: 14pt;
+  font-weight: 700;
   color: #2c3e50;
 }
 
 .education-board {
-  font-size: 1.3rem !important;
-  font-weight: 500;
+  font-size: 14pt;
+  font-weight: 600;
   color: #667eea;
 }
 
 .education-year {
-  font-size: 1.3rem !important;
-  font-weight: 500;
-  color: #555;
+  font-size: 14pt;
+  font-weight: 400;
+  color: #777;
 }
 
 .education-marks {
-  font-size: 1.3rem !important;
-  color: #888;
-  font-style: italic;
+  font-size: 14pt;
+  color: #777;
+  font-weight: 400;
 }
 
 /* Experience Section Styling */
 .experience-item {
-  margin-bottom: 5px;
-  padding: 5px 8px;
-  background: white;
-  border-radius: 3px;
-  border-left: 2px solid #667eea;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-}
-
-.experience-item:hover {
-  transform: translateX(1px);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  margin-bottom: 6px;
+  padding: 8px 12px;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border-left: 3px solid #764ba2;
 }
 
 .experience-item:last-child {
@@ -230,20 +229,20 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0;
-  line-height: 1.2;
+  margin-bottom: 3px;
+  line-height: 1.3;
 }
 
 .experience-job-title {
-  font-size: 1.3rem !important;
-  font-weight: 600;
+  font-size: 14pt;
+  font-weight: 700;
   color: #2c3e50;
 }
 
 .experience-duration {
-  font-size: 1.3rem !important;
-  font-weight: 500;
-  color: #555;
+  font-size: 14pt;
+  font-weight: 600;
+  color: #667eea;
 }
 
 .experience-company-line {
@@ -251,19 +250,19 @@
 }
 
 .experience-company {
-  font-size: 1.3rem !important;
-  font-weight: 500;
+  font-size: 14pt;
+  font-weight: 600;
   color: #667eea;
 }
 
 .experience-details {
-  font-size: 1.3rem !important;
-  color: #666;
+  font-size: 14pt;
+  color: #555;
   line-height: 1.3;
-  margin-left: 6px;
-  padding-left: 6px;
-  border-left: 1px solid #e0e0e0;
-  text-align: justify;
+  margin-left: 0;
+  padding-left: 0;
+  border-left: none;
+  text-align: left;
 }
 
 /* Experience Details Bullet Points */
@@ -275,19 +274,19 @@
 
 .experience-detail-item {
   position: relative;
-  padding: 1px 0 1px 14px;
-  font-size: 1.3rem !important;
-  color: #666;
+  padding: 2px 0 2px 18px;
+  font-size: 14pt;
+  color: #555;
   line-height: 1.3;
-  text-align: justify;
+  text-align: left;
 }
 
 .experience-detail-item:before {
   content: '•';
   position: absolute;
   left: 0;
-  color: #667eea;
-  font-size: 12px;
+  color: #764ba2;
+  font-size: 14pt;
   font-weight: bold;
 }
 
@@ -295,23 +294,26 @@
 .certifications-content {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .certification-item {
   background: #f8f9fa;
-  padding: 8px 10px;
-  border-radius: 6px;
+  padding: 8px 12px;
+  border-radius: 4px;
   border-left: 3px solid #667eea;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.certification-item:last-child {
+  border-bottom: none;
 }
 
 .certification-text {
-  font-size: 0.95rem;
+  font-size: 14pt;
   color: #555;
   margin: 0;
-  line-height: 1.4;
-  font-weight: 500;
+  line-height: 1.3;
+  font-weight: 400;
 }
 
 /* Skills Section Styling */
@@ -324,41 +326,16 @@
 .skill-pill {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  padding: 4px 10px;
+  padding: 5px 14px;
   border-radius: 20px;
-  font-size: 0.95rem;
+  font-size: 14pt;
   font-weight: 500;
-  box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.skill-pill:before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.5s ease;
-}
-
-.skill-pill:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-}
-
-.skill-pill:hover:before {
-  left: 100%;
+  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.2);
 }
 
 .skill-name {
   color: white;
   font-weight: 500;
-  position: relative;
-  z-index: 1;
 }
 
 /* Other Information Section Styling */
@@ -368,51 +345,32 @@
   gap: 6px;
 }
 
-/* Hard enforce two columns across preview */
 .cv-preview .other-info-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-}
-
-/* Responsive behavior for other info grid */
-@media (max-width: 768px) {
-  .other-info-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
-}
-
-@media (max-width: 480px) {
-  .other-info-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
 }
 
 .info-item {
   display: flex;
   align-items: center;
-  padding: 4px 8px;
+  padding: 6px 12px;
   background: #f8f9fa;
   border-radius: 4px;
   border-left: 3px solid #667eea;
-  transition: all 0.3s ease;
-}
-
-.info-item:hover {
-  background: #e9ecef;
-  transform: translateX(2px);
+  margin-bottom: 4px;
 }
 
 .info-label {
-  font-weight: 600;
-  color: #667eea;
+  font-weight: 700;
+  color: #2c3e50;
   margin-right: 8px;
-  font-size: 1.3rem !important;
+  font-size: 14pt;
   min-width: fit-content;
 }
 
 .info-value {
-  color: #333;
-  font-size: 1.3rem !important;
-  font-weight: 500;
+  color: #555;
+  font-size: 14pt;
+  font-weight: 400;
 }
 
 /* Languages Section Styling */
@@ -423,43 +381,18 @@
 }
 
 .language-pill {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
   color: white;
-  padding: 4px 10px;
+  padding: 5px 14px;
   border-radius: 20px;
-  font-size: 0.95rem;
+  font-size: 14pt;
   font-weight: 500;
-  box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.language-pill:before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.5s ease;
-}
-
-.language-pill:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-}
-
-.language-pill:hover:before {
-  left: 100%;
+  box-shadow: 0 2px 4px rgba(118, 75, 162, 0.2);
 }
 
 .language-name {
   color: white;
   font-weight: 500;
-  position: relative;
-  z-index: 1;
 }
 
 /* Hobbies Section Styling */
@@ -472,72 +405,49 @@
 .hobby-pill {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  padding: 4px 10px;
+  padding: 5px 14px;
   border-radius: 20px;
-  font-size: 0.95rem;
+  font-size: 14pt;
   font-weight: 500;
-  box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.hobby-pill:before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.5s ease;
-}
-
-.hobby-pill:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-}
-
-.hobby-pill:hover:before {
-  left: 100%;
+  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.2);
 }
 
 .hobby-name {
   color: white;
   font-weight: 500;
-  position: relative;
-  z-index: 1;
 }
 
 /* Custom Section Styling */
 .custom-section-content {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .custom-section-item {
   background: #f8f9fa;
-  padding: 10px;
-  border-radius: 8px;
-  border-left: 4px solid #667eea;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 8px 12px;
+  border-radius: 4px;
+  border-left: 3px solid #f5576c;
+}
+
+.custom-section-item:last-child {
+  border-bottom: none;
 }
 
 .custom-section-subheading {
-  font-size: 1.4rem;
-  font-weight: 600;
-  color: #2c3e50;
-  margin: 0 0 6px 0;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  font-size: 14pt;
+  font-weight: 700;
+  color: #f5576c;
+  margin: 0 0 3px 0;
 }
 
 .custom-section-detail {
-  font-size: 0.95rem;
+  font-size: 14pt;
   color: #555;
   margin: 0;
-  line-height: 1.35;
+  line-height: 1.3;
+  font-weight: 400;
 }
 
 /* References Section Styling */
@@ -549,18 +459,22 @@
 
 .reference-item {
   background: #f8f9fa;
-  padding: 8px 10px;
-  border-radius: 6px;
+  padding: 8px 12px;
+  border-radius: 4px;
   border-left: 3px solid #667eea;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.reference-item:last-child {
+  border-bottom: none;
 }
 
 .reference-text {
-  font-size: 0.95rem;
+  font-size: 14pt;
   color: #555;
   margin: 0;
-  line-height: 1.4;
+  line-height: 1.3;
   font-style: italic;
+  font-weight: 400;
 }
 
 /* Download PDF Button Styling */
@@ -573,321 +487,32 @@
 }
 
 .download-pdf-button {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #667eea;
   color: white;
   border: none;
   padding: 12px 24px;
-  border-radius: 8px;
-  font-size: 1.0rem;
+  border-radius: 4px;
+  font-size: 14pt;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.download-pdf-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
-}
-
-.download-pdf-button:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-}
-
 /* Responsive Design */
-@media (max-width: 1200px) {
-  .cv-preview {
-    padding: 10px;
-    font-size: 0.9rem;
-  }
-  
-  .cv-section {
-    padding: 12px;
-  }
-  
-  .cv-header {
-    gap: 15px;
-    margin-bottom: 15px;
-  }
-  
-  .profile-image-container {
-    width: 130px;
-    height: 130px;
-  }
-  
-  .header-name {
-    font-size: 32px;
-  }
-  
-  .header-title {
-    font-size: 20px;
-  }
-}
-
-@media (max-width: 1024px) {
-  .cv-preview {
-    padding: 10px;
-    font-size: 0.9rem;
-  }
-  
-  .cv-section {
-    padding: 10px;
-  }
-  
-  .cv-header {
-    gap: 15px;
-  }
-  
-  .profile-image-container {
-    width: 120px;
-    height: 120px;
-  }
-  
-  .header-name {
-    font-size: 30px;
-  }
-  
-  .header-title {
-    font-size: 18px;
-  }
-}
-
 @media (max-width: 768px) {
   .cv-preview {
-    padding: 8px;
-    font-size: 0.85rem;
-    line-height: 1.4;
+    padding: 20px;
   }
   
   .cv-header {
     flex-direction: column;
     align-items: center;
     text-align: center;
-    gap: 15px;
-    padding-bottom: 15px;
-    margin-bottom: 15px;
-  }
-  
-  .profile-image-container {
-    width: 120px;
-    height: 120px;
-    border-width: 3px;
-  }
-  
-  .header-name {
-    font-size: 28px;
-    line-height: 1.2;
-  }
-  
-  .header-title {
-    font-size: 18px;
-    line-height: 1.3;
-  }
-  
-  .header-contact {
-    align-items: center;
-    flex-direction: column;
-    gap: 8px;
-  }
-  
-  .contact-item {
-    font-size: 0.9rem;
-  }
-  
-  .cv-section {
-    padding: 10px;
-    margin-bottom: 12px;
-  }
-  
-  .section-heading {
-    font-size: 1.3rem;
-    margin-bottom: 10px;
-  }
-  
-  .skill-pill,
-  .language-pill,
-  .hobby-pill {
-    font-size: 0.85rem;
-    padding: 4px 8px;
-  }
-  
-  .skills-container,
-  .languages-container,
-  .hobbies-container {
-    gap: 6px;
   }
   
   .other-info-grid {
     grid-template-columns: 1fr !important;
-    gap: 8px;
-  }
-  
-  .info-item {
-    padding: 6px 10px;
-  }
-  
-  .info-label,
-  .info-value {
-    font-size: 1.1rem !important;
-  }
-  
-  .education-item,
-  .experience-item,
-  .certification-item,
-  .reference-item {
-    padding: 10px;
-    margin-bottom: 10px;
-  }
-  
-  .item-title {
-    font-size: 1.1rem;
-  }
-  
-  .item-subtitle {
-    font-size: 0.95rem;
-  }
-  
-  .item-date {
-    font-size: 0.85rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .cv-preview {
-    padding: 6px;
-    font-size: 0.8rem;
-    line-height: 1.35;
-  }
-  
-  .cv-header {
-    gap: 12px;
-    padding-bottom: 12px;
-    margin-bottom: 12px;
-  }
-  
-  .profile-image-container {
-    width: 100px;
-    height: 100px;
-    border-width: 3px;
-  }
-  
-  .header-name {
-    font-size: 24px;
-    line-height: 1.2;
-  }
-  
-  .header-title {
-    font-size: 16px;
-    line-height: 1.3;
-  }
-  
-  .header-contact {
-    gap: 6px;
-  }
-  
-  .contact-item {
-    font-size: 0.85rem;
-  }
-  
-  .cv-section {
-    padding: 8px;
-    margin-bottom: 10px;
-  }
-  
-  .section-heading {
-    font-size: 1.1rem;
-    margin-bottom: 8px;
-  }
-  
-  .skill-pill,
-  .language-pill,
-  .hobby-pill {
-    font-size: 0.75rem;
-    padding: 3px 6px;
-  }
-  
-  .skills-container,
-  .languages-container,
-  .hobbies-container {
-    gap: 4px;
-  }
-  
-  .other-info-grid {
-    gap: 6px;
-  }
-  
-  .info-item {
-    padding: 5px 8px;
-  }
-  
-  .info-label,
-  .info-value {
-    font-size: 1rem !important;
-  }
-  
-  .education-item,
-  .experience-item,
-  .certification-item,
-  .reference-item {
-    padding: 8px;
-    margin-bottom: 8px;
-  }
-  
-  .item-title {
-    font-size: 1rem;
-  }
-  
-  .item-subtitle {
-    font-size: 0.9rem;
-  }
-  
-  .item-date {
-    font-size: 0.8rem;
-  }
-  
-  .item-description {
-    font-size: 0.85rem;
-  }
-}
-
-/* Extra small devices */
-@media (max-width: 360px) {
-  .cv-preview {
-    padding: 4px;
-    font-size: 0.75rem;
-  }
-  
-  .profile-image-container {
-    width: 90px;
-    height: 90px;
-  }
-  
-  .header-name {
-    font-size: 20px;
-  }
-  
-  .header-title {
-    font-size: 14px;
-  }
-  
-  .section-heading {
-    font-size: 1rem;
-  }
-  
-  .skill-pill,
-  .language-pill,
-  .hobby-pill {
-    font-size: 0.7rem;
-    padding: 2px 5px;
-  }
-  
-  .cv-section {
-    padding: 6px;
-    margin-bottom: 8px;
   }
 }

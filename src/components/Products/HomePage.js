@@ -40,9 +40,9 @@ import { addToCart } from '../../utils/cart';
     },
   ];
 
-const ProductsPage = ({ onProductSelect }) => {
+const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
   console.log('ProductsPage component is rendering');
-  const [showLogin, setShowLogin] = useState(false);
+  const [showLogin, setShowLogin] = useState(showLoginOnMount);
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -118,6 +118,38 @@ const ProductsPage = ({ onProductSelect }) => {
       delete window.showLoginForm;
     };
   }, [handleProductSelect]);
+  
+  // Show login form on mount if showLoginOnMount is true (when navigation flags are set)
+  React.useEffect(() => {
+    // Check for navigation flags on mount and when prop changes
+    const checkAndShowLogin = () => {
+      const hasNavIntent = sessionStorage.getItem('navigateToCVBuilder') === 'true' ||
+                           sessionStorage.getItem('navigateToIDCardPrint') === 'true' ||
+                           localStorage.getItem('navigateToCVBuilder') === 'true' ||
+                           localStorage.getItem('navigateToIDCardPrint') === 'true';
+      
+      if (showLoginOnMount || hasNavIntent) {
+        // Small delay to ensure component is fully mounted
+        setTimeout(() => {
+          setShowLogin(true);
+        }, 100);
+      }
+    };
+    
+    // Check immediately
+    checkAndShowLogin();
+    
+    // Also listen for hash changes in case navigation flags are set after mount
+    const handleHashChange = () => {
+      checkAndShowLogin();
+    };
+    
+    window.addEventListener('hashchange', handleHashChange);
+    
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, [showLoginOnMount]);
 
   // Load marketplace sections and products from database
   useEffect(() => {
@@ -494,8 +526,10 @@ const ProductsPage = ({ onProductSelect }) => {
             // Set flag to indicate this is a navigation, not a close
             sessionStorage.setItem('isNavigating', 'true');
             sessionStorage.setItem('navigationTimestamp', Date.now().toString());
-          // Reload to trigger navigation
-          window.location.reload();
+            // Clear hash to allow dashboard to show
+            window.location.hash = '';
+            // The auth state change event will trigger handleAuth in App.js, which will handle navigation
+            // No need to reload - the auth state change will trigger a re-render
           } else {
             // No navigation flags - user should stay on products page (homepage)
             // Ensure products page flags are set

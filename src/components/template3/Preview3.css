@@ -261,7 +261,7 @@
 .template3-root .cv-section-card {
   background: #fefefe;
   border-radius: 0;
-  padding: 12px 18px;
+  padding: 10px 15px;
   box-shadow: none;
   transition: all 0.3s ease;
   border-left: 4px solid #ff6b6b;
@@ -295,8 +295,8 @@
   font-size: 1.25rem;
   font-weight: 700;
   color: #ff6b6b;
-  margin: 0 0 8px 0;
-  padding-bottom: 4px;
+  margin: 0 0 6px 0;
+  padding-bottom: 3px;
   border-bottom: 2px solid #ffe0d6;
   text-transform: uppercase;
   letter-spacing: 0.8px;
@@ -315,7 +315,7 @@
 
 /* Section Content */
 .template3-root .section-content {
-  line-height: 1.6;
+  line-height: 1.5;
 }
 
 /* Professional Summary */
@@ -330,8 +330,8 @@
 
 /* Education Section */
 .template3-root .education-item {
-  margin-bottom: 8px;
-  padding: 10px 12px;
+  margin-bottom: 5px;
+  padding: 8px 10px;
   background: linear-gradient(135deg, #fff5f0 0%, #ffe8e0 100%);
   border-radius: 8px;
   border-left: 3px solid #ff6b6b;
@@ -396,8 +396,8 @@
 
 /* Experience Section */
 .template3-root .experience-item {
-  margin-bottom: 10px;
-  padding: 12px 14px;
+  margin-bottom: 5px;
+  padding: 8px 10px;
   background: linear-gradient(135deg, #fff5f0 0%, #ffe8e0 100%);
   border-radius: 8px;
   border-left: 3px solid #ff8e53;
@@ -453,7 +453,7 @@
 }
 
 .template3-root .experience-company-line {
-  margin-bottom: 8px;
+  margin-bottom: 4px;
   padding-left: 18px;
 }
 
@@ -466,9 +466,9 @@
 .template3-root .experience-details {
   font-size: 0.9rem;
   color: #475569;
-  line-height: 1.6;
+  line-height: 1.5;
   margin-left: 18px;
-  padding-left: 12px;
+  padding-left: 10px;
   border-left: 2px solid #ffd4c4;
   text-align: justify;
 }
@@ -481,10 +481,10 @@
 
 .template3-root .experience-detail-item {
   position: relative;
-  padding: 4px 0 4px 20px;
+  padding: 2px 0 2px 18px;
   font-size: 0.9rem;
   color: #475569;
-  line-height: 1.6;
+  line-height: 1.5;
   text-align: justify;
 }
 
@@ -501,12 +501,12 @@
 .template3-root .certifications-content {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
 
 .template3-root .certification-item {
   background: linear-gradient(135deg, #fff5f0 0%, #ffe8e0 100%);
-  padding: 12px 14px;
+  padding: 8px 10px;
   border-radius: 8px;
   border-left: 3px solid #ffa726;
   box-shadow: 0 1px 4px rgba(255, 167, 38, 0.08);
@@ -723,12 +723,12 @@
 .template3-root .custom-section-content {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 4px;
 }
 
 .template3-root .custom-section-item {
   background: linear-gradient(135deg, #fff5f0 0%, #ffe8e0 100%);
-  padding: 14px 16px;
+  padding: 8px 10px;
   border-radius: 8px;
   border-left: 3px solid #ff6b6b;
   box-shadow: 0 1px 4px rgba(255, 107, 107, 0.08);
@@ -752,19 +752,19 @@
   font-size: 0.9rem;
   color: #475569;
   margin: 0;
-  line-height: 1.6;
+  line-height: 1.5;
 }
 
 /* References Section */
 .template3-root .references-content {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
 
 .template3-root .reference-item {
   background: linear-gradient(135deg, #fff5f0 0%, #ffe8e0 100%);
-  padding: 12px 14px;
+  padding: 8px 10px;
   border-radius: 8px;
   border-left: 3px solid #ff6b6b;
   box-shadow: 0 1px 4px rgba(255, 107, 107, 0.08);

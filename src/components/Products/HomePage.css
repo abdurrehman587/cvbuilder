@@ -59,11 +59,12 @@
 }
 
 .products-container {
-  max-width: 100%;
-  width: 100%;
+  max-width: 100% !important;
+  width: 100% !important;
   padding: 0;
   box-sizing: border-box;
   position: relative;
+  overflow-x: hidden;
 }
 
 .products-container::before {

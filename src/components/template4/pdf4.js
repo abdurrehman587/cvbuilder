@@ -1,6 +1,6 @@
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import './pdf1.css';
+import './pdf4.css';
 
 // PDF Generation Configuration
 const PDF_CONFIG = {
@@ -9,7 +9,7 @@ const PDF_CONFIG = {
   format: 'a4',
   pageWidth: 210, // A4 width in mm
   pageHeight: 297, // A4 height in mm
-  margin: 8, // Small margin on all sides (8mm) - provides left and right spacing
+  margin: 0, // No margins - edge to edge
   scale: 3, // Canvas scale for better compatibility
   imageQuality: 2, // JPEG quality
   imageTimeout: 15000 // Timeout for images
@@ -152,6 +152,8 @@ const generateCanvas = async (cvPreview) => {
     logging: true,
     scrollX: 0,
     scrollY: 0,
+    x: 0,
+    y: 0,
     width: cvPreview.offsetWidth || cvPreview.scrollWidth,
     height: cvPreview.offsetHeight || cvPreview.scrollHeight,
     removeContainer: false,
@@ -164,8 +166,10 @@ const generateCanvas = async (cvPreview) => {
         clonedPreview.style.display = 'block';
         clonedPreview.style.width = 'auto';
         clonedPreview.style.height = 'auto';
+        clonedPreview.style.margin = '0';
+        clonedPreview.style.padding = '0';
         
-        // Remove margins and padding from body and html for zero-margin PDF
+        // Ensure body and html have no margins
         const clonedBody = clonedDoc.body;
         const clonedHtml = clonedDoc.documentElement;
         if (clonedBody) {
@@ -215,26 +219,25 @@ const createPDF = (canvas) => {
     format: PDF_CONFIG.format
   });
 
-  // Calculate content dimensions with margins (8mm left/right, no top margin)
-  const contentWidth = PDF_CONFIG.pageWidth - (PDF_CONFIG.margin * 2);
-  const contentHeight = PDF_CONFIG.pageHeight; // Full height since no top margin
+  // Use full page dimensions when margin is 0
+  const contentWidth = PDF_CONFIG.margin === 0 ? PDF_CONFIG.pageWidth : PDF_CONFIG.pageWidth - (PDF_CONFIG.margin * 2);
+  const contentHeight = PDF_CONFIG.margin === 0 ? PDF_CONFIG.pageHeight : PDF_CONFIG.pageHeight - (PDF_CONFIG.margin * 2);
   const imgWidth = contentWidth;
   const imgHeight = (canvas.height * contentWidth) / canvas.width;
+  const xPosition = PDF_CONFIG.margin;
+  const yPosition = PDF_CONFIG.margin;
 
   // Single page or multi-page handling
-  const xPos = PDF_CONFIG.margin; // Left margin
-  const yPos = 0; // No top margin
-  
   if (imgHeight <= contentHeight) {
-    pdf.addImage(imgData, 'JPEG', xPos, yPos, imgWidth, imgHeight);
+    pdf.addImage(imgData, 'JPEG', xPosition, yPosition, imgWidth, imgHeight);
   } else {
-    handleMultiPagePDF(pdf, canvas, contentWidth, contentHeight, imgHeight, xPos, yPos);
+    handleMultiPagePDF(pdf, canvas, contentWidth, contentHeight, imgHeight, xPosition, yPosition);
   }
 
   return pdf;
 };
 
-const handleMultiPagePDF = (pdf, canvas, contentWidth, contentHeight, imgHeight, xPos, yPos) => {
+const handleMultiPagePDF = (pdf, canvas, contentWidth, contentHeight, imgHeight, xPosition, yPosition) => {
   const totalPages = Math.ceil(imgHeight / contentHeight);
   
   for (let pageNum = 0; pageNum < totalPages; pageNum++) {
@@ -268,8 +271,8 @@ const handleMultiPagePDF = (pdf, canvas, contentWidth, contentHeight, imgHeight,
     
     const pageImgData = pageCanvas.toDataURL('image/jpeg', PDF_CONFIG.imageQuality);
     
-    // Add image to PDF at the correct position (use xPos and yPos which are 0 when margin is 0)
-    pdf.addImage(pageImgData, 'JPEG', xPos, yPos, contentWidth, pageImgHeight);
+    // Add image to PDF at the correct position (0,0 when no margins)
+    pdf.addImage(pageImgData, 'JPEG', xPosition, yPosition, contentWidth, pageImgHeight);
   }
 };
 

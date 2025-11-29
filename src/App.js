@@ -9,6 +9,8 @@ import Form2 from './components/template2/Form2';
 import Preview2 from './components/template2/Preview2';
 import Form3 from './components/template3/Form3';
 import Preview3 from './components/template3/Preview3';
+import Form4 from './components/template4/Form4';
+import Preview4 from './components/template4/Preview4';
 import useAutoSave from './components/Supabase/useAutoSave';
 import { authService, supabase } from './components/Supabase/supabase';
 import IDCardPrintPage from './components/IDCardPrint/IDCardPrintPage';
@@ -348,25 +350,40 @@ function App() {
     };
     
     const handleNavigateToCVBuilder = () => {
+      console.log('handleNavigateToCVBuilder called - navigating to CV Builder');
       localStorage.setItem('selectedApp', 'cv-builder');
-        localStorage.removeItem('showProductsPage');
-        sessionStorage.removeItem('showProductsPage');
-          setForceShowProductsPage(false);
-          showProductsPageRef.current = false;
+      localStorage.removeItem('showProductsPage');
+      sessionStorage.removeItem('showProductsPage');
+      sessionStorage.removeItem('navigateToCVBuilder');
+      localStorage.removeItem('navigateToCVBuilder');
+      setForceShowProductsPage(false);
+      showProductsPageRef.current = false;
       setSelectedApp('cv-builder');
+      setCurrentView('dashboard');
+      // Don't set hash here - let the navbar handle it, or set it after a brief delay
+      if (window.location.hash !== '') {
+        window.location.hash = '';
+      }
       setCurrentHash('');
       setHashKey(prev => prev + 1);
     };
     
     const handleNavigateToIDCardPrinter = () => {
+      console.log('handleNavigateToIDCardPrinter called - navigating to ID Card Printer');
       localStorage.setItem('selectedApp', 'id-card-print');
       localStorage.setItem('idCardView', 'dashboard');
-          localStorage.removeItem('showProductsPage');
-          sessionStorage.removeItem('showProductsPage');
+      localStorage.removeItem('showProductsPage');
+      sessionStorage.removeItem('showProductsPage');
+      sessionStorage.removeItem('navigateToIDCardPrint');
+      localStorage.removeItem('navigateToIDCardPrint');
       setForceShowProductsPage(false);
       showProductsPageRef.current = false;
       setSelectedApp('id-card-print');
       setIdCardView('dashboard');
+      // Don't set hash here - let the navbar handle it, or set it after a brief delay
+      if (window.location.hash !== '') {
+        window.location.hash = '';
+      }
       setCurrentHash('');
       setHashKey(prev => prev + 1);
     };
@@ -612,6 +629,9 @@ function App() {
       showProductsPageRef.current = false;
       localStorage.removeItem('showProductsPage');
       sessionStorage.removeItem('showProductsPage');
+      // Ensure selectedApp is set correctly
+      localStorage.setItem('selectedApp', 'id-card-print');
+      setSelectedApp('id-card-print');
       // Set idCardView to dashboard
       setIdCardView('dashboard');
       // DO NOT set currentView to 'dashboard' - this would trigger CV Builder routing
@@ -623,6 +643,9 @@ function App() {
                                    localStorage.getItem('navigateToCVBuilder') === 'true';
       if (navigateToCVBuilder) {
         // Don't remove the flag here - let PRIORITY 0 routing check handle it
+        // Ensure selectedApp is set correctly
+        localStorage.setItem('selectedApp', 'cv-builder');
+        setSelectedApp('cv-builder');
         setCurrentView('dashboard');
         // Clear products page flags to allow navigation
         setForceShowProductsPage(false);
@@ -647,7 +670,7 @@ function App() {
     }
   };
 
-  // Helper function to wrap content with navbar
+  // Helper function to wrap content with navbar - navbar is ALWAYS included
   const wrapWithNavbar = (content) => {
     return (
       <>
@@ -903,6 +926,22 @@ function App() {
                 />
               </>
             );
+          case 'template4':
+            return (
+              <>
+                <Form4 
+                  key={formResetKey}
+                  formData={formData}
+                  updateFormData={updateFormData}
+                  markAsChanged={hookMarkAsChanged}
+                />
+                <Preview4 
+                  formData={formData}
+                  autoSaveStatus={hookAutoSaveStatus}
+                  hasUnsavedChanges={hookHasUnsavedChanges}
+                />
+              </>
+            );
           default:
             return (
               <>
@@ -950,6 +989,12 @@ function App() {
                   className={selectedTemplate === 'template3' ? 'active' : ''}
                 >
                   Template 3
+                </button>
+                <button
+                  onClick={() => handleTemplateSwitch('template4')}
+                  className={selectedTemplate === 'template4' ? 'active' : ''}
+                >
+                  Template 4
                 </button>
               </div>
               <div className="auto-save-status">
@@ -1059,6 +1104,13 @@ function App() {
               <>
                 <Form3 formData={formData} updateFormData={updateFormData} />
                 <Preview3 formData={formData} />
+              </>
+            );
+          case 'template4':
+            return (
+              <>
+                <Form4 formData={formData} updateFormData={updateFormData} />
+                <Preview4 formData={formData} />
               </>
             );
           default:
@@ -1213,6 +1265,22 @@ function App() {
               />
             </>
           );
+        case 'template4':
+          return (
+            <>
+              <Form4 
+                key={formResetKey}
+                formData={formData}
+                updateFormData={updateFormData}
+                markAsChanged={hookMarkAsChanged}
+              />
+              <Preview4 
+                formData={formData}
+                autoSaveStatus={hookAutoSaveStatus}
+                hasUnsavedChanges={hookHasUnsavedChanges}
+              />
+            </>
+          );
         default:
           return (
             <>
@@ -1249,10 +1317,10 @@ function App() {
             padding: '24px 20px 12px 20px', 
             position: 'fixed',
             top: 'var(--header-height, 80px)',
-            left: 0,
+            left: '200px',
             right: 0,
             zIndex: 999,
-            width: '100%',
+            width: 'calc(100% - 200px)',
             minHeight: '80px',
             justifyContent: 'space-between',
             alignItems: 'center',
@@ -1281,6 +1349,13 @@ function App() {
                   style={{ visibility: 'visible', opacity: 1 }}
               >
                 Template 3
+              </button>
+              <button
+                className={`template-button ${selectedTemplate === 'template4' ? 'active' : ''}`}
+                onClick={() => handleTemplateSwitch('template4')}
+                  style={{ visibility: 'visible', opacity: 1 }}
+              >
+                Template 4
               </button>
             </div>
               <div className="auto-save-status" style={{ display: 'flex', alignItems: 'center', visibility: 'visible' }}>
@@ -1356,9 +1431,15 @@ function App() {
     // Get current hash
     const currentHash = window.location.hash;
     
-    // Always clear any saved dashboard selection and navigation flags for unauthenticated users visiting directly
-    // This ensures homepage is shown instead of login page (especially in new tabs)
-    if (!currentHash) {
+    // Check if user has explicit navigation intent to a dashboard
+    const hasNavigationIntent = sessionStorage.getItem('navigateToCVBuilder') === 'true' ||
+                                 sessionStorage.getItem('navigateToIDCardPrint') === 'true' ||
+                                 localStorage.getItem('navigateToCVBuilder') === 'true' ||
+                                 localStorage.getItem('navigateToIDCardPrint') === 'true';
+    
+    // Only clear navigation flags if there's no hash AND no navigation intent (direct visit to homepage)
+    // This ensures flags persist when navigating to #products from navbar buttons
+    if (!currentHash && !hasNavigationIntent) {
       // Clear any dashboard selections that might cause login page to show
       const savedApp = localStorage.getItem('selectedApp');
       if (savedApp === 'cv-builder' || savedApp === 'id-card-print') {
@@ -1380,15 +1461,8 @@ function App() {
       }
     }
     
-    // Check if user has explicit navigation intent to a dashboard
-    // Only check AFTER we've cleared stale flags for direct visits
-    const hasNavigationIntent = sessionStorage.getItem('navigateToCVBuilder') === 'true' ||
-                                 sessionStorage.getItem('navigateToIDCardPrint') === 'true' ||
-                                 localStorage.getItem('navigateToCVBuilder') === 'true' ||
-                                 localStorage.getItem('navigateToIDCardPrint') === 'true';
-    
-    // Only show login if there's explicit navigation intent AND no hash (meaning they're trying to access a dashboard)
-    // If there's a hash, let the routing handle it (might be products page, etc.)
+    // Only show login directly if there's explicit navigation intent AND no hash (meaning they're trying to access a dashboard directly)
+    // If there's a hash (like #products), show ProductsPage which will show login form
     if (hasNavigationIntent && !currentHash) {
       return wrapWithNavbar(
         <Login onAuth={handleAuth} />
@@ -1396,6 +1470,7 @@ function App() {
     }
     
     // Show homepage (ProductsPage) for all unauthenticated users
+    // If there are navigation flags, the login form will be shown automatically by ProductsPage
     return wrapWithNavbar(
       <>
         <Header 
@@ -1403,7 +1478,7 @@ function App() {
           currentProduct="products"
           showProductsOnHeader={true}
         />
-        <ProductsPage />
+        <ProductsPage showLoginOnMount={hasNavigationIntent} />
       </>
     );
   }
