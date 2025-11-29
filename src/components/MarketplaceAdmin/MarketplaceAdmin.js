@@ -7,7 +7,7 @@ const MarketplaceAdmin = () => {
   const [sections, setSections] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('sections');
+  const [activeTab, setActiveTab] = useState('products');
 
   // Helper function to convert HTML to plain text (preserving line breaks)
   const htmlToPlainText = (html) => {
@@ -334,16 +334,16 @@ const MarketplaceAdmin = () => {
 
       <div className="admin-tabs">
         <button
-          className={activeTab === 'sections' ? 'active' : ''}
-          onClick={() => setActiveTab('sections')}
-        >
-          Sections
-        </button>
-        <button
           className={activeTab === 'products' ? 'active' : ''}
           onClick={() => setActiveTab('products')}
         >
           Products
+        </button>
+        <button
+          className={activeTab === 'sections' ? 'active' : ''}
+          onClick={() => setActiveTab('sections')}
+        >
+          Sections
         </button>
       </div>
 

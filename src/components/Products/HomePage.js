@@ -1029,17 +1029,6 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
                         </div>
                       </div>
                         </div>
-
-                <div className="cta-section-fresh">
-                  <div className="cta-content-fresh">
-                    <h2 className="cta-title-fresh">Ready to Create Your Professional CV?</h2>
-                    <p className="cta-description-fresh">Join thousands of professionals who have created their CVs with our builder</p>
-                    <button className="cta-button-fresh" onClick={() => handleGetStarted('cv-builder')}>
-                      Get Started Now
-                      <span className="cta-button-arrow">→</span>
-                    </button>
-                      </div>
-                      </div>
                     </div>
                   </div>
 
@@ -1177,17 +1166,6 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
                       <p className="feature-card-description">Rotate and crop ID card images with precision. Extract cards with rotation support for perfect alignment.</p>
                         </div>
                       </div>
-                      </div>
-
-                <div className="cta-section-fresh">
-                  <div className="cta-content-fresh">
-                    <h2 className="cta-title-fresh">Ready to Print Your ID Cards?</h2>
-                    <p className="cta-description-fresh">Create and print professional ID cards with front and back support</p>
-                    <button className="cta-button-fresh" onClick={() => handleGetStarted('id-card-print')}>
-                      Get Started Now
-                      <span className="cta-button-arrow">→</span>
-                    </button>
-                        </div>
                       </div>
                 </div>
               </div>
