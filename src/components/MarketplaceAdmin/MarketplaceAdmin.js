@@ -317,10 +317,26 @@ const MarketplaceAdmin = () => {
     }
   };
 
+  // Ensure hash stays as #admin when component is active
+  useEffect(() => {
+    if (window.location.hash !== '#admin') {
+      window.history.replaceState(null, '', window.location.pathname + '#admin');
+    }
+  }, [activeTab]);
+
   const handleBackToProducts = () => {
     localStorage.setItem('showProductsPage', 'true');
     sessionStorage.setItem('showProductsPage', 'true');
     window.location.href = '/#products';
+  };
+
+  const handleTabChange = (tab) => {
+    // Prevent any navigation
+    setActiveTab(tab);
+    // Ensure hash stays as #admin
+    if (window.location.hash !== '#admin') {
+      window.history.replaceState(null, '', window.location.pathname + '#admin');
+    }
   };
 
   return (
@@ -332,16 +348,46 @@ const MarketplaceAdmin = () => {
         </button>
       </div>
 
-      <div className="admin-tabs">
+      <div 
+        className="admin-tabs"
+        onClick={(e) => {
+          // Stop all click events from bubbling up
+          e.stopPropagation();
+        }}
+        onMouseDown={(e) => {
+          // Also stop mousedown events
+          e.stopPropagation();
+        }}
+      >
         <button
+          type="button"
           className={activeTab === 'products' ? 'active' : ''}
-          onClick={() => setActiveTab('products')}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.nativeEvent?.stopImmediatePropagation();
+            handleTabChange('products');
+          }}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
         >
           Products
         </button>
         <button
+          type="button"
           className={activeTab === 'sections' ? 'active' : ''}
-          onClick={() => setActiveTab('sections')}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.nativeEvent?.stopImmediatePropagation();
+            handleTabChange('sections');
+          }}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
         >
           Sections
         </button>
