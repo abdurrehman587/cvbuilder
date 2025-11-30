@@ -43,7 +43,9 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
   // Check if we're on the admin panel page
   useEffect(() => {
     const checkAdminPage = () => {
-      setIsOnAdminPage(window.location.hash === '#admin');
+      const currentHash = window.location.hash;
+      const onAdminPage = currentHash === '#admin';
+      setIsOnAdminPage(onAdminPage);
     };
 
     // Check on mount
@@ -51,9 +53,13 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
 
     // Listen for hash changes
     window.addEventListener('hashchange', checkAdminPage);
+    
+    // Also listen for popstate (back/forward navigation)
+    window.addEventListener('popstate', checkAdminPage);
 
     return () => {
       window.removeEventListener('hashchange', checkAdminPage);
+      window.removeEventListener('popstate', checkAdminPage);
     };
   }, []);
 
@@ -336,8 +342,9 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
           )}
           {isAuthenticated ? (
             <>
-              {isAdmin && !isOnAdminPage && (
+              {isAdmin && window.location.hash !== '#admin' && (
                 <button 
+                  type="button"
                   onClick={() => {
                     // Clear any products page flags
                     localStorage.removeItem('showProductsPage');

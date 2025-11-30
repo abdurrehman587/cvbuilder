@@ -48,6 +48,63 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
+  const [productImageIndices, setProductImageIndices] = useState({});
+  const imageSlideIntervals = useRef({});
+  
+  // Get images for a product
+  const getProductImages = (product) => {
+    if (product.image_urls && Array.isArray(product.image_urls) && product.image_urls.length > 0) {
+      return product.image_urls;
+    } else if (product.image_url) {
+      return [product.image_url];
+    }
+    return [];
+  };
+  
+  // Handle mouse enter - start sliding images
+  const handleProductCardMouseEnter = (productId, images) => {
+    if (images.length <= 1) return; // No need to slide if only one image
+    
+    // Clear any existing interval for this product
+    if (imageSlideIntervals.current[productId]) {
+      clearInterval(imageSlideIntervals.current[productId]);
+    }
+    
+    // Set initial index to 0
+    setProductImageIndices(prev => ({ ...prev, [productId]: 0 }));
+    
+    // Start sliding through images every 1.5 seconds
+    let currentIndex = 0;
+    imageSlideIntervals.current[productId] = setInterval(() => {
+      currentIndex = (currentIndex + 1) % images.length;
+      setProductImageIndices(prev => ({ ...prev, [productId]: currentIndex }));
+    }, 1500);
+  };
+  
+  // Handle mouse leave - stop sliding and reset to first image
+  const handleProductCardMouseLeave = (productId) => {
+    if (imageSlideIntervals.current[productId]) {
+      clearInterval(imageSlideIntervals.current[productId]);
+      delete imageSlideIntervals.current[productId];
+    }
+    // Reset to first image after a short delay
+    setTimeout(() => {
+      setProductImageIndices(prev => {
+        const newState = { ...prev };
+        delete newState[productId];
+        return newState;
+      });
+    }, 300);
+  };
+  
+  // Cleanup intervals on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(imageSlideIntervals.current).forEach(interval => {
+        if (interval) clearInterval(interval);
+      });
+    };
+  }, []);
   const [loginSuccess, setLoginSuccess] = useState(false);
   const [marketplaceSections, setMarketplaceSections] = useState([]);
   const [marketplaceProducts, setMarketplaceProducts] = useState([]);
@@ -800,36 +857,40 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
                                   }
                                 };
                                 
+                                const productImages = getProductImages(product);
+                                const currentImageIndex = productImageIndices[product.id] !== undefined 
+                                  ? productImageIndices[product.id] 
+                                  : 0;
+                                
                                 return (
-                                <div key={product.id} className="product-card-fresh" onClick={handleProductClick}>
+                                <div 
+                                  key={product.id} 
+                                  className="product-card-fresh" 
+                                  onClick={handleProductClick}
+                                  onMouseEnter={() => handleProductCardMouseEnter(product.id, productImages)}
+                                  onMouseLeave={() => handleProductCardMouseLeave(product.id)}
+                                >
                                   <div className="product-card-image-wrapper">
-                                    {(product.image_urls && Array.isArray(product.image_urls) && product.image_urls.length > 0) ? (
-                                      <img 
-                                        src={product.image_urls[0]} 
-                                        alt={product.name}
-                                        className="product-card-image"
-                                        onError={(e) => {
-                                          e.target.style.display = 'none';
-                                          if (e.target.nextSibling) {
-                                            e.target.nextSibling.style.display = 'flex';
-                                          }
-                                        }}
-                                      />
-                                    ) : product.image_url ? (
-                                      <img 
-                                        src={product.image_url} 
-                                        alt={product.name}
-                                        className="product-card-image"
-                                        onError={(e) => {
-                                          e.target.style.display = 'none';
-                                          if (e.target.nextSibling) {
-                                            e.target.nextSibling.style.display = 'flex';
-                                          }
-                                        }}
-                                      />
+                                    {productImages.length > 0 ? (
+                                      <>
+                                        {productImages.map((imageUrl, index) => {
+                                          const isActive = index === currentImageIndex;
+                                          return (
+                                            <img 
+                                              key={`${product.id}-${index}`}
+                                              src={imageUrl} 
+                                              alt={`${product.name} - Image ${index + 1}`}
+                                              className={`product-card-image ${isActive ? 'active' : ''}`}
+                                              onError={(e) => {
+                                                e.target.style.opacity = '0';
+                                              }}
+                                            />
+                                          );
+                                        })}
+                                      </>
                                     ) : null}
                                     <div className="product-card-placeholder" style={{ 
-                                      display: ((product.image_urls && Array.isArray(product.image_urls) && product.image_urls.length > 0) || product.image_url) ? 'none' : 'flex' 
+                                      display: productImages.length > 0 ? 'none' : 'flex' 
                                     }}>
                                       <span className="product-placeholder-icon-fresh">📦</span>
                                     </div>
