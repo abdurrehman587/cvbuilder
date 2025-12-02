@@ -340,34 +340,23 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
               )}
             </button>
           )}
-          {isAuthenticated ? (
-            <>
-              {isAdmin && window.location.hash !== '#admin' && (
-                <button 
-                  type="button"
-                  onClick={() => {
-                    // Clear any products page flags
-                    localStorage.removeItem('showProductsPage');
-                    sessionStorage.removeItem('showProductsPage');
-                    // Clear any other navigation flags
-                    localStorage.removeItem('selectedApp');
-                    sessionStorage.removeItem('navigateToCVBuilder');
-                    sessionStorage.removeItem('navigateToIDCardPrint');
-                    // Navigate to admin panel
-                    window.location.href = '/#admin';
-                  }}
-                  className="admin-btn-header"
-                >
-                  Admin Panel
-                </button>
-              )}
-              <button onClick={handleLogout} className="logout-btn-header">
-                Logout
-              </button>
-            </>
-          ) : (
-            <button onClick={handleSignIn} className="signin-btn-header">
-              Sign In
+          {isAuthenticated && isAdmin && window.location.hash !== '#admin' && (
+            <button 
+              type="button"
+              onClick={() => {
+                // Clear any products page flags
+                localStorage.removeItem('showProductsPage');
+                sessionStorage.removeItem('showProductsPage');
+                // Clear any other navigation flags
+                localStorage.removeItem('selectedApp');
+                sessionStorage.removeItem('navigateToCVBuilder');
+                sessionStorage.removeItem('navigateToIDCardPrint');
+                // Navigate to admin panel
+                window.location.href = '/#admin';
+              }}
+              className="admin-btn-header"
+            >
+              Admin Panel
             </button>
           )}
         </div>

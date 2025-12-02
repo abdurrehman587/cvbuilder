@@ -674,7 +674,7 @@ function App() {
   const wrapWithNavbar = (content) => {
     return (
       <>
-        <LeftNavbar isAuthenticated={isAuthenticated} />
+        <LeftNavbar isAuthenticated={isAuthenticated} onLogout={handleLogout} />
         <div className="app-content-with-navbar">
           {content}
         </div>

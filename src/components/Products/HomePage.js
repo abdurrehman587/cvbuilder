@@ -741,14 +741,6 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
                           <div className="carousel-product-icon">{product.icon}</div>
                           <h2 className="carousel-product-name">{product.name}</h2>
                           <p className="carousel-product-description">{product.description}</p>
-                          <div 
-                            className="carousel-product-button"
-                            onClick={() => handleGetStarted(product.id)}
-                            style={{ cursor: 'pointer' }}
-                          >
-                            <span>Get Started</span>
-                            <span className="button-arrow">→</span>
-                          </div>
                         </div>
                       </div>
                     </div>

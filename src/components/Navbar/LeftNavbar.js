@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './LeftNavbar.css';
+import { authService } from '../Supabase/supabase';
 
-const LeftNavbar = ({ isAuthenticated }) => {
+const LeftNavbar = ({ isAuthenticated, onLogout }) => {
   const [activeSection, setActiveSection] = useState('marketplace');
 
   useEffect(() => {
@@ -126,10 +127,61 @@ const LeftNavbar = ({ isAuthenticated }) => {
     window.dispatchEvent(new CustomEvent('navigateToIDCardPrinter'));
   };
 
+  const handleSignIn = () => {
+    // Navigate to products page and show login form
+    localStorage.setItem('showProductsPage', 'true');
+    sessionStorage.setItem('showProductsPage', 'true');
+    window.location.href = '/#products';
+    // Show login form after navigation
+    setTimeout(() => {
+      if (window.showLoginForm) {
+        window.showLoginForm();
+      }
+    }, 100);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await authService.signOut();
+      localStorage.removeItem('cvBuilderAuth');
+      localStorage.removeItem('selectedApp');
+      if (onLogout) {
+        onLogout();
+      } else {
+        window.location.href = '/';
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+      localStorage.removeItem('cvBuilderAuth');
+      localStorage.removeItem('selectedApp');
+      window.location.href = '/';
+    }
+  };
+
   return (
     <nav className="left-navbar">
       <div className="left-navbar-content">
         <ul className="left-navbar-menu">
+          {/* Sign In / Sign Out Button */}
+          <li>
+            {!isAuthenticated ? (
+              <button
+                className="left-navbar-item signin-navbar-btn"
+                onClick={handleSignIn}
+              >
+                <span className="nav-icon">🔐</span>
+                <span className="nav-text">Sign In</span>
+              </button>
+            ) : (
+              <button
+                className="left-navbar-item signout-navbar-btn"
+                onClick={handleLogout}
+              >
+                <span className="nav-icon">🚪</span>
+                <span className="nav-text">Sign Out</span>
+              </button>
+            )}
+          </li>
           <li>
             <button
               className={`left-navbar-item ${activeSection === 'marketplace' ? 'active' : ''}`}
