@@ -53,9 +53,29 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
   
   // Get images for a product
   const getProductImages = (product) => {
-    if (product.image_urls && Array.isArray(product.image_urls) && product.image_urls.length > 0) {
-      return product.image_urls;
-    } else if (product.image_url) {
+    // Check for image_urls array (JSONB from database)
+    if (product.image_urls) {
+      // Handle both array and string formats
+      if (Array.isArray(product.image_urls) && product.image_urls.length > 0) {
+        // Filter out empty/null/undefined URLs
+        return product.image_urls.filter(url => url && url.trim() !== '');
+      } else if (typeof product.image_urls === 'string') {
+        // If it's a string, try to parse it as JSON
+        try {
+          const parsed = JSON.parse(product.image_urls);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            return parsed.filter(url => url && url.trim() !== '');
+          }
+        } catch (e) {
+          // If parsing fails, treat as single URL
+          if (product.image_urls.trim() !== '') {
+            return [product.image_urls];
+          }
+        }
+      }
+    }
+    // Fallback to single image_url
+    if (product.image_url && product.image_url.trim() !== '') {
       return [product.image_url];
     }
     return [];
@@ -664,7 +684,7 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
 
   return (
     <>
-    <div className="products-page" style={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
+    <div className="products-page">
       <div className="products-container">
         {/* Animated Product Carousel */}
             <div 
@@ -856,8 +876,27 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
                                     }, 3000);
                                   }
                                 };
+
+                                const handleBuyNow = (e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  // Add product to cart first
+                                  addToCart(product);
+                                  // Navigate directly to checkout
+                                  window.location.href = '/#checkout';
+                                };
                                 
                                 const productImages = getProductImages(product);
+                                // Debug: Log image info
+                                if (productImages.length === 0) {
+                                  console.warn(`No images found for product: ${product.name}`, {
+                                    image_urls: product.image_urls,
+                                    image_url: product.image_url,
+                                    productId: product.id
+                                  });
+                                } else {
+                                  console.log(`Product ${product.name} has ${productImages.length} image(s):`, productImages);
+                                }
                                 const currentImageIndex = productImageIndices[product.id] !== undefined 
                                   ? productImageIndices[product.id] 
                                   : 0;
@@ -875,14 +914,25 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
                                       <>
                                         {productImages.map((imageUrl, index) => {
                                           const isActive = index === currentImageIndex;
+                                          const isFirst = index === 0;
                                           return (
                                             <img 
                                               key={`${product.id}-${index}`}
                                               src={imageUrl} 
                                               alt={`${product.name} - Image ${index + 1}`}
-                                              className={`product-card-image ${isActive ? 'active' : ''}`}
+                                              className={`product-card-image ${isActive ? 'active' : ''} ${isFirst ? 'first-image' : ''}`}
+                                              style={isFirst ? { opacity: 1, zIndex: 1, transform: 'translate(-50%, -50%)' } : { transform: 'translate(-50%, -50%)' }}
                                               onError={(e) => {
-                                                e.target.style.opacity = '0';
+                                                console.error(`Failed to load image ${index + 1} for product ${product.name}:`, imageUrl);
+                                                e.target.style.display = 'none';
+                                              }}
+                                              onLoad={(e) => {
+                                                console.log(`Image ${index + 1} loaded for product ${product.name}`);
+                                                // Force first image to be visible when loaded
+                                                if (isFirst) {
+                                                  e.target.style.opacity = '1';
+                                                  e.target.style.zIndex = '1';
+                                                }
                                               }}
                                             />
                                           );
@@ -909,13 +959,22 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
                                       <span className="product-card-price">Rs. {product.price?.toLocaleString() || '0'}</span>
                                         )}
                                       </div>
-                                      <button 
-                                        className="product-card-add-to-cart-btn"
-                                        onClick={handleAddToCart}
-                                        title="Add to Cart"
-                                      >
-                                        🛒
-                                      </button>
+                                      <div className="product-card-action-buttons">
+                                        <button 
+                                          className="product-card-buy-now-btn"
+                                          onClick={handleBuyNow}
+                                          title="Buy Now"
+                                        >
+                                          Buy Now
+                                        </button>
+                                        <button 
+                                          className="product-card-add-to-cart-btn"
+                                          onClick={handleAddToCart}
+                                          title="Add to Cart"
+                                        >
+                                          Add to Cart
+                                        </button>
+                                      </div>
                                     </div>
                                   </div>
                                 </div>
@@ -1377,6 +1436,90 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
         </div>
       </div>
     )}
+
+    {/* Footer */}
+    <footer className="homepage-footer">
+      <div className="footer-container">
+        <div className="footer-content">
+          <div className="footer-section footer-about">
+            <h3 className="footer-title">About GLORY</h3>
+            <p className="footer-description">
+              Your trusted partner for professional CV building, ID card printing, and marketplace services. 
+              We help you create professional documents that make a lasting impression.
+            </p>
+            <div className="footer-logo">
+              <img 
+                src="/images/glory-logo.png" 
+                alt="GLORY Logo" 
+                className="footer-logo-image"
+                onError={(e) => {
+                  console.error('Footer logo failed to load:', e.target.src);
+                  // Don't hide, show a fallback text instead
+                  e.target.style.display = 'none';
+                  const fallback = document.createElement('span');
+                  fallback.textContent = 'GLORY';
+                  fallback.style.color = '#ffffff';
+                  fallback.style.fontSize = '1.5rem';
+                  fallback.style.fontWeight = '700';
+                  e.target.parentNode.appendChild(fallback);
+                }}
+              />
+            </div>
+          </div>
+
+          <div className="footer-section footer-services">
+            <h3 className="footer-title">Our Services</h3>
+            <ul className="footer-links">
+              <li><a href="/#products">Marketplace</a></li>
+              <li><a href="/#products">CV Builder</a></li>
+              <li><a href="/#products">ID Card Printer</a></li>
+              <li><a href="/#products">Professional Templates</a></li>
+            </ul>
+          </div>
+
+          <div className="footer-section footer-contact">
+            <h3 className="footer-title">Contact Us</h3>
+            <div className="contact-info">
+              <div className="contact-item">
+                <span className="contact-icon">📞</span>
+                <div className="contact-details">
+                  <span className="contact-label">Phone</span>
+                  <a href="tel:03153338612" className="contact-value">0315-3338612</a>
+                </div>
+              </div>
+              <div className="contact-item">
+                <span className="contact-icon">💬</span>
+                <div className="contact-details">
+                  <span className="contact-label">WhatsApp</span>
+                  <a href="https://wa.me/9231553338612" target="_blank" rel="noopener noreferrer" className="contact-value">0315-3338612</a>
+                </div>
+              </div>
+              <div className="contact-item">
+                <span className="contact-icon">✉️</span>
+                <div className="contact-details">
+                  <span className="contact-label">Email</span>
+                  <a href="mailto:glorycomposing@gmail.com" className="contact-value">glorycomposing@gmail.com</a>
+                </div>
+              </div>
+              <div className="contact-item">
+                <span className="contact-icon">📍</span>
+                <div className="contact-details">
+                  <span className="contact-label">Address</span>
+                  <span className="contact-value">E-850/C, Main Road<br />Nishat Colony Lahore Cantt.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="footer-bottom">
+          <div className="footer-copyright">
+            <p>&copy; {new Date().getFullYear()} GLORY. All rights reserved.</p>
+            <p className="footer-tagline">Empowering professionals with quality tools and services.</p>
+          </div>
+        </div>
+      </div>
+    </footer>
 
     </>
   );

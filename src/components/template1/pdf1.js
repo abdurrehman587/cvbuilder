@@ -9,7 +9,7 @@ const PDF_CONFIG = {
   format: 'a4',
   pageWidth: 210, // A4 width in mm
   pageHeight: 297, // A4 height in mm
-  margin: 8, // Small margin on all sides (8mm) - provides left and right spacing
+  margin: 0, // No margins - edge to edge
   scale: 3, // Canvas scale for better compatibility
   imageQuality: 2, // JPEG quality
   imageTimeout: 15000 // Timeout for images
@@ -215,14 +215,14 @@ const createPDF = (canvas) => {
     format: PDF_CONFIG.format
   });
 
-  // Calculate content dimensions with margins (8mm left/right, no top margin)
-  const contentWidth = PDF_CONFIG.pageWidth - (PDF_CONFIG.margin * 2);
+  // Calculate content dimensions with no margins (edge to edge)
+  const contentWidth = PDF_CONFIG.pageWidth; // Full width since no margins
   const contentHeight = PDF_CONFIG.pageHeight; // Full height since no top margin
   const imgWidth = contentWidth;
   const imgHeight = (canvas.height * contentWidth) / canvas.width;
 
   // Single page or multi-page handling
-  const xPos = PDF_CONFIG.margin; // Left margin
+  const xPos = 0; // No left margin
   const yPos = 0; // No top margin
   
   if (imgHeight <= contentHeight) {

@@ -110,6 +110,94 @@
   margin-top: 0.25rem;
 }
 
+/* Phone Label Row */
+.phone-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.phone-label-row > label:first-child {
+  margin-bottom: 0;
+}
+
+/* WhatsApp Checkbox */
+.checkbox-label {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  border-radius: 8px;
+  border: 2px solid #25d366;
+  transition: all 0.2s ease;
+}
+
+.checkbox-label:hover {
+  background: linear-gradient(135deg, #c8e6c9 0%, #a5d6a7 100%);
+  box-shadow: 0 2px 8px rgba(37, 211, 102, 0.25);
+}
+
+.checkbox-label input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+  border: 2px solid #25d366;
+  border-radius: 4px;
+  background: white;
+  position: relative;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.checkbox-label input[type="checkbox"]:checked {
+  background: #25d366;
+  border-color: #25d366;
+}
+
+.checkbox-label input[type="checkbox"]:checked::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.whatsapp-icon {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  flex-shrink: 0;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.checkbox-text {
+  color: #1b5e20;
+  font-size: 0.875rem;
+  font-weight: 600;
+  display: inline-block;
+  vertical-align: middle;
+}
+
 .payment-methods {
   display: flex;
   flex-direction: column;
@@ -408,6 +496,16 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
+  .phone-label-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .checkbox-label {
+    width: 100%;
+  }
+
   .checkout-page {
     padding: 1rem 0.5rem;
   }

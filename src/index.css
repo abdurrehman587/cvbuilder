@@ -113,21 +113,27 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
   min-height: 100vh;
+  height: auto;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: none;
 }
 
 html {
-  overflow-y: auto;
   overflow-x: hidden;
   min-height: 100vh;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
 }
 
 #root {
   min-height: 100vh;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: visible !important;
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
 }
 
 code {

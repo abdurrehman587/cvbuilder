@@ -319,8 +319,8 @@ function App() {
         sessionStorage.setItem('showProductsPage', 'true');
         setForceShowProductsPage(true);
         showProductsPageRef.current = true;
-      } else if (window.location.hash === '#admin') {
-        // Hash changed to #admin - clear products page flags
+      } else if (window.location.hash.startsWith('#admin')) {
+        // Hash changed to #admin or #admin?tab=xxx - clear products page flags
         setForceShowProductsPage(false);
         showProductsPageRef.current = false;
         localStorage.removeItem('showProductsPage');
@@ -736,8 +736,8 @@ function App() {
   // Get current product for header
   const currentProduct = localStorage.getItem('selectedApp') || 'cv-builder';
   
-  // Check if user wants to see admin panel
-  const showAdminPanel = window.location.hash === '#admin' && isAuthenticated && !isLoading;
+  // Check if user wants to see admin panel (support #admin and #admin?tab=xxx)
+  const showAdminPanel = window.location.hash.startsWith('#admin') && isAuthenticated && !isLoading;
   
   // Check if user wants to see product detail page
   const productDetailMatch = window.location.hash.match(/^#product\/([a-f0-9-]+)$/i);

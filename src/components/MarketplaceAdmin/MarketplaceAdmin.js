@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../Supabase/supabase';
+import { orderService } from '../../utils/orders';
 import './MarketplaceAdmin.css';
 import RichTextEditor from './RichTextEditor';
 
 const MarketplaceAdmin = () => {
   const [sections, setSections] = useState([]);
   const [products, setProducts] = useState([]);
+  const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('products');
 
@@ -67,10 +69,11 @@ const MarketplaceAdmin = () => {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadingImageIndex, setUploadingImageIndex] = useState(null);
 
-  // Load sections and products on mount
+  // Load sections, products, and orders on mount
   useEffect(() => {
     loadSections();
     loadProducts();
+    loadOrders();
   }, []);
 
   const loadSections = async () => {
@@ -94,16 +97,46 @@ const MarketplaceAdmin = () => {
   const loadProducts = async () => {
     try {
       setLoading(true);
+      console.log('Loading products in admin panel...');
       const { data, error } = await supabase
         .from('marketplace_products')
         .select('*, marketplace_sections(name)')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error loading products:', error);
+        throw error;
+      }
+      
+      console.log('Products loaded successfully:', data?.length || 0, 'products');
+      console.log('Products data:', data);
       setProducts(data || []);
+      
+      if (!data || data.length === 0) {
+        console.warn('No products found in database. This might be due to RLS policies or empty database.');
+      }
     } catch (err) {
       console.error('Error loading products:', err);
+      console.error('Error details:', {
+        message: err.message,
+        code: err.code,
+        details: err.details,
+        hint: err.hint
+      });
       alert('Error loading products: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadOrders = async () => {
+    try {
+      setLoading(true);
+      const data = await orderService.getAllOrders();
+      setOrders(data || []);
+    } catch (err) {
+      console.error('Error loading orders:', err);
+      alert('Error loading orders: ' + err.message);
     } finally {
       setLoading(false);
     }
@@ -317,9 +350,64 @@ const MarketplaceAdmin = () => {
     }
   };
 
-  // Ensure hash stays as #admin when component is active
+  // Handle tab parameter from URL and ensure hash stays as #admin
   useEffect(() => {
-    if (window.location.hash !== '#admin') {
+    const checkTabParameter = () => {
+      const hash = window.location.hash;
+      
+      // Check if there's a tab parameter in the URL
+      if (hash.includes('#admin')) {
+        // Extract tab parameter from hash like #admin?tab=orders
+        const hashParts = hash.split('?');
+        if (hashParts.length > 1) {
+          const urlParams = new URLSearchParams(hashParts[1]);
+          const tabParam = urlParams.get('tab');
+          if (tabParam && ['products', 'sections', 'orders'].includes(tabParam)) {
+            setActiveTab(tabParam);
+            if (tabParam === 'orders') {
+              loadOrders();
+            }
+            // Keep the tab parameter in URL
+            return;
+          }
+        }
+      }
+      // If no tab parameter and hash is just #admin, keep it as is
+      if (window.location.hash === '#admin') {
+        return;
+      }
+      // If hash doesn't include #admin, set it
+      if (!window.location.hash.includes('#admin')) {
+        window.history.replaceState(null, '', window.location.pathname + '#admin');
+      }
+    };
+
+    // Check on mount
+    checkTabParameter();
+
+    // Listen for hash changes
+    const handleHashChange = () => {
+      checkTabParameter();
+    };
+    window.addEventListener('hashchange', handleHashChange);
+
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, []);
+
+  // Keep hash as #admin when switching tabs (but preserve tab parameter if it exists)
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash.includes('#admin?tab=')) {
+      // Preserve the tab parameter
+      return;
+    }
+    if (hash === '#admin') {
+      return;
+    }
+    // Only update if hash doesn't include #admin at all
+    if (!hash.includes('#admin')) {
       window.history.replaceState(null, '', window.location.pathname + '#admin');
     }
   }, [activeTab]);
@@ -333,9 +421,11 @@ const MarketplaceAdmin = () => {
   const handleTabChange = (tab) => {
     // Prevent any navigation
     setActiveTab(tab);
-    // Ensure hash stays as #admin
-    if (window.location.hash !== '#admin') {
-      window.history.replaceState(null, '', window.location.pathname + '#admin');
+    // Update URL with tab parameter
+    window.history.replaceState(null, '', window.location.pathname + `#admin?tab=${tab}`);
+    // Load orders if switching to orders tab
+    if (tab === 'orders') {
+      loadOrders();
     }
   };
 
@@ -343,9 +433,19 @@ const MarketplaceAdmin = () => {
     <div className="marketplace-admin">
       <div className="admin-header">
         <h1>Marketplace Admin</h1>
-        <button onClick={handleBackToProducts} className="back-button">
-          Back to Products
-        </button>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button 
+            onClick={loadProducts} 
+            className="back-button"
+            style={{ backgroundColor: '#3b82f6', color: 'white' }}
+            disabled={loading}
+          >
+            {loading ? 'Refreshing...' : 'Refresh Products'}
+          </button>
+          <button onClick={handleBackToProducts} className="back-button">
+            Back to Products
+          </button>
+        </div>
       </div>
 
       <div 
@@ -391,6 +491,22 @@ const MarketplaceAdmin = () => {
         >
           Sections
         </button>
+        <button
+          type="button"
+          className={activeTab === 'orders' ? 'active' : ''}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.nativeEvent?.stopImmediatePropagation();
+            handleTabChange('orders');
+          }}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+        >
+          Orders
+        </button>
       </div>
 
       {loading && activeTab === 'sections' && sections.length === 0 && (
@@ -399,6 +515,10 @@ const MarketplaceAdmin = () => {
 
       {loading && activeTab === 'products' && products.length === 0 && (
         <div className="loading-message">Loading products...</div>
+      )}
+
+      {loading && activeTab === 'orders' && orders.length === 0 && (
+        <div className="loading-message">Loading orders...</div>
       )}
 
       {activeTab === 'sections' && (
@@ -587,10 +707,20 @@ const MarketplaceAdmin = () => {
                 </tr>
               </thead>
               <tbody>
-                {products.length === 0 ? (
+                {products.length === 0 && !loading ? (
                   <tr>
                     <td colSpan="5" style={{ textAlign: 'center', padding: '2rem' }}>
                       No products found. Add your first product above.
+                      <br />
+                      <small style={{ color: '#6b7280', marginTop: '0.5rem', display: 'block' }}>
+                        (Check browser console for details if products should be visible)
+                      </small>
+                    </td>
+                  </tr>
+                ) : products.length === 0 && loading ? (
+                  <tr>
+                    <td colSpan="5" style={{ textAlign: 'center', padding: '2rem' }}>
+                      Loading products...
                     </td>
                   </tr>
                 ) : (
@@ -642,6 +772,238 @@ const MarketplaceAdmin = () => {
                       </td>
                     </tr>
                   ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'orders' && (
+        <div className="admin-section">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <h2>Manage Orders</h2>
+            <button 
+              onClick={loadOrders} 
+              className="back-button"
+              style={{ backgroundColor: '#3b82f6', color: 'white' }}
+              disabled={loading}
+            >
+              {loading ? 'Refreshing...' : 'Refresh Orders'}
+            </button>
+          </div>
+
+          <div className="admin-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Order #</th>
+                  <th>Customer</th>
+                  <th>Phone</th>
+                  <th>Items</th>
+                  <th>Total</th>
+                  <th>Payment Method</th>
+                  <th>Payment Status</th>
+                  <th>Order Status</th>
+                  <th>Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {orders.length === 0 && !loading ? (
+                  <tr>
+                    <td colSpan="10" style={{ textAlign: 'center', padding: '2rem' }}>
+                      No orders found.
+                    </td>
+                  </tr>
+                ) : orders.length === 0 && loading ? (
+                  <tr>
+                    <td colSpan="10" style={{ textAlign: 'center', padding: '2rem' }}>
+                      Loading orders...
+                    </td>
+                  </tr>
+                ) : (
+                  orders.map((order) => {
+                    const orderItems = Array.isArray(order.order_items) ? order.order_items : [];
+                    const totalItems = orderItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
+                    const formatDate = (dateString) => {
+                      if (!dateString) return 'N/A';
+                      const date = new Date(dateString);
+                      return date.toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      });
+                    };
+
+                    return (
+                      <tr key={order.id}>
+                        <td><strong>#{order.order_number || order.id.slice(0, 8)}</strong></td>
+                        <td>{order.customer_name || 'N/A'}</td>
+                        <td>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                            {order.customer_phone || 'N/A'}
+                            {order.has_whatsapp && (
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="#25D366" title="Has WhatsApp">
+                                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                              </svg>
+                            )}
+                          </div>
+                        </td>
+                        <td>{totalItems} item(s)</td>
+                        <td>Rs. {order.total_amount?.toLocaleString() || '0'}</td>
+                        <td>
+                          {order.payment_method === 'bank_transfer' ? '🏦 Bank Transfer' : 
+                           order.payment_method === 'cash_on_delivery' ? '💵 Cash on Delivery' : 
+                           order.payment_method}
+                        </td>
+                        <td>
+                          <select
+                            value={order.payment_status || 'pending'}
+                            onChange={async (e) => {
+                              const newPaymentStatus = e.target.value;
+                              try {
+                                setLoading(true);
+                                await orderService.updateOrderStatus(order.id, order.order_status, newPaymentStatus);
+                                
+                                // Auto-send WhatsApp message if payment is confirmed and customer has WhatsApp
+                                if (order.has_whatsapp && order.customer_phone && newPaymentStatus === 'paid') {
+                                  const updatedOrder = { ...order, payment_status: newPaymentStatus };
+                                  orderService.sendWhatsAppMessage(updatedOrder, 'payment_confirmed');
+                                }
+                                
+                                await loadOrders();
+                                alert('Payment status updated successfully!');
+                              } catch (err) {
+                                console.error('Error updating payment status:', err);
+                                alert('Error updating payment status: ' + err.message);
+                              } finally {
+                                setLoading(false);
+                              }
+                            }}
+                            style={{
+                              padding: '0.25rem 0.5rem',
+                              borderRadius: '4px',
+                              border: '1px solid #d1d5db',
+                              fontSize: '0.875rem'
+                            }}
+                          >
+                            <option value="pending">Pending</option>
+                            <option value="paid">Paid</option>
+                            <option value="cancelled">Cancelled</option>
+                          </select>
+                        </td>
+                        <td>
+                          <select
+                            value={order.order_status || 'pending'}
+                            onChange={async (e) => {
+                              const newStatus = e.target.value;
+                              try {
+                                setLoading(true);
+                                await orderService.updateOrderStatus(order.id, newStatus);
+                                
+                                // Auto-send WhatsApp message if customer has WhatsApp
+                                if (order.has_whatsapp && order.customer_phone) {
+                                  // Map order status to WhatsApp message type
+                                  const statusToMessageType = {
+                                    'confirmed': 'order_confirmation',
+                                    'shipped': 'order_shipped',
+                                    'delivered': 'order_delivered',
+                                    'processing': 'order_status',
+                                    'cancelled': 'order_status'
+                                  };
+                                  
+                                  const messageType = statusToMessageType[newStatus];
+                                  if (messageType) {
+                                    // Update order object with new status for message
+                                    const updatedOrder = { ...order, order_status: newStatus };
+                                    orderService.sendWhatsAppMessage(updatedOrder, messageType);
+                                  }
+                                }
+                                
+                                await loadOrders();
+                                alert('Order status updated successfully!');
+                              } catch (err) {
+                                console.error('Error updating order status:', err);
+                                alert('Error updating order status: ' + err.message);
+                              } finally {
+                                setLoading(false);
+                              }
+                            }}
+                            style={{
+                              padding: '0.25rem 0.5rem',
+                              borderRadius: '4px',
+                              border: '1px solid #d1d5db',
+                              fontSize: '0.875rem'
+                            }}
+                          >
+                            <option value="pending">Pending</option>
+                            <option value="confirmed">Confirmed</option>
+                            <option value="processing">Processing</option>
+                            <option value="shipped">Shipped</option>
+                            <option value="delivered">Delivered</option>
+                            <option value="cancelled">Cancelled</option>
+                          </select>
+                        </td>
+                        <td>{formatDate(order.created_at)}</td>
+                        <td>
+                          <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+                            <button 
+                              onClick={() => {
+                                window.location.href = `/#order-details?orderId=${order.order_number || order.id}&from=admin`;
+                              }}
+                              style={{
+                                padding: '0.25rem 0.5rem',
+                                fontSize: '0.875rem',
+                                backgroundColor: '#3b82f6',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '4px',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              View
+                            </button>
+                            {order.has_whatsapp && order.customer_phone && (
+                              <div style={{ position: 'relative', display: 'inline-block' }}>
+                                <select
+                                  onChange={(e) => {
+                                    if (e.target.value) {
+                                      orderService.sendWhatsAppMessage(order, e.target.value);
+                                      e.target.value = '';
+                                    }
+                                  }}
+                                  style={{
+                                    padding: '0.25rem 0.5rem',
+                                    fontSize: '0.875rem',
+                                    backgroundColor: '#25D366',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    appearance: 'none',
+                                    paddingRight: '1.5rem',
+                                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E")`,
+                                    backgroundRepeat: 'no-repeat',
+                                    backgroundPosition: 'right 0.3rem center'
+                                  }}
+                                  defaultValue=""
+                                >
+                                  <option value="" disabled>📱 WhatsApp</option>
+                                  <option value="order_confirmation">📦 Order Confirmation</option>
+                                  <option value="order_shipped">🚚 Order Shipped</option>
+                                  <option value="order_delivered">✅ Order Delivered</option>
+                                  <option value="order_status">📋 Status Update</option>
+                                </select>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>

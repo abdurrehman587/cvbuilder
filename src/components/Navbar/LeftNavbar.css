@@ -9,13 +9,21 @@
   z-index: 9998 !important;
   display: flex !important;
   flex-direction: column !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
+  overflow: hidden !important;
   transition: width 0.3s ease !important;
   border-right: 1px solid #e5e7eb !important;
   visibility: visible !important;
   opacity: 1 !important;
   pointer-events: auto !important;
+  /* Hide scrollbars completely */
+  scrollbar-width: none !important; /* Firefox */
+  -ms-overflow-style: none !important; /* IE and Edge */
+}
+
+.left-navbar::-webkit-scrollbar {
+  display: none !important; /* Chrome, Safari, Opera */
+  width: 0 !important;
+  height: 0 !important;
 }
 
 .left-navbar-content {
@@ -24,7 +32,16 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
+  overflow: hidden !important;
+  /* Hide scrollbars completely */
+  scrollbar-width: none !important; /* Firefox */
+  -ms-overflow-style: none !important; /* IE and Edge */
+}
+
+.left-navbar-content::-webkit-scrollbar {
+  display: none !important; /* Chrome, Safari, Opera */
+  width: 0 !important;
+  height: 0 !important;
 }
 
 .left-navbar-header {

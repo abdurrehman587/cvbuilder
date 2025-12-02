@@ -56,14 +56,14 @@
 }
 
 .glory-logo {
-  height: 50px;
+  height: 24px;
   width: auto;
-  max-width: 200px;
+  max-width: 85px;
   object-fit: contain;
   cursor: pointer;
   transition: all 0.2s ease;
   position: absolute;
-  left: 220px;
+  left: 200px;
   top: 50%;
   transform: translateY(-50%);
   z-index: 10;
@@ -480,10 +480,6 @@
     min-height: 52px;
   }
   
-  .glory-logo {
-    left: 200px;
-  }
-
   .header-left {
     margin-left: 0;
     gap: 0.75rem;
@@ -492,9 +488,9 @@
   }
 
   .glory-logo {
-    height: 45px;
-    max-width: 150px;
-    left: 200px;
+    height: 22px;
+    max-width: 80px;
+    left: 180px;
     position: absolute;
     transform: translateY(-50%);
     top: 50%;
@@ -623,10 +619,6 @@
     flex-wrap: nowrap;
   }
   
-  .glory-logo {
-    left: 180px;
-  }
-
   .header-left {
     margin-left: 0;
     gap: 0.5rem;
@@ -635,9 +627,9 @@
   }
 
   .glory-logo {
-    height: 35px;
-    max-width: 100px;
-    left: 180px;
+    height: 20px;
+    max-width: 75px;
+    left: 165px;
     position: absolute;
     transform: translateY(-50%);
     top: 50%;
@@ -757,9 +749,9 @@
   }
 
   .glory-logo {
-    height: 32px;
-    max-width: 90px;
-    left: 180px;
+    height: 20px;
+    max-width: 75px;
+    left: 165px;
   }
 
   .logo {
@@ -849,9 +841,9 @@
   }
 
   .glory-logo {
-    height: 30px;
-    max-width: 85px;
-    left: 180px;
+    height: 18px;
+    max-width: 70px;
+    left: 165px;
   }
 
   .logo {
@@ -936,9 +928,9 @@
   }
 
   .glory-logo {
-    height: 28px;
-    max-width: 75px;
-    left: 180px;
+    height: 18px;
+    max-width: 65px;
+    left: 165px;
   }
 
   .logo {

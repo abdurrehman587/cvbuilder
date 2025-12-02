@@ -23,8 +23,16 @@ const OrderDetails = ({ orderId: propOrderId }) => {
     
     return null;
   };
+
+  // Check if accessed from admin panel
+  const isFromAdmin = () => {
+    const hash = window.location.hash;
+    const urlParams = new URLSearchParams(hash.split('?')[1] || '');
+    return urlParams.get('from') === 'admin';
+  };
   
   const [orderId] = useState(() => getOrderIdFromUrl());
+  const [fromAdmin] = useState(() => isFromAdmin());
 
   useEffect(() => {
     loadOrder();
@@ -113,9 +121,9 @@ const OrderDetails = ({ orderId: propOrderId }) => {
             <p>{error || 'The order you are looking for does not exist.'}</p>
             <button 
               className="btn-primary"
-              onClick={() => window.location.href = '/#products'}
+              onClick={() => window.location.href = fromAdmin ? '/#admin?tab=orders' : '/#products'}
             >
-              Back to Products
+              {fromAdmin ? 'Back to Orders' : 'Back to Products'}
             </button>
           </div>
         </div>
@@ -129,9 +137,9 @@ const OrderDetails = ({ orderId: propOrderId }) => {
         <div className="order-details-header">
           <button 
             className="order-details-back-button"
-            onClick={() => window.location.href = '/#products'}
+            onClick={() => window.location.href = fromAdmin ? '/#admin?tab=orders' : '/#products'}
           >
-            ← Back to Products
+            ← {fromAdmin ? 'Back to Orders' : 'Back to Products'}
           </button>
           <h1>Order Details</h1>
         </div>
@@ -267,9 +275,9 @@ const OrderDetails = ({ orderId: propOrderId }) => {
           <div className="order-details-actions">
             <button 
               className="btn-primary"
-              onClick={() => window.location.href = '/#products'}
+              onClick={() => window.location.href = fromAdmin ? '/#admin?tab=orders' : '/#products'}
             >
-              Continue Shopping
+              {fromAdmin ? 'Back to Orders' : 'Continue Shopping'}
             </button>
           </div>
         </div>
