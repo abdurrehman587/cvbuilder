@@ -68,6 +68,7 @@ const MarketplaceAdmin = () => {
   const [editingProduct, setEditingProduct] = useState(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadingImageIndex, setUploadingImageIndex] = useState(null);
+  const [draggedImageIndex, setDraggedImageIndex] = useState(null);
 
   // Load sections, products, and orders on mount
   useEffect(() => {
@@ -262,6 +263,92 @@ const MarketplaceAdmin = () => {
   const handleRemoveImage = (index) => {
     const updatedUrls = productForm.image_urls.filter((_, i) => i !== index);
     setProductForm({ ...productForm, image_urls: updatedUrls });
+  };
+
+  // Drag and drop handlers for image reordering
+  const handleDragStart = (e, index) => {
+    setDraggedImageIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', index.toString());
+  };
+
+  const handleDragEnd = (e) => {
+    setDraggedImageIndex(null);
+    // Remove drag-over class from all items
+    document.querySelectorAll('.image-preview-item').forEach(item => {
+      item.classList.remove('drag-over');
+    });
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDragEnter = (e, index) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (draggedImageIndex === null || draggedImageIndex === index) return;
+    // Remove drag-over from all items first
+    document.querySelectorAll('.image-preview-item').forEach(item => {
+      item.classList.remove('drag-over');
+    });
+    e.currentTarget.classList.add('drag-over');
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Only remove if leaving to outside (not to child elements)
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX;
+    const y = e.clientY;
+    if (x < rect.left || x >= rect.right || y < rect.top || y >= rect.bottom) {
+      e.currentTarget.classList.remove('drag-over');
+    }
+  };
+
+  const handleDrop = (e, dropIndex) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Remove drag-over class from all items
+    document.querySelectorAll('.image-preview-item').forEach(item => {
+      item.classList.remove('drag-over');
+    });
+    
+    if (draggedImageIndex === null || draggedImageIndex === dropIndex) {
+      setDraggedImageIndex(null);
+      return;
+    }
+
+    const newImageUrls = [...productForm.image_urls];
+    
+    // Swap the images
+    const draggedImage = newImageUrls[draggedImageIndex];
+    const targetImage = newImageUrls[dropIndex];
+    newImageUrls[dropIndex] = draggedImage;
+    newImageUrls[draggedImageIndex] = targetImage;
+    
+    setProductForm({ ...productForm, image_urls: newImageUrls });
+    setDraggedImageIndex(null);
+  };
+
+  // Move image left (decrease index)
+  const moveImageLeft = (index) => {
+    if (index === 0) return;
+    const newImageUrls = [...productForm.image_urls];
+    [newImageUrls[index - 1], newImageUrls[index]] = [newImageUrls[index], newImageUrls[index - 1]];
+    setProductForm({ ...productForm, image_urls: newImageUrls });
+  };
+
+  // Move image right (increase index)
+  const moveImageRight = (index) => {
+    if (index === productForm.image_urls.length - 1) return;
+    const newImageUrls = [...productForm.image_urls];
+    [newImageUrls[index], newImageUrls[index + 1]] = [newImageUrls[index + 1], newImageUrls[index]];
+    setProductForm({ ...productForm, image_urls: newImageUrls });
   };
 
   const handleAddProduct = async (e) => {
@@ -658,27 +745,62 @@ const MarketplaceAdmin = () => {
                 </span>
               )}
               {productForm.image_urls && productForm.image_urls.length > 0 && (
-                <div className="image-preview-grid">
-                  {productForm.image_urls.map((url, index) => (
-                    <div key={index} className="image-preview-item">
-                      <img src={url} alt={`Preview ${index + 1}`} className="image-preview" />
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveImage(index)}
-                        className="remove-image-btn"
+                <>
+                  <p className="drag-hint">💡 Drag images to swap positions, or use arrow buttons. First image will be the main product image.</p>
+                  <div className="image-preview-grid">
+                    {productForm.image_urls.map((url, index) => (
+                      <div 
+                        key={`img-${index}-${url}`} 
+                        className={`image-preview-item ${draggedImageIndex === index ? 'dragging' : ''}`}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, index)}
+                        onDragEnd={handleDragEnd}
+                        onDragOver={handleDragOver}
+                        onDragEnter={(e) => handleDragEnter(e, index)}
+                        onDragLeave={handleDragLeave}
+                        onDrop={(e) => handleDrop(e, index)}
                       >
-                        Remove
-                      </button>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleImageUpload(e, index)}
-                        disabled={uploadingImage}
-                        style={{ marginTop: '0.5rem', fontSize: '0.875rem' }}
-                      />
-                    </div>
-                  ))}
-                </div>
+                        <div className="drag-handle" title="Drag to reorder">⋮⋮</div>
+                        <span className="image-order-badge">{index + 1}</span>
+                        <img src={url} alt={`Preview ${index + 1}`} className="image-preview" />
+                        <div className="image-move-buttons">
+                          <button
+                            type="button"
+                            onClick={() => moveImageLeft(index)}
+                            className="move-btn move-left"
+                            disabled={index === 0}
+                            title="Move left"
+                          >
+                            ←
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => moveImageRight(index)}
+                            className="move-btn move-right"
+                            disabled={index === productForm.image_urls.length - 1}
+                            title="Move right"
+                          >
+                            →
+                          </button>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(index)}
+                          className="remove-image-btn"
+                        >
+                          Remove
+                        </button>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleImageUpload(e, index)}
+                          disabled={uploadingImage}
+                          style={{ marginTop: '0.5rem', fontSize: '0.875rem' }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </>
               )}
             </div>
             <button type="submit" disabled={loading || uploadingImage}>
