@@ -186,6 +186,28 @@ export const authService = {
     return data
   },
 
+  // Reset password (forgot password)
+  async resetPassword(email) {
+    const redirectUrl = process.env.REACT_APP_SITE_URL || window.location.origin;
+    
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${redirectUrl}/#reset-password`
+    })
+    
+    if (error) throw error
+    return data
+  },
+
+  // Update password (after clicking reset link)
+  async updatePassword(newPassword) {
+    const { data, error } = await supabase.auth.updateUser({
+      password: newPassword
+    })
+    
+    if (error) throw error
+    return data
+  },
+
   // Listen to auth state changes
   onAuthStateChange(callback) {
     return supabase.auth.onAuthStateChange(callback)

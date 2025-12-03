@@ -1,9 +1,8 @@
 /* PDF Generation Styles for Template 1 - Fresh Design */
 
-/* Balanced layout for PDF generation */
+/* Balanced layout for PDF generation - A4 Size */
 .cv-preview.pdf-mode {
   padding: 0 !important;
-  max-width: 100% !important;
   margin: 0 !important;
   min-height: auto;
   line-height: 1.3 !important;
@@ -13,8 +12,14 @@
   font-size: 14pt !important;
   page-break-inside: avoid;
   break-inside: avoid;
-  width: 100% !important;
   box-sizing: border-box !important;
+  /* A4 dimensions: 210mm x 297mm at 96 DPI = 794px x 1123px */
+  /* Using 800px width for better rendering, maintaining A4 aspect ratio */
+  width: 800px !important;
+  max-width: 800px !important;
+  min-width: 800px !important;
+  /* Maintain A4 aspect ratio (297/210 = 1.414) */
+  aspect-ratio: 210 / 297 !important;
 }
 
 /* Ensure PDF mode overrides all preview styles */
@@ -120,14 +125,23 @@
   flex-direction: column !important;
   justify-content: center !important;
   align-items: flex-start !important;
+  gap: 0 !important;
+}
+
+/* Reset all default margins and padding for header elements */
+.cv-preview.pdf-mode .header-content h1,
+.cv-preview.pdf-mode .header-content h2 {
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 .cv-preview.pdf-mode .header-name {
   font-size: 20pt !important;
   font-weight: 700 !important;
   color: #ffffff !important;
-  margin: 0 0 4px 0 !important;
-  line-height: 1.2 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.0 !important;
   text-align: left !important;
   width: 100% !important;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
@@ -137,25 +151,36 @@
   font-size: 14pt !important;
   font-weight: 600 !important;
   color: #ffd700 !important;
-  margin: 0 0 6px 0 !important;
-  line-height: 1.2 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.0 !important;
 }
 
 .cv-preview.pdf-mode .header-contact {
   display: flex !important;
   flex-direction: column !important;
-  gap: 2px !important;
+  gap: 0px !important;
   width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 .cv-preview.pdf-mode .contact-item {
   font-size: 14pt !important;
-  margin-bottom: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
   display: flex !important;
   align-items: center !important;
-  gap: 8px !important;
-  line-height: 1.3 !important;
+  gap: 0px !important;
+  line-height: 1.0 !important;
   color: #ffffff !important;
+  height: auto !important;
+}
+
+.cv-preview.pdf-mode .contact-item span:not(.contact-icon) {
+  margin: 0 !important;
+  padding: 0 !important;
+  margin-left: 4px !important;
 }
 
 .cv-preview.pdf-mode .contact-icon {
@@ -167,6 +192,8 @@
   justify-content: center !important;
   font-size: 14pt !important;
   flex-shrink: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 .cv-preview.pdf-mode .section-content {

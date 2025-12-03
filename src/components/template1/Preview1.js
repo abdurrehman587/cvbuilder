@@ -105,47 +105,58 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges })
       <div className="cv-preview">
         {/* CV Header */}
         <div className="cv-header">
-          {/* Profile Image Container */}
-          <div className="profile-image-container">
-            {profileImageUrl ? (
-              <img 
-                src={profileImageUrl} 
-                alt="Profile" 
-                className="profile-image"
-              />
-            ) : (
-              <div className="profile-placeholder">
-                CV
-              </div>
-            )}
+          {/* Header Top Section with Profile on Left */}
+          <div className="cv-header-top">
+            {/* Profile Image Container */}
+            <div className="profile-image-container">
+              {profileImageUrl ? (
+                <img 
+                  src={profileImageUrl} 
+                  alt="Profile" 
+                  className="profile-image"
+                />
+              ) : (
+                <div className="profile-placeholder">
+                  CV
+                </div>
+              )}
+            </div>
+
+            {/* Header Content */}
+            <div className="header-content">
+              {/* Name */}
+              <h1 className="header-name">
+                {displayData.name}
+              </h1>
+
+              {/* Phone */}
+              {displayData.phone && (
+                <div className="contact-item">
+                  <span className="contact-icon">📞</span>
+                  <span>{displayData.phone}</span>
+                </div>
+              )}
+
+              {/* Email */}
+              {displayData.email && (
+                <div className="contact-item">
+                  <span className="contact-icon">✉️</span>
+                  <span>{displayData.email}</span>
+                </div>
+              )}
+
+              {/* Address */}
+              {displayData.address && (
+                <div className="contact-item">
+                  <span className="contact-icon">📍</span>
+                  <span>{displayData.address}</span>
+                </div>
+              )}
+            </div>
           </div>
-
-          {/* Header Content */}
-          <div className="header-content">
-            {/* Name */}
-            <h1 className="header-name">
-              {displayData.name}
-            </h1>
-
-            {/* Position/Title */}
-            {displayData.position && (
-              <h2 className="header-title">
-                {displayData.position}
-              </h2>
-            )}
-
-            {/* Contact Information */}
-            {contactInfo && contactInfo.length > 0 && (
-              <div className="header-contact">
-                {contactInfo.map((contact, index) => (
-                  <div key={index} className="contact-item">
-                    <span className="contact-icon">{contact.icon}</span>
-                    <span>{contact.value}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          
+          {/* Header Bottom Accent Bar */}
+          <div className="cv-header-bottom"></div>
         </div>
 
         {/* Professional Summary Section */}

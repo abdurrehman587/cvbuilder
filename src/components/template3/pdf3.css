@@ -1,6 +1,6 @@
 /* PDF Generation Styles for Template 3 - Compact Print-Friendly Design */
 
-/* Balanced layout for PDF generation */
+/* Balanced layout for PDF generation - A4 Size */
 .template3-root .cv-preview.pdf-mode {
   display: flex !important;
   flex-direction: column !important;
@@ -13,9 +13,13 @@
   color: #333 !important;
   page-break-inside: avoid !important;
   break-inside: avoid !important;
-  max-width: 100% !important;
-  width: 100% !important;
+  /* A4 dimensions: 210mm x 297mm at 96 DPI = 794px x 1123px */
+  /* Using 800px width for better rendering, maintaining A4 aspect ratio */
+  width: 800px !important;
+  max-width: 800px !important;
+  min-width: 800px !important;
   font-size: 0.85rem !important;
+  aspect-ratio: 210 / 297 !important;
 }
 
 /* Ensure PDF mode overrides all preview styles */

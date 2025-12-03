@@ -1,6 +1,14 @@
 /* PDF Generation Styles for Template 2 */
 
-/* Ensure PDF mode maintains template2 layout and styling */
+/* Ensure template2-root wrapper has A4 width in PDF mode */
+.template2-root.pdf-mode {
+  width: 800px !important;
+  max-width: 800px !important;
+  min-width: 800px !important;
+  margin: 0 auto !important;
+}
+
+/* Ensure PDF mode maintains template2 layout and styling - A4 Size */
 .template2-root .cv-preview.pdf-mode {
   padding: 0 !important;
   min-height: auto;
@@ -11,8 +19,13 @@
   display: grid !important;
   grid-template-columns: 35% 65% !important;
   gap: 0 !important;
-  max-width: 1200px !important;
+  /* A4 dimensions: 210mm x 297mm at 96 DPI = 794px x 1123px */
+  /* Using 800px width for better rendering, maintaining A4 aspect ratio */
+  width: 800px !important;
+  max-width: 800px !important;
+  min-width: 800px !important;
   margin: 0 auto !important;
+  aspect-ratio: 210 / 297 !important;
 }
 
 /* Left Column - Purple Background (Personal info, contacts, skills) */

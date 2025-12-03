@@ -40,17 +40,44 @@ const setupPDFMode = (cvPreview) => {
     downloadButton.style.display = 'none';
   }
 
+  // Store original dimensions
+  const originalWidth = cvPreview.style.width || '';
+  const originalMaxWidth = cvPreview.style.maxWidth || '';
+  const originalMinWidth = cvPreview.style.minWidth || '';
+  
+  // Force A4 dimensions for PDF generation
+  // A4: 210mm x 297mm at 96 DPI ≈ 794px x 1123px
+  // Using 800px width for better rendering quality
+  cvPreview.style.width = '800px';
+  cvPreview.style.maxWidth = '800px';
+  cvPreview.style.minWidth = '800px';
+  cvPreview.style.margin = '0 auto';
+  cvPreview.style.display = 'block';
+
   // Apply PDF mode styling
   cvPreview.classList.add('pdf-mode');
 
-  return { downloadButton, originalDisplay };
+  return { 
+    downloadButton, 
+    originalDisplay,
+    originalWidth,
+    originalMaxWidth,
+    originalMinWidth
+  };
 };
 
-const cleanupPDFMode = (cvPreview, downloadButton, originalDisplay) => {
+const cleanupPDFMode = (cvPreview, downloadButton, originalDisplay, originalWidth, originalMaxWidth, originalMinWidth) => {
   // Restore download button
   if (downloadButton) {
     downloadButton.style.display = originalDisplay;
   }
+  
+  // Restore original dimensions
+  cvPreview.style.width = originalWidth;
+  cvPreview.style.maxWidth = originalMaxWidth;
+  cvPreview.style.minWidth = originalMinWidth;
+  cvPreview.style.margin = '';
+  cvPreview.style.display = '';
   
   // Remove PDF mode styling
   cvPreview.classList.remove('pdf-mode');
@@ -74,6 +101,12 @@ const generateCanvas = async (cvPreview) => {
     offsetHeight: cvPreview.offsetHeight
   });
 
+  // Calculate A4 dimensions in pixels at 96 DPI
+  // A4: 210mm x 297mm = 794px x 1123px (at 96 DPI)
+  // Using 800px width for better quality rendering
+  const a4WidthPx = 800;
+  const a4HeightPx = Math.round(a4WidthPx * (PDF_CONFIG.pageHeight / PDF_CONFIG.pageWidth)); // Maintain A4 aspect ratio
+  
   const canvas = await html2canvas(cvPreview, {
     scale: PDF_CONFIG.scale,
     useCORS: true,
@@ -82,8 +115,8 @@ const generateCanvas = async (cvPreview) => {
     logging: true,
     scrollX: 0,
     scrollY: 0,
-    width: cvPreview.offsetWidth || cvPreview.scrollWidth,
-    height: cvPreview.offsetHeight || cvPreview.scrollHeight,
+    width: a4WidthPx,
+    height: cvPreview.scrollHeight || a4HeightPx,
     removeContainer: false,
     foreignObjectRendering: false,
     imageTimeout: PDF_CONFIG.imageTimeout,
@@ -177,7 +210,7 @@ const generateFileName = () => {
 
 // Main PDF Generation Function
 const generatePDF = async () => {
-  let cvPreview, downloadButton, originalDisplay, template3Root;
+  let cvPreview, downloadButton, originalDisplay, originalWidth, originalMaxWidth, originalMinWidth;
 
   try {
     console.log('Starting PDF generation...');
@@ -192,6 +225,12 @@ const generatePDF = async () => {
     const setup = setupPDFMode(cvPreview);
     downloadButton = setup.downloadButton;
     originalDisplay = setup.originalDisplay;
+    originalWidth = setup.originalWidth;
+    originalMaxWidth = setup.originalMaxWidth;
+    originalMinWidth = setup.originalMinWidth;
+    
+    // Wait a bit for layout to settle after setting fixed width
+    await new Promise(resolve => setTimeout(resolve, 100));
     
     // Generate canvas
     const canvas = await generateCanvas(cvPreview);
@@ -211,7 +250,7 @@ const generatePDF = async () => {
   } finally {
     // Cleanup
     if (cvPreview) {
-      cleanupPDFMode(cvPreview, downloadButton, originalDisplay);
+      cleanupPDFMode(cvPreview, downloadButton, originalDisplay, originalWidth, originalMaxWidth, originalMinWidth);
     }
     updateButtonState('📄 Download PDF', false);
   }
