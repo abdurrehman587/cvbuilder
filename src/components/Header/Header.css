@@ -1,5 +1,6 @@
 :root {
   --header-height: 70px;
+  --header-height-mobile: 56px;
 }
 
 .app-header {
@@ -23,6 +24,9 @@
   .app-header {
     left: 0;
     width: 100%;
+    min-height: 50px;
+    height: 50px !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   }
 }
 
@@ -47,12 +51,31 @@
   height: 100%;
 }
 
+/* Mobile Header Container */
+@media (max-width: 768px) {
+  .header-container {
+    padding: 0 0.75rem !important;
+    gap: 0.5rem;
+    max-width: 100%;
+    min-height: 50px;
+    height: 50px;
+  }
+}
+
 .header-left {
   display: flex;
   align-items: center;
   gap: 1rem;
   flex-shrink: 0;
   margin-left: 0; /* Header is already offset by navbar */
+}
+
+/* Mobile Header Left */
+@media (max-width: 768px) {
+  .header-left {
+    flex: 1;
+    justify-content: flex-start;
+  }
 }
 
 .glory-logo {
@@ -67,6 +90,17 @@
   top: 50%;
   transform: translateY(-50%);
   z-index: 10;
+}
+
+/* Mobile Logo - Static position, not absolute */
+@media (max-width: 768px) {
+  .glory-logo {
+    position: static !important;
+    transform: none !important;
+    height: 30px !important;
+    max-width: 100px !important;
+    width: auto !important;
+  }
 }
 
 .glory-logo:hover {
@@ -104,6 +138,13 @@
   justify-content: center;
   align-items: center;
   min-width: 0;
+}
+
+/* Hide header navigation on mobile - we use bottom nav instead */
+@media (max-width: 768px) {
+  .header-center {
+    display: none !important;
+  }
 }
 
 .header-navigation {
@@ -317,6 +358,13 @@
   margin-left: auto;
 }
 
+/* Mobile Header Right */
+@media (max-width: 768px) {
+  .header-right {
+    gap: 0.5rem;
+  }
+}
+
 /* Sign In/Logout/Admin button in header-right */
 .signin-btn-header,
 .logout-btn-header,
@@ -339,6 +387,17 @@
   display: flex;
   align-items: center;
   box-shadow: 0 2px 6px rgba(245, 158, 11, 0.3);
+}
+
+/* Mobile Admin Button - Compact */
+@media (max-width: 768px) {
+  .admin-btn-header {
+    padding: 0.25rem 0.6rem !important;
+    height: 28px !important;
+    font-size: 0.75rem !important;
+    border-radius: 5px !important;
+    font-weight: 600 !important;
+  }
 }
 
 .admin-btn-header:hover {
@@ -405,6 +464,62 @@
   transform: translateY(0);
 }
 
+/* Install App Button */
+.install-btn-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 0.6rem 1.25rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 42px;
+  box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
+  animation: pulse-install 2s ease-in-out infinite;
+}
+
+/* Mobile Install Button - Text only, compact */
+@media (max-width: 768px) {
+  .install-btn-header {
+    padding: 0.25rem 0.6rem !important;
+    height: 28px !important;
+    border-radius: 5px !important;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+  }
+}
+
+@keyframes pulse-install {
+  0%, 100% { box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3); }
+  50% { box-shadow: 0 4px 15px rgba(102, 126, 234, 0.5); }
+}
+
+.install-btn-header:hover {
+  background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.5);
+  transform: translateY(-2px);
+  animation: none;
+}
+
+.install-btn-header:active {
+  transform: translateY(0);
+}
+
+.install-icon {
+  font-size: 1.1rem;
+}
+
+.install-text {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
 .cart-btn-header {
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: white;
@@ -422,6 +537,26 @@
   gap: 0.5rem;
   height: 42px;
   box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
+}
+
+/* Mobile Cart Button - Text only, compact */
+@media (max-width: 768px) {
+  .cart-btn-header {
+    padding: 0.25rem 0.6rem !important;
+    height: 28px !important;
+    border-radius: 5px !important;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+  }
+  
+  .cart-btn-header .cart-badge {
+    position: absolute !important;
+    top: -4px !important;
+    right: -4px !important;
+    width: 14px !important;
+    height: 14px !important;
+    font-size: 0.55rem !important;
+  }
 }
 
 .cart-btn-header:hover {
@@ -470,25 +605,27 @@
 /* Responsive Design */
 @media (max-width: 768px) {
   .app-header {
-    min-height: 52px;
+    min-height: 56px;
+    height: 56px !important;
   }
 
   .header-container {
-    padding: 0 1rem 0 calc(180px + 1rem);
-    gap: 1rem;
-    flex-wrap: wrap;
-    min-height: 52px;
+    padding: 0 1rem !important;
+    gap: 0.75rem;
+    flex-wrap: nowrap;
+    min-height: 56px;
+    justify-content: space-between;
   }
   
   .header-left {
     margin-left: 0;
-    gap: 0.75rem;
-    flex: 1;
+    gap: 0.5rem;
+    flex: 0 0 auto;
     min-width: 0;
   }
 
   .glory-logo {
-    height: 22px;
+    height: 28px;
     max-width: 80px;
     left: 180px;
     position: absolute;
@@ -597,9 +734,12 @@
   .signin-btn-header,
   .logout-btn-header,
   .admin-btn-header,
-  .cart-btn-header {
-    padding: 0.6rem 1.25rem;
-    font-size: 0.9rem;
+  .cart-btn-header,
+  .install-btn-header {
+    padding: 0.25rem 0.6rem;
+    font-size: 0.75rem;
+    height: 28px;
+    font-weight: 600;
   }
 
   .header-auth-status {
@@ -609,25 +749,26 @@
 
 @media (max-width: 480px) {
   .app-header {
-    min-height: 50px;
+    min-height: 52px;
+    height: 52px !important;
   }
 
   .header-container {
-    padding: 0 0.75rem 0 calc(160px + 0.75rem);
+    padding: 0 0.75rem !important;
     gap: 0.5rem;
-    min-height: 50px;
+    min-height: 52px;
     flex-wrap: nowrap;
   }
   
   .header-left {
     margin-left: 0;
     gap: 0.5rem;
-    flex: 1;
+    flex: 0 0 auto;
     min-width: 0;
   }
 
   .glory-logo {
-    height: 20px;
+    height: 26px;
     max-width: 75px;
     left: 165px;
     position: absolute;
@@ -739,19 +880,19 @@
 /* Small Mobile Devices (375px and below) */
 @media (max-width: 375px) {
   .app-header {
-    min-height: 48px;
+    min-height: 50px;
+    height: 50px !important;
   }
 
   .header-container {
-    padding: 0 0.5rem 0 calc(160px + 0.5rem);
+    padding: 0 0.5rem !important;
     gap: 0.4rem;
-    min-height: 48px;
+    min-height: 50px;
   }
 
   .glory-logo {
-    height: 20px;
-    max-width: 75px;
-    left: 165px;
+    height: 24px;
+    max-width: 90px;
   }
 
   .logo {
@@ -831,19 +972,19 @@
 /* Extra Small Mobile Devices (360px and below) */
 @media (max-width: 360px) {
   .app-header {
-    min-height: 46px;
+    min-height: 48px;
+    height: 48px !important;
   }
 
   .header-container {
-    padding: 0 0.45rem 0 calc(160px + 0.45rem);
+    padding: 0 0.45rem !important;
     gap: 0.35rem;
-    min-height: 46px;
+    min-height: 48px;
   }
 
   .glory-logo {
-    height: 18px;
-    max-width: 70px;
-    left: 165px;
+    height: 22px;
+    max-width: 85px;
   }
 
   .logo {
@@ -918,19 +1059,19 @@
 /* Very Small Mobile Devices (320px and below) */
 @media (max-width: 320px) {
   .app-header {
-    min-height: 44px;
+    min-height: 46px;
+    height: 46px !important;
   }
 
   .header-container {
-    padding: 0 0.4rem 0 calc(160px + 0.4rem);
+    padding: 0 0.4rem !important;
     gap: 0.3rem;
-    min-height: 44px;
+    min-height: 46px;
   }
 
   .glory-logo {
-    height: 18px;
-    max-width: 65px;
-    left: 165px;
+    height: 20px;
+    max-width: 80px;
   }
 
   .logo {

@@ -133,17 +133,21 @@ html {
 
 @media (max-width: 768px) {
   .app-content-with-navbar {
-    margin-left: 180px;
-    width: calc(100% - 180px);
-    max-width: calc(100% - 180px);
+    margin-left: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 10px !important;
+    padding-bottom: 80px !important; /* Space for bottom nav */
   }
 }
 
 @media (max-width: 480px) {
   .app-content-with-navbar {
-    margin-left: 160px;
-    width: calc(100% - 160px);
-    max-width: calc(100% - 160px);
+    margin-left: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 8px !important;
+    padding-bottom: 80px !important; /* Space for bottom nav */
   }
 }
 
@@ -192,15 +196,15 @@ html {
 
 @media (max-width: 768px) {
   .app-content-with-navbar .app-header-cv {
-    left: 180px;
-    width: calc(100% - 180px);
+    left: 0 !important;
+    width: 100% !important;
   }
 }
 
 @media (max-width: 480px) {
   .app-content-with-navbar .app-header-cv {
-    left: 160px;
-    width: calc(100% - 160px);
+    left: 0 !important;
+    width: 100% !important;
   }
 }
 

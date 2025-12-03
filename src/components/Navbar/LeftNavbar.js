@@ -159,59 +159,104 @@ const LeftNavbar = ({ isAuthenticated, onLogout }) => {
   };
 
   return (
-    <nav className="left-navbar">
-      <div className="left-navbar-content">
-        <ul className="left-navbar-menu">
-          {/* Sign In / Sign Out Button */}
-          <li>
-            {!isAuthenticated ? (
+    <>
+      {/* Desktop Left Navbar */}
+      <nav className="left-navbar">
+        <div className="left-navbar-content">
+          <ul className="left-navbar-menu">
+            {/* Sign In / Sign Out Button */}
+            <li>
+              {!isAuthenticated ? (
+                <button
+                  className="left-navbar-item signin-navbar-btn"
+                  onClick={handleSignIn}
+                >
+                  <span className="nav-icon">🔐</span>
+                  <span className="nav-text">Sign In</span>
+                </button>
+              ) : (
+                <button
+                  className="left-navbar-item signout-navbar-btn"
+                  onClick={handleLogout}
+                >
+                  <span className="nav-icon">🚪</span>
+                  <span className="nav-text">Sign Out</span>
+                </button>
+              )}
+            </li>
+            <li>
               <button
-                className="left-navbar-item signin-navbar-btn"
-                onClick={handleSignIn}
+                className={`left-navbar-item ${activeSection === 'marketplace' ? 'active' : ''}`}
+                onClick={navigateToMarketplace}
               >
-                <span className="nav-icon">🔐</span>
-                <span className="nav-text">Sign In</span>
+                <span className="nav-icon">🛒</span>
+                <span className="nav-text">Marketplace</span>
               </button>
-            ) : (
+            </li>
+            <li>
               <button
-                className="left-navbar-item signout-navbar-btn"
-                onClick={handleLogout}
+                className={`left-navbar-item ${activeSection === 'cv-builder' ? 'active' : ''}`}
+                onClick={navigateToCVBuilder}
               >
-                <span className="nav-icon">🚪</span>
-                <span className="nav-text">Sign Out</span>
+                <span className="nav-icon">📄</span>
+                <span className="nav-text">CV Builder</span>
               </button>
-            )}
-          </li>
-          <li>
-            <button
-              className={`left-navbar-item ${activeSection === 'marketplace' ? 'active' : ''}`}
-              onClick={navigateToMarketplace}
-            >
-              <span className="nav-icon">🛒</span>
-              <span className="nav-text">Marketplace</span>
-            </button>
-          </li>
-          <li>
-            <button
-              className={`left-navbar-item ${activeSection === 'cv-builder' ? 'active' : ''}`}
-              onClick={navigateToCVBuilder}
-            >
-              <span className="nav-icon">📄</span>
-              <span className="nav-text">CV Builder</span>
-            </button>
-          </li>
-          <li>
-            <button
-              className={`left-navbar-item ${activeSection === 'id-card-printer' ? 'active' : ''}`}
-              onClick={navigateToIDCardPrinter}
-            >
-              <span className="nav-icon">🪪</span>
-              <span className="nav-text">ID Card Printer</span>
-            </button>
-          </li>
-        </ul>
-      </div>
-    </nav>
+            </li>
+            <li>
+              <button
+                className={`left-navbar-item ${activeSection === 'id-card-printer' ? 'active' : ''}`}
+                onClick={navigateToIDCardPrinter}
+              >
+                <span className="nav-icon">🪪</span>
+                <span className="nav-text">ID Card Printer</span>
+              </button>
+            </li>
+          </ul>
+        </div>
+      </nav>
+
+      {/* Mobile Bottom Navigation Bar */}
+      <nav className="bottom-navbar">
+        <button
+          className={`bottom-nav-item ${activeSection === 'marketplace' ? 'active' : ''}`}
+          onClick={navigateToMarketplace}
+        >
+          <span className="bottom-nav-icon">🛒</span>
+          <span className="bottom-nav-text">Shop</span>
+        </button>
+        <button
+          className={`bottom-nav-item ${activeSection === 'cv-builder' ? 'active' : ''}`}
+          onClick={navigateToCVBuilder}
+        >
+          <span className="bottom-nav-icon">📄</span>
+          <span className="bottom-nav-text">CV</span>
+        </button>
+        <button
+          className={`bottom-nav-item ${activeSection === 'id-card-printer' ? 'active' : ''}`}
+          onClick={navigateToIDCardPrinter}
+        >
+          <span className="bottom-nav-icon">🪪</span>
+          <span className="bottom-nav-text">ID Card</span>
+        </button>
+        {!isAuthenticated ? (
+          <button
+            className="bottom-nav-item signin-btn"
+            onClick={handleSignIn}
+          >
+            <span className="bottom-nav-icon">🔐</span>
+            <span className="bottom-nav-text">Sign In</span>
+          </button>
+        ) : (
+          <button
+            className="bottom-nav-item signout-btn"
+            onClick={handleLogout}
+          >
+            <span className="bottom-nav-icon">🚪</span>
+            <span className="bottom-nav-text">Sign Out</span>
+          </button>
+        )}
+      </nav>
+    </>
   );
 };
 

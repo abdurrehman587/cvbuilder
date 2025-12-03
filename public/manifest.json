@@ -1,20 +1,88 @@
 {
   "short_name": "Get Glory",
-  "name": "Get Glory - Professional Services",
+  "name": "Get Glory - CV Builder, ID Card Printer & Marketplace",
+  "description": "Professional CV Builder, ID Card Printing, and Online Marketplace - All in one app!",
   "icons": [
     {
       "src": "images/glory-logo.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "images/glory-logo.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "images/glory-logo.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "images/glory-logo.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "images/glory-logo.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "images/glory-logo.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "images/glory-logo.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "images/glory-logo.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ],
-  "start_url": ".",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "theme_color": "#667eea",
-  "background_color": "#ffffff"
+  "background_color": "#ffffff",
+  "categories": ["business", "productivity", "shopping"],
+  "lang": "en",
+  "dir": "ltr",
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Marketplace",
+      "short_name": "Shop",
+      "description": "Browse our marketplace",
+      "url": "/#products",
+      "icons": [{ "src": "images/glory-logo.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "CV Builder",
+      "short_name": "CV",
+      "description": "Create professional CVs",
+      "url": "/#cv-builder",
+      "icons": [{ "src": "images/glory-logo.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "ID Card Printer",
+      "short_name": "ID Card",
+      "description": "Print ID cards",
+      "url": "/#id-card",
+      "icons": [{ "src": "images/glory-logo.png", "sizes": "96x96" }]
+    }
+  ]
 }

@@ -7,6 +7,52 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
   const [isAdmin, setIsAdmin] = useState(false);
   const [isOnAdminPage, setIsOnAdminPage] = useState(false);
   const [cartItemCount, setCartItemCount] = useState(0);
+  const [showInstallButton, setShowInstallButton] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(false);
+
+  // Check if PWA is already installed and handle install button visibility
+  useEffect(() => {
+    const checkInstallState = () => {
+      // Check if running as installed PWA
+      const installed = window.isPWA ? window.isPWA() : false;
+      setIsInstalled(installed);
+      
+      // Check if should show install button
+      const shouldShow = window.shouldShowInstall ? window.shouldShowInstall() : false;
+      setShowInstallButton(shouldShow && !installed);
+    };
+    
+    checkInstallState();
+    
+    // Listen for install availability
+    const handleInstallAvailable = () => {
+      checkInstallState();
+    };
+    
+    // Listen for successful installation
+    const handleInstalled = () => {
+      setShowInstallButton(false);
+      setIsInstalled(true);
+    };
+    
+    window.addEventListener('pwaInstallAvailable', handleInstallAvailable);
+    window.addEventListener('pwaInstalled', handleInstalled);
+    
+    return () => {
+      window.removeEventListener('pwaInstallAvailable', handleInstallAvailable);
+      window.removeEventListener('pwaInstalled', handleInstalled);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (window.installPWA) {
+      const installed = await window.installPWA();
+      if (installed) {
+        setShowInstallButton(false);
+        setIsInstalled(true);
+      }
+    }
+  };
 
   // Check if user is admin
   useEffect(() => {
@@ -326,6 +372,17 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
         </div>
 
         <div className="header-right">
+          {/* Install App Button */}
+          {showInstallButton && !isInstalled && (
+            <button
+              onClick={handleInstallClick}
+              className="install-btn-header"
+              title="Install Get Glory App"
+            >
+              Install App
+            </button>
+          )}
+          
           {/* Cart Button - Show on products page */}
           {showProductsOnHeader && (
             <button
@@ -333,8 +390,7 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
               className="cart-btn-header"
               title="View Cart"
             >
-              <span className="cart-icon">🛒</span>
-              <span className="cart-text">My Cart</span>
+Cart
               {cartItemCount > 0 && (
                 <span className="cart-badge">{cartItemCount}</span>
               )}
