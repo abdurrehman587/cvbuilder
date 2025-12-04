@@ -1,10 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { getCart, removeFromCart, updateCartQuantity, clearCart, getCartTotal } from '../../utils/cart';
+import { authService } from '../Supabase/supabase';
 import './Cart.css';
 
 const Cart = () => {
   const [cartItems, setCartItems] = useState([]);
   const [cartTotal, setCartTotal] = useState(0);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  const checkAuth = async () => {
+    try {
+      const user = await authService.getCurrentUser();
+      setIsAuthenticated(!!user);
+    } catch (err) {
+      setIsAuthenticated(false);
+    }
+  };
 
   useEffect(() => {
     loadCart();
@@ -59,12 +74,22 @@ const Cart = () => {
             <div className="cart-empty-icon">🛒</div>
             <h2>Your cart is empty</h2>
             <p>Add some products to your cart to get started!</p>
-            <button 
-              className="cart-empty-button"
-              onClick={() => window.location.href = '/#products'}
-            >
-              Browse Products
-            </button>
+            <div className="cart-empty-actions">
+              <button 
+                className="cart-empty-button"
+                onClick={() => window.location.href = '/#products'}
+              >
+                Browse Products
+              </button>
+              {isAuthenticated && (
+                <button 
+                  className="cart-empty-button order-history-button"
+                  onClick={() => window.location.href = '/#order-history'}
+                >
+                  📋 View Order History
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -81,7 +106,18 @@ const Cart = () => {
           >
             ← Back to Products
           </button>
-          <h1 className="cart-title">Shopping Cart</h1>
+          <div className="cart-header-right">
+            <h1 className="cart-title">Shopping Cart</h1>
+            {isAuthenticated && (
+              <button
+                className="order-history-link-button"
+                onClick={() => window.location.href = '/#order-history'}
+                title="View Order History"
+              >
+                📋 Order History
+              </button>
+            )}
+          </div>
           {cartItems.length > 0 && (
             <button 
               className="cart-clear-button"

@@ -135,6 +135,17 @@ const MarketplaceAdmin = () => {
       setLoading(true);
       const data = await orderService.getAllOrders();
       setOrders(data || []);
+      
+      // Mark all orders as read when viewing orders tab
+      if (data && data.length > 0) {
+        const orderIds = data.map(order => order.id);
+        const unread = JSON.parse(localStorage.getItem('unreadOrders') || '[]');
+        const updatedUnread = unread.filter(id => !orderIds.includes(id));
+        localStorage.setItem('unreadOrders', JSON.stringify(updatedUnread));
+        
+        // Dispatch event to update notification
+        window.dispatchEvent(new CustomEvent('ordersViewed'));
+      }
     } catch (err) {
       console.error('Error loading orders:', err);
       alert('Error loading orders: ' + err.message);

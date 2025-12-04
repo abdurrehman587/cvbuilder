@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './Header.css';
 import { authService, supabase } from '../Supabase/supabase';
 import { getCartItemCount } from '../../utils/cart';
+import OrderNotification from '../OrderNotification/OrderNotification';
 
 const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, showProductsOnHeader = false }) => {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -294,130 +295,76 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
 
 
   return (
-    <header className="app-header">
-      <div className="header-container">
-        <div className="header-left">
-          <img 
-            src="/images/glory-logo.png" 
-            alt="Glory Logo" 
-            className="glory-logo"
-            onClick={goToProducts}
-            onError={(e) => {
-              // Fallback if logo doesn't exist - hide it
-              e.target.style.display = 'none';
-            }}
-          />
-        </div>
-
-        <div className="header-center">
-          {isAuthenticated && !showProductsOnHeader && (
-            <nav className="header-navigation">
-              <button
-                onClick={goToProducts}
-                className={`nav-button ${currentProduct === 'marketplace' || currentProduct === 'products' ? 'active' : ''}`}
-              >
-                <span className="nav-icon">🛒</span>
-                <span className="nav-text">Market Place</span>
-              </button>
-              <button
-                onClick={navigateToCVBuilder}
-                className={`nav-button ${currentProduct === 'cv-builder' ? 'active' : ''}`}
-              >
-                CV Builder
-              </button>
-              <button
-                onClick={navigateToIDCardDashboard}
-                className={`nav-button ${currentProduct === 'id-card-print' ? 'active' : ''}`}
-              >
-                ID Card Print
-              </button>
-            </nav>
-          )}
-          {showProductsOnHeader && (
-            <nav className="header-navigation header-products-navigation">
-              <button
-                onClick={() => scrollToSection('marketplace-section')}
-                className="header-products-nav-button"
-              >
-                <span className="nav-icon">🛒</span>
-                <span className="nav-text">Market Place</span>
-              </button>
-              <button
-                onClick={() => scrollToSection('cv-builder-section')}
-                className="header-products-nav-button"
-              >
-                <span className="nav-icon">📄</span>
-                <span className="nav-text">CV Builder</span>
-              </button>
-              <button
-                onClick={() => scrollToSection('id-card-print-section')}
-                className="header-products-nav-button"
-              >
-                <span className="nav-icon">🪪</span>
-                <span className="nav-text">ID Card Printer</span>
-              </button>
-            </nav>
-          )}
-          {!isAuthenticated && !showProductsOnHeader && (
-            <nav className="header-navigation">
-              <button
-                onClick={goToProducts}
-                className="nav-button"
-              >
-                <span className="nav-icon">🛒</span>
-                <span className="nav-text">Market Place</span>
-              </button>
-            </nav>
-          )}
-        </div>
-
-        <div className="header-right">
-          {/* Install App Button */}
-          {showInstallButton && !isInstalled && (
-            <button
-              onClick={handleInstallClick}
-              className="install-btn-header"
-              title="Install Get Glory App"
-            >
-              Install App
-            </button>
-          )}
-          
-          {/* Cart Button - Show on products page */}
-          {showProductsOnHeader && (
-            <button
-              onClick={() => window.location.href = '/#cart'}
-              className="cart-btn-header"
-              title="View Cart"
-            >
-Cart
-              {cartItemCount > 0 && (
-                <span className="cart-badge">{cartItemCount}</span>
-              )}
-            </button>
-          )}
-          {isAuthenticated && isAdmin && window.location.hash !== '#admin' && (
-            <button 
-              type="button"
-              onClick={() => {
-                // Clear any products page flags
-                localStorage.removeItem('showProductsPage');
-                sessionStorage.removeItem('showProductsPage');
-                // Clear any other navigation flags
-                localStorage.removeItem('selectedApp');
-                sessionStorage.removeItem('navigateToCVBuilder');
-                sessionStorage.removeItem('navigateToIDCardPrint');
-                // Navigate to admin panel
-                window.location.href = '/#admin';
+    <>
+      <header className="app-header">
+        <div className="header-container">
+          <div className="header-left">
+            <img 
+              src="/images/glory-logo.png" 
+              alt="Glory Logo" 
+              className="glory-logo"
+              onClick={goToProducts}
+              onError={(e) => {
+                // Fallback if logo doesn't exist - hide it
+                e.target.style.display = 'none';
               }}
-              className="admin-btn-header"
-            >
-              Admin Panel
-            </button>
-          )}
+            />
+          </div>
+
+          <div className="header-center">
+            {/* Navigation buttons removed */}
+          </div>
+
+          <div className="header-right">
+            {/* Install App Button */}
+            {showInstallButton && !isInstalled && (
+              <button
+                onClick={handleInstallClick}
+                className="install-btn-header"
+                title="Install Get Glory App"
+              >
+                Install App
+              </button>
+            )}
+            
+            {/* Cart Button - Show on products page */}
+            {showProductsOnHeader && (
+              <button
+                onClick={() => window.location.href = '/#cart'}
+                className="cart-btn-header"
+                title="View Cart"
+              >
+Cart
+                {cartItemCount > 0 && (
+                  <span className="cart-badge">{cartItemCount}</span>
+                )}
+              </button>
+            )}
+            {isAuthenticated && isAdmin && window.location.hash !== '#admin' && (
+              <button 
+                type="button"
+                onClick={() => {
+                  // Clear any products page flags
+                  localStorage.removeItem('showProductsPage');
+                  sessionStorage.removeItem('showProductsPage');
+                  // Clear any other navigation flags
+                  localStorage.removeItem('selectedApp');
+                  sessionStorage.removeItem('navigateToCVBuilder');
+                  sessionStorage.removeItem('navigateToIDCardPrint');
+                  // Navigate to admin panel
+                  window.location.href = '/#admin';
+                }}
+                className="admin-btn-header"
+              >
+                Admin Panel
+              </button>
+            )}
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+      {/* Order Notification - Always visible for admins */}
+      <OrderNotification isAdmin={isAdmin} isAuthenticated={isAuthenticated} />
+    </>
   );
 };
 

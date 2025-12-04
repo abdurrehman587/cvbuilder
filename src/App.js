@@ -22,6 +22,7 @@ import ProductDetail from './components/Products/ProductDetail';
 import Cart from './components/Cart/Cart';
 import Checkout from './components/Checkout/Checkout';
 import OrderDetails from './components/OrderDetails/OrderDetails';
+import OrderHistory from './components/OrderHistory/OrderHistory';
 import LeftNavbar from './components/Navbar/LeftNavbar';
 
 function App() {
@@ -747,6 +748,7 @@ function App() {
   const showCart = currentHash === '#cart';
   const showCheckout = currentHash === '#checkout';
   const showOrderDetails = currentHash.startsWith('#order-details');
+  const showOrderHistory = currentHash === '#order-history';
 
   // Simple check: Show products page if URL hash is #products
   const showProductsPageHash = currentHash === '#products';
@@ -839,6 +841,19 @@ function App() {
           showProductsOnHeader={true}
         />
         <OrderDetails />
+      </>
+    );
+  }
+
+  if (showOrderHistory && isAuthenticated) {
+    return wrapWithNavbar(
+      <>
+        <Header 
+          isAuthenticated={isAuthenticated} 
+          onLogout={handleLogout}
+          showProductsOnHeader={true}
+        />
+        <OrderHistory />
       </>
     );
   }

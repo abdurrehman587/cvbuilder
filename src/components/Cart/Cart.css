@@ -28,6 +28,34 @@
   gap: 1rem;
 }
 
+.cart-header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.order-history-link-button {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.order-history-link-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
 .cart-back-button {
   background: white;
   border: 2px solid #e2e8f0;
@@ -101,6 +129,13 @@
   margin: 0 0 2rem 0;
 }
 
+.cart-empty-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
 .cart-empty-button {
   background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
   color: white;
@@ -117,6 +152,15 @@
   background: linear-gradient(135deg, #eab308 0%, #b45309 100%);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.cart-empty-button.order-history-button {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.cart-empty-button.order-history-button:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .cart-content {
