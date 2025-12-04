@@ -9,6 +9,8 @@ const ProductDetail = ({ productId }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [addedToCart, setAddedToCart] = useState(false);
   const [inCart, setInCart] = useState(false);
+  const [relatedProducts, setRelatedProducts] = useState([]);
+  const [loadingRelated, setLoadingRelated] = useState(false);
 
   useEffect(() => {
     const loadProduct = async () => {
@@ -25,6 +27,10 @@ const ProductDetail = ({ productId }) => {
         // Check if product is already in cart
         if (data) {
           setInCart(isInCart(data.id));
+          // Load related products from the same section
+          if (data.section_id) {
+            loadRelatedProducts(data.section_id, data.id, data.name);
+          }
         }
       } catch (err) {
         console.error('Error loading product:', err);
@@ -37,6 +43,85 @@ const ProductDetail = ({ productId }) => {
       loadProduct();
     }
   }, [productId]);
+
+  // Load related products from the same section
+  const loadRelatedProducts = async (sectionId, currentProductId, currentProductName) => {
+    try {
+      setLoadingRelated(true);
+      const { data, error } = await supabase
+        .from('marketplace_products')
+        .select('*, marketplace_sections(name)')
+        .eq('section_id', sectionId)
+        .neq('id', currentProductId) // Exclude current product
+        .order('created_at', { ascending: false })
+        .limit(20); // Fetch more products to sort by relevance
+
+      if (error) throw error;
+      
+      // Sort products by name similarity to prioritize products with similar names
+      const sortedProducts = sortProductsByRelevance(data || [], currentProductName);
+      
+      // Limit to 8 products after sorting
+      setRelatedProducts(sortedProducts.slice(0, 8));
+    } catch (err) {
+      console.error('Error loading related products:', err);
+    } finally {
+      setLoadingRelated(false);
+    }
+  };
+
+  // Sort products by relevance to current product name
+  const sortProductsByRelevance = (products, currentProductName) => {
+    if (!currentProductName || products.length === 0) {
+      return products;
+    }
+
+    // Extract keywords from current product name (lowercase, remove common words)
+    const currentNameLower = currentProductName.toLowerCase();
+    const commonWords = ['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from'];
+    const currentKeywords = currentNameLower
+      .split(/\s+/)
+      .filter(word => word.length > 2 && !commonWords.includes(word));
+
+    // Sort products by relevance score
+    const scoredProducts = products.map(product => {
+      const productNameLower = (product.name || '').toLowerCase();
+      let score = 0;
+
+      // Check for exact keyword matches
+      currentKeywords.forEach(keyword => {
+        if (productNameLower.includes(keyword)) {
+          // Higher score for longer keyword matches
+          score += keyword.length * 10;
+          // Bonus if keyword appears at the start of the product name
+          if (productNameLower.startsWith(keyword)) {
+            score += 20;
+          }
+        }
+      });
+
+      // Bonus for products with more matching keywords
+      const matchingKeywords = currentKeywords.filter(keyword => 
+        productNameLower.includes(keyword)
+      ).length;
+      score += matchingKeywords * 5;
+
+      return { product, score };
+    });
+
+    // Sort by score (highest first), then by created_at (newest first) as tiebreaker
+    scoredProducts.sort((a, b) => {
+      if (b.score !== a.score) {
+        return b.score - a.score;
+      }
+      // If scores are equal, sort by created_at (newest first)
+      const dateA = new Date(a.product.created_at || 0);
+      const dateB = new Date(b.product.created_at || 0);
+      return dateB - dateA;
+    });
+
+    return scoredProducts.map(item => item.product);
+  };
 
   // Listen for cart updates
   useEffect(() => {
@@ -74,6 +159,28 @@ const ProductDetail = ({ productId }) => {
     }
     
     return [];
+  };
+
+  // Handle related product click
+  const handleRelatedProductClick = (relatedProductId) => {
+    window.location.href = `/#product/${relatedProductId}`;
+  };
+
+  // Handle add to cart for related products
+  const handleRelatedAddToCart = (e, relatedProduct) => {
+    e.preventDefault();
+    e.stopPropagation();
+    addToCart(relatedProduct);
+    // Trigger cart update event
+    window.dispatchEvent(new CustomEvent('cartUpdated'));
+  };
+
+  // Handle buy now for related products
+  const handleRelatedBuyNow = (e, relatedProduct) => {
+    e.preventDefault();
+    e.stopPropagation();
+    addToCart(relatedProduct);
+    window.location.href = '/#checkout';
   };
 
   // Keyboard navigation
@@ -136,6 +243,18 @@ const ProductDetail = ({ productId }) => {
     setTimeout(() => {
       setAddedToCart(false);
     }, 3000);
+  };
+
+  // Handle buy now
+  const handleBuyNow = () => {
+    if (!product) return;
+    
+    // Add product to cart first
+    addToCart(product);
+    setInCart(true);
+    
+    // Navigate directly to checkout
+    window.location.href = '/#checkout';
   };
 
   // Helper function to render description (HTML or plain text)
@@ -264,6 +383,12 @@ const ProductDetail = ({ productId }) => {
 
             <div className="product-detail-actions">
               <button 
+                className="product-detail-buy-now-btn"
+                onClick={handleBuyNow}
+              >
+                Buy Now
+              </button>
+              <button 
                 className={`product-detail-contact-btn ${inCart ? 'in-cart' : ''}`}
                 onClick={handleAddToCart}
                 disabled={addedToCart}
@@ -273,6 +398,98 @@ const ProductDetail = ({ productId }) => {
             </div>
           </div>
         </div>
+
+        {/* Related Products Section */}
+        {relatedProducts.length > 0 && (
+          <div className="related-products-section">
+            <div className="related-products-header">
+              <h2 className="related-products-title">Related Products</h2>
+              <div className="related-products-divider"></div>
+            </div>
+            {loadingRelated ? (
+              <div className="related-products-loading">
+                <p>Loading related products...</p>
+              </div>
+            ) : (
+              <div className="related-products-grid">
+                {relatedProducts.map((relatedProduct) => {
+                  const relatedImages = getProductImages(relatedProduct);
+                  const relatedInCart = isInCart(relatedProduct.id);
+                  
+                  return (
+                    <div
+                      key={relatedProduct.id}
+                      className="related-product-card"
+                      onClick={() => handleRelatedProductClick(relatedProduct.id)}
+                    >
+                      <div className="related-product-image-wrapper">
+                        {relatedImages.length > 0 ? (
+                          <img
+                            src={relatedImages[0]}
+                            alt={relatedProduct.name}
+                            className="related-product-image"
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                            }}
+                          />
+                        ) : (
+                          <div className="related-product-placeholder">
+                            <span className="related-product-placeholder-icon">📦</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="related-product-body">
+                        <h4 className="related-product-name">{relatedProduct.name}</h4>
+                        <div className="related-product-footer">
+                          <div className="related-product-price-container">
+                            {relatedProduct.original_price && relatedProduct.original_price > relatedProduct.price ? (
+                              <>
+                                <span className="related-product-price-discounted">
+                                  Rs. {relatedProduct.price?.toLocaleString() || '0'}
+                                </span>
+                                <span className="related-product-price-original">
+                                  Rs. {relatedProduct.original_price?.toLocaleString() || '0'}
+                                </span>
+                              </>
+                            ) : (
+                              <span className="related-product-price">
+                                Rs. {relatedProduct.price?.toLocaleString() || '0'}
+                              </span>
+                            )}
+                          </div>
+                          <div className="related-product-action-buttons">
+                            <button
+                              className="related-product-buy-now-btn"
+                              onClick={(e) => handleRelatedBuyNow(e, relatedProduct)}
+                              title="Buy Now"
+                            >
+                              Buy Now
+                            </button>
+                            <button
+                              className={`related-product-add-to-cart-btn ${relatedInCart ? 'in-cart' : ''}`}
+                              onClick={(e) => handleRelatedAddToCart(e, relatedProduct)}
+                              title="Add to Cart"
+                            >
+                              {relatedInCart ? 'In Cart' : 'Add to Cart'}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            <div className="related-products-footer">
+              <button
+                className="related-products-back-button"
+                onClick={() => window.location.href = '/#products'}
+              >
+                ← Back to All Products
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
