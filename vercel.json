@@ -1,0 +1,20 @@
+{
+  "rewrites": [
+    {
+      "source": "/oauth-callback",
+      "destination": "/oauth-callback.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/oauth-callback.html",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    }
+  ]
+}
+

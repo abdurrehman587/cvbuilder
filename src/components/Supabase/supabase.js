@@ -1,4 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
+import { Capacitor } from '@capacitor/core'
+import { Browser } from '@capacitor/browser'
 
 // Supabase configuration
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL || 'https://ctygupgtlawlgcikmkqz.supabase.co'
@@ -171,18 +173,41 @@ export const authService = {
 
   // Sign in with Google OAuth
   async signInWithGoogle() {
+    // Check if running on Capacitor (mobile app)
+    const isNative = Capacitor.isNativePlatform();
+    
     // Use environment variable for redirect URL, or fallback to current origin
     // In production, set REACT_APP_SITE_URL=https://getglory.pk
     const redirectUrl = process.env.REACT_APP_SITE_URL || window.location.origin;
     
+    // For mobile apps, use a web URL that will redirect to the app
+    // This web URL must be added to Google Cloud Console
+    // The web page should redirect to getglory://oauth-callback
+    const mobileRedirectUrl = isNative 
+      ? `${redirectUrl}/oauth-callback` 
+      : `${redirectUrl}/`;
+    
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${redirectUrl}/`
+        redirectTo: mobileRedirectUrl,
+        // On mobile, open in system browser instead of WebView
+        ...(isNative && {
+          skipBrowserRedirect: true
+        })
       }
     })
     
     if (error) throw error
+    
+    // On mobile, open the OAuth URL in system browser
+    if (isNative && data?.url) {
+      await Browser.open({ 
+        url: data.url,
+        windowName: '_self'
+      });
+    }
+    
     return data
   },
 

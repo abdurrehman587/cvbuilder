@@ -24,6 +24,8 @@ import Checkout from './components/Checkout/Checkout';
 import OrderDetails from './components/OrderDetails/OrderDetails';
 import OrderHistory from './components/OrderHistory/OrderHistory';
 import LeftNavbar from './components/Navbar/LeftNavbar';
+import { App } from '@capacitor/app';
+import { Browser } from '@capacitor/browser';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -176,6 +178,38 @@ function App() {
     };
 
     getInitialSession();
+
+    // Handle deep links for OAuth callback (mobile app)
+    const handleAppUrl = async (url) => {
+      console.log('App opened with URL:', url);
+      
+      // Check if this is an OAuth callback
+      if (url.url && url.url.includes('oauth-callback')) {
+        // Close the browser if it's still open
+        try {
+          await Browser.close();
+        } catch (e) {
+          // Browser might already be closed
+        }
+        
+        // Extract parameters from the deep link
+        // Format: getglory://oauth-callback?code=xxx&state=xxx#access_token=xxx
+        const urlObj = new URL(url.url);
+        const params = new URLSearchParams(urlObj.search);
+        const hash = urlObj.hash;
+        
+        // If there's a hash with access_token, Supabase will handle it
+        // If there's a code parameter, Supabase will exchange it
+        if (params.get('code') || hash.includes('access_token')) {
+          // Supabase will handle the session exchange automatically
+          // We just need to wait for the auth state change
+          console.log('OAuth callback received, waiting for session...');
+        }
+      }
+    };
+
+    // Listen for app URL open events (deep links)
+    App.addListener('appUrlOpen', handleAppUrl);
 
     // Listen for auth state changes (this is the authoritative source)
     // Supabase handles session management internally
@@ -535,6 +569,8 @@ function App() {
       window.removeEventListener('beforeunload', handleBeforeUnload);
       window.removeEventListener('pagehide', handlePageHide);
       delete window.navigateToDashboard;
+      // Remove App URL listener
+      App.removeAllListeners();
       // Cleanup auth state change subscription
       if (authStateSubscription && authStateSubscription.data && authStateSubscription.data.subscription) {
         authStateSubscription.data.subscription.unsubscribe();

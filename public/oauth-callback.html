@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting...</title>
+    <script>
+        // Extract URL parameters from the current page
+        const urlParams = new URLSearchParams(window.location.search);
+        const hash = window.location.hash;
+        
+        // Build the redirect URL with all parameters
+        let redirectUrl = 'getglory://oauth-callback';
+        
+        // Add query parameters if present
+        if (urlParams.toString()) {
+            redirectUrl += '?' + urlParams.toString();
+        }
+        
+        // Add hash if present
+        if (hash) {
+            redirectUrl += hash;
+        }
+        
+        // Try to redirect to the app
+        window.location.href = redirectUrl;
+        
+        // Fallback: if redirect doesn't work, show message
+        setTimeout(function() {
+            document.body.innerHTML = '<div style="text-align: center; padding: 50px; font-family: Arial, sans-serif;"><h2>Redirecting to app...</h2><p>If the app doesn\'t open automatically, please open it manually.</p></div>';
+        }, 1000);
+    </script>
+</head>
+<body>
+    <div style="text-align: center; padding: 50px; font-family: Arial, sans-serif;">
+        <h2>Redirecting to app...</h2>
+        <p>Please wait...</p>
+    </div>
+</body>
+</html>
+
