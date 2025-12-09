@@ -179,96 +179,112 @@ function App() {
 
     getInitialSession();
 
-    // Handle deep links for OAuth callback (mobile app)
+    // Add timeout to prevent infinite loading (30 seconds)
+    const loadingTimeout = setTimeout(() => {
+      console.warn('Authentication check timeout - stopping loading');
+      setIsLoading(false);
+    }, 30000);
+
+    // Handle deep links for OAuth callback (mobile app) - OPTIMIZED
     const handleAppUrl = async (url) => {
       console.log('App opened with URL:', url);
+      
+      // Clear the loading timeout since we received a callback
+      clearTimeout(loadingTimeout);
+      
+      // Dispatch event to hide loading state
+      window.dispatchEvent(new CustomEvent('googleSignInCallbackReceived'));
       
       // Check if this is an OAuth callback
       if (url.url && url.url.includes('oauth-callback')) {
         console.log('OAuth callback detected:', url.url);
         
-        // Close the browser if it's still open
-        try {
-          await Browser.close();
-        } catch (e) {
-          // Browser might already be closed
-        }
+        // Close the browser immediately (don't wait)
+        Browser.close().catch(() => {
+          // Browser might already be closed, ignore error
+        });
         
-        // Extract parameters from the deep link
+        // Extract parameters from the deep link - OPTIMIZED
         // Format: getglory://oauth-callback?code=xxx&state=xxx#access_token=xxx&refresh_token=xxx
         try {
-          const urlObj = new URL(url.url);
-          const params = new URLSearchParams(urlObj.search);
-          const hash = urlObj.hash;
+          // Handle both getglory:// and https:// schemes
+          let urlString = url.url;
+          if (!urlString.startsWith('http') && !urlString.startsWith('getglory')) {
+            urlString = 'getglory://' + urlString.replace(/^\/+/, '');
+          }
           
-          console.log('OAuth callback params:', { 
-            code: params.get('code'), 
-            state: params.get('state'),
-            hasHash: !!hash,
-            hash: hash.substring(0, 50) + '...' // Log first 50 chars of hash
-          });
+          // Fast token extraction using regex (faster than URL parsing for hash)
+          const hashMatch = urlString.match(/#([^?]*)/);
+          const hash = hashMatch ? hashMatch[1] : '';
           
-          // Extract tokens from hash
-          // Format: #access_token=xxx&refresh_token=xxx&expires_in=xxx&token_type=xxx
           if (hash) {
-            const hashParams = new URLSearchParams(hash.substring(1)); // Remove #
-            const accessToken = hashParams.get('access_token');
-            const refreshToken = hashParams.get('refresh_token');
-            const expiresIn = hashParams.get('expires_in');
+            // Fast token extraction using split (faster than URLSearchParams for simple cases)
+            const hashParts = hash.split('&');
+            let accessToken = null;
+            let refreshToken = null;
+            
+            for (const part of hashParts) {
+              if (part.startsWith('access_token=')) {
+                accessToken = decodeURIComponent(part.substring(13));
+              } else if (part.startsWith('refresh_token=')) {
+                refreshToken = decodeURIComponent(part.substring(14));
+              }
+              // Early exit if both tokens found
+              if (accessToken && refreshToken) break;
+            }
             
             if (accessToken && refreshToken) {
-              console.log('Found tokens in callback, setting session...');
+              console.log('Found tokens, setting session immediately...');
               
-              // Set the session using the tokens from the callback
-              const { data: { session }, error } = await supabase.auth.setSession({
-                access_token: accessToken,
-                refresh_token: refreshToken
-              });
-              
-              if (error) {
-                console.error('Error setting session:', error);
-                setIsLoading(false);
-              } else if (session?.user) {
-                console.log('Session set successfully:', session.user?.email);
-                setIsAuthenticated(true);
-                setIsLoading(false);
-                localStorage.setItem('cvBuilderAuth', 'true');
-              } else {
-                console.log('No session after setSession, will check...');
-                setIsLoading(false);
-                // Fallback: check for session
-                setTimeout(async () => {
-                  const { data: { session: checkSession } } = await supabase.auth.getSession();
-                  if (checkSession?.user) {
+              // Set session immediately (don't wait for browser close)
+              try {
+                const { data: { session }, error } = await supabase.auth.setSession({
+                  access_token: accessToken,
+                  refresh_token: refreshToken
+                });
+                
+                if (error) {
+                  console.error('Error setting session:', error);
+                  // Fallback: check for session
+                  const { data: { session: fallbackSession } } = await supabase.auth.getSession();
+                  if (fallbackSession?.user) {
                     setIsAuthenticated(true);
                     localStorage.setItem('cvBuilderAuth', 'true');
                   }
-                }, 500);
+                } else if (session?.user) {
+                  console.log('Session set successfully:', session.user?.email);
+                  setIsAuthenticated(true);
+                  localStorage.setItem('cvBuilderAuth', 'true');
+                }
+                setIsLoading(false);
+              } catch (sessionError) {
+                console.error('Exception setting session:', sessionError);
+                setIsLoading(false);
               }
-            } else {
-              console.log('No tokens in hash, checking for session...');
-              setIsLoading(false);
-              // No tokens, just check for existing session
-              const { data: { session } } = await supabase.auth.getSession();
-              if (session?.user) {
-                setIsAuthenticated(true);
-                localStorage.setItem('cvBuilderAuth', 'true');
-              }
+              return; // Early return after successful token extraction
             }
-          } else {
-            // No hash, just check for session
-            console.log('No hash in callback, checking for session...');
-            setIsLoading(false);
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session?.user) {
-              setIsAuthenticated(true);
-              localStorage.setItem('cvBuilderAuth', 'true');
-            }
+          }
+          
+          // Fallback: check for existing session (parallel check)
+          const sessionCheck = supabase.auth.getSession();
+          setIsLoading(false);
+          
+          const { data: { session } } = await sessionCheck;
+          if (session?.user) {
+            console.log('Session found:', session.user?.email);
+            setIsAuthenticated(true);
+            localStorage.setItem('cvBuilderAuth', 'true');
           }
           
         } catch (urlError) {
           console.error('Error processing OAuth callback URL:', urlError);
           setIsLoading(false);
+          // Last resort: check for any existing session
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session?.user) {
+            setIsAuthenticated(true);
+            localStorage.setItem('cvBuilderAuth', 'true');
+          }
         }
       }
     };
@@ -634,6 +650,8 @@ function App() {
       window.removeEventListener('beforeunload', handleBeforeUnload);
       window.removeEventListener('pagehide', handlePageHide);
       delete window.navigateToDashboard;
+      // Clear loading timeout
+      clearTimeout(loadingTimeout);
       // Remove App URL listener
       CapacitorApp.removeAllListeners();
       // Cleanup auth state change subscription

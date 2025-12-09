@@ -175,6 +175,7 @@ export const authService = {
   async signInWithGoogle() {
     // Check if running on Capacitor (mobile app)
     const isNative = Capacitor.isNativePlatform();
+    console.log('Google Sign-In - isNative:', isNative);
     
     // Use environment variable for redirect URL, or fallback to current origin
     // In production, set REACT_APP_SITE_URL=https://getglory.pk
@@ -187,28 +188,62 @@ export const authService = {
       ? `${redirectUrl}/oauth-callback` 
       : `${redirectUrl}/`;
     
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: mobileRedirectUrl,
-        // On mobile, open in system browser instead of WebView
-        ...(isNative && {
-          skipBrowserRedirect: true
-        })
+    console.log('Google Sign-In - redirectUrl:', mobileRedirectUrl);
+    
+    // Dispatch event immediately to show loading state
+    window.dispatchEvent(new CustomEvent('googleSignInStarted'));
+    
+    try {
+      // On mobile, we MUST use skipBrowserRedirect to prevent WebView
+      // Then manually open in system browser
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: mobileRedirectUrl,
+          // CRITICAL: On mobile, skip browser redirect to prevent WebView
+          skipBrowserRedirect: isNative,
+          // Optimize query parameters for faster processing
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent'
+          }
+        }
+      })
+      
+      if (error) {
+        console.error('Google Sign-In OAuth error:', error);
+        window.dispatchEvent(new CustomEvent('googleSignInError', { detail: error }));
+        throw error;
       }
-    })
-    
-    if (error) throw error
-    
-    // On mobile, open the OAuth URL in system browser
-    if (isNative && data?.url) {
-      await Browser.open({ 
-        url: data.url,
-        windowName: '_self'
-      });
+      
+      // On mobile, open the OAuth URL in system browser (not WebView)
+      if (isNative && data?.url) {
+        console.log('Opening OAuth URL in system browser:', data.url);
+        try {
+          // Browser.open() opens in the system browser by default
+          // Use faster opening without waiting for full load
+          Browser.open({ 
+            url: data.url
+          }).then(() => {
+            console.log('Browser opened successfully');
+            window.dispatchEvent(new CustomEvent('googleSignInBrowserOpened'));
+          }).catch((browserError) => {
+            console.error('Failed to open browser:', browserError);
+            window.dispatchEvent(new CustomEvent('googleSignInError', { detail: browserError }));
+            throw new Error('Failed to open browser for Google Sign-In');
+          });
+        } catch (browserError) {
+          console.error('Failed to open browser:', browserError);
+          window.dispatchEvent(new CustomEvent('googleSignInError', { detail: browserError }));
+          throw new Error('Failed to open browser for Google Sign-In');
+        }
+      }
+      
+      return data;
+    } catch (err) {
+      window.dispatchEvent(new CustomEvent('googleSignInError', { detail: err }));
+      throw err;
     }
-    
-    return data
   },
 
   // Reset password (forgot password)

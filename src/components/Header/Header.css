@@ -15,9 +15,12 @@
   width: 100%;
   overflow: visible;
   min-height: 70px;
-  height: var(--header-height);
+  height: calc(var(--header-height) + env(safe-area-inset-top, 0));
   display: flex;
   align-items: center;
+  padding-top: env(safe-area-inset-top, 0);
+  /* Ensure header is always below status bar */
+  margin-top: 0;
 }
 
 @media (max-width: 768px) {
@@ -25,8 +28,9 @@
     left: 0;
     width: 100%;
     min-height: 50px;
-    height: 50px !important;
+    height: calc(50px + env(safe-area-inset-top, 0)) !important;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding-top: env(safe-area-inset-top, 0);
   }
 }
 
@@ -34,6 +38,8 @@
   .app-header {
     left: 0;
     width: 100%;
+    padding-top: env(safe-area-inset-top, 0);
+    height: calc(50px + env(safe-area-inset-top, 0)) !important;
   }
 }
 
@@ -605,8 +611,9 @@
 /* Responsive Design */
 @media (max-width: 768px) {
   .app-header {
-    min-height: 56px;
-    height: 56px !important;
+    min-height: calc(56px + env(safe-area-inset-top, 0));
+    height: calc(56px + env(safe-area-inset-top, 0)) !important;
+    padding-top: env(safe-area-inset-top, 0);
   }
 
   .header-container {

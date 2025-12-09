@@ -51,7 +51,7 @@ html {
 /* App content wrapper when navbar is present */
 .app-content-with-navbar {
   margin-left: 200px;
-  margin-top: 70px;
+  margin-top: calc(70px + env(safe-area-inset-top, 0));
   width: calc(100% - 200px);
   max-width: calc(100% - 200px);
   transition: margin-left 0.3s ease, width 0.3s ease;
@@ -63,6 +63,15 @@ html {
   height: auto !important;
   min-height: auto !important;
   max-height: none !important;
+}
+
+@media (max-width: 768px) {
+  .app-content-with-navbar {
+    margin-left: 0;
+    margin-top: calc(50px + env(safe-area-inset-top, 0));
+    width: 100%;
+    max-width: 100%;
+  }
 }
 
 /* Ensure all content inside respects the container width */

@@ -4,51 +4,45 @@
   "description": "Professional CV Builder, ID Card Printing, and Online Marketplace - All in one app!",
   "icons": [
     {
-      "src": "images/glory-logo.png",
+      "src": "../icons/icon-48.webp",
+      "type": "image/png",
+      "sizes": "48x48",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "../icons/icon-72.webp",
+      "type": "image/png",
       "sizes": "72x72",
-      "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "images/glory-logo.png",
+      "src": "../icons/icon-96.webp",
+      "type": "image/png",
       "sizes": "96x96",
-      "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "images/glory-logo.png",
+      "src": "../icons/icon-128.webp",
+      "type": "image/png",
       "sizes": "128x128",
-      "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "images/glory-logo.png",
-      "sizes": "144x144",
+      "src": "../icons/icon-192.webp",
       "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "images/glory-logo.png",
-      "sizes": "152x152",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "images/glory-logo.png",
       "sizes": "192x192",
-      "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "images/glory-logo.png",
-      "sizes": "384x384",
+      "src": "../icons/icon-256.webp",
       "type": "image/png",
+      "sizes": "256x256",
       "purpose": "any maskable"
     },
     {
-      "src": "images/glory-logo.png",
+      "src": "../icons/icon-512.webp",
+      "type": "image/png",
       "sizes": "512x512",
-      "type": "image/png",
       "purpose": "any maskable"
     }
   ],
@@ -58,7 +52,11 @@
   "orientation": "portrait-primary",
   "theme_color": "#667eea",
   "background_color": "#ffffff",
-  "categories": ["business", "productivity", "shopping"],
+  "categories": [
+    "business",
+    "productivity",
+    "shopping"
+  ],
   "lang": "en",
   "dir": "ltr",
   "prefer_related_applications": false,
@@ -68,21 +66,36 @@
       "short_name": "Shop",
       "description": "Browse our marketplace",
       "url": "/#products",
-      "icons": [{ "src": "images/glory-logo.png", "sizes": "96x96" }]
+      "icons": [
+        {
+          "src": "images/glory-logo.png",
+          "sizes": "96x96"
+        }
+      ]
     },
     {
       "name": "CV Builder",
       "short_name": "CV",
       "description": "Create professional CVs",
       "url": "/#cv-builder",
-      "icons": [{ "src": "images/glory-logo.png", "sizes": "96x96" }]
+      "icons": [
+        {
+          "src": "images/glory-logo.png",
+          "sizes": "96x96"
+        }
+      ]
     },
     {
       "name": "ID Card Printer",
       "short_name": "ID Card",
       "description": "Print ID cards",
       "url": "/#id-card",
-      "icons": [{ "src": "images/glory-logo.png", "sizes": "96x96" }]
+      "icons": [
+        {
+          "src": "images/glory-logo.png",
+          "sizes": "96x96"
+        }
+      ]
     }
   ]
 }

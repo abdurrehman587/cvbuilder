@@ -27,7 +27,7 @@ const config: CapacitorConfig = {
       launchAutoHide: true,
       backgroundColor: '#ffffff',
       androidSplashResourceName: 'splash',
-      androidScaleType: 'CENTER_CROP',
+      androidScaleType: 'FIT_CENTER', // Scale to fit while maintaining aspect ratio - ensures full logo is visible
       showSpinner: false,
       splashFullScreen: true,
       splashImmersive: true

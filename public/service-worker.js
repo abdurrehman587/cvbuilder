@@ -1,5 +1,5 @@
 // Get Glory - Service Worker for PWA
-const CACHE_NAME = 'get-glory-v1';
+const CACHE_NAME = 'get-glory-v2';
 const OFFLINE_URL = '/offline.html';
 
 // Assets to cache immediately on install

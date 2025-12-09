@@ -3,9 +3,9 @@
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
   padding: 2rem;
   padding-bottom: 3rem; /* Extra bottom padding to ensure buttons are visible */
-  margin-top: var(--header-height, 80px);
+  margin-top: calc(var(--header-height, 80px) + env(safe-area-inset-top, 0));
   position: fixed;
-  top: var(--header-height, 80px);
+  top: calc(var(--header-height, 80px) + env(safe-area-inset-top, 0));
   left: 0;
   right: 0;
   bottom: 0;
@@ -465,11 +465,11 @@
   .product-detail-page {
     padding: 1rem;
     padding-bottom: 100px !important; /* Significantly increased to account for bottom nav bar + buttons */
-    margin-top: 60px;
-    top: 60px;
-    min-height: calc(100vh - 60px);
+    margin-top: calc(50px + env(safe-area-inset-top, 0));
+    top: calc(50px + env(safe-area-inset-top, 0));
+    min-height: calc(100vh - 50px - env(safe-area-inset-top, 0));
     bottom: 65px; /* Leave space for bottom navigation bar */
-    max-height: calc(100vh - 60px - 65px); /* Account for header and bottom nav */
+    max-height: calc(100vh - 50px - 65px - env(safe-area-inset-top, 0)); /* Account for header, bottom nav, and safe area */
   }
 
   .product-detail-content {
@@ -530,10 +530,11 @@
   .product-detail-page {
     padding: 0.5rem;
     padding-bottom: 100px !important; /* Significantly increased to account for bottom nav bar + buttons */
-    margin-top: 60px;
-    min-height: calc(100vh - 60px);
+    margin-top: calc(50px + env(safe-area-inset-top, 0));
+    top: calc(50px + env(safe-area-inset-top, 0));
+    min-height: calc(100vh - 50px - env(safe-area-inset-top, 0));
     bottom: 65px; /* Leave space for bottom navigation bar */
-    max-height: calc(100vh - 60px - 65px); /* Account for header and bottom nav */
+    max-height: calc(100vh - 50px - 65px - env(safe-area-inset-top, 0)); /* Account for header, bottom nav, and safe area */
   }
 
   .product-detail-container {
