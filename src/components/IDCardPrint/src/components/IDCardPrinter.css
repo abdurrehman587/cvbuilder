@@ -1,0 +1,884 @@
+/* ID Card Printer Styles */
+.id-card-printer-container {
+  min-height: calc(100vh - 80px);
+  background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+  padding: 1rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.id-card-printer-content {
+  max-width: 1000px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Header Section */
+.header-section {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.header-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: white;
+  border-radius: 30px;
+  border: 1px solid rgba(210, 85%, 55%, 0.2);
+  box-shadow: 0 4px 12px rgba(210, 85%, 55%, 0.1);
+  margin: 0 auto;
+}
+
+.header-icon {
+  font-size: 1.25rem;
+}
+
+.header-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, hsl(210, 85%, 55%), hsl(190, 85%, 65%));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0;
+}
+
+.header-description {
+  color: #666;
+  font-size: 0.875rem;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.4;
+}
+
+/* Card Designs Section */
+.card-designs-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.card-design-item {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(210, 85%, 55%, 0.1);
+}
+
+.card-design-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.card-design-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.remove-card-button {
+  padding: 0.5rem;
+  min-width: auto;
+}
+
+.card-images-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 1rem;
+  align-items: start;
+}
+
+/* Image Section */
+.image-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.image-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #666;
+  text-transform: capitalize;
+}
+
+.image-upload-area {
+  position: relative;
+  width: 3.5in;
+  height: 2.2in;
+  min-width: 3.5in;
+  min-height: 2.2in;
+  max-width: 3.5in;
+  max-height: 2.2in;
+  border: 2px dashed #ccc;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: #fafafa;
+  overflow: hidden;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.image-upload-area:hover {
+  border-color: hsl(210, 85%, 55%);
+  background: #f5f5f5;
+}
+
+.upload-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  z-index: 1;
+}
+
+.uploaded-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+  object-position: center center;
+  border-radius: 6px;
+  z-index: 2;
+  display: block;
+  visibility: visible;
+  opacity: 1;
+  background: white;
+  /* Ensure image scales to fit container */
+  box-sizing: border-box;
+  margin: auto;
+}
+
+.remove-button {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  padding: 0.375rem;
+  min-width: auto;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: rgba(220, 38, 38, 0.9);
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.remove-button:hover {
+  background: rgba(220, 38, 38, 1);
+  transform: scale(1.1);
+}
+
+.upload-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  color: #999;
+  text-align: center;
+  padding: 0.5rem;
+}
+
+.upload-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: hsl(210, 85%, 55%);
+  opacity: 0.5;
+}
+
+.upload-text {
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin: 0;
+  text-transform: capitalize;
+}
+
+.upload-hint {
+  font-size: 0.625rem;
+  margin: 0;
+  color: #999;
+}
+
+/* Image Controls */
+.image-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: #f9f9f9;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+}
+
+.control-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #333;
+  text-transform: capitalize;
+  margin-bottom: 0.25rem;
+}
+
+.control-label-small {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: #666;
+  margin-bottom: 0.375rem;
+  display: block;
+}
+
+.scan-mode-control {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.scan-mode-buttons {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.scan-mode-buttons button {
+  flex: 1;
+  padding: 0.375rem 0.5rem;
+  font-size: 0.7rem;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.scan-mode-buttons button:hover {
+  background: #f5f5f5;
+}
+
+.scan-mode-buttons button[data-state="on"] {
+  background: hsl(210, 85%, 55%);
+  color: white;
+  border-color: hsl(210, 85%, 55%);
+}
+
+.brightness-control {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  width: 100%;
+}
+
+/* Brightness Slider - Native HTML Range Input */
+.brightness-slider-input {
+  width: 100%;
+  height: 24px;
+  border-radius: 3px;
+  background: transparent;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+  display: block;
+  margin: 8px 0;
+  padding: 0;
+  position: relative;
+}
+
+/* Webkit browsers (Chrome, Safari, Edge) */
+.brightness-slider-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid hsl(210, 85%, 55%);
+  cursor: grab;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+  transition: all 0.15s ease;
+  margin-top: -6px; /* Center the thumb on the track (half thumb height - half track height) */
+  position: relative;
+}
+
+.brightness-slider-input::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+  border-color: hsl(210, 85%, 50%);
+}
+
+.brightness-slider-input::-webkit-slider-thumb:active {
+  cursor: grabbing;
+  transform: scale(1.15);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+}
+
+.brightness-slider-input::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 6px;
+  background: linear-gradient(
+    to right,
+    hsl(210, 85%, 55%) 0%,
+    hsl(210, 85%, 55%) var(--slider-progress, 50%),
+    #d0d0d0 var(--slider-progress, 50%),
+    #d0d0d0 100%
+  );
+  border-radius: 3px;
+  border: 1px solid #b0b0b0;
+}
+
+/* Firefox */
+.brightness-slider-input::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid hsl(210, 85%, 55%);
+  cursor: grab;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+  transition: all 0.15s ease;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+.brightness-slider-input::-moz-range-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+  border-color: hsl(210, 85%, 50%);
+}
+
+.brightness-slider-input::-moz-range-thumb:active {
+  cursor: grabbing;
+  transform: scale(1.15);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+}
+
+.brightness-slider-input::-moz-range-track {
+  width: 100%;
+  height: 6px;
+  background: #d0d0d0;
+  border-radius: 3px;
+  border: 1px solid #b0b0b0;
+}
+
+/* Firefox progress */
+.brightness-slider-input::-moz-range-progress {
+  background: hsl(210, 85%, 55%);
+  height: 6px;
+  border-radius: 3px 0 0 3px;
+}
+
+.extract-button {
+  width: 100%;
+  padding: 0.5rem;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  border-color: hsl(210, 85%, 55%);
+  color: hsl(210, 85%, 55%);
+}
+
+.extract-button:hover {
+  background: hsl(210, 85%, 55%, 0.1);
+}
+
+/* Copies Control */
+.copies-control {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375rem;
+  min-width: 100px;
+}
+
+.copies-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #666;
+}
+
+.copies-input-group {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.copies-button {
+  padding: 0.375rem;
+  min-width: auto;
+  width: 1.75rem;
+  height: 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.copies-input {
+  width: 3rem;
+  height: 1.75rem;
+  text-align: center;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.copies-hint {
+  font-size: 0.625rem;
+  color: #999;
+}
+
+/* Add Card Section */
+.add-card-section {
+  display: flex;
+  justify-content: center;
+}
+
+.add-card-button {
+  border-color: hsl(210, 85%, 55%);
+  color: hsl(210, 85%, 55%);
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  transition: all 0.3s ease;
+}
+
+.add-card-button:hover {
+  background: hsl(210, 85%, 55%, 0.1);
+  transform: translateY(-1px);
+}
+
+/* Print Section */
+.print-section {
+  display: flex;
+  justify-content: center;
+}
+
+.print-button {
+  background: linear-gradient(135deg, hsl(210, 85%, 55%), hsl(190, 85%, 65%));
+  color: white;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  box-shadow: 0 0 20px rgba(210, 85%, 55%, 0.25);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.print-button:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 0 50px rgba(210, 85%, 55%, 0.4);
+}
+
+.print-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Instructions */
+.instructions-card {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(210, 85%, 55%, 0.1);
+}
+
+.instructions-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.instructions-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: hsl(210, 85%, 55%);
+  margin: 0;
+}
+
+.instructions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.instruction-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.instruction-subtitle {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #333;
+  margin: 0;
+}
+
+.instruction-list {
+  list-style: disc;
+  list-style-position: inside;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: #666;
+  line-height: 1.4;
+}
+
+/* Icons */
+.icon {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .id-card-printer-container {
+    padding: 0.75rem;
+  }
+
+  .card-images-container {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .copies-control {
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .copies-input-group {
+    justify-content: center;
+  }
+
+  .header-title {
+    font-size: 1rem;
+  }
+
+  .instructions-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Crop Dialog Styles */
+.crop-dialog-content {
+  max-width: calc(1000px - 6rem); /* Decrease width to match black working space (accounting for padding) */
+  width: calc(1000px - 6rem); /* Fixed width: 1000px - 96px = 904px outer, inner = 904px - 32px = 872px, black space = 872px - 128px = 744px */
+  max-height: 95vh; /* Increased to ensure buttons fit */
+  padding: 1rem !important; /* Match white container padding (1rem = 16px) */
+  background: #f5f5f5; /* Light gray background to contrast with dark crop container */
+  border-radius: 12px; /* More rounded corners */
+  overflow: visible; /* Changed from hidden to visible to show buttons */
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2); /* Stronger shadow for depth */
+  border: 1px solid #e0e0e0; /* Subtle border */
+}
+
+/* Hide the close button */
+.crop-dialog-content button[aria-label*="close" i],
+.crop-dialog-content button[aria-label*="Close" i],
+.crop-dialog-content [data-radix-dialog-close],
+.crop-dialog-content button:has(svg),
+.crop-dialog-content > button {
+  display: none !important;
+}
+
+.crop-dialog-header {
+  background: white;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.crop-dialog-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.crop-dialog-instruction {
+  font-size: 0.875rem;
+  color: #666;
+  margin: 0.5rem 0 0 0;
+}
+
+.crop-container {
+  position: relative;
+  width: calc(100% - 6rem); /* Decrease width by 6rem (96px) for narrower working space */
+  max-width: calc(100% - 6rem); /* Ensure it doesn't exceed container */
+  height: 75vh; /* Increased height for more working space */
+  min-height: 500px;
+  max-height: calc(95vh - 100px); /* Leave space for footer only (no header) */
+  overflow: auto;
+  background: #2a2a2a; /* Darker background to stand out more */
+  border: 2px solid #1a1a1a; /* Dark border for definition */
+  border-radius: 8px; /* Rounded corners */
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3); /* Inner and outer shadows for depth */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: move;
+  padding: 50px; /* Added padding to prevent cut-off when rotated */
+  flex-shrink: 0; /* Prevent shrinking */
+  margin: 0 auto; /* Center the container */
+}
+
+.crop-image {
+  max-width: 50%; /* Reduce image size to 50% of container */
+  max-height: 50%; /* Reduce image size to 50% of container */
+  width: auto;
+  height: auto;
+  display: block;
+  user-select: none;
+  pointer-events: none;
+  object-fit: contain; /* Ensure full image is visible */
+}
+
+.crop-box {
+  position: absolute;
+  border: 2px dashed #3b82f6;
+  background: rgba(59, 130, 246, 0.1);
+  cursor: move;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7);
+  z-index: 10;
+  pointer-events: auto; /* Ensure crop box is interactive */
+}
+
+.crop-handle {
+  position: absolute;
+  z-index: 15; /* Increased z-index to ensure handles are always on top */
+  background: #3b82f6;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  pointer-events: all; /* Ensure handles are always clickable */
+}
+
+.crop-handle-corner {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  cursor: nwse-resize;
+  background: #3b82f6;
+  border: 2px solid white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.crop-handle-resize {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  background: #3b82f6;
+  border: 2px solid white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Corner resize handles */
+.crop-handle-nw {
+  top: -8px;
+  left: -8px;
+  cursor: nwse-resize;
+}
+
+.crop-handle-ne {
+  top: -8px;
+  right: -8px;
+  cursor: nesw-resize;
+}
+
+.crop-handle-sw {
+  bottom: -8px;
+  left: -8px;
+  cursor: nesw-resize;
+}
+
+.crop-handle-se {
+  bottom: -8px;
+  right: -8px;
+  cursor: nwse-resize;
+}
+
+/* Side resize handles */
+.crop-handle-n {
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  cursor: ns-resize;
+}
+
+.crop-handle-s {
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  cursor: ns-resize;
+}
+
+.crop-handle-e {
+  right: -6px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: ew-resize;
+}
+
+.crop-handle-w {
+  left: -6px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: ew-resize;
+}
+
+.crop-handle:hover {
+  background: #2563eb;
+  transform: scale(1.15);
+  z-index: 12;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35);
+}
+
+/* Rotation indicator - positioned exactly on corners (relative to crop box) */
+.crop-rotate-indicator {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: crosshair;
+  z-index: 20;
+  transition: all 0.2s ease;
+  pointer-events: all;
+}
+
+.crop-rotate-nw {
+  top: 0;
+  left: 0;
+  transform: translate(calc(-50% + 35px), -50%); /* Move to the right by 35px */
+}
+
+.crop-rotate-ne {
+  top: 0;
+  right: 0;
+  transform: translate(-50%, -50%); /* Keep base transform */
+}
+
+.crop-rotate-se {
+  bottom: 0;
+  right: 0;
+  transform: translate(-50%, calc(-50% + 20px)); /* Move down by 20px (reduced from 35px to move up) */
+}
+
+.crop-rotate-sw {
+  bottom: 0;
+  left: 0;
+  transform: translate(-50%, -50%); /* Keep base transform */
+}
+
+.rotate-circle {
+  width: 28px;
+  height: 28px;
+  border: 2px dashed #3b82f6;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.crop-rotate-indicator:hover .rotate-circle {
+  border-color: #2563eb;
+  border-width: 2.5px;
+  transform: scale(1.1);
+  background: rgba(255, 255, 255, 1);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.crop-dialog-footer {
+  background: white;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  flex-shrink: 0; /* Prevent footer from shrinking */
+  z-index: 100; /* Ensure footer is visible */
+  position: relative; /* Ensure it's positioned correctly */
+  min-height: 60px; /* Ensure minimum height for buttons */
+  overflow: visible; /* Ensure buttons are not cut off */
+}
+
+.crop-dialog-footer button {
+  padding: 0.5rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.crop-dialog-footer button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+@media (max-width: 768px) {
+  .crop-dialog-content {
+    max-width: 95vw;
+    width: 95vw; /* Full width on mobile */
+  }
+  .crop-container {
+    height: 70vh; /* Increased for mobile too */
+    min-height: 450px;
+    padding: 30px; /* Reduced padding on mobile */
+    margin: 0; /* No margin on mobile */
+  }
+  .crop-image {
+    max-width: 50%; /* Match desktop size */
+    max-height: 50%;
+  }
+  .crop-dialog-header {
+    padding: 0.75rem 1rem;
+  }
+  .crop-dialog-footer {
+    padding: 0.75rem 1rem;
+  }
+}
+

@@ -1,0 +1,637 @@
+/* PDF Generation Styles for Template 3 - Compact Print-Friendly Design */
+
+/* Ensure template3-root wrapper has A4 width in PDF mode */
+.template3-root.pdf-mode {
+  width: 800px !important;
+  max-width: 800px !important;
+  min-width: 800px !important;
+  height: auto !important;
+  max-height: none !important;
+  min-height: auto !important;
+  margin: 0 auto !important;
+  overflow: visible !important;
+}
+
+/* Balanced layout for PDF generation - A4 Size */
+.template3-root .cv-preview.pdf-mode {
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  min-height: auto !important;
+  height: auto !important;
+  max-height: none !important;
+  line-height: 1.4 !important;
+  font-family: 'Arial', sans-serif !important;
+  background: white !important;
+  color: #333 !important;
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+  /* A4 dimensions: 210mm x 297mm at 96 DPI = 794px x 1123px */
+  /* Using 800px width for better rendering, maintaining A4 aspect ratio */
+  width: 800px !important;
+  max-width: 800px !important;
+  min-width: 800px !important;
+  font-size: 0.85rem !important;
+  overflow: visible !important;
+}
+
+/* Ensure PDF mode overrides all preview styles */
+.template3-root .cv-preview.pdf-mode * {
+  font-family: 'Arial', sans-serif !important;
+}
+
+/* Header for PDF */
+.template3-root .cv-preview.pdf-mode .cv-header {
+  position: relative !important;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 50%, #ffa726 100%) !important;
+  padding: 20px 18px 18px 18px !important;
+  color: white !important;
+  overflow: visible !important;
+  z-index: 1 !important;
+  margin: 0 !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  min-height: auto !important;
+}
+
+.template3-root .cv-preview.pdf-mode .header-graphics {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  overflow: visible !important;
+  z-index: 0 !important;
+  pointer-events: none !important;
+  width: 100% !important;
+  height: 100% !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Static graphics for print */
+.template3-root .cv-preview.pdf-mode .graphic-circle {
+  position: absolute !important;
+  border-radius: 50% !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+  border: 2px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+.template3-root .cv-preview.pdf-mode .graphic-circle-1 {
+  width: 70px !important;
+  height: 70px !important;
+  top: -15px !important;
+  right: 8% !important;
+}
+
+.template3-root .cv-preview.pdf-mode .graphic-circle-2 {
+  width: 55px !important;
+  height: 55px !important;
+  top: 15% !important;
+  left: 4% !important;
+}
+
+.template3-root .cv-preview.pdf-mode .graphic-circle-3 {
+  width: 65px !important;
+  height: 65px !important;
+  bottom: -10px !important;
+  right: 15% !important;
+}
+
+.template3-root .cv-preview.pdf-mode .graphic-wave {
+  position: absolute !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-radius: 50% !important;
+}
+
+.template3-root .cv-preview.pdf-mode .graphic-wave-1 {
+  width: 120px !important;
+  height: 120px !important;
+  top: -60px !important;
+  left: -25px !important;
+}
+
+.template3-root .cv-preview.pdf-mode .graphic-wave-2 {
+  width: 95px !important;
+  height: 95px !important;
+  bottom: -48px !important;
+  right: -18px !important;
+}
+
+.template3-root .cv-preview.pdf-mode .header-graphics::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background-image: 
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 8px,
+      rgba(255, 255, 255, 0.03) 8px,
+      rgba(255, 255, 255, 0.03) 16px
+    ) !important;
+  opacity: 0.5 !important;
+}
+
+.template3-root .cv-preview.pdf-mode .header-content-wrapper {
+  position: relative !important;
+  z-index: 2 !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 20px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.template3-root .cv-preview.pdf-mode .profile-image-container {
+  width: 130px !important;
+  height: 130px !important;
+  border-radius: 50% !important;
+  overflow: hidden !important;
+  border: 3px solid rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.25) !important;
+  background: rgba(255, 255, 255, 0.2) !important;
+  flex-shrink: 0 !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  display: flex !important;
+}
+
+.template3-root .cv-preview.pdf-mode .header-right-content {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  width: auto !important;
+}
+
+.template3-root .cv-preview.pdf-mode .profile-placeholder {
+  font-size: 28px !important;
+}
+
+.template3-root .cv-preview.pdf-mode .header-name {
+  font-size: 1.7rem !important;
+  font-weight: 800 !important;
+  color: white !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.1 !important;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2) !important;
+  letter-spacing: 0.5px !important;
+  text-align: left !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  display: block !important;
+}
+
+.template3-root .cv-preview.pdf-mode .header-title {
+  font-size: 1rem !important;
+  font-weight: 400 !important;
+  color: rgba(255, 255, 255, 0.95) !important;
+  margin: 0 !important;
+  line-height: 1.3 !important;
+  font-style: italic !important;
+  text-align: left !important;
+}
+
+.template3-root .cv-preview.pdf-mode .header-contact {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 6px !important;
+  width: 100% !important;
+  margin-top: 0 !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.template3-root .cv-preview.pdf-mode .contact-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  color: rgba(255, 255, 255, 0.95) !important;
+  line-height: 1.4 !important;
+  padding: 5px 10px !important;
+  background: rgba(255, 255, 255, 0.18) !important;
+  border-radius: 18px !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+}
+
+.template3-root .cv-preview.pdf-mode .contact-icon {
+  font-size: 0.9rem !important;
+  flex-shrink: 0 !important;
+}
+
+/* Main Content Area for PDF */
+.template3-root .cv-preview.pdf-mode .cv-main-content {
+  flex: 1 !important;
+  padding: 12px 18px 20px 18px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0 !important;
+  background: white !important;
+  margin: 0 !important;
+  height: auto !important;
+  max-height: none !important;
+  min-height: auto !important;
+  overflow: visible !important;
+}
+
+/* Section Cards for PDF */
+.template3-root .cv-preview.pdf-mode .cv-section-card {
+  background: #fefefe !important;
+  border-radius: 0 !important;
+  padding: 10px 16px !important;
+  box-shadow: none !important;
+  border-left: 4px solid #ff6b6b !important;
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+  margin-bottom: 0 !important;
+}
+
+.template3-root .cv-preview.pdf-mode .section-heading {
+  font-size: 1.15rem !important;
+  font-weight: 700 !important;
+  color: #ff6b6b !important;
+  margin: 0 0 6px 0 !important;
+  padding-bottom: 3px !important;
+  border-bottom: 2px solid #ffe0d6 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.8px !important;
+}
+
+.template3-root .cv-preview.pdf-mode .section-heading::after {
+  width: 45px !important;
+  height: 2px !important;
+}
+
+.template3-root .cv-preview.pdf-mode .section-content {
+  line-height: 1.6 !important;
+}
+
+.template3-root .cv-preview.pdf-mode .professional-summary-text {
+  font-size: 0.95rem !important;
+  color: #555 !important;
+  margin: 0 !important;
+  line-height: 1.6 !important;
+  text-align: justify !important;
+  font-style: italic !important;
+}
+
+.template3-root .cv-preview.pdf-mode .education-item {
+  margin-bottom: 6px !important;
+  padding: 8px 10px !important;
+  background: linear-gradient(135deg, #fff5f0 0%, #ffe8e0 100%) !important;
+  border-radius: 6px !important;
+  border-left: 3px solid #ff6b6b !important;
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+}
+
+.template3-root .cv-preview.pdf-mode .education-item::before {
+  font-size: 16px !important;
+  left: -10px !important;
+  padding: 4px !important;
+}
+
+.template3-root .cv-preview.pdf-mode .education-single-line {
+  padding-left: 16px !important;
+  gap: 5px !important;
+}
+
+.template3-root .cv-preview.pdf-mode .education-degree {
+  font-size: 1rem !important;
+  font-weight: 700 !important;
+  color: #1e293b !important;
+}
+
+.template3-root .cv-preview.pdf-mode .education-board {
+  font-size: 0.95rem !important;
+  font-weight: 600 !important;
+  color: #ff6b6b !important;
+}
+
+.template3-root .cv-preview.pdf-mode .education-year {
+  font-size: 0.95rem !important;
+  font-weight: 500 !important;
+  color: #64748b !important;
+}
+
+.template3-root .cv-preview.pdf-mode .education-marks {
+  font-size: 0.9rem !important;
+  color: #94a3b8 !important;
+  font-style: italic !important;
+}
+
+.template3-root .cv-preview.pdf-mode .experience-item {
+  margin-bottom: 8px !important;
+  padding: 10px 12px !important;
+  background: linear-gradient(135deg, #fff5f0 0%, #ffe8e0 100%) !important;
+  border-radius: 6px !important;
+  border-left: 3px solid #ff8e53 !important;
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+}
+
+.template3-root .cv-preview.pdf-mode .experience-item::before {
+  font-size: 16px !important;
+  left: -10px !important;
+  padding: 4px !important;
+}
+
+.template3-root .cv-preview.pdf-mode .experience-header {
+  padding-left: 16px !important;
+  margin-bottom: 5px !important;
+}
+
+.template3-root .cv-preview.pdf-mode .experience-job-title {
+  font-size: 1.1rem !important;
+  font-weight: 700 !important;
+  color: #1e293b !important;
+}
+
+.template3-root .cv-preview.pdf-mode .experience-duration {
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+  color: white !important;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ffa726 100%) !important;
+  padding: 3px 8px !important;
+  border-radius: 12px !important;
+}
+
+.template3-root .cv-preview.pdf-mode .experience-company-line {
+  padding-left: 16px !important;
+  margin-bottom: 6px !important;
+}
+
+.template3-root .cv-preview.pdf-mode .experience-company {
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  color: #ff8e53 !important;
+}
+
+.template3-root .cv-preview.pdf-mode .experience-details {
+  font-size: 0.95rem !important;
+  color: #475569 !important;
+  line-height: 1.5 !important;
+  margin-left: 16px !important;
+  padding-left: 10px !important;
+  border-left: 2px solid #ffd4c4 !important;
+  text-align: justify !important;
+}
+
+.template3-root .cv-preview.pdf-mode .experience-detail-item {
+  font-size: 0.95rem !important;
+  color: #475569 !important;
+  line-height: 1.5 !important;
+  text-align: justify !important;
+  padding-left: 18px !important;
+}
+
+.template3-root .cv-preview.pdf-mode .experience-detail-item:before {
+  font-size: 12px !important;
+}
+
+.template3-root .cv-preview.pdf-mode .certification-item {
+  background: linear-gradient(135deg, #fff5f0 0%, #ffe8e0 100%) !important;
+  padding: 10px 12px !important;
+  border-radius: 6px !important;
+  border-left: 3px solid #ffa726 !important;
+}
+
+.template3-root .cv-preview.pdf-mode .certification-item::before {
+  font-size: 14px !important;
+  left: -10px !important;
+  padding: 3px !important;
+}
+
+.template3-root .cv-preview.pdf-mode .certification-text {
+  font-size: 0.9rem !important;
+  color: #475569 !important;
+  line-height: 1.5 !important;
+  font-weight: 500 !important;
+  padding-left: 10px !important;
+}
+
+.template3-root .cv-preview.pdf-mode .skill-pill,
+.template3-root .cv-preview.pdf-mode .language-pill,
+.template3-root .cv-preview.pdf-mode .hobby-pill {
+  padding: 5px 12px !important;
+  border-radius: 18px !important;
+  font-size: 0.85rem !important;
+  margin: 3px 5px 3px 0 !important;
+  display: inline-block !important;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 50%, #ffa726 100%) !important;
+  color: white !important;
+  font-family: 'Arial', sans-serif !important;
+  line-height: 1.4 !important;
+  font-weight: 600 !important;
+}
+
+.template3-root .cv-preview.pdf-mode .skill-name,
+.template3-root .cv-preview.pdf-mode .language-name,
+.template3-root .cv-preview.pdf-mode .hobby-name {
+  color: white !important;
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+}
+
+.template3-root .cv-preview.pdf-mode .other-info-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 8px !important;
+}
+
+.template3-root .cv-preview.pdf-mode .info-item {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 8px 12px !important;
+  background: linear-gradient(135deg, #fff5f0 0%, #ffe8e0 100%) !important;
+  border-radius: 6px !important;
+  border-left: 3px solid #ff6b6b !important;
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+}
+
+.template3-root .cv-preview.pdf-mode .info-label {
+  font-size: 0.95rem !important;
+  font-weight: 700 !important;
+  color: #ff6b6b !important;
+}
+
+.template3-root .cv-preview.pdf-mode .info-value {
+  font-size: 0.95rem !important;
+  color: #1e293b !important;
+  font-weight: 500 !important;
+}
+
+.template3-root .cv-preview.pdf-mode .custom-section-subheading {
+  font-size: 1.1rem !important;
+  font-weight: 700 !important;
+  color: #1e293b !important;
+  margin-bottom: 6px !important;
+}
+
+.template3-root .cv-preview.pdf-mode .custom-section-detail {
+  font-size: 0.9rem !important;
+  color: #475569 !important;
+  line-height: 1.5 !important;
+}
+
+.template3-root .cv-preview.pdf-mode .reference-text {
+  font-size: 1rem !important;
+  color: #475569 !important;
+  line-height: 1.5 !important;
+  font-style: italic !important;
+}
+
+/* Footer for PDF */
+.template3-root .cv-preview.pdf-mode .cv-footer {
+  position: relative !important;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 50%, #ffa726 100%) !important;
+  padding: 30px 18px 35px 18px !important;
+  color: white !important;
+  overflow: hidden !important;
+  z-index: 1 !important;
+  margin: 0 0 8px 0 !important;
+  border-radius: 8px !important;
+}
+
+.template3-root .cv-preview.pdf-mode .footer-graphics {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  overflow: hidden !important;
+  z-index: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Static footer graphics for print */
+.template3-root .cv-preview.pdf-mode .footer-graphic-circle {
+  position: absolute !important;
+  border-radius: 50% !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+  border: 2px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+.template3-root .cv-preview.pdf-mode .footer-graphic-circle-1 {
+  width: 60px !important;
+  height: 60px !important;
+  top: -12px !important;
+  left: 8% !important;
+}
+
+.template3-root .cv-preview.pdf-mode .footer-graphic-circle-2 {
+  width: 50px !important;
+  height: 50px !important;
+  top: 25% !important;
+  right: 6% !important;
+}
+
+.template3-root .cv-preview.pdf-mode .footer-graphic-circle-3 {
+  width: 55px !important;
+  height: 55px !important;
+  bottom: -8px !important;
+  left: 20% !important;
+}
+
+.template3-root .cv-preview.pdf-mode .footer-wave {
+  position: absolute !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-radius: 50% !important;
+}
+
+.template3-root .cv-preview.pdf-mode .footer-wave-1 {
+  width: 110px !important;
+  height: 110px !important;
+  top: -55px !important;
+  right: -25px !important;
+}
+
+.template3-root .cv-preview.pdf-mode .footer-wave-2 {
+  width: 85px !important;
+  height: 85px !important;
+  bottom: -43px !important;
+  left: -18px !important;
+}
+
+.template3-root .cv-preview.pdf-mode .footer-pattern {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background-image: 
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 8px,
+      rgba(255, 255, 255, 0.03) 8px,
+      rgba(255, 255, 255, 0.03) 16px
+    ) !important;
+  opacity: 0.5 !important;
+}
+
+.template3-root .cv-preview.pdf-mode .footer-graphics::before {
+  content: '' !important;
+  position: absolute !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  width: 80px !important;
+  height: 80px !important;
+  background: 
+    radial-gradient(circle at 0 100%, rgba(255, 255, 255, 0.1) 0%, transparent 50%) !important;
+}
+
+.template3-root .cv-preview.pdf-mode .footer-graphics::after {
+  content: '' !important;
+  position: absolute !important;
+  bottom: 0 !important;
+  right: 0 !important;
+  width: 80px !important;
+  height: 80px !important;
+  background: 
+    radial-gradient(circle at 100% 100%, rgba(255, 255, 255, 0.1) 0%, transparent 50%) !important;
+}
+
+.template3-root .cv-preview.pdf-mode .footer-content {
+  position: relative !important;
+  z-index: 2 !important;
+  text-align: center !important;
+}
+
+.template3-root .cv-preview.pdf-mode .footer-text {
+  font-size: 1rem !important;
+  font-weight: 700 !important;
+  color: white !important;
+  margin: 0 !important;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2) !important;
+  letter-spacing: 1.5px !important;
+  text-transform: uppercase !important;
+}
+
+/* Ensure all text elements have consistent base font size */
+.template3-root .cv-preview.pdf-mode * {
+  font-family: 'Arial', sans-serif !important;
+}
+
+.template3-root .cv-preview.pdf-mode p,
+.template3-root .cv-preview.pdf-mode div,
+.template3-root .cv-preview.pdf-mode span,
+.template3-root .cv-preview.pdf-mode li {
+  font-size: 0.85rem !important;
+  line-height: 1.4 !important;
+}

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting...</title>
+    <script>
+        // OPTIMIZED: Immediate redirect without waiting
+        (function() {
+            const search = window.location.search;
+            const hash = window.location.hash;
+            
+            // Build the redirect URL with all parameters
+            // Supabase passes tokens in the hash: #access_token=xxx&refresh_token=xxx&expires_in=xxx
+            let redirectUrl = 'getglory://oauth-callback';
+            
+            // Add query parameters if present (code, state, etc.)
+            if (search) {
+                redirectUrl += search;
+            }
+            
+            // Add hash if present (access_token, refresh_token, etc.)
+            // This is critical - Supabase puts the tokens in the hash
+            if (hash) {
+                redirectUrl += hash;
+            }
+            
+            // Immediate redirect using replace (faster than href)
+            window.location.replace(redirectUrl);
+            
+            // Fallback: if redirect doesn't work, show message (shouldn't be seen)
+            setTimeout(function() {
+                document.body.innerHTML = '<div style="text-align: center; padding: 50px; font-family: Arial, sans-serif;"><h2>Redirecting to app...</h2><p>If the app doesn\'t open automatically, please open it manually.</p><p>You can close this page.</p></div>';
+            }, 500);
+        })();
+    </script>
+</head>
+<body>
+    <div style="text-align: center; padding: 50px; font-family: Arial, sans-serif;">
+        <h2>Redirecting to app...</h2>
+        <p>Please wait...</p>
+    </div>
+</body>
+</html>
+

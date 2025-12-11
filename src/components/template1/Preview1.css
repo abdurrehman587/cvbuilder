@@ -1,0 +1,680 @@
+/* CV Preview Container - Modern Fresh Design */
+.cv-preview {
+  background: #ffffff;
+  min-height: 100vh;
+  padding: 0;
+  max-width: 1000px;
+  margin: 0 auto;
+  font-family: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  color: #1a1a1a;
+  font-size: 13pt;
+  line-height: 1.5;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.08);
+}
+
+/* Base text elements */
+.cv-preview p,
+.cv-preview div,
+.cv-preview span,
+.cv-preview li {
+  font-size: 13pt;
+  line-height: 1.5;
+}
+
+/* CV Header - Ultra Compact Design */
+.cv-header {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0;
+  padding: 0;
+  background: #1e3a8a;
+  border-radius: 0;
+  box-shadow: none;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Header Top Section - Ultra Compact */
+.cv-header-top {
+  display: flex;
+  align-items: center;
+  padding: 15px 25px;
+  gap: 18px;
+  position: relative;
+  z-index: 1;
+  min-height: 100px;
+}
+
+/* Profile Image Container - Small Square */
+.profile-image-container {
+  flex-shrink: 0;
+  width: 80px;
+  height: 80px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.cv-header .profile-image-container {
+  border: 4px solid rgba(255, 255, 255, 0.4);
+}
+
+.cv-header .profile-image-container .profile-placeholder {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  font-size: 22pt;
+  font-weight: 700;
+}
+
+.profile-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.profile-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 22pt;
+  font-weight: 700;
+  text-align: center;
+  border-radius: 4px;
+}
+
+/* Header Content - Ultra Compact with Zero Spacing */
+.header-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 0;
+  position: relative;
+  z-index: 1;
+}
+
+/* Reset all default margins and padding for header elements */
+.header-content h1,
+.header-content h2 {
+  margin: 0;
+  padding: 0;
+  line-height: 1;
+}
+
+.header-name {
+  font-size: 22pt;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  padding: 0;
+  line-height: 0.9;
+  letter-spacing: 0;
+  display: block;
+}
+
+.header-name + .contact-item {
+  margin-top: 0;
+}
+
+.header-title {
+  display: none;
+}
+
+.header-contact {
+  display: flex;
+  flex-direction: column;
+  gap: 0 !important;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  line-height: 0.75;
+}
+
+.header-contact > * {
+  line-height: 0.75 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  height: auto;
+  min-height: 0;
+}
+
+.contact-item {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 10.5pt;
+  color: #ffffff;
+  line-height: 0.75;
+  margin: 0;
+  padding: 0;
+  height: auto;
+  min-height: 0;
+  max-height: none;
+}
+
+.contact-item:first-of-type {
+  margin-top: 1px;
+}
+
+.contact-item + .contact-item {
+  margin-top: -4px !important;
+  margin-bottom: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  height: auto;
+  min-height: 0;
+}
+
+.contact-item span:not(.contact-icon) {
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 0.75 !important;
+  display: inline-block;
+  height: auto;
+  min-height: 0;
+  vertical-align: baseline;
+}
+
+.contact-icon {
+  width: auto;
+  height: auto;
+  color: #ffffff;
+  display: inline-block;
+  font-size: 10.5pt;
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0;
+  line-height: 0.75;
+  vertical-align: baseline;
+  border: none;
+  background: none;
+  box-shadow: none;
+}
+
+/* Header Bottom Accent Bar */
+.cv-header-bottom {
+  height: 2px;
+  background: #fbbf24;
+  width: 100%;
+}
+
+/* CV Section Styling - Modern Card Design */
+.cv-section {
+  margin-bottom: 0;
+  padding: 20px 35px;
+  background: #ffffff;
+  border-left: none;
+  border-radius: 0;
+  box-shadow: none;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.cv-section:last-child {
+  border-bottom: none;
+}
+
+.section-heading {
+  font-size: 18pt;
+  font-weight: 700;
+  color: #1e3a8a;
+  margin: 0 0 12px 0;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #3b82f6;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  position: relative;
+}
+
+.section-heading::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 50px;
+  height: 2px;
+  background: #fbbf24;
+}
+
+.section-content {
+  line-height: 1.6;
+}
+
+.professional-summary-text {
+  font-size: 13pt;
+  color: #4b5563;
+  margin: 0;
+  line-height: 1.6;
+  text-align: justify;
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  border-left: none;
+  font-weight: 400;
+  font-style: normal;
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Education Section Styling */
+.education-item {
+  margin-bottom: 10px;
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  border-left: none;
+  border-top: none;
+  border-right: none;
+  border-bottom: none;
+  box-shadow: none;
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.education-item:last-child {
+  margin-bottom: 0;
+}
+
+.education-single-line {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  line-height: 1.5;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.education-degree {
+  font-size: 14pt;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.education-board {
+  font-size: 13pt;
+  font-weight: 600;
+  color: #3b82f6;
+}
+
+.education-year {
+  font-size: 13pt;
+  font-weight: 400;
+  color: #6b7280;
+}
+
+.education-marks {
+  font-size: 13pt;
+  color: #6b7280;
+  font-weight: 400;
+}
+
+/* Experience Section Styling */
+.experience-item {
+  margin-bottom: 16px;
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  border-left: none;
+  box-shadow: none;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 14px;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.experience-item:last-child {
+  margin-bottom: 0;
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.experience-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 6px;
+  line-height: 1.4;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.experience-company-line {
+  margin-bottom: 8px;
+}
+
+.experience-job-title {
+  font-size: 14pt;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.experience-duration {
+  font-size: 12pt;
+  font-weight: 600;
+  color: #3b82f6;
+  background: #eff6ff;
+  padding: 3px 10px;
+  border-radius: 18px;
+}
+
+.experience-company {
+  font-size: 13pt;
+  font-weight: 600;
+  color: #3b82f6;
+}
+
+.experience-details {
+  font-size: 13pt;
+  color: #4b5563;
+  line-height: 1.6;
+  margin-left: 0;
+  padding-left: 0;
+  border-left: none;
+  text-align: left;
+}
+
+.experience-details-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.experience-detail-item {
+  position: relative;
+  padding: 3px 0 3px 20px;
+  font-size: 13pt;
+  color: #4b5563;
+  line-height: 1.6;
+  text-align: left;
+}
+
+.experience-detail-item:before {
+  content: '▸';
+  position: absolute;
+  left: 0;
+  color: #3b82f6;
+  font-size: 14pt;
+  font-weight: bold;
+}
+
+/* Certifications Section */
+.certifications-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.certification-item {
+  background: transparent;
+  border-left: none;
+  border-radius: 0;
+  box-shadow: none;
+  margin-bottom: 0;
+  padding: 0;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 8px;
+}
+
+.certification-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.certification-text {
+  font-size: 13pt;
+  color: #4b5563;
+  line-height: 1.6;
+  margin: 0;
+  font-weight: 400;
+}
+
+/* Skills Section */
+.skills-container,
+.languages-container,
+.hobbies-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.skill-pill,
+.hobby-pill {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12pt;
+  margin: 0;
+  display: inline-block;
+  background: linear-gradient(135deg, #3b82f6 0%, #1e3a8a 100%);
+  color: white;
+  font-weight: 500;
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
+  line-height: 1.3;
+  transition: transform 0.2s;
+}
+
+.skill-pill:hover,
+.hobby-pill:hover {
+  transform: translateY(-2px);
+}
+
+.language-pill {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12pt;
+  margin: 0;
+  display: inline-block;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+  font-weight: 500;
+  box-shadow: 0 2px 6px rgba(245, 158, 11, 0.3);
+  line-height: 1.3;
+}
+
+.skill-name,
+.language-name,
+.hobby-name {
+  color: white;
+  font-weight: 500;
+}
+
+/* Other Information Section */
+.other-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.cv-preview .other-info-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+.info-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 12px;
+  background: #f9fafb;
+  border-radius: 6px;
+  border-left: 3px solid #3b82f6;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  margin-bottom: 0;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.info-label {
+  font-weight: 700;
+  color: #1e3a8a;
+  margin-right: 6px;
+  font-size: 13pt;
+  min-width: fit-content;
+}
+
+.info-value {
+  color: #4b5563;
+  font-size: 13pt;
+  font-weight: 400;
+}
+
+/* Custom Section Styling */
+.custom-section-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.custom-section-item {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  border-left: 3px solid #f59e0b;
+  box-shadow: none;
+  margin-bottom: 0;
+  padding-left: 12px;
+  border-bottom: none;
+}
+
+.custom-section-item:last-child {
+  border-bottom: none;
+}
+
+.custom-section-subheading {
+  font-size: 14pt;
+  font-weight: 700;
+  color: #f59e0b;
+  margin: 0 0 6px 0;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.custom-section-detail {
+  font-size: 13pt;
+  color: #4b5563;
+  margin: 0;
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+/* References Section Styling */
+.references-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.reference-item {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  border-left: 3px solid #3b82f6;
+  box-shadow: none;
+  margin-bottom: 0;
+  padding-left: 12px;
+  border-bottom: none;
+}
+
+.reference-item:last-child {
+  border-bottom: none;
+}
+
+.reference-text {
+  font-size: 13pt;
+  color: #4b5563;
+  margin: 0;
+  line-height: 1.6;
+  font-style: italic;
+  font-weight: 400;
+}
+
+/* Download PDF Button */
+.download-pdf-container {
+  padding: 20px 35px;
+  background: #f9fafb;
+  border-top: 1px solid #e5e7eb;
+  text-align: center;
+}
+
+.download-pdf-button {
+  background: linear-gradient(135deg, #3b82f6 0%, #1e3a8a 100%);
+  color: white;
+  border: none;
+  padding: 12px 28px;
+  font-size: 14pt;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  transition: all 0.3s ease;
+}
+
+.download-pdf-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+}
+
+.download-pdf-button:active {
+  transform: translateY(0);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .cv-preview {
+    padding: 0;
+  }
+
+  .cv-header-top {
+    padding: 30px 25px;
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
+  }
+
+  .profile-image-container {
+    width: 120px;
+    height: 120px;
+  }
+
+  .header-name {
+    font-size: 28pt;
+    text-align: center;
+  }
+
+  .header-title {
+    text-align: center;
+  }
+
+  .header-contact {
+    justify-content: center;
+  }
+
+  .cv-section {
+    padding: 25px 20px;
+  }
+
+  .section-heading {
+    font-size: 18pt;
+  }
+
+  .other-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .download-pdf-container {
+    padding: 25px 20px;
+  }
+}

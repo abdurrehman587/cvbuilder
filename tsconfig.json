@@ -1,0 +1,45 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": false,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "baseUrl": "src",
+    "paths": {
+      "@/*": ["./*"],
+      "@/components/*": ["./components/*"],
+      "@/hooks/*": ["./hooks/*"],
+      "@/lib/*": ["./lib/*"]
+    }
+  },
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "node_modules",
+    "src/components/IDCardPrint/vite.config.ts",
+    "src/components/IDCardPrint/tailwind.config.ts",
+    "src/components/IDCardPrint/src/main.tsx",
+    "src/components/IDCardPrint/src/App.tsx",
+    "src/components/IDCardPrint/src/pages",
+    "src/components/IDCardPrint/src/components/ui/calendar.tsx",
+    "src/components/IDCardPrint/src/components/ui/chart.tsx",
+    "src/components/IDCardPrint/src/components/ui/toggle-group.tsx"
+  ]
+}
+

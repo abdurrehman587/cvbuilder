@@ -1,0 +1,1136 @@
+/* File Input Styling */
+.file-input-container {
+  margin-bottom: 4px;
+}
+
+.file-label {
+  display: block;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4px;
+  font-size: 13px;
+}
+
+.file-input {
+  display: none;
+}
+
+.file-label::after {
+  content: 'Choose File';
+  display: block;  /* Changed from inline-block to block */
+  margin-top: 4px;  /* Added margin-top for extra spacing */
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  border: none;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  width: fit-content;  /* Added to make button only as wide as needed */
+}
+
+/* Input Group Styling */
+.input-group {
+  margin-bottom: 4px;
+}
+
+.input-label {
+  display: block;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4px;
+  font-size: 13px;
+  transition: color 0.3s ease;
+}
+
+/* Styled Input Styling */
+.styled-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 2px solid #e1e5e9;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  background-color: #fff;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.styled-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  transform: translateY(-1px);
+}
+
+.styled-input:hover {
+  border-color: #c1c8cd;
+}
+
+.styled-input::placeholder {
+  color: #a0a6ac;
+  font-style: italic;
+}
+
+/* Specific Input Styling */
+.name-input:focus,
+.position-input:focus,
+.phone-input:focus,
+.email-input:focus,
+.address-input:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .section-title {
+    font-size: 15px;
+    padding: 12px 18px;
+  }
+  
+  .styled-input {
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+  
+  .input-label,
+  .file-label {
+    font-size: 12.5px;
+  }
+  
+  .file-label::after {
+    padding: 10px 20px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 768px) {
+  .styled-input {
+    font-size: 16px; /* Prevents zoom on iOS */
+    padding: 10px 12px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .section-title {
+    font-size: 14px;
+    padding: 12px 15px;
+  }
+  
+  .input-label,
+  .file-label {
+    font-size: 12px;
+    margin-bottom: 6px;
+  }
+  
+  .file-label::after {
+    padding: 10px 20px;
+    font-size: 13px;
+    width: 100%;
+    text-align: center;
+    box-sizing: border-box;
+  }
+  
+  .add-education-button,
+  .add-experience-button,
+  .add-skill-button,
+  .add-certification-button,
+  .add-information-button,
+  .add-language-button,
+  .add-hobby-button,
+  .add-detail-button,
+  .add-reference-button {
+    padding: 6px 12px;
+    font-size: 11px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .remove-education-button,
+  .remove-experience-button,
+  .remove-skill-button,
+  .remove-certification-button,
+  .remove-language-button,
+  .remove-hobby-button,
+  .remove-detail-button,
+  .remove-reference-button {
+    padding: 6px 10px;
+    font-size: 10px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .input-group {
+    margin-bottom: 6px;
+  }
+  
+  .contact-info-section,
+  .professional-summary-section,
+  .education-section,
+  .experience-section,
+  .certifications-section,
+  .skills-section,
+  .other-information-section,
+  .languages-section,
+  .hobbies-section,
+  .custom-section,
+  .references-section {
+    margin-bottom: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .section-title {
+    font-size: 13px;
+    padding: 10px 12px;
+  }
+  
+  .styled-input {
+    font-size: 16px;
+    padding: 8px 10px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .input-label,
+  .file-label {
+    font-size: 11px;
+    margin-bottom: 4px;
+  }
+  
+  .file-label::after {
+    padding: 8px 16px;
+    font-size: 12px;
+    width: 100%;
+    text-align: center;
+    box-sizing: border-box;
+  }
+  
+  .add-education-button,
+  .add-experience-button,
+  .add-skill-button,
+  .add-certification-button,
+  .add-information-button,
+  .add-language-button,
+  .add-hobby-button,
+  .add-detail-button,
+  .add-reference-button {
+    padding: 6px 10px;
+    font-size: 10px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .remove-education-button,
+  .remove-experience-button,
+  .remove-skill-button,
+  .remove-certification-button,
+  .remove-language-button,
+  .remove-hobby-button,
+  .remove-detail-button,
+  .remove-reference-button {
+    padding: 5px 8px;
+    font-size: 9px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .input-group {
+    margin-bottom: 4px;
+  }
+}
+
+@media (max-width: 360px) {
+  .section-title {
+    font-size: 12px;
+    padding: 8px 10px;
+  }
+  
+  .styled-input {
+    font-size: 16px;
+    padding: 6px 8px;
+  }
+  
+  .input-label,
+  .file-label {
+    font-size: 10px;
+  }
+  
+  .file-label::after {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+}
+
+/* Animation for form elements */
+.input-group {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Focus states for accessibility */
+.styled-input:focus + .input-label,
+.input-label:focus-within {
+  color: #667eea;
+}
+
+/* Error state styling (for future use) */
+.styled-input.error {
+  border-color: #e74c3c;
+  box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+}
+
+.styled-input.error:focus {
+  border-color: #e74c3c;
+  box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.2);
+}
+
+/* Section Base Styles */
+.contact-info-section,
+.professional-summary-section,
+.education-section,
+.experience-section,
+.certifications-section,
+.skills-section,
+.other-information-section,
+.languages-section,
+.hobbies-section,
+.custom-section,
+.references-section {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 8px;
+  margin-bottom: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid #dee2e6;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+/* Section Content - Hidden by default */
+.contact-info-section .file-input-container,
+.contact-info-section .name-input-container,
+.contact-info-section .position-input-container,
+.contact-info-section .phone-input-container,
+.contact-info-section .email-input-container,
+.contact-info-section .address-input-container,
+.professional-summary-section .professional-summary-textarea-container,
+.education-section .education-group,
+.education-section .add-education-container,
+.education-section .remove-education-container,
+.experience-section .experience-group,
+.experience-section .add-experience-container,
+.experience-section .remove-experience-container,
+.certifications-section .certification-input-container,
+.certifications-section .add-certification-container,
+.skills-section .skill-input-container,
+.skills-section .add-skill-container,
+.other-information-section .father-name-input-container,
+.other-information-section .husband-name-input-container,
+.other-information-section .cnic-input-container,
+.other-information-section .dob-input-container,
+.other-information-section .marital-status-input-container,
+.other-information-section .religion-input-container,
+.other-information-section .custom-info-container,
+.other-information-section .add-information-container,
+.languages-section .english-language-container,
+.languages-section .urdu-language-container,
+.languages-section .punjabi-language-container,
+.languages-section .language-input-container,
+.languages-section .add-language-container,
+.hobbies-section .hobby-input-container,
+.hobbies-section .add-hobby-container,
+.custom-section .custom-section-heading-input-container,
+.custom-section .custom-section-detail-input-container,
+.custom-section .custom-section-group,
+.custom-section .add-detail-container,
+.custom-section .add-section-container,
+.references-section .reference-input-container,
+.references-section .add-reference-container {
+  display: none;
+  padding: 8px;
+}
+
+/* Active Section - Show content */
+.contact-info-section.active,
+.professional-summary-section.active,
+.education-section.active,
+.experience-section.active,
+.certifications-section.active,
+.skills-section.active,
+.other-information-section.active,
+.languages-section.active,
+.hobbies-section.active,
+.custom-section.active,
+.references-section.active {
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+  border-color: #667eea;
+}
+
+/* Show all content when section is active */
+.contact-info-section.active .file-input-container,
+.contact-info-section.active .name-input-container,
+.contact-info-section.active .position-input-container,
+.contact-info-section.active .phone-input-container,
+.contact-info-section.active .email-input-container,
+.contact-info-section.active .address-input-container,
+.professional-summary-section.active .professional-summary-textarea-container,
+.education-section.active .education-group,
+.education-section.active .add-education-container,
+.education-section.active .remove-education-container,
+.experience-section.active .experience-group,
+.experience-section.active .add-experience-container,
+.experience-section.active .remove-experience-container,
+.certifications-section.active .certification-input-container,
+.certifications-section.active .add-certification-container,
+.skills-section.active .skill-input-container,
+.skills-section.active .add-skill-container,
+.other-information-section.active .father-name-input-container,
+.other-information-section.active .husband-name-input-container,
+.other-information-section.active .cnic-input-container,
+.other-information-section.active .dob-input-container,
+.other-information-section.active .marital-status-input-container,
+.other-information-section.active .religion-input-container,
+.other-information-section.active .custom-info-container,
+.other-information-section.active .add-information-container,
+.languages-section.active .english-language-container,
+.languages-section.active .urdu-language-container,
+.languages-section.active .punjabi-language-container,
+.languages-section.active .language-input-container,
+.languages-section.active .add-language-container,
+.hobbies-section.active .hobby-input-container,
+.hobbies-section.active .add-hobby-container,
+.custom-section.active .custom-section-heading-input-container,
+.custom-section.active .custom-section-detail-input-container,
+.custom-section.active .custom-section-group,
+.custom-section.active .add-detail-container,
+.custom-section.active .add-section-container,
+.references-section.active .reference-input-container,
+.references-section.active .add-reference-container {
+  display: block !important;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0;
+  padding: 15px 20px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 8px 8px 0 0;
+}
+
+.section-title:hover {
+  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+  transform: translateY(-1px);
+}
+
+.section-title::after {
+  content: '▼';
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: transform 0.3s ease;
+  font-size: 12px;
+}
+
+.section-title.active::after {
+  transform: translateY(-50%) rotate(180deg);
+}
+
+/* Add Education Button */
+.add-education-container {
+  margin-top: 4px;
+  text-align: center;
+}
+
+.add-education-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 12px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.add-education-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.add-education-button:active {
+  transform: translateY(0);
+}
+
+/* Education Group Styling */
+.education-group {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 8px;
+  padding: 8px;
+  margin-bottom: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border: 1px solid #dee2e6;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+/* Remove Education Button */
+.remove-education-button {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 11px;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 4px rgba(231, 76, 60, 0.3);
+}
+
+.remove-education-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(231, 76, 60, 0.4);
+}
+
+.remove-education-button:active {
+  transform: translateY(0);
+}
+
+/* Add Experience Button */
+.add-experience-container {
+  margin-top: 4px;
+  text-align: center;
+}
+
+.add-experience-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 12px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.add-experience-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.add-experience-button:active {
+  transform: translateY(0);
+}
+
+/* Experience Group Styling */
+.experience-group {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 8px;
+  padding: 8px;
+  margin-bottom: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border: 1px solid #dee2e6;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+/* Remove Experience Button */
+.remove-experience-button {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 11px;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 4px rgba(231, 76, 60, 0.3);
+}
+
+.remove-experience-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(231, 76, 60, 0.4);
+}
+
+.remove-experience-button:active {
+  transform: translateY(0);
+}
+
+/* Add Skill Button */
+.add-skill-container {
+  margin-top: 4px;
+  text-align: center;
+}
+
+.add-skill-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 12px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.add-skill-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.add-skill-button:active {
+  transform: translateY(0);
+}
+
+/* Add Certification Button */
+.add-certification-container {
+  margin-top: 4px;
+  text-align: center;
+}
+
+.add-certification-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 12px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.add-certification-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.add-certification-button:active {
+  transform: translateY(0);
+}
+
+/* Input Wrapper Styling */
+.skill-input-wrapper,
+.certification-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.skill-input,
+.certification-input {
+  flex: 1;
+}
+
+/* Remove Button Styling */
+.remove-skill-button,
+.remove-certification-button {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 12px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
+}
+
+.remove-skill-button:hover,
+.remove-certification-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
+}
+
+.remove-skill-button:active,
+.remove-certification-button:active {
+  transform: translateY(0);
+}
+
+/* Remove Education/Experience Container */
+.remove-education-container,
+.remove-experience-container {
+  margin-top: 4px;
+  text-align: center;
+}
+
+/* Remove Education/Experience Button */
+.remove-education-button,
+.remove-experience-button {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 11px;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 4px rgba(231, 76, 60, 0.3);
+}
+
+.remove-education-button:hover,
+.remove-experience-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(231, 76, 60, 0.4);
+}
+
+.remove-education-button:active,
+.remove-experience-button:active {
+  transform: translateY(0);
+}
+
+/* Add Information Button */
+.add-information-container {
+  margin-top: 4px;
+  text-align: center;
+}
+
+.add-information-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 12px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.add-information-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.add-information-button:active {
+  transform: translateY(0);
+}
+
+/* Custom Information Wrapper */
+.custom-info-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.custom-label-input,
+.custom-value-input {
+  flex: 1;
+  min-width: 200px;
+}
+
+.custom-label {
+  display: block;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.custom-label-input-field,
+.custom-value-input-field {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e1e5e9;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  background-color: #fff;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.custom-label-input-field:focus,
+.custom-value-input-field:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  transform: translateY(-1px);
+}
+
+/* Remove Custom Button */
+.remove-custom-button {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 12px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
+  align-self: flex-end;
+}
+
+.remove-custom-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
+}
+
+.remove-custom-button:active {
+  transform: translateY(0);
+}
+
+/* Add Language Button */
+.add-language-container {
+  margin-top: 4px;
+  text-align: center;
+}
+
+.add-language-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 12px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.add-language-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.add-language-button:active {
+  transform: translateY(0);
+}
+
+/* Language Input Wrapper */
+.language-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.language-input {
+  flex: 1;
+}
+
+/* Remove Language Button */
+.remove-language-button {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 12px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
+}
+
+.remove-language-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
+}
+
+.remove-language-button:active {
+  transform: translateY(0);
+}
+
+/* Add Hobby Button */
+.add-hobby-container {
+  margin-top: 4px;
+  text-align: center;
+}
+
+.add-hobby-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 12px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.add-hobby-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.add-hobby-button:active {
+  transform: translateY(0);
+}
+
+/* Hobby Input Wrapper */
+.hobby-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hobby-input {
+  flex: 1;
+}
+
+/* Remove Hobby Button */
+.remove-hobby-button {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 12px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
+}
+
+.remove-hobby-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
+}
+
+.remove-hobby-button:active {
+  transform: translateY(0);
+}
+
+/* Add Detail Button */
+.add-detail-container {
+  margin-top: 4px;
+  text-align: center;
+}
+
+.add-detail-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 12px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.add-detail-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.add-detail-button:active {
+  transform: translateY(0);
+}
+
+/* Add Section Button */
+.add-section-container {
+  margin-top: 15px;
+  text-align: center;
+  padding: 8px;
+}
+
+.add-section-button {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.add-section-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+}
+
+.add-section-button:active {
+  transform: translateY(0);
+}
+
+/* Custom Section Details Container */
+.custom-section-details-container {
+  margin-top: 10px;
+}
+
+/* Custom Section Group */
+.custom-section-group {
+  margin-bottom: 15px;
+  padding: 12px;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+}
+
+.custom-section-group:last-of-type {
+  margin-bottom: 10px;
+}
+
+/* Custom Section Heading Wrapper */
+.custom-section-heading-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.custom-section-heading-input {
+  flex: 1;
+}
+
+/* Remove Section Button */
+.remove-section-button {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.remove-section-button:hover {
+  background: #c82333;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+}
+
+.remove-section-button:active {
+  transform: translateY(0);
+}
+
+/* Custom Detail Wrapper */
+.custom-detail-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.custom-detail-input {
+  flex: 1;
+}
+
+/* Remove Detail Button */
+.remove-detail-button {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 12px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
+}
+
+.remove-detail-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
+}
+
+.remove-detail-button:active {
+  transform: translateY(0);
+}
+
+/* Add Reference Button */
+.add-reference-container {
+  margin-top: 4px;
+  text-align: center;
+}
+
+.add-reference-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 12px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.add-reference-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.add-reference-button:active {
+  transform: translateY(0);
+}
+
+/* Reference Input Wrapper */
+.reference-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.reference-input {
+  flex: 1;
+}
+
+/* Remove Reference Button */
+.remove-reference-button {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 12px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
+}
+
+.remove-reference-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
+}
+
+.remove-reference-button:active {
+  transform: translateY(0);
+}

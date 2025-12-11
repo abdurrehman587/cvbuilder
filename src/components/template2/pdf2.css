@@ -1,0 +1,423 @@
+/* PDF Generation Styles for Template 2 */
+
+/* Ensure template2-root wrapper has A4 width in PDF mode */
+.template2-root.pdf-mode {
+  width: 800px !important;
+  max-width: 800px !important;
+  min-width: 800px !important;
+  margin: 0 auto !important;
+}
+
+/* Ensure PDF mode maintains template2 layout and styling - A4 Size */
+.template2-root .cv-preview.pdf-mode {
+  padding: 0 !important;
+  min-height: auto;
+  line-height: 1.3;
+  font-family: 'Arial', sans-serif !important;
+  background: white !important;
+  color: #333;
+  display: grid !important;
+  grid-template-columns: 35% 65% !important;
+  gap: 0 !important;
+  /* A4 dimensions: 210mm x 297mm at 96 DPI = 794px x 1123px */
+  /* Using 800px width for better rendering, maintaining A4 aspect ratio */
+  width: 800px !important;
+  max-width: 800px !important;
+  min-width: 800px !important;
+  margin: 0 auto !important;
+  aspect-ratio: 210 / 297 !important;
+}
+
+/* Left Column - Purple Background (Personal info, contacts, skills) */
+.template2-root .cv-preview.pdf-mode .cv-left-column {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: white !important;
+  padding: 30px 25px !important;
+  min-height: auto !important;
+}
+
+/* Right Column - White Background (Professional content) */
+.template2-root .cv-preview.pdf-mode .cv-right-column {
+  background: white !important;
+  color: #333 !important;
+  padding: 30px 35px !important;
+  min-height: auto !important;
+}
+
+/* CV Header */
+.template2-root .cv-preview.pdf-mode .cv-header {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center !important;
+  margin-bottom: 40px !important;
+  padding-bottom: 25px !important;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Profile Image */
+.template2-root .cv-preview.pdf-mode .profile-image-container {
+  width: 160px !important;
+  height: 160px !important;
+  border-radius: 50% !important;
+  border: 4px solid rgba(255, 255, 255, 0.3) !important;
+  margin: 0 auto 25px auto !important;
+}
+
+/* Header Name */
+.template2-root.cv-preview.pdf-mode .header-name,
+.cv-preview.pdf-mode.template2-root .header-name {
+  font-size: 46px !important;
+  font-weight: 700 !important;
+  color: white !important;
+  margin: 0 0 8px 0 !important;
+  line-height: 1.2 !important;
+  font-family: 'Arial', sans-serif !important;
+  text-align: center !important;
+  width: 100% !important;
+}
+
+/* Header Title */
+.template2-root.cv-preview.pdf-mode .header-title,
+.cv-preview.pdf-mode.template2-root .header-title {
+  font-size: 32px !important;
+  font-weight: 500 !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  margin: 0 0 20px 0 !important;
+  font-style: italic !important;
+  font-family: 'Arial', sans-serif !important;
+}
+
+/* Contact Items */
+.template2-root.cv-preview.pdf-mode .contact-item,
+.cv-preview.pdf-mode.template2-root .contact-item {
+  font-size: 22px !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  padding: 8px 12px !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-radius: 8px !important;
+  font-family: 'Arial', sans-serif !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.template2-root.cv-preview.pdf-mode .contact-item .contact-icon,
+.cv-preview.pdf-mode.template2-root .contact-item .contact-icon {
+  flex-shrink: 0 !important;
+}
+
+.template2-root.cv-preview.pdf-mode .contact-item > span:last-child,
+.cv-preview.pdf-mode.template2-root .contact-item > span:last-child {
+  flex: 1 !important;
+  min-width: 0 !important;
+  word-wrap: break-word !important;
+  word-break: break-all !important; /* Break long words like email addresses */
+  overflow-wrap: break-word !important;
+  line-height: 1.4 !important;
+  display: block !important; /* Ensure proper wrapping */
+}
+
+.template2-root.cv-preview.pdf-mode .contact-item.contact-address,
+.cv-preview.pdf-mode.template2-root .contact-item.contact-address {
+  justify-content: flex-start !important;
+}
+
+.template2-root.cv-preview.pdf-mode .contact-item.contact-address > span:last-child,
+.cv-preview.pdf-mode.template2-root .contact-item.contact-address > span:last-child {
+  text-align: justify !important;
+}
+
+/* Section Headings - Left Column */
+.template2-root.cv-preview.pdf-mode .section-heading.left-column,
+.cv-preview.pdf-mode.template2-root .section-heading.left-column {
+  font-size: 24px !important;
+  font-weight: 700 !important;
+  color: white !important;
+  margin: 0 0 15px 0 !important;
+  padding-bottom: 8px !important;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.3) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
+  font-family: 'Arial', sans-serif !important;
+}
+
+/* Section Headings - Right Column */
+.template2-root.cv-preview.pdf-mode .section-heading.right-column,
+.cv-preview.pdf-mode.template2-root .section-heading.right-column {
+  font-size: 24px !important;
+  font-weight: 700 !important;
+  color: #2c3e50 !important;
+  margin: 0 0 15px 0 !important;
+  padding-bottom: 8px !important;
+  border-bottom: 2px solid #667eea !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  font-family: 'Arial', sans-serif !important;
+}
+
+/* CV Sections - Left Column */
+.template2-root.cv-preview.pdf-mode .cv-section.left-column,
+.cv-preview.pdf-mode.template2-root .cv-section.left-column {
+  margin-bottom: 30px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* CV Sections - Right Column */
+.template2-root.cv-preview.pdf-mode .cv-section.right-column,
+.cv-preview.pdf-mode.template2-root .cv-section.right-column {
+  margin-bottom: 30px !important;
+  padding: 25px !important;
+  background: #f8f9fa !important;
+  border-radius: 12px !important;
+  border-left: 4px solid #667eea !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Professional Summary */
+.template2-root.cv-preview.pdf-mode .professional-summary-text,
+.cv-preview.pdf-mode.template2-root .professional-summary-text {
+  font-size: 20px !important;
+  color: #555 !important;
+  line-height: 1.7 !important;
+  text-align: justify !important;
+  font-style: italic !important;
+  margin: 0 !important;
+  font-family: 'Arial', sans-serif !important;
+}
+
+/* Education */
+.template2-root.cv-preview.pdf-mode .education-degree,
+.cv-preview.pdf-mode.template2-root .education-degree {
+  font-size: 20px !important;
+  font-weight: 600 !important;
+  color: #2c3e50 !important;
+  font-family: 'Arial', sans-serif !important;
+}
+
+.template2-root.cv-preview.pdf-mode .education-board,
+.cv-preview.pdf-mode.template2-root .education-board {
+  font-size: 20px !important;
+  font-weight: 500 !important;
+  color: #667eea !important;
+  font-family: 'Arial', sans-serif !important;
+}
+
+.template2-root.cv-preview.pdf-mode .education-year,
+.cv-preview.pdf-mode.template2-root .education-year {
+  font-size: 20px !important;
+  font-weight: 500 !important;
+  color: #555 !important;
+  font-family: 'Arial', sans-serif !important;
+}
+
+.template2-root.cv-preview.pdf-mode .education-marks,
+.cv-preview.pdf-mode.template2-root .education-marks {
+  font-size: 20px !important;
+  color: #888 !important;
+  font-style: italic !important;
+  font-family: 'Arial', sans-serif !important;
+}
+
+/* Experience */
+.template2-root.cv-preview.pdf-mode .experience-job-title,
+.cv-preview.pdf-mode.template2-root .experience-job-title {
+  font-size: 20px !important;
+  font-weight: 600 !important;
+  color: #2c3e50 !important;
+  font-family: 'Arial', sans-serif !important;
+}
+
+.template2-root.cv-preview.pdf-mode .experience-duration,
+.cv-preview.pdf-mode.template2-root .experience-duration {
+  font-size: 20px !important;
+  font-weight: 500 !important;
+  color: #555 !important;
+  font-family: 'Arial', sans-serif !important;
+}
+
+.template2-root.cv-preview.pdf-mode .experience-company,
+.cv-preview.pdf-mode.template2-root .experience-company {
+  font-size: 20px !important;
+  font-weight: 500 !important;
+  color: #667eea !important;
+  font-family: 'Arial', sans-serif !important;
+}
+
+.template2-root.cv-preview.pdf-mode .experience-details,
+.cv-preview.pdf-mode.template2-root .experience-details {
+  font-size: 20px !important;
+  color: #666 !important;
+  line-height: 1.4 !important;
+  font-family: 'Arial', sans-serif !important;
+}
+
+.template2-root.cv-preview.pdf-mode .experience-detail-item,
+.cv-preview.pdf-mode.template2-root .experience-detail-item {
+  font-size: 20px !important;
+  color: #666 !important;
+  line-height: 1.4 !important;
+  font-family: 'Arial', sans-serif !important;
+}
+
+/* Certifications */
+.template2-root.cv-preview.pdf-mode .certification-text,
+.cv-preview.pdf-mode.template2-root .certification-text {
+  font-size: 18px !important;
+  color: #555 !important;
+  line-height: 1.4 !important;
+  font-weight: 500 !important;
+  margin: 0 !important;
+  font-family: 'Arial', sans-serif !important;
+}
+
+/* Skills, Languages, Hobbies - Left Column Pills */
+.template2-root.cv-preview.pdf-mode .skill-pill,
+.template2-root.cv-preview.pdf-mode .language-pill,
+.template2-root.cv-preview.pdf-mode .hobby-pill,
+.cv-preview.pdf-mode.template2-root .skill-pill,
+.cv-preview.pdf-mode.template2-root .language-pill,
+.cv-preview.pdf-mode.template2-root .hobby-pill {
+  background: rgba(255, 255, 255, 0.1) !important; /* Match contact items background */
+  color: white !important;
+  padding: 10px 15px !important;
+  border-radius: 8px !important;
+  font-size: 20px !important;
+  font-weight: 500 !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  font-family: 'Arial', sans-serif !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.template2-root.cv-preview.pdf-mode .skill-pill *,
+.template2-root.cv-preview.pdf-mode .language-pill *,
+.template2-root.cv-preview.pdf-mode .hobby-pill *,
+.cv-preview.pdf-mode.template2-root .skill-pill *,
+.cv-preview.pdf-mode.template2-root .language-pill *,
+.cv-preview.pdf-mode.template2-root .hobby-pill * {
+  color: white !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.template2-root.cv-preview.pdf-mode .skill-name,
+.template2-root.cv-preview.pdf-mode .language-name,
+.template2-root.cv-preview.pdf-mode .hobby-name,
+.cv-preview.pdf-mode.template2-root .skill-name,
+.cv-preview.pdf-mode.template2-root .language-name,
+.cv-preview.pdf-mode.template2-root .hobby-name {
+  color: white !important;
+  font-size: 20px !important;
+  font-weight: 600 !important; /* Increased weight for better visibility */
+  font-family: 'Arial', sans-serif !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important; /* Stronger shadow for better contrast */
+}
+
+/* Other Information - Left Column */
+.template2-root.cv-preview.pdf-mode .other-info-grid,
+.cv-preview.pdf-mode.template2-root .other-info-grid {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 8px !important;
+}
+
+.template2-root.cv-preview.pdf-mode .info-item,
+.cv-preview.pdf-mode.template2-root .info-item {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  padding: 8px 10px !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-radius: 6px !important;
+  border-left: 2px solid rgba(255, 255, 255, 0.3) !important;
+  font-family: 'Arial', sans-serif !important;
+  color: white !important;
+  white-space: normal !important;
+  flex-wrap: wrap !important;
+}
+
+.template2-root.cv-preview.pdf-mode .info-item *,
+.cv-preview.pdf-mode.template2-root .info-item * {
+  color: white !important;
+}
+
+.template2-root.cv-preview.pdf-mode .info-label,
+.cv-preview.pdf-mode.template2-root .info-label {
+  font-weight: 500 !important;
+  color: white !important;
+  font-size: 20px !important;
+  text-transform: none !important;
+  letter-spacing: 0.1px !important;
+  font-family: 'Arial', sans-serif !important;
+  white-space: normal !important;
+}
+
+.template2-root.cv-preview.pdf-mode .info-value,
+.cv-preview.pdf-mode.template2-root .info-value {
+  color: white !important;
+  font-size: 20px !important;
+  font-weight: 500 !important;
+  line-height: 1.4 !important;
+  font-family: 'Arial', sans-serif !important;
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  text-align: right !important;
+}
+
+/* Custom Section */
+.template2-root.cv-preview.pdf-mode .custom-section-detail,
+.cv-preview.pdf-mode.template2-root .custom-section-detail {
+  font-size: 18px !important;
+  color: #555 !important;
+  line-height: 1.5 !important;
+  margin: 0 !important;
+  font-family: 'Arial', sans-serif !important;
+}
+
+/* References */
+.template2-root.cv-preview.pdf-mode .reference-text,
+.cv-preview.pdf-mode.template2-root .reference-text {
+  font-size: 20px !important;
+  color: #555 !important;
+  line-height: 1.4 !important;
+  font-style: italic !important;
+  margin: 0 !important;
+  font-family: 'Arial', sans-serif !important;
+}
+
+/* Ensure all text elements use Arial */
+.template2-root.cv-preview.pdf-mode *,
+.cv-preview.pdf-mode.template2-root * {
+  font-family: 'Arial', sans-serif !important;
+}
+
+/* Disable hover effects in PDF */
+.template2-root.cv-preview.pdf-mode .skill-pill:hover,
+.template2-root.cv-preview.pdf-mode .language-pill:hover,
+.template2-root.cv-preview.pdf-mode .hobby-pill:hover,
+.template2-root.cv-preview.pdf-mode .contact-item:hover,
+.template2-root.cv-preview.pdf-mode .experience-item:hover,
+.template2-root.cv-preview.pdf-mode .education-item:hover,
+.template2-root.cv-preview.pdf-mode .info-item:hover,
+.cv-preview.pdf-mode.template2-root .skill-pill:hover,
+.cv-preview.pdf-mode.template2-root .language-pill:hover,
+.cv-preview.pdf-mode.template2-root .hobby-pill:hover,
+.cv-preview.pdf-mode.template2-root .contact-item:hover,
+.cv-preview.pdf-mode.template2-root .experience-item:hover,
+.cv-preview.pdf-mode.template2-root .education-item:hover,
+.cv-preview.pdf-mode.template2-root .info-item:hover {
+  transform: none !important;
+  box-shadow: inherit !important;
+  background: inherit !important;
+}
