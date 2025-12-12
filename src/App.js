@@ -11,6 +11,8 @@ import Form3 from './components/template3/Form3';
 import Preview3 from './components/template3/Preview3';
 import Form4 from './components/template4/Form4';
 import Preview4 from './components/template4/Preview4';
+import Form5 from './components/template5/Form5';
+import Preview5 from './components/template5/Preview5';
 import useAutoSave from './components/Supabase/useAutoSave';
 import { authService, supabase } from './components/Supabase/supabase';
 import IDCardPrintPage from './components/IDCardPrint/IDCardPrintPage';
@@ -1076,6 +1078,22 @@ function App() {
                 />
               </>
             );
+          case 'template5':
+            return (
+              <>
+                <Form5 
+                  key={formResetKey}
+                  formData={formData}
+                  updateFormData={updateFormData}
+                  markAsChanged={hookMarkAsChanged}
+                />
+                <Preview5 
+                  formData={formData}
+                  autoSaveStatus={hookAutoSaveStatus}
+                  hasUnsavedChanges={hookHasUnsavedChanges}
+                />
+              </>
+            );
           default:
             return (
               <>
@@ -1129,6 +1147,12 @@ function App() {
                   className={selectedTemplate === 'template4' ? 'active' : ''}
                 >
                   Template 4
+                </button>
+                <button
+                  onClick={() => handleTemplateSwitch('template5')}
+                  className={selectedTemplate === 'template5' ? 'active' : ''}
+                >
+                  Template 5 (Europass)
                 </button>
               </div>
               <div className="auto-save-status">
@@ -1245,6 +1269,13 @@ function App() {
               <>
                 <Form4 formData={formData} updateFormData={updateFormData} />
                 <Preview4 formData={formData} />
+              </>
+            );
+          case 'template5':
+            return (
+              <>
+                <Form5 formData={formData} updateFormData={updateFormData} />
+                <Preview5 formData={formData} />
               </>
             );
           default:
@@ -1415,6 +1446,22 @@ function App() {
               />
             </>
           );
+        case 'template5':
+          return (
+            <>
+              <Form5 
+                key={formResetKey}
+                formData={formData}
+                updateFormData={updateFormData}
+                markAsChanged={hookMarkAsChanged}
+              />
+              <Preview5 
+                formData={formData}
+                autoSaveStatus={hookAutoSaveStatus}
+                hasUnsavedChanges={hookHasUnsavedChanges}
+              />
+            </>
+          );
         default:
           return (
             <>
@@ -1490,6 +1537,13 @@ function App() {
                   style={{ visibility: 'visible', opacity: 1 }}
               >
                 Template 4
+              </button>
+              <button
+                className={`template-button ${selectedTemplate === 'template5' ? 'active' : ''}`}
+                onClick={() => handleTemplateSwitch('template5')}
+                  style={{ visibility: 'visible', opacity: 1 }}
+              >
+                Template 5 (Europass)
               </button>
             </div>
               <div className="auto-save-status" style={{ display: 'flex', alignItems: 'center', visibility: 'visible' }}>
