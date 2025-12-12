@@ -1,0 +1,490 @@
+/* Template 5 - Europass CV Format */
+
+/* Right Container - Ensure proper overflow handling and centering */
+.right-container:has(.template5-root) {
+  overflow: auto !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: flex-start !important;
+  padding: 20px !important;
+  position: relative !important;
+}
+
+/* CV Preview Container - Fixed A4 Size that scales like an image */
+.template5-root.cv-preview.europass-cv {
+  background: #ffffff;
+  font-family: 'Arial', 'Helvetica', sans-serif;
+  color: #000000;
+  line-height: 1.4;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box !important;
+  overflow: visible !important;
+  
+  /* Fixed A4 base size - all measurements are fixed */
+  width: 800px !important; /* Fixed base width */
+  height: 1131px !important; /* Fixed A4 height (800 * 297/210) */
+  min-width: 800px !important;
+  max-width: 800px !important;
+  min-height: 1131px !important;
+  max-height: 1131px !important;
+  
+  /* Fixed font size and padding - everything is fixed */
+  font-size: 11pt !important; /* Fixed base font size */
+  padding: 20px !important; /* Fixed padding */
+  
+  /* Center the preview */
+  margin: 0 auto !important;
+  
+  /* Box shadow for page-like appearance */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important;
+  
+  /* Scale the entire preview based on container width - like zooming an image */
+  transform-origin: top center !important;
+  
+  /* Default: full size on large screens */
+  transform: scale(1) !important;
+}
+
+/* Europass Header with Logo - Maximum Specificity */
+.template5-root.cv-preview.europass-cv .europass-header,
+.europass-cv .europass-header,
+.cv-preview.europass-cv .europass-header,
+.europass-header {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  border: none !important;
+  border-bottom: none !important;
+  border-top: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  margin-bottom: 0 !important;
+  margin-top: 0 !important;
+  position: relative !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
+  min-height: auto !important;
+}
+
+.template5-root.cv-preview.europass-cv .europass-header-content,
+.europass-cv .europass-header-content,
+.cv-preview.europass-cv .europass-header-content,
+.europass-header-content {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+  border-bottom: none !important;
+  border-top: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
+  min-height: auto !important;
+}
+
+.template5-root.cv-preview.europass-cv .europass-title,
+.europass-cv .europass-title,
+.cv-preview.europass-cv .europass-title,
+.europass-title {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  font-size: 24pt !important; /* Fixed size */
+  font-weight: bold !important;
+  color: #003399 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important; /* Fixed size */
+  flex: 0 0 auto !important;
+  border: none !important;
+  max-width: 100% !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  box-sizing: border-box !important;
+  line-height: 1.2 !important;
+}
+
+/* Europass Logo - Right Side */
+.template5-root.cv-preview.europass-cv .europass-logo-container,
+.europass-cv .europass-logo-container,
+.cv-preview.europass-cv .europass-logo-container,
+.europass-logo-container {
+  flex: 0 0 auto !important;
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  max-width: 100% !important;
+  overflow: visible !important;
+  box-sizing: border-box !important;
+}
+
+.template5-root.cv-preview.europass-cv .europass-logo,
+.europass-cv .europass-logo,
+.cv-preview.europass-cv .europass-logo,
+.europass-logo {
+  width: auto !important;
+  height: 120px !important; /* Fixed size */
+  max-width: 300px !important; /* Fixed size */
+  max-height: 120px !important;
+  object-fit: contain !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  overflow: visible !important;
+}
+
+/* Europass Section Styling */
+.template5-root.cv-preview.europass-cv .europass-section:first-of-type,
+.europass-cv .europass-section:first-of-type,
+.cv-preview.europass-cv .europass-section:first-of-type,
+.europass-section:first-of-type {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+  margin-bottom: 20px !important;
+  page-break-inside: avoid;
+}
+
+.europass-section {
+  margin-bottom: 20px !important; /* Fixed size */
+  margin-top: 0;
+  page-break-inside: avoid;
+}
+
+.europass-section-title {
+  font-size: 13pt !important; /* Fixed size */
+  font-weight: bold;
+  color: #003399;
+  margin: 0 0 10px 0 !important; /* Fixed size */
+  padding-bottom: 5px !important; /* Fixed size */
+  border-bottom: 1px solid #003399 !important; /* Fixed size */
+  text-transform: uppercase;
+  letter-spacing: 0.5px !important; /* Fixed size */
+}
+
+.europass-section-content {
+  padding-left: 0;
+}
+
+/* Personal Information Fields */
+.europass-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px !important; /* Fixed size */
+}
+
+.europass-field {
+  display: flex;
+  gap: 10px !important; /* Fixed size */
+  margin-bottom: 5px !important; /* Fixed size */
+}
+
+.europass-label {
+  font-weight: bold;
+  min-width: 180px !important; /* Fixed size */
+  color: #000000;
+}
+
+.europass-value {
+  color: #000000;
+  flex: 1;
+}
+
+/* Work Experience */
+.europass-experience-item {
+  display: flex;
+  gap: 1.82em !important; /* 20px relative to 11pt base */
+  margin-bottom: 1.36em !important; /* 15px relative to 11pt base */
+  padding-bottom: 1.36em !important;
+  border-bottom: 0.045em solid #e0e0e0 !important; /* 1px relative to 11pt base */
+}
+
+.europass-experience-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.europass-date-range {
+  font-weight: bold;
+  width: 16.36em !important; /* 180px relative to 11pt base */
+  min-width: 16.36em !important;
+  max-width: 16.36em !important;
+  color: #003399;
+  font-size: 0.91em !important; /* 10pt relative to 11pt base */
+  flex-shrink: 0;
+}
+
+.europass-experience-details {
+  flex: 1;
+}
+
+.europass-job-title {
+  font-weight: bold;
+  font-size: 1em !important; /* 11pt = base size */
+  color: #000000;
+  margin-bottom: 0.27em !important; /* 3px relative to 11pt base */
+}
+
+.europass-company {
+  font-style: italic;
+  color: #555555;
+  margin-bottom: 0.45em !important; /* 5px relative to 11pt base */
+  font-size: 0.91em !important; /* 10pt relative to 11pt base */
+}
+
+.europass-job-description {
+  color: #000000;
+  font-size: 0.91em !important; /* 10pt relative to 11pt base */
+  line-height: 1.5;
+}
+
+.europass-description-line {
+  margin-bottom: 0.27em !important; /* 3px relative to 11pt base */
+}
+
+.europass-description-line:last-child {
+  margin-bottom: 0;
+}
+
+/* Education and Training */
+.europass-education-item {
+  display: flex;
+  gap: 1.82em !important; /* 20px relative to 11pt base */
+  margin-bottom: 1.36em !important; /* 15px relative to 11pt base */
+  padding-bottom: 1.36em !important;
+  border-bottom: 0.045em solid #e0e0e0 !important; /* 1px relative to 11pt base */
+}
+
+.europass-education-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.europass-education-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.europass-degree {
+  font-weight: bold;
+  font-size: 1em !important; /* 11pt = base size */
+  color: #000000;
+  margin-bottom: 0.27em !important; /* 3px relative to 11pt base */
+}
+
+.europass-institution {
+  color: #555555;
+  margin-bottom: 0.27em !important; /* 3px relative to 11pt base */
+  font-size: 0.91em !important; /* 10pt relative to 11pt base */
+}
+
+.europass-grade {
+  color: #555555;
+  font-size: 0.91em !important; /* 10pt relative to 11pt base */
+  font-style: italic;
+}
+
+/* Personal Skills */
+.europass-skill-category {
+  margin-bottom: 1.36em !important; /* 15px relative to 11pt base */
+}
+
+.europass-skill-category:last-child {
+  margin-bottom: 0;
+}
+
+.europass-skill-label {
+  font-weight: bold;
+  color: #000000;
+  margin-bottom: 0.45em !important; /* 5px relative to 11pt base */
+  font-size: 0.91em !important; /* 10pt relative to 11pt base */
+}
+
+.europass-skill-value {
+  color: #000000;
+  font-size: 0.91em !important; /* 10pt relative to 11pt base */
+  line-height: 1.5;
+  padding-left: 0.91em !important; /* 10px relative to 11pt base */
+}
+
+/* Additional Information */
+.europass-additional-item {
+  margin-bottom: 1.09em !important; /* 12px relative to 11pt base */
+}
+
+.europass-additional-item:last-child {
+  margin-bottom: 0;
+}
+
+.europass-additional-label {
+  font-weight: bold;
+  color: #000000;
+  margin-bottom: 0.45em !important; /* 5px relative to 11pt base */
+  font-size: 0.91em !important; /* 10pt relative to 11pt base */
+}
+
+.europass-additional-value {
+  color: #000000;
+  font-size: 0.91em !important; /* 10pt relative to 11pt base */
+  line-height: 1.5;
+  padding-left: 0.91em !important; /* 10px relative to 11pt base */
+}
+
+/* Annexes */
+.europass-reference-item {
+  color: #000000;
+  font-size: 0.91em !important; /* 10pt relative to 11pt base */
+  line-height: 1.5;
+  margin-bottom: 0.45em !important; /* 5px relative to 11pt base */
+}
+
+.europass-reference-item:last-child {
+  margin-bottom: 0;
+}
+
+/* Download PDF Buttons */
+.download-pdf-container {
+  position: sticky;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 10px;
+  border-top: 2px solid #003399;
+  text-align: center;
+  z-index: 100;
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.download-pdf-button {
+  background: #003399;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12pt;
+  font-weight: bold;
+  transition: background 0.2s;
+  flex: 0 0 auto;
+}
+
+.download-pdf-button:hover {
+  background: #0044cc;
+}
+
+.download-pdf-button:active {
+  background: #002288;
+}
+
+.download-pdf-button-compact {
+  background: #0066cc;
+}
+
+.download-pdf-button-compact:hover {
+  background: #0055bb;
+}
+
+.download-pdf-button-compact:active {
+  background: #0044aa;
+}
+
+.download-pdf-button:disabled,
+.download-pdf-button-compact:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* PDF Mode - Remove download button */
+.pdf-mode .download-pdf-container {
+  display: none;
+}
+
+/* Print optimizations */
+@media print {
+  .europass-cv {
+    padding: 15mm;
+  }
+  
+  .europass-header {
+    border: none !important;
+    border-bottom: none !important;
+    margin-bottom: 0 !important;
+  }
+  
+  .europass-header-content {
+    border: none !important;
+    border-bottom: none !important;
+  }
+
+  .europass-section {
+    page-break-inside: avoid;
+  }
+  
+  .europass-section:first-of-type {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
+
+  .europass-experience-item,
+  .europass-education-item {
+    page-break-inside: avoid;
+  }
+
+  .download-pdf-container {
+    display: none;
+  }
+}
+
+/* Scale preview like an image - scales down on smaller screens */
+/* The preview maintains fixed 800px width, but scales down proportionally */
+@media (max-width: 840px) {
+  .template5-root.cv-preview.europass-cv {
+    transform: scale(calc((100vw - 40px) / 800)) !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .template5-root.cv-preview.europass-cv {
+    transform: scale(calc((100vw - 40px) / 800)) !important;
+  }
+}
+
+@media (max-width: 400px) {
+  .template5-root.cv-preview.europass-cv {
+    transform: scale(calc((100vw - 40px) / 800)) !important;
+  }
+}
+
+/* All scaling is handled by transform: scale() - no need for responsive overrides */
+
+/* All scaling is handled by transform: scale() above */
