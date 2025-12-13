@@ -85,27 +85,36 @@
 }
 
 .glory-logo {
-  height: 24px;
   width: auto;
-  max-width: 85px;
+  max-width: 100px;
+  min-height: 22px;
+  max-height: 38px;
   object-fit: contain;
   cursor: pointer;
   transition: all 0.2s ease;
   position: absolute;
-  left: 200px;
+  left: -10px;
   top: 50%;
-  transform: translateY(-50%);
+  transform: translateY(-40%);
   z-index: 10;
+  padding: 5px 0;
+  margin-left: 0;
 }
 
 /* Mobile Logo - Static position, not absolute */
 @media (max-width: 768px) {
   .glory-logo {
-    position: static !important;
-    transform: none !important;
-    height: 30px !important;
-    max-width: 100px !important;
+    position: absolute !important;
+    transform: translateY(-35%) !important;
+    height: 24px !important;
+    max-width: 85px !important;
+    max-height: 32px !important;
+    min-height: 20px !important;
     width: auto !important;
+    top: 50% !important;
+    left: -5px !important;
+    margin-left: 0 !important;
+    padding: 2px 0 !important;
   }
 }
 
@@ -371,13 +380,6 @@
   }
 }
 
-/* Sign In/Logout/Admin button in header-right */
-.signin-btn-header,
-.logout-btn-header,
-.admin-btn-header {
-  /* Button styles are defined below */
-}
-
 .admin-btn-header {
   background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
   color: white;
@@ -632,12 +634,16 @@
   }
 
   .glory-logo {
-    height: 28px;
-    max-width: 80px;
-    left: 180px;
+    height: 24px;
+    max-width: 85px;
+    max-height: 32px;
+    min-height: 20px;
+    left: -5px;
     position: absolute;
-    transform: translateY(-50%);
+    transform: translateY(-35%);
     top: 50%;
+    margin-left: 0;
+    padding: 2px 0;
   }
 
   .logo {
@@ -775,11 +781,11 @@
   }
 
   .glory-logo {
-    height: 26px;
-    max-width: 75px;
+    height: 22px;
+    max-width: 70px;
     left: 165px;
     position: absolute;
-    transform: translateY(-50%);
+    transform: translateY(-35%);
     top: 50%;
   }
 
@@ -898,8 +904,11 @@
   }
 
   .glory-logo {
-    height: 24px;
-    max-width: 90px;
+    height: 20px;
+    max-width: 75px;
+    max-height: 28px;
+    min-height: 18px;
+    left: -5px;
   }
 
   .logo {
@@ -990,8 +999,11 @@
   }
 
   .glory-logo {
-    height: 22px;
-    max-width: 85px;
+    height: 18px;
+    max-width: 70px;
+    max-height: 26px;
+    min-height: 16px;
+    left: -5px;
   }
 
   .logo {
@@ -1077,8 +1089,11 @@
   }
 
   .glory-logo {
-    height: 20px;
-    max-width: 80px;
+    height: 16px;
+    max-width: 65px;
+    max-height: 24px;
+    min-height: 14px;
+    left: -4px;
   }
 
   .logo {
