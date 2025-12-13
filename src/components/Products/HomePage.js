@@ -264,6 +264,7 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
     loadMarketplaceData();
   }, []);
 
+
   // Handle escape key to close login modal
   useEffect(() => {
     const handleEscape = (e) => {
@@ -953,6 +954,7 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
                                 <div 
                                   key={product.id} 
                                   className="product-card-fresh" 
+                                  data-product-id={product.id}
                                   onClick={handleProductClick}
                                   onMouseEnter={() => handleProductCardMouseEnter(product.id, productImages)}
                                   onMouseLeave={() => handleProductCardMouseLeave(product.id)}

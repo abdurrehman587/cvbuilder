@@ -221,7 +221,10 @@ const ProductDetail = ({ productId }) => {
       <div className="product-detail-page">
         <div className="product-detail-error">
           <h2>Product Not Found</h2>
-          <button onClick={() => window.location.href = '/#products'} className="back-button">
+          <button 
+            onClick={() => window.location.href = '/#products'} 
+            className="back-button"
+          >
             Back to Products
           </button>
         </div>

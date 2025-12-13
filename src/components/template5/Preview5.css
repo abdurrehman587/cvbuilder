@@ -2,38 +2,129 @@
 
 /* Right Container - Ensure proper overflow handling and centering */
 .right-container:has(.template5-root) {
-  overflow: auto !important;
+  overflow-x: visible !important;
+  overflow-y: auto !important;
   max-width: 100% !important;
   box-sizing: border-box !important;
   display: flex !important;
   justify-content: center !important;
   align-items: flex-start !important;
-  padding: 20px !important;
+  padding: 10px !important; /* Reduced padding for less side space */
+  position: relative !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Preview Image Container */
+.preview-image-container {
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  align-items: center !important;
+  padding: 10px !important; /* Reduced padding for less side space */
+  box-sizing: border-box !important;
   position: relative !important;
 }
 
-/* CV Preview Container - Fixed A4 Size that scales like an image */
+/* Visible PDF download buttons container */
+.download-pdf-container-visible {
+  width: 100% !important;
+  max-width: 1200px !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  padding: 15px !important;
+  border-top: 2px solid #003399 !important;
+  text-align: center !important;
+  z-index: 100 !important;
+  margin-top: 20px !important;
+  display: flex !important;
+  gap: 10px !important;
+  justify-content: center !important;
+  flex-wrap: wrap !important;
+  box-sizing: border-box !important;
+}
+
+.preview-image {
+  max-width: 100% !important;
+  height: auto !important;
+  display: block !important;
+  margin: 0 auto !important;
+  /* Scale like an image - maintains aspect ratio */
+  object-fit: contain !important;
+}
+
+/* Scale preview image like the HTML preview */
+@media (max-width: 1220px) {
+  .preview-image {
+    width: calc(100vw - 20px) !important;
+    max-width: calc(100vw - 20px) !important;
+  }
+}
+
+.image-loading-indicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0.9);
+  padding: 10px 20px;
+  border-radius: 4px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+}
+
+.preview-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f5f5;
+  border: 1px dashed #ccc;
+}
+
+/* Preview Container - Responsive wrapper */
+.preview-container-responsive {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.cv-preview-responsive-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* CV Preview Container - Fixed A4 Size that scales like an image/PDF */
+/* This ensures the format NEVER changes - only scales proportionally */
+/* A4 dimensions: 210mm × 297mm at 96 DPI = 794px × 1123px */
 .template5-root.cv-preview.europass-cv {
   background: #ffffff;
   font-family: 'Arial', 'Helvetica', sans-serif;
   color: #000000;
-  line-height: 1.4;
+  line-height: 1.2 !important; /* Tighter line spacing to fit content */
   display: flex;
   flex-direction: column;
   box-sizing: border-box !important;
-  overflow: visible !important;
+  overflow: hidden !important; /* Prevent content overflow */
   
-  /* Fixed A4 base size - all measurements are fixed */
-  width: 800px !important; /* Fixed base width */
-  height: 1131px !important; /* Fixed A4 height (800 * 297/210) */
-  min-width: 800px !important;
-  max-width: 800px !important;
-  min-height: 1131px !important;
-  max-height: 1131px !important;
+  /* Fixed A4 base size - NEVER changes */
+  /* A4: 210mm × 297mm at 96 DPI = 794px × 1123px */
+  width: 794px !important;
+  height: 1123px !important; /* Exact A4 height */
+  min-width: 794px !important;
+  max-width: 794px !important;
+  min-height: 1123px !important;
+  max-height: 1123px !important;
   
-  /* Fixed font size and padding - everything is fixed */
-  font-size: 11pt !important; /* Fixed base font size */
-  padding: 20px !important; /* Fixed padding */
+  /* Fixed font size and padding - optimized for A4 */
+  font-size: 10pt !important; /* Reduced to fit more content */
+  padding: 15px !important; /* Reduced padding */
   
   /* Center the preview */
   margin: 0 auto !important;
@@ -41,11 +132,48 @@
   /* Box shadow for page-like appearance */
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important;
   
-  /* Scale the entire preview based on container width - like zooming an image */
+  /* Scale origin for proportional scaling */
   transform-origin: top center !important;
   
-  /* Default: full size on large screens */
+  /* Allow natural text wrapping within fixed container */
+  word-wrap: normal !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+  white-space: normal !important;
+  
+  /* Allow content to be visible */
+  overflow-x: visible !important;
+  overflow-y: visible !important;
+}
+
+/* Visible preview - scales proportionally like an image */
+.cv-preview-visible {
+  /* Scale based on viewport - maintains exact format */
+  /* A4 dimensions: 794px × 1123px */
+  transform: scale(min(
+    calc((100vw - 40px) / 794),
+    calc((100vh - 100px) / 1123)
+  )) !important;
+  transform-origin: top center !important;
+}
+
+/* Hidden preview for PDF - no scaling needed */
+.cv-preview-hidden {
   transform: scale(1) !important;
+}
+
+/* All elements scale proportionally with the container */
+.template5-root.cv-preview.europass-cv * {
+  box-sizing: border-box !important;
+  position: relative !important;
+}
+
+/* Allow natural overflow within scaled container */
+.template5-root.cv-preview.europass-cv .europass-field,
+.template5-root.cv-preview.europass-cv .europass-experience-item,
+.template5-root.cv-preview.europass-cv .europass-education-item,
+.template5-root.cv-preview.europass-cv .europass-certification-item {
+  overflow: visible !important;
 }
 
 /* Europass Header with Logo - Maximum Specificity */
@@ -96,6 +224,8 @@
   box-sizing: border-box !important;
   overflow: visible !important;
   min-height: auto !important;
+  flex-wrap: nowrap !important;
+  gap: 0 !important;
 }
 
 .template5-root.cv-preview.europass-cv .europass-title,
@@ -105,20 +235,81 @@
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
-  font-size: 24pt !important; /* Fixed size */
+  font-size: 24pt !important; /* Reduced to fit A4 */
   font-weight: bold !important;
   color: #003399 !important;
   margin: 0 !important;
   padding: 0 !important;
+  margin-bottom: 8px !important; /* Reduced spacing */
   text-transform: uppercase !important;
-  letter-spacing: 1px !important; /* Fixed size */
+  letter-spacing: 0.5px !important;
   flex: 0 0 auto !important;
   border: none !important;
-  max-width: 100% !important;
-  word-wrap: break-word !important;
-  overflow-wrap: break-word !important;
+  width: auto !important;
+  max-width: none !important;
+  word-wrap: normal !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+  white-space: normal !important;
   box-sizing: border-box !important;
-  line-height: 1.2 !important;
+  line-height: 1.1 !important; /* Tighter line height */
+  overflow: visible !important;
+}
+
+/* Europass Header Right Section */
+.template5-root.cv-preview.europass-cv .europass-header-right,
+.europass-cv .europass-header-right,
+.cv-preview.europass-cv .europass-header-right,
+.europass-header-right {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  flex-shrink: 1 !important;
+  overflow: visible !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  margin-left: auto !important;
+  margin-right: 20px !important;
+}
+
+/* Profile Image Container */
+.template5-root.cv-preview.europass-cv .europass-profile-image-container,
+.europass-cv .europass-profile-image-container,
+.cv-preview.europass-cv .europass-profile-image-container,
+.europass-profile-image-container {
+  width: 85px !important;
+  height: 85px !important;
+  border-radius: 50% !important;
+  overflow: hidden !important;
+  border: 2px solid #003399 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  background: #ffffff !important;
+  box-sizing: border-box !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative !important;
+  /* Prevent cutting off */
+  min-width: 85px !important;
+  min-height: 85px !important;
+}
+
+.template5-root.cv-preview.europass-cv .europass-profile-image,
+.europass-cv .europass-profile-image,
+.cv-preview.europass-cv .europass-profile-image,
+.europass-profile-image {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  /* Prevent cutting off */
+  min-width: 100% !important;
+  min-height: 100% !important;
+  border-radius: 50% !important;
 }
 
 /* Europass Logo - Right Side */
@@ -126,28 +317,37 @@
 .europass-cv .europass-logo-container,
 .cv-preview.europass-cv .europass-logo-container,
 .europass-logo-container {
-  flex: 0 0 auto !important;
+  flex: 0 1 auto !important;
+  flex-shrink: 1 !important;
   display: flex !important;
   visibility: visible !important;
   opacity: 1 !important;
   align-items: center !important;
-  justify-content: flex-end !important;
+  justify-content: center !important;
   margin: 0 !important;
   padding: 0 !important;
   border: none !important;
-  max-width: 100% !important;
+  width: 220px !important; /* Reduced to fit A4 */
+  max-width: 220px !important;
+  min-width: 100px !important;
   overflow: visible !important;
   box-sizing: border-box !important;
+  flex-shrink: 1 !important;
+  /* Ensure logo container is always visible */
+  position: relative !important;
+  z-index: 1 !important;
 }
 
 .template5-root.cv-preview.europass-cv .europass-logo,
 .europass-cv .europass-logo,
 .cv-preview.europass-cv .europass-logo,
 .europass-logo {
-  width: auto !important;
-  height: 120px !important; /* Fixed size */
-  max-width: 300px !important; /* Fixed size */
-  max-height: 120px !important;
+  width: 220px !important; /* Reduced to fit A4 */
+  height: 85px !important; /* Reduced to fit A4 */
+  max-width: 100% !important;
+  max-height: 85px !important;
+  min-width: 100px !important;
+  min-height: 40px !important;
   object-fit: contain !important;
   display: block !important;
   visibility: visible !important;
@@ -156,6 +356,11 @@
   padding: 0 !important;
   border: none !important;
   overflow: visible !important;
+  box-sizing: border-box !important;
+  flex-shrink: 0 !important;
+  /* Ensure logo is always visible */
+  position: relative !important;
+  z-index: 1 !important;
 }
 
 /* Europass Section Styling */
@@ -170,48 +375,61 @@
 }
 
 .europass-section {
-  margin-bottom: 20px !important; /* Fixed size */
-  margin-top: 0;
+  margin-bottom: 10px !important; /* Reduced for A4 fit */
+  margin-top: 6px !important; /* Reduced spacing */
   page-break-inside: avoid;
 }
 
 .europass-section-title {
-  font-size: 13pt !important; /* Fixed size */
+  font-size: 14pt !important; /* Reduced to fit A4 */
   font-weight: bold;
   color: #003399;
-  margin: 0 0 10px 0 !important; /* Fixed size */
-  padding-bottom: 5px !important; /* Fixed size */
-  border-bottom: 1px solid #003399 !important; /* Fixed size */
+  margin: 0 0 6px 0 !important; /* Reduced spacing */
+  padding-bottom: 3px !important; /* Reduced spacing */
+  border-bottom: 1px solid #003399 !important;
   text-transform: uppercase;
-  letter-spacing: 0.5px !important; /* Fixed size */
+  letter-spacing: 0.3px !important;
+  overflow: visible !important;
+  white-space: normal !important;
 }
 
 .europass-section-content {
   padding-left: 0;
+  overflow: visible !important;
 }
 
 /* Personal Information Fields */
 .europass-field-group {
   display: flex;
   flex-direction: column;
-  gap: 8px !important; /* Fixed size */
+  gap: 4px !important; /* Reduced spacing for A4 fit */
+  overflow: visible !important;
 }
 
 .europass-field {
   display: flex;
-  gap: 10px !important; /* Fixed size */
-  margin-bottom: 5px !important; /* Fixed size */
+  gap: 10px !important; /* Fixed size - scales with container */
+  margin-bottom: 5px !important; /* Fixed size - scales with container */
+  overflow: visible !important;
 }
 
 .europass-label {
   font-weight: bold;
-  min-width: 180px !important; /* Fixed size */
+  min-width: 180px !important; /* Fixed size - scales with container */
+  width: 180px !important; /* Fixed size - scales with container */
   color: #000000;
+  overflow: visible !important;
+  white-space: normal !important;
 }
 
 .europass-value {
   color: #000000;
   flex: 1;
+  overflow: visible !important;
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  min-width: 0 !important;
 }
 
 /* Work Experience */
@@ -231,40 +449,52 @@
 
 .europass-date-range {
   font-weight: bold;
-  width: 16.36em !important; /* 180px relative to 11pt base */
+  width: 16.36em !important; /* 180px relative to 11pt base - scales with container */
   min-width: 16.36em !important;
   max-width: 16.36em !important;
   color: #003399;
-  font-size: 0.91em !important; /* 10pt relative to 11pt base */
+  font-size: 0.94em !important; /* ~17pt relative to 18pt base - scales with container */
   flex-shrink: 0;
+  overflow: visible !important;
+  white-space: normal !important;
 }
 
 .europass-experience-details {
   flex: 1;
+  min-width: 0 !important;
+  overflow: visible !important;
 }
 
 .europass-job-title {
   font-weight: bold;
-  font-size: 1em !important; /* 11pt = base size */
+  font-size: 1em !important; /* 11pt = base size - scales with container */
   color: #000000;
-  margin-bottom: 0.27em !important; /* 3px relative to 11pt base */
+  margin-bottom: 0.27em !important; /* 3px relative to 11pt base - scales with container */
+  overflow: visible !important;
+  white-space: normal !important;
 }
 
 .europass-company {
   font-style: italic;
   color: #555555;
-  margin-bottom: 0.45em !important; /* 5px relative to 11pt base */
-  font-size: 0.91em !important; /* 10pt relative to 11pt base */
+  margin-bottom: 0.45em !important; /* 5px relative to 11pt base - scales with container */
+  font-size: 0.94em !important; /* ~17pt relative to 18pt base - scales with container */
+  overflow: visible !important;
+  white-space: normal !important;
 }
 
 .europass-job-description {
   color: #000000;
-  font-size: 0.91em !important; /* 10pt relative to 11pt base */
+  font-size: 0.94em !important; /* ~17pt relative to 18pt base - scales with container */
   line-height: 1.5;
+  overflow: visible !important;
+  white-space: normal !important;
 }
 
 .europass-description-line {
-  margin-bottom: 0.27em !important; /* 3px relative to 11pt base */
+  margin-bottom: 0.27em !important; /* 3px relative to 11pt base - scales with container */
+  overflow: visible !important;
+  white-space: normal !important;
 }
 
 .europass-description-line:last-child {
@@ -288,26 +518,84 @@
 
 .europass-education-details {
   flex: 1;
-  min-width: 0;
+  min-width: 0 !important;
+  overflow: visible !important;
 }
 
 .europass-degree {
   font-weight: bold;
-  font-size: 1em !important; /* 11pt = base size */
+  font-size: 1em !important; /* 11pt = base size - scales with container */
   color: #000000;
-  margin-bottom: 0.27em !important; /* 3px relative to 11pt base */
+  margin-bottom: 0.27em !important; /* 3px relative to 11pt base - scales with container */
+  overflow: visible !important;
+  white-space: normal !important;
 }
 
 .europass-institution {
   color: #555555;
-  margin-bottom: 0.27em !important; /* 3px relative to 11pt base */
-  font-size: 0.91em !important; /* 10pt relative to 11pt base */
+  margin-bottom: 0.27em !important; /* 3px relative to 11pt base - scales with container */
+  font-size: 0.94em !important; /* ~17pt relative to 18pt base - scales with container */
+  overflow: visible !important;
+  white-space: normal !important;
 }
 
 .europass-grade {
   color: #555555;
-  font-size: 0.91em !important; /* 10pt relative to 11pt base */
+  font-size: 0.94em !important; /* ~17pt relative to 18pt base - scales with container */
   font-style: italic;
+  overflow: visible !important;
+  white-space: normal !important;
+}
+
+/* Certifications */
+.europass-certification-item {
+  display: flex;
+  margin-bottom: 0.91em !important; /* 10px relative to 11pt base */
+  padding-bottom: 0.91em !important;
+  border-bottom: 0.045em solid #e0e0e0 !important; /* 1px relative to 11pt base */
+  overflow: visible !important;
+}
+
+.europass-certification-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.europass-certification-name {
+  font-weight: bold;
+  font-size: 1em !important; /* Base size - scales with container */
+  color: #000000;
+  overflow: visible !important;
+  white-space: normal !important;
+  line-height: 1.4;
+}
+
+/* Languages */
+.europass-language-category {
+  margin-bottom: 1.36em !important; /* 15px relative to 11pt base */
+}
+
+.europass-language-category:last-child {
+  margin-bottom: 0;
+}
+
+.europass-language-label {
+  font-weight: bold;
+  color: #000000;
+  margin-bottom: 0.45em !important; /* 5px relative to 11pt base - scales with container */
+  font-size: 0.94em !important; /* ~17pt relative to 18pt base - scales with container */
+  overflow: visible !important;
+  white-space: normal !important;
+}
+
+.europass-language-value {
+  color: #000000;
+  font-size: 0.94em !important; /* ~17pt relative to 18pt base - scales with container */
+  line-height: 1.5;
+  padding-left: 0.91em !important; /* 10px relative to 11pt base - scales with container */
+  overflow: visible !important;
+  white-space: normal !important;
 }
 
 /* Personal Skills */
@@ -322,15 +610,19 @@
 .europass-skill-label {
   font-weight: bold;
   color: #000000;
-  margin-bottom: 0.45em !important; /* 5px relative to 11pt base */
-  font-size: 0.91em !important; /* 10pt relative to 11pt base */
+  margin-bottom: 0.45em !important; /* 5px relative to 11pt base - scales with container */
+  font-size: 0.94em !important; /* ~17pt relative to 18pt base - scales with container */
+  overflow: visible !important;
+  white-space: normal !important;
 }
 
 .europass-skill-value {
   color: #000000;
-  font-size: 0.91em !important; /* 10pt relative to 11pt base */
+  font-size: 0.94em !important; /* ~17pt relative to 18pt base - scales with container */
   line-height: 1.5;
-  padding-left: 0.91em !important; /* 10px relative to 11pt base */
+  padding-left: 0.91em !important; /* 10px relative to 11pt base - scales with container */
+  overflow: visible !important;
+  white-space: normal !important;
 }
 
 /* Additional Information */
@@ -345,23 +637,33 @@
 .europass-additional-label {
   font-weight: bold;
   color: #000000;
-  margin-bottom: 0.45em !important; /* 5px relative to 11pt base */
-  font-size: 0.91em !important; /* 10pt relative to 11pt base */
+  margin-bottom: 0.45em !important; /* 5px relative to 11pt base - scales with container */
+  font-size: 0.94em !important; /* ~17pt relative to 18pt base - scales with container */
+  overflow: visible !important;
+  white-space: normal !important;
 }
 
 .europass-additional-value {
   color: #000000;
-  font-size: 0.91em !important; /* 10pt relative to 11pt base */
+  font-size: 0.94em !important; /* ~17pt relative to 18pt base - scales with container */
   line-height: 1.5;
-  padding-left: 0.91em !important; /* 10px relative to 11pt base */
+  padding-left: 0.91em !important; /* 10px relative to 11pt base - scales with container */
+  overflow: visible !important;
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
 }
 
 /* Annexes */
 .europass-reference-item {
   color: #000000;
-  font-size: 0.91em !important; /* 10pt relative to 11pt base */
+  font-size: 0.94em !important; /* ~17pt relative to 18pt base - scales with container */
   line-height: 1.5;
-  margin-bottom: 0.45em !important; /* 5px relative to 11pt base */
+  margin-bottom: 0.45em !important; /* 5px relative to 11pt base - scales with container */
+  overflow: visible !important;
+  white-space: normal !important;
 }
 
 .europass-reference-item:last-child {
@@ -465,26 +767,243 @@
   }
 }
 
-/* Scale preview like an image - scales down on smaller screens */
-/* The preview maintains fixed 800px width, but scales down proportionally */
-@media (max-width: 840px) {
-  .template5-root.cv-preview.europass-cv {
-    transform: scale(calc((100vw - 40px) / 800)) !important;
+/* Responsive scaling - format NEVER changes, only scales proportionally */
+/* Uses viewport units to calculate scale factor */
+@media (max-width: 1240px) {
+  .cv-preview-visible {
+    transform: scale(calc((100vw - 40px) / 1200)) !important;
   }
 }
 
-@media (max-width: 600px) {
-  .template5-root.cv-preview.europass-cv {
-    transform: scale(calc((100vw - 40px) / 800)) !important;
+@media (max-height: 1737px) {
+  .cv-preview-visible {
+    transform: scale(min(
+      calc((100vw - 40px) / 1200),
+      calc((100vh - 100px) / 1697)
+    )) !important;
   }
 }
 
-@media (max-width: 400px) {
-  .template5-root.cv-preview.europass-cv {
-    transform: scale(calc((100vw - 40px) / 800)) !important;
+/* Mobile - format stays EXACTLY the same, only scales down */
+@media (max-width: 768px) {
+  .preview-container-responsive {
+    padding: 5px !important;
+  }
+  
+  .cv-preview-responsive-wrapper {
+    padding: 5px !important;
+    overflow-x: auto !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  
+  .cv-preview-visible {
+    /* Scale to fit mobile viewport - format NEVER changes */
+    transform: scale(min(
+      calc((100vw - 20px) / 1200),
+      calc((100vh - 80px) / 1697)
+    )) !important;
+    transform-origin: top center !important;
+    /* Keep fixed dimensions */
+    width: 1200px !important;
+    height: 1697px !important;
+  }
+  
+  /* Ensure header doesn't overflow */
+  .europass-header {
+    overflow: visible !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  /* Ensure header doesn't overflow */
+  .europass-header {
+    overflow: visible !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+    visibility: visible !important;
+  }
+  
+  /* Ensure header content wraps and doesn't overflow */
+  .europass-header-content {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    justify-content: space-between !important;
+    overflow: visible !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    align-items: center !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: flex !important;
+    visibility: visible !important;
+  }
+  
+  /* Make title smaller and flexible on mobile */
+  .europass-title {
+    font-size: 16pt !important;
+    flex: 0 0 auto !important;
+    min-width: 0 !important;
+    max-width: 55% !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    overflow: visible !important;
+    line-height: 1.2 !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+  
+  /* Header right section on mobile - ensure it fits on screen */
+  .europass-header-right {
+    display: flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    flex-wrap: nowrap !important;
+    flex-shrink: 1 !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    overflow: visible !important;
+    max-width: 50% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    margin-left: auto !important;
+    margin-right: 0 !important;
+  }
+  
+  /* Profile image on mobile - smaller to fit */
+  .europass-profile-image-container {
+    width: 50px !important;
+    height: 50px !important;
+    flex-shrink: 0 !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    overflow: hidden !important;
+    border-radius: 50% !important;
+    border: 2px solid #003399 !important;
+    min-width: 50px !important;
+    min-height: 50px !important;
+    max-width: 50px !important;
+    max-height: 50px !important;
+  }
+  
+  .europass-profile-image {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    border-radius: 50% !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+  
+  /* Make logo container visible and properly sized on mobile - ensure it fits */
+  .europass-logo-container {
+    max-width: 100px !important;
+    min-width: 70px !important;
+    width: auto !important;
+    flex: 0 1 auto !important;
+    flex-shrink: 1 !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* Make logo visible and responsive on mobile - ensure it fits */
+  .europass-logo {
+    max-width: 100% !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: 40px !important;
+    min-height: 25px !important;
+    object-fit: contain !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    overflow: visible !important;
+    position: relative !important;
+    z-index: 1 !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* Fix text cutoff in sections */
+  .europass-section {
+    overflow: visible !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  .europass-section-content {
+    overflow: visible !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  /* Fix additional information text cutoff */
+  .europass-additional-item {
+    overflow: visible !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  .europass-additional-value {
+    overflow: visible !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    white-space: normal !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  /* Fix all field values to prevent cutoff */
+  .europass-value {
+    overflow: visible !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    white-space: normal !important;
+    max-width: 100% !important;
+  }
+  
+  /* Fix job description and other text areas */
+  .europass-job-description,
+  .europass-description-line,
+  .europass-skill-value {
+    overflow: visible !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    white-space: normal !important;
+    max-width: 100% !important;
+  }
+  
+}
+
+/* Extra small mobile devices - format stays EXACTLY the same */
+@media (max-width: 480px) {
+  .cv-preview-visible {
+    /* Scale smaller for very small screens - format NEVER changes */
+    /* A4 dimensions: 794px × 1123px */
+    transform: scale(min(
+      calc((100vw - 10px) / 794),
+      calc((100vh - 60px) / 1123)
+    )) !important;
+    transform-origin: top center !important;
+    /* Keep fixed A4 dimensions */
+    width: 794px !important;
+    height: 1123px !important;
+  }
+  
+  .preview-container-responsive {
+    padding: 5px !important;
   }
 }
 
-/* All scaling is handled by transform: scale() - no need for responsive overrides */
-
-/* All scaling is handled by transform: scale() above */

@@ -19,7 +19,8 @@ const PDF_CONFIG = {
 
 // Helper Functions
 const validateCVPreview = () => {
-  const cvPreview = document.querySelector('.cv-preview');
+  // Use hidden preview for PDF generation (not the visible scaled one)
+  const cvPreview = document.querySelector('.cv-preview-hidden') || document.querySelector('.cv-preview');
   
   if (!cvPreview) {
     throw new Error('CV preview not found. Please make sure the CV is loaded.');
@@ -87,13 +88,17 @@ const cleanupPDFMode = (cvPreview, downloadButton, originalDisplay, originalWidt
 
 const updateButtonState = (text, disabled = false, isCompact = false) => {
   if (isCompact) {
-    const button = document.querySelector('.download-pdf-button-compact');
-    if (button) {
-      button.textContent = text;
-      button.disabled = disabled;
-    }
-    return button;
+    // Update all compact buttons (both hidden and visible)
+    const buttons = document.querySelectorAll('.download-pdf-button-compact');
+    buttons.forEach(button => {
+      if (button) {
+        button.textContent = text;
+        button.disabled = disabled;
+      }
+    });
+    return buttons[0] || null;
   } else {
+    // Update all standard buttons (both hidden and visible)
     const buttons = document.querySelectorAll('.download-pdf-button:not(.download-pdf-button-compact)');
     buttons.forEach(button => {
       button.textContent = text;
