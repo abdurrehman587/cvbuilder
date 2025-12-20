@@ -805,6 +805,7 @@ function App() {
   // This ensures selectedApp state always matches localStorage, especially on tab switches
   // Use a ref to track last synced value to prevent infinite loops
   const lastSyncedAppRef = React.useRef(null);
+  const pendingUpdateRef = React.useRef(null);
   
   useEffect(() => {
     if (!isAuthenticated || isLoading) return;
@@ -817,16 +818,24 @@ function App() {
     if (savedApp) {
       if (lastSyncedAppRef.current !== savedApp) {
         lastSyncedAppRef.current = savedApp;
-        // Use requestAnimationFrame to ensure state update happens after render
-        requestAnimationFrame(() => {
-          setSelectedApp(savedApp);
-          
-          // If localStorage says cv-builder or id-card-print, clear marketplace flags
-          if (savedApp === 'cv-builder' || savedApp === 'id-card-print') {
-            setForceShowProductsPage(false);
-            showProductsPageRef.current = false;
-            localStorage.removeItem('showProductsPage');
-            sessionStorage.removeItem('showProductsPage');
+        // Store pending update in ref to avoid state updates during render
+        pendingUpdateRef.current = savedApp;
+        
+        // Use Promise.resolve().then() to ensure update happens after current render cycle
+        // This prevents React error #301 (updating component during render)
+        Promise.resolve().then(() => {
+          if (pendingUpdateRef.current !== null) {
+            const appToSet = pendingUpdateRef.current;
+            pendingUpdateRef.current = null;
+            setSelectedApp(appToSet);
+            
+            // If localStorage says cv-builder or id-card-print, clear marketplace flags
+            if (appToSet === 'cv-builder' || appToSet === 'id-card-print') {
+              setForceShowProductsPage(false);
+              showProductsPageRef.current = false;
+              localStorage.removeItem('showProductsPage');
+              sessionStorage.removeItem('showProductsPage');
+            }
           }
         });
       }
@@ -835,9 +844,15 @@ function App() {
       if (lastSyncedAppRef.current !== 'marketplace') {
         localStorage.setItem('selectedApp', 'marketplace');
         lastSyncedAppRef.current = 'marketplace';
-        // Use requestAnimationFrame to ensure state update happens after render
-        requestAnimationFrame(() => {
-          setSelectedApp('marketplace');
+        // Store pending update in ref
+        pendingUpdateRef.current = 'marketplace';
+        
+        // Use Promise.resolve().then() to ensure update happens after current render cycle
+        Promise.resolve().then(() => {
+          if (pendingUpdateRef.current === 'marketplace') {
+            pendingUpdateRef.current = null;
+            setSelectedApp('marketplace');
+          }
         });
       }
     }
