@@ -92,13 +92,17 @@ function App() {
     markAsChanged: hookMarkAsChanged
   } = useAutoSave(formData);
 
-  // Debug: Log hook status
-  console.log('App.js - Hook status:', { 
-    hookAutoSaveStatus, 
-    hookHasUnsavedChanges, 
-    currentCVId,
-    formDataName: formData.name 
-  });
+  // Debug: Log hook status (only in development, and only when values change)
+  // Removed to prevent infinite re-render loops
+  // Uncomment for debugging if needed:
+  // React.useEffect(() => {
+  //   console.log('App.js - Hook status:', { 
+  //     hookAutoSaveStatus, 
+  //     hookHasUnsavedChanges, 
+  //     currentCVId, 
+  //     formDataName: formData.name 
+  //   });
+  // }, [hookAutoSaveStatus, hookHasUnsavedChanges, currentCVId, formData.name]);
 
 
   // Load saved draft on component mount

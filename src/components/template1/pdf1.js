@@ -1,11 +1,8 @@
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { Capacitor } from '@capacitor/core';
-import { registerPlugin } from '@capacitor/core';
+import FileDownload from '../../utils/fileDownload';
 import './pdf1.css';
-
-// Register FileDownload plugin
-const FileDownload = registerPlugin('FileDownload');
 
 // PDF Generation Configuration
 const PDF_CONFIG = {
