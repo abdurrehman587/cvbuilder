@@ -1,680 +1,1123 @@
-/* CV Preview Container - Modern Fresh Design */
-.cv-preview {
-  background: #ffffff;
-  min-height: 100vh;
-  padding: 0;
-  max-width: 1000px;
-  margin: 0 auto;
-  font-family: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
-  color: #1a1a1a;
-  font-size: 13pt;
-  line-height: 1.5;
-  box-shadow: 0 0 30px rgba(0, 0, 0, 0.08);
-}
-
-/* Base text elements */
-.cv-preview p,
-.cv-preview div,
-.cv-preview span,
-.cv-preview li {
-  font-size: 13pt;
-  line-height: 1.5;
-}
-
-/* CV Header - Ultra Compact Design */
-.cv-header {
+/* CV Action Buttons - Below Form */
+.cv-action-buttons {
+  width: 100%;
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  margin-bottom: 0;
-  padding: 0;
-  background: #1e3a8a;
-  border-radius: 0;
-  box-shadow: none;
-  position: relative;
-  overflow: hidden;
-}
-
-/* Header Top Section - Ultra Compact */
-.cv-header-top {
-  display: flex;
-  align-items: center;
-  padding: 15px 25px;
-  gap: 18px;
-  position: relative;
-  z-index: 1;
-  min-height: 100px;
-}
-
-/* Profile Image Container - Small Square */
-.profile-image-container {
-  flex-shrink: 0;
-  width: 80px;
-  height: 80px;
-  border-radius: 6px;
-  overflow: hidden;
-  border: 2px solid rgba(255, 255, 255, 0.4);
-  background: rgba(255, 255, 255, 0.1);
-  display: flex;
+  gap: 15px;
   align-items: center;
   justify-content: center;
-  position: relative;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  background: #f9fafb;
+  border-top: 2px solid #e5e7eb;
+  margin-top: 20px;
 }
 
-.cv-header .profile-image-container {
-  border: 4px solid rgba(255, 255, 255, 0.4);
-}
-
-.cv-header .profile-image-container .profile-placeholder {
-  background: rgba(255, 255, 255, 0.2);
-  color: #ffffff;
-  font-size: 22pt;
-  font-weight: 700;
-}
-
-.profile-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 4px;
-}
-
-.profile-placeholder {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.1);
+.preview-a4-button {
+  background: linear-gradient(135deg, #3b82f6 0%, #1e3a8a 100%);
   color: white;
-  font-size: 22pt;
+  border: 2px solid #1e3a8a;
+  padding: 15px 30px;
+  font-size: 16pt;
   font-weight: 700;
-  text-align: center;
-  border-radius: 4px;
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 400px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-/* Header Content - Ultra Compact with Zero Spacing */
-.header-content {
-  flex: 1;
+.preview-a4-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+}
+
+.download-pdf-button-main {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: 2px solid #059669;
+  padding: 15px 30px;
+  font-size: 16pt;
+  font-weight: 700;
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 400px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.download-pdf-button-main:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+}
+
+/* Mobile adjustments */
+@media screen and (max-width: 767px) {
+  .cv-action-buttons {
+    padding: 15px;
+    gap: 12px;
+  }
+  
+  .preview-a4-button,
+  .download-pdf-button-main {
+    font-size: 14pt;
+    padding: 12px 24px;
+  }
+}
+
+/* Tablet adjustments */
+@media screen and (min-width: 768px) and (max-width: 1024px) {
+  .cv-action-buttons {
+    padding: 18px;
+    gap: 14px;
+  }
+  
+  .preview-a4-button,
+  .download-pdf-button-main {
+    font-size: 15pt;
+    padding: 14px 28px;
+  }
+}
+
+/* A4 Preview Modal Overlay */
+.a4-preview-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 20px;
+  overflow: auto;
+}
+
+.a4-preview-modal-content {
+  position: relative;
+  background: #f5f5f5;
+  border-radius: 8px;
+  padding: 20px 20px 10px 20px;
+  max-width: 100%;
+  max-height: 100vh;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: flex-start;
-  gap: 0;
-  position: relative;
-  z-index: 1;
+  box-sizing: border-box;
+  min-height: 0;
 }
 
-/* Reset all default margins and padding for header elements */
-.header-content h1,
-.header-content h2 {
-  margin: 0;
+/* Mobile: Full screen modal (below 768px) */
+@media screen and (max-width: 767.9px) {
+  .a4-preview-modal-overlay {
+  padding: 0;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .a4-preview-modal-content {
+    width: 100vw;
+    height: 100vh;
+    max-width: 100vw;
+    max-height: 100vh;
+  border-radius: 0;
+    padding: 50px 5px 10px 5px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+  overflow: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    min-height: 0;
+  }
+  
+  .a4-preview-container {
+    flex: 0 1 auto;
+    min-height: 0;
+    max-height: none;
+    padding: 0 !important;
+    margin-bottom: 0 !important;
+  }
+}
+
+/* Tablet: Medium screen (including 768px) */
+@media screen and (min-width: 768px) and (max-width: 1024px) {
+  .a4-preview-modal-overlay {
+    padding: 0;
+  align-items: center;
+    justify-content: center;
+  }
+  
+  .a4-preview-modal-content {
+    width: 100vw;
+    height: 100vh;
+    max-width: 100vw;
+    max-height: 100vh;
+    border-radius: 0;
+    padding: 50px 15px 10px 15px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+  overflow: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    min-height: 0;
+  }
+  
+  .a4-preview-container {
+    flex: 0 1 auto;
+    min-height: 0;
+    max-height: none;
+    padding: 0 !important;
+    margin-bottom: 0 !important;
+  }
+}
+
+/* Desktop: Centered modal */
+@media screen and (min-width: 1025px) {
+  .a4-preview-modal-overlay {
+    padding: 20px;
+  }
+  
+  .a4-preview-modal-content {
+    max-width: calc(100vw - 40px);
+    max-height: calc(100vh - 40px);
+    padding: 50px 20px 20px 20px;
+  }
+}
+
+.a4-preview-close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+@media screen and (max-width: 768px) {
+  .a4-preview-close-button {
+    top: 5px;
+    right: 5px;
+    width: 35px;
+    height: 35px;
+    font-size: 20px;
+    background: rgba(0, 0, 0, 0.7);
+  }
+}
+
+.a4-preview-close-button:hover {
+  background: rgba(0, 0, 0, 0.8);
+  transform: scale(1.1);
+}
+
+/* Zoom Controls */
+.a4-preview-zoom-controls {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 8px 12px;
+  border-radius: 25px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  z-index: 10002;
+  backdrop-filter: blur(10px);
+}
+
+.zoom-button {
+  background: #667eea;
+  color: white;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
   padding: 0;
   line-height: 1;
 }
 
-.header-name {
-  font-size: 22pt;
-  font-weight: 700;
-  color: #ffffff;
-  margin: 0;
-  padding: 0;
-  line-height: 0.9;
-  letter-spacing: 0;
-  display: block;
+.zoom-button:hover {
+  background: #5568d3;
+  transform: scale(1.1);
 }
 
-.header-name + .contact-item {
-  margin-top: 0;
+.zoom-button:active {
+  transform: scale(0.95);
 }
 
-.header-title {
-  display: none;
+.zoom-button.zoom-reset {
+  background: #10b981;
+  font-size: 16px;
 }
 
-.header-contact {
-  display: flex;
-  flex-direction: column;
-  gap: 0 !important;
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  line-height: 0.75;
+.zoom-button.zoom-reset:hover {
+  background: #059669;
 }
 
-.header-contact > * {
-  line-height: 0.75 !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  height: auto;
-  min-height: 0;
-}
-
-.contact-item {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-  font-size: 10.5pt;
-  color: #ffffff;
-  line-height: 0.75;
-  margin: 0;
-  padding: 0;
-  height: auto;
-  min-height: 0;
-  max-height: none;
-}
-
-.contact-item:first-of-type {
-  margin-top: 1px;
-}
-
-.contact-item + .contact-item {
-  margin-top: -4px !important;
-  margin-bottom: 0 !important;
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
-  height: auto;
-  min-height: 0;
-}
-
-.contact-item span:not(.contact-icon) {
-  margin: 0 !important;
-  padding: 0 !important;
-  line-height: 0.75 !important;
-  display: inline-block;
-  height: auto;
-  min-height: 0;
-  vertical-align: baseline;
-}
-
-.contact-icon {
-  width: auto;
-  height: auto;
-  color: #ffffff;
-  display: inline-block;
-  font-size: 10.5pt;
-  flex-shrink: 0;
-  margin: 0;
-  padding: 0;
-  line-height: 0.75;
-  vertical-align: baseline;
-  border: none;
-  background: none;
-  box-shadow: none;
-}
-
-/* Header Bottom Accent Bar */
-.cv-header-bottom {
-  height: 2px;
-  background: #fbbf24;
-  width: 100%;
-}
-
-/* CV Section Styling - Modern Card Design */
-.cv-section {
-  margin-bottom: 0;
-  padding: 20px 35px;
-  background: #ffffff;
-  border-left: none;
-  border-radius: 0;
-  box-shadow: none;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.cv-section:last-child {
-  border-bottom: none;
-}
-
-.section-heading {
-  font-size: 18pt;
-  font-weight: 700;
-  color: #1e3a8a;
-  margin: 0 0 12px 0;
-  padding-bottom: 8px;
-  border-bottom: 2px solid #3b82f6;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  position: relative;
-}
-
-.section-heading::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 50px;
-  height: 2px;
-  background: #fbbf24;
-}
-
-.section-content {
-  line-height: 1.6;
-}
-
-.professional-summary-text {
-  font-size: 13pt;
-  color: #4b5563;
-  margin: 0;
-  line-height: 1.6;
-  text-align: justify;
-  padding: 0;
-  background: transparent;
-  border-radius: 0;
-  border-left: none;
-  font-weight: 400;
-  font-style: normal;
-  display: block;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-/* Education Section Styling */
-.education-item {
-  margin-bottom: 10px;
-  padding: 0;
-  background: transparent;
-  border-radius: 0;
-  border-left: none;
-  border-top: none;
-  border-right: none;
-  border-bottom: none;
-  box-shadow: none;
-  display: block;
-  width: 100%;
-  box-sizing: border-box;
-  page-break-inside: avoid;
-  break-inside: avoid;
-}
-
-.education-item:last-child {
-  margin-bottom: 0;
-}
-
-.education-single-line {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
-  line-height: 1.5;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.education-degree {
-  font-size: 14pt;
-  font-weight: 700;
-  color: #1f2937;
-}
-
-.education-board {
-  font-size: 13pt;
-  font-weight: 600;
-  color: #3b82f6;
-}
-
-.education-year {
-  font-size: 13pt;
-  font-weight: 400;
-  color: #6b7280;
-}
-
-.education-marks {
-  font-size: 13pt;
-  color: #6b7280;
-  font-weight: 400;
-}
-
-/* Experience Section Styling */
-.experience-item {
-  margin-bottom: 16px;
-  padding: 0;
-  background: transparent;
-  border-radius: 0;
-  border-left: none;
-  box-shadow: none;
-  border-bottom: 1px solid #e5e7eb;
-  padding-bottom: 14px;
-  page-break-inside: avoid;
-  break-inside: avoid;
-}
-
-.experience-item:last-child {
-  margin-bottom: 0;
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
-.experience-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 6px;
-  line-height: 1.4;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.experience-company-line {
-  margin-bottom: 8px;
-}
-
-.experience-job-title {
-  font-size: 14pt;
-  font-weight: 700;
-  color: #1f2937;
-}
-
-.experience-duration {
-  font-size: 12pt;
-  font-weight: 600;
-  color: #3b82f6;
-  background: #eff6ff;
-  padding: 3px 10px;
-  border-radius: 18px;
-}
-
-.experience-company {
-  font-size: 13pt;
-  font-weight: 600;
-  color: #3b82f6;
-}
-
-.experience-details {
-  font-size: 13pt;
-  color: #4b5563;
-  line-height: 1.6;
-  margin-left: 0;
-  padding-left: 0;
-  border-left: none;
-  text-align: left;
-}
-
-.experience-details-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.experience-detail-item {
-  position: relative;
-  padding: 3px 0 3px 20px;
-  font-size: 13pt;
-  color: #4b5563;
-  line-height: 1.6;
-  text-align: left;
-}
-
-.experience-detail-item:before {
-  content: '▸';
-  position: absolute;
-  left: 0;
-  color: #3b82f6;
-  font-size: 14pt;
-  font-weight: bold;
-}
-
-/* Certifications Section */
-.certifications-content {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.certification-item {
-  background: transparent;
-  border-left: none;
-  border-radius: 0;
-  box-shadow: none;
-  margin-bottom: 0;
-  padding: 0;
-  border-bottom: 1px solid #e5e7eb;
-  padding-bottom: 8px;
-}
-
-.certification-item:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
-.certification-text {
-  font-size: 13pt;
-  color: #4b5563;
-  line-height: 1.6;
-  margin: 0;
-  font-weight: 400;
-}
-
-/* Skills Section */
-.skills-container,
-.languages-container,
-.hobbies-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.skill-pill,
-.hobby-pill {
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 12pt;
-  margin: 0;
-  display: inline-block;
-  background: linear-gradient(135deg, #3b82f6 0%, #1e3a8a 100%);
-  color: white;
-  font-weight: 500;
-  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
-  line-height: 1.3;
-  transition: transform 0.2s;
-}
-
-.skill-pill:hover,
-.hobby-pill:hover {
-  transform: translateY(-2px);
-}
-
-.language-pill {
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 12pt;
-  margin: 0;
-  display: inline-block;
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  color: white;
-  font-weight: 500;
-  box-shadow: 0 2px 6px rgba(245, 158, 11, 0.3);
-  line-height: 1.3;
-}
-
-.skill-name,
-.language-name,
-.hobby-name {
-  color: white;
-  font-weight: 500;
-}
-
-/* Other Information Section */
-.other-info-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.cv-preview .other-info-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-}
-
-.info-item {
-  display: flex;
-  align-items: flex-start;
-  padding: 12px;
-  background: #f9fafb;
-  border-radius: 6px;
-  border-left: 3px solid #3b82f6;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  margin-bottom: 0;
-  page-break-inside: avoid;
-  break-inside: avoid;
-}
-
-.info-label {
-  font-weight: 700;
-  color: #1e3a8a;
-  margin-right: 6px;
-  font-size: 13pt;
-  min-width: fit-content;
-}
-
-.info-value {
-  color: #4b5563;
-  font-size: 13pt;
-  font-weight: 400;
-}
-
-/* Custom Section Styling */
-.custom-section-content {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.custom-section-item {
-  background: transparent;
-  padding: 0;
-  border-radius: 0;
-  border-left: 3px solid #f59e0b;
-  box-shadow: none;
-  margin-bottom: 0;
-  padding-left: 12px;
-  border-bottom: none;
-}
-
-.custom-section-item:last-child {
-  border-bottom: none;
-}
-
-.custom-section-subheading {
-  font-size: 14pt;
-  font-weight: 700;
-  color: #f59e0b;
-  margin: 0 0 6px 0;
-  text-transform: none;
-  letter-spacing: normal;
-}
-
-.custom-section-detail {
-  font-size: 13pt;
-  color: #4b5563;
-  margin: 0;
-  line-height: 1.6;
-  font-weight: 400;
-}
-
-/* References Section Styling */
-.references-content {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.reference-item {
-  background: transparent;
-  padding: 0;
-  border-radius: 0;
-  border-left: 3px solid #3b82f6;
-  box-shadow: none;
-  margin-bottom: 0;
-  padding-left: 12px;
-  border-bottom: none;
-}
-
-.reference-item:last-child {
-  border-bottom: none;
-}
-
-.reference-text {
-  font-size: 13pt;
-  color: #4b5563;
-  margin: 0;
-  line-height: 1.6;
-  font-style: italic;
-  font-weight: 400;
-}
-
-/* Download PDF Button */
-.download-pdf-container {
-  padding: 20px 35px;
-  background: #f9fafb;
-  border-top: 1px solid #e5e7eb;
+.zoom-level {
+  min-width: 50px;
   text-align: center;
-}
-
-.download-pdf-button {
-  background: linear-gradient(135deg, #3b82f6 0%, #1e3a8a 100%);
-  color: white;
-  border: none;
-  padding: 12px 28px;
-  font-size: 14pt;
+  font-size: 13px;
   font-weight: 600;
+  color: #2c3e50;
+  padding: 0 4px;
+}
+
+@media screen and (max-width: 768px) {
+  .a4-preview-zoom-controls {
+    top: 50px;
+    padding: 6px 10px;
+    gap: 6px;
+  }
+  
+  .zoom-button {
+    width: 28px;
+    height: 28px;
+    font-size: 16px;
+  }
+  
+  .zoom-level {
+    font-size: 12px;
+    min-width: 45px;
+  }
+}
+
+/* A4 Preview Container - Works on all devices */
+.a4-preview-container {
+  padding: 0;
+  width: 100%;
+  max-width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  overflow: visible;
+  flex: 0 1 auto;
+  min-height: 0;
+  box-sizing: border-box;
+  position: relative;
+  margin-bottom: 0;
+}
+
+/* A4 Size Preview - Scale calculated by JavaScript */
+/* Apply PDF styling for beautiful A4 preview */
+.cv-preview.a4-size-preview {
+  transform-origin: center center;
+  width: 800px;
+  min-width: 800px;
+  max-width: 800px;
+  min-height: 1129px;
+  height: auto;
+  margin: 0 auto;
+  margin-bottom: 0;
+  box-sizing: border-box;
+  /* Beautiful design matching PDF */
+  padding: 20px;
+  line-height: 1.3;
+  font-family: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  background: #ffffff;
+  color: #333;
+  font-size: 14pt;
   border-radius: 8px;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  overflow: visible;
+  position: relative;
 }
 
-.download-pdf-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+/* Multi-page preview: Visual page break indicators */
+.cv-preview.a4-size-preview {
+  position: relative;
 }
 
-.download-pdf-button:active {
-  transform: translateY(0);
+/* Create visible page break lines at every 1129px using background */
+.cv-preview.a4-size-preview {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent calc(1129px - 3px),
+    #6b7280 calc(1129px - 3px),
+    #6b7280 calc(1129px + 2px),
+    transparent calc(1129px + 2px),
+    transparent calc(1129px + 20px - 3px),
+    #6b7280 calc(1129px + 20px - 3px),
+    #6b7280 calc(1129px + 20px + 2px),
+    transparent calc(1129px + 20px + 2px)
+  );
+  background-size: 100% calc(1129px + 20px);
+  background-position: top left;
+  background-repeat: repeat-y;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-  .cv-preview {
+/* Page break indicator created by JavaScript */
+.page-break-indicator {
+  position: absolute;
+  left: -20px;
+  right: -20px;
+  height: 4px;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    #6b7280 5%,
+    #6b7280 95%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 10;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  border-top: 1px solid rgba(107, 114, 128, 0.5);
+  border-bottom: 1px solid rgba(107, 114, 128, 0.5);
+}
+
+/* Ensure sections don't break awkwardly across pages */
+.cv-preview.a4-size-preview .cv-section {
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+  page-break-after: auto !important;
+  break-after: auto !important;
+}
+
+.cv-preview.a4-size-preview .section-heading {
+  page-break-after: avoid !important;
+  break-after: avoid !important;
+  page-break-before: auto !important;
+  break-before: auto !important;
+}
+
+.cv-preview.a4-size-preview .experience-item,
+.cv-preview.a4-size-preview .education-item,
+.cv-preview.a4-size-preview .certification-item,
+.cv-preview.a4-size-preview .skills-container,
+.cv-preview.a4-size-preview .languages-container,
+.cv-preview.a4-size-preview .hobbies-container,
+.cv-preview.a4-size-preview .references-content,
+.cv-preview.a4-size-preview .custom-section-content {
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+}
+
+/* Apply PDF mode styles to A4 preview - Match PDF font sizes exactly */
+.cv-preview.a4-size-preview.pdf-mode {
+  padding: 20px !important;
+  background: #ffffff !important;
+  font-size: 14pt !important;
+  font-family: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif !important;
+}
+
+/* Base text elements - match PDF */
+.cv-preview.a4-size-preview.pdf-mode p,
+.cv-preview.a4-size-preview.pdf-mode div,
+.cv-preview.a4-size-preview.pdf-mode span {
+  font-size: 14pt !important;
+  line-height: 1.3 !important;
+}
+
+/* CV Section - match PDF */
+.cv-preview.a4-size-preview.pdf-mode .cv-section {
+  margin-bottom: 6px !important;
+  padding: 12px 16px !important;
+  background: #ffffff !important;
+  border-left: 4px solid #667eea !important;
+  border-radius: 6px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+  page-break-after: auto !important;
+  break-after: auto !important;
+}
+
+/* Section headings - match PDF */
+.cv-preview.a4-size-preview.pdf-mode .section-heading {
+  font-size: 18pt !important;
+  font-weight: 700 !important;
+  color: #667eea !important;
+  page-break-after: avoid !important;
+  break-after: avoid !important;
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+  margin: 0 0 8px 0 !important;
+  padding-bottom: 6px !important;
+  border-bottom: 2px solid #e8ecf4 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  -webkit-text-fill-color: #667eea !important;
+  background-clip: unset !important;
+}
+
+/* CV Header - match PDF */
+.cv-preview.a4-size-preview.pdf-mode .cv-header {
+  display: flex !important;
+  flex-direction: column !important;
+  margin-bottom: 8px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+  border-bottom: none !important;
+}
+
+.cv-preview.a4-size-preview.pdf-mode .cv-header-top {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-start !important;
+  gap: 16px !important;
+  margin-bottom: 0 !important;
+  padding: 0 !important;
+}
+
+.cv-preview.a4-size-preview.pdf-mode .header-content {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: flex-start !important;
+  gap: 0 !important;
+}
+
+/* Reset all default margins and padding for header elements */
+.cv-preview.a4-size-preview.pdf-mode .header-content h1,
+.cv-preview.a4-size-preview.pdf-mode .header-content h2 {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Header name - match PDF */
+.cv-preview.a4-size-preview.pdf-mode .header-name {
+  font-size: 20pt !important;
+  font-weight: 700 !important;
+  color: #2c3e50 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.2 !important;
+  text-align: left !important;
+  width: 100% !important;
+  text-shadow: none !important;
+}
+
+/* Header title - match PDF */
+.cv-preview.a4-size-preview.pdf-mode .header-title {
+  font-size: 14pt !important;
+  font-weight: 600 !important;
+  color: #667eea !important;
+  margin: 4px 0 0 0 !important;
+  padding: 0 !important;
+  line-height: 1.2 !important;
+  display: block !important;
+}
+
+/* Contact items - match PDF */
+.cv-preview.a4-size-preview.pdf-mode .contact-item {
+  font-size: 12pt !important;
+  margin: 2px 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  line-height: 1.3 !important;
+  color: #555 !important;
+  height: auto !important;
+}
+
+.cv-preview.a4-size-preview.pdf-mode .contact-item span:not(.contact-icon) {
+  margin: 0 !important;
+  padding: 0 !important;
+  margin-left: 4px !important;
+}
+
+.cv-preview.a4-size-preview.pdf-mode .contact-icon {
+  width: 20px !important;
+  height: 20px !important;
+  display: inline-block !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  flex-shrink: 0 !important;
+}
+
+/* Professional summary - match PDF */
+.cv-preview.a4-size-preview.pdf-mode .professional-summary-text {
+  font-size: 13pt !important;
+  line-height: 1.4 !important;
+}
+
+/* Experience job title - match PDF */
+.cv-preview.a4-size-preview.pdf-mode .experience-job-title {
+  font-size: 16pt !important;
+  font-weight: 700 !important;
+}
+
+/* Experience company - match PDF */
+.cv-preview.a4-size-preview.pdf-mode .experience-company {
+  font-size: 13pt !important;
+  font-weight: 600 !important;
+}
+
+/* Experience duration - match PDF */
+.cv-preview.a4-size-preview.pdf-mode .experience-duration {
+  font-size: 12pt !important;
+}
+
+/* Profile Image Container - match PDF */
+.cv-preview.a4-size-preview.pdf-mode .cv-header-top {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-start !important;
+  gap: 16px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  margin-bottom: 12px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.cv-preview.a4-size-preview.pdf-mode .cv-header-top .profile-image-container {
+  order: 1 !important;
+  flex-shrink: 0 !important;
+}
+
+.cv-preview.a4-size-preview.pdf-mode .cv-header-top .header-content {
+  order: 2 !important;
+  flex: 1 !important;
+}
+
+.cv-preview.a4-size-preview.pdf-mode .profile-image-container {
+  flex-shrink: 0 !important;
+  width: 120px !important;
+  height: 120px !important;
+  border-radius: 50% !important;
+  overflow: hidden !important;
+  border: 2px solid #667eea !important;
+  background: #f5f5f5 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  position: relative !important;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2) !important;
+}
+
+.cv-preview.a4-size-preview.pdf-mode .profile-image {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  border-radius: 50% !important;
+}
+
+.cv-preview.a4-size-preview.pdf-mode .profile-placeholder {
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: #667eea !important;
+  color: white !important;
+  font-size: 14pt !important;
+  font-weight: 600 !important;
+  text-align: center !important;
+  border-radius: 50% !important;
+}
+
+/* Section Content - match PDF */
+.cv-preview.a4-size-preview.pdf-mode .section-content {
+  line-height: 1.3 !important;
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+}
+
+/* Professional Summary - match PDF */
+.cv-preview.a4-size-preview.pdf-mode .professional-summary-text {
+  font-size: 13pt !important;
+  color: #555 !important;
+  line-height: 1.4 !important;
+  margin: 0 !important;
+  text-align: justify !important;
+  padding: 10px !important;
+  background: #f8f9fa !important;
+  border-radius: 4px !important;
+  border-left: 3px solid #667eea !important;
+  border-top: none !important;
+  border-right: none !important;
+  border-bottom: none !important;
+  font-weight: 400 !important;
+  font-style: normal !important;
+  display: block !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Education Items - match PDF */
+.cv-preview.a4-size-preview.pdf-mode .education-item {
+  margin-bottom: 6px !important;
+  padding: 8px 12px !important;
+  background: #f8f9fa !important;
+  border-radius: 4px !important;
+  border-left: 3px solid #667eea !important;
+  border-top: none !important;
+  border-right: none !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
+  display: block !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+}
+
+.cv-preview.a4-size-preview.pdf-mode .education-item:last-child {
+  margin-bottom: 0 !important;
+}
+
+.cv-preview.a4-size-preview.pdf-mode .education-single-line {
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 6px !important;
+  line-height: 1.3 !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Experience Items - match PDF */
+.cv-preview.a4-size-preview.pdf-mode .experience-item {
+  margin-bottom: 16px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+  border-left: none !important;
+  box-shadow: none !important;
+  border-bottom: 1px solid #e8ecf4 !important;
+  padding-bottom: 12px !important;
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+}
+
+.cv-preview.a4-size-preview.pdf-mode .experience-item:last-child {
+  margin-bottom: 0 !important;
+  border-bottom: none !important;
+  padding-bottom: 0 !important;
+}
+
+.cv-preview.a4-size-preview.pdf-mode .experience-header {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  margin-bottom: 6px !important;
+  line-height: 1.4 !important;
+  gap: 4px !important;
+}
+
+.cv-preview.a4-size-preview.pdf-mode .experience-company-line {
+  margin-bottom: 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.cv-preview.a4-size-preview.pdf-mode .experience-duration {
+  font-size: 12pt !important;
+  font-weight: 500 !important;
+  color: #667eea !important;
+  background: #f0f4ff !important;
+  padding: 3px 10px !important;
+  border-radius: 12px !important;
+  display: inline-block !important;
+  margin-top: 4px !important;
+}
+
+.cv-preview.a4-size-preview.pdf-mode .experience-company {
+  font-size: 13pt !important;
+  font-weight: 600 !important;
+  color: #667eea !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.cv-preview.a4-size-preview.pdf-mode .experience-company:before {
+  content: '🏢' !important;
+  margin-right: 6px !important;
+  font-size: 12pt !important;
+}
+
+.cv-preview.a4-size-preview.pdf-mode .experience-details {
+  font-size: 13pt !important;
+  color: #555 !important;
+  line-height: 1.5 !important;
+  margin-left: 0 !important;
+  margin-top: 8px !important;
+  padding-left: 0 !important;
+  border-left: none !important;
+  text-align: left !important;
+  display: block !important;
+  width: 100% !important;
+}
+
+.cv-preview.a4-size-preview.pdf-mode .experience-details-list {
+  list-style: none !important;
+  list-style-type: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  margin-top: 8px !important;
+  display: block !important;
+}
+
+/* Experience details - match PDF */
+.cv-preview.a4-size-preview.pdf-mode .experience-detail-item {
+  position: relative !important;
+  display: block !important;
+  width: 100% !important;
+  padding: 0 !important;
+  padding-left: 18px !important;
+  font-size: 13pt !important;
+  color: #555 !important;
+  line-height: 1.4 !important;
+  text-align: left !important;
+  margin-bottom: 0 !important;
+  margin-top: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  list-style: none !important;
+  list-style-type: none !important;
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  clear: both !important;
+  float: none !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
+}
+
+.cv-preview.a4-size-preview.pdf-mode .experience-detail-item:before {
+  content: '•' !important;
+  position: absolute !important;
+  left: 0 !important;
+  color: #667eea !important;
+  font-size: 16pt !important;
+  font-weight: bold !important;
+  top: 0 !important;
+  line-height: 1.4 !important;
+  display: inline-block !important;
+  width: auto !important;
+  height: auto !important;
+}
+
+.cv-preview.a4-size-preview.pdf-mode .experience-detail-item::marker {
+  display: none !important;
+  content: '' !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* Certifications - match PDF */
+.cv-preview.a4-size-preview.pdf-mode .certifications-content {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+}
+
+.cv-preview.a4-size-preview.pdf-mode .certification-item {
+  background: #f8f9fa !important;
+  border-left: 3px solid #667eea !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
+  margin-bottom: 0 !important;
+  padding: 8px 12px !important;
+  border-bottom: none !important;
+}
+
+.cv-preview.a4-size-preview.pdf-mode .certification-item:last-child {
+  border-bottom: none !important;
+}
+
+/* Education degree - match PDF */
+.cv-preview.a4-size-preview.pdf-mode .education-degree {
+  font-size: 14pt !important;
+  font-weight: 700 !important;
+}
+
+/* Education board/institution - match PDF */
+.cv-preview.a4-size-preview.pdf-mode .education-board,
+.cv-preview.a4-size-preview.pdf-mode .education-institution {
+  font-size: 14pt !important;
+  font-weight: 600 !important;
+}
+
+/* Education marks - match PDF */
+.cv-preview.a4-size-preview.pdf-mode .education-marks {
+  font-size: 13pt !important;
+  font-weight: 400 !important;
+}
+
+/* Education details - match PDF */
+.cv-preview.a4-size-preview.pdf-mode .education-details {
+  font-size: 14pt !important;
+  font-weight: 400 !important;
+}
+
+/* Education year - match PDF */
+.cv-preview.a4-size-preview.pdf-mode .education-year {
+  font-size: 14pt !important;
+  font-weight: 400 !important;
+}
+
+/* Certification name - match PDF */
+.cv-preview.a4-size-preview.pdf-mode .certification-name {
+  font-size: 14pt !important;
+  font-weight: 700 !important;
+}
+
+/* Certification issuer - match PDF */
+.cv-preview.a4-size-preview.pdf-mode .certification-issuer {
+  font-size: 12pt !important;
+  font-weight: 500 !important;
+}
+
+/* Certification date - match PDF */
+.cv-preview.a4-size-preview.pdf-mode .certification-date {
+  font-size: 12pt !important;
+}
+
+/* Skills/Languages/Hobbies containers - match PDF */
+.cv-preview.a4-size-preview.pdf-mode .skills-container,
+.cv-preview.a4-size-preview.pdf-mode .languages-container,
+.cv-preview.a4-size-preview.pdf-mode .hobbies-container {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 2px !important;
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+}
+
+/* Skill pills - match PDF */
+.cv-preview.a4-size-preview.pdf-mode .skill-pill,
+.cv-preview.a4-size-preview.pdf-mode .hobby-pill {
+  padding: 1px 6px !important;
+  border-radius: 8px !important;
+  font-size: 8pt !important;
+  margin: 0 !important;
+  display: inline-block !important;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: white !important;
+  font-weight: 500 !important;
+  box-shadow: 0 1px 2px rgba(102, 126, 234, 0.15) !important;
+  line-height: 1.1 !important;
+}
+
+/* Language pills - match PDF */
+.cv-preview.a4-size-preview.pdf-mode .language-pill {
+  padding: 1px 6px !important;
+  border-radius: 8px !important;
+  font-size: 8pt !important;
+  margin: 0 !important;
+  display: inline-block !important;
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%) !important;
+  color: white !important;
+  font-weight: 500 !important;
+  box-shadow: 0 1px 2px rgba(118, 75, 162, 0.15) !important;
+  line-height: 1.1 !important;
+}
+
+.cv-preview.a4-size-preview.pdf-mode .skill-name,
+.cv-preview.a4-size-preview.pdf-mode .language-name,
+.cv-preview.a4-size-preview.pdf-mode .hobby-name {
+  color: white !important;
+  font-weight: 500 !important;
+}
+
+/* Info label - match PDF */
+.cv-preview.a4-size-preview.pdf-mode .info-label {
+  font-size: 14pt !important;
+  font-weight: 700 !important;
+}
+
+/* Info value - match PDF */
+.cv-preview.a4-size-preview.pdf-mode .info-value {
+  font-size: 13pt !important;
+  font-weight: 400 !important;
+}
+
+/* Custom section subheading - match PDF */
+.cv-preview.a4-size-preview.pdf-mode .custom-section-subheading {
+  font-size: 14pt !important;
+  font-weight: 700 !important;
+}
+
+/* Custom section detail - match PDF */
+.cv-preview.a4-size-preview.pdf-mode .custom-section-detail {
+  font-size: 13pt !important;
+  font-weight: 400 !important;
+}
+
+/* Reference text - match PDF */
+.cv-preview.a4-size-preview.pdf-mode .reference-text {
+  font-size: 13pt !important;
+  font-weight: 400 !important;
+}
+
+/* Certification text - match PDF */
+.cv-preview.a4-size-preview.pdf-mode .certification-text {
+  font-size: 13pt !important;
+  color: #555 !important;
+  line-height: 1.3 !important;
+  margin: 0 !important;
+  font-weight: 400 !important;
+}
+
+/* Other Information - match PDF */
+.cv-preview.a4-size-preview.pdf-mode .other-info-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 6px !important;
+}
+
+.cv-preview.a4-size-preview.pdf-mode .info-item {
+  display: flex !important;
+  align-items: center !important;
+  padding: 6px 12px !important;
+  background: #f8f9fa !important;
+  border-radius: 4px !important;
+  border-left: 3px solid #667eea !important;
+  box-shadow: none !important;
+  margin-bottom: 4px !important;
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+}
+
+/* References - match PDF */
+.cv-preview.a4-size-preview.pdf-mode .references-content {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+}
+
+.cv-preview.a4-size-preview.pdf-mode .reference-item {
+  background: #f8f9fa !important;
+  padding: 8px 12px !important;
+  border-radius: 4px !important;
+  border-left: 3px solid #667eea !important;
+  box-shadow: none !important;
+  margin-bottom: 0 !important;
+  border-bottom: none !important;
+}
+
+.cv-preview.a4-size-preview.pdf-mode .reference-item:last-child {
+  border-bottom: none !important;
+}
+
+.cv-preview.a4-size-preview.pdf-mode .reference-text {
+  font-size: 13pt !important;
+  color: #555 !important;
+  margin: 0 !important;
+  line-height: 1.3 !important;
+  font-weight: 400 !important;
+}
+
+/* Custom Section - match PDF */
+.cv-preview.a4-size-preview.pdf-mode .custom-section-content {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+}
+
+.cv-preview.a4-size-preview.pdf-mode .custom-section-item {
+  background: #f8f9fa !important;
+  padding: 8px 12px !important;
+  border-radius: 4px !important;
+  border-left: 3px solid #f5576c !important;
+  box-shadow: none !important;
+  margin-bottom: 0 !important;
+  border-bottom: none !important;
+}
+
+.cv-preview.a4-size-preview.pdf-mode .custom-section-item:last-child {
+  border-bottom: none !important;
+}
+
+.cv-preview.a4-size-preview.pdf-mode .custom-section-subheading {
+  font-size: 14pt !important;
+  font-weight: 700 !important;
+  color: #f5576c !important;
+  margin: 0 0 3px 0 !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+}
+
+.cv-preview.a4-size-preview.pdf-mode .custom-section-detail {
+  font-size: 13pt !important;
+  color: #555 !important;
+  margin: 0 !important;
+  line-height: 1.3 !important;
+  font-weight: 400 !important;
+}
+
+/* Mobile adjustments */
+@media screen and (max-width: 767px) {
+  .a4-preview-container {
     padding: 0;
+    margin-bottom: 0;
   }
+}
 
-  .cv-header-top {
-    padding: 30px 25px;
-    flex-direction: column;
-    text-align: center;
-    align-items: center;
+/* Tablet adjustments (768px and above) */
+@media screen and (min-width: 768px) and (max-width: 1024px) {
+  .a4-preview-container {
+    padding: 0;
+    margin-bottom: 0;
   }
+}
 
-  .profile-image-container {
-    width: 120px;
-    height: 120px;
-  }
-
-  .header-name {
-    font-size: 28pt;
-    text-align: center;
-  }
-
-  .header-title {
-    text-align: center;
-  }
-
-  .header-contact {
-    justify-content: center;
-  }
-
-  .cv-section {
-    padding: 25px 20px;
-  }
-
-  .section-heading {
-    font-size: 18pt;
-  }
-
-  .other-info-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .download-pdf-container {
-    padding: 25px 20px;
+/* Desktop adjustments */
+@media screen and (min-width: 1025px) {
+  .a4-preview-container {
+    padding: 0;
+    margin-bottom: 0;
   }
 }

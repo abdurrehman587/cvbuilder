@@ -1,0 +1,142 @@
+.top-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 56px;
+  background: #ffffff;
+  border-bottom: 1px solid #e4e6eb;
+  z-index: 1000;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.top-nav-container {
+  max-width: 100%;
+  margin: 0 auto;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 8px;
+}
+
+.top-nav-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  font-size: 24px;
+  color: #1877f2;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+  flex-shrink: 0;
+}
+
+.top-nav-logo:hover {
+  background-color: #f0f2f5;
+}
+
+.logo-icon {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.logo-text {
+  display: none;
+}
+
+.top-nav-sections {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex: 1;
+  justify-content: center;
+  height: 100%;
+}
+
+.top-nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 111px;
+  height: 100%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  color: #65676b;
+  transition: all 0.15s;
+  position: relative;
+  padding: 0 16px;
+}
+
+.top-nav-item:hover {
+  background-color: #f0f2f5;
+}
+
+.top-nav-item.active {
+  color: #1877f2;
+}
+
+.top-nav-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #1877f2;
+  border-radius: 3px 3px 0 0;
+}
+
+.nav-icon {
+  font-size: 24px;
+  margin-right: 8px;
+}
+
+.nav-label {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.top-nav-spacer {
+  width: 40px;
+  flex-shrink: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .top-nav-container {
+    padding: 0 10px;
+    gap: 10px;
+  }
+  
+  .top-nav-item {
+    padding: 10px 12px;
+    gap: 6px;
+  }
+  
+  .nav-label {
+    font-size: 13px;
+  }
+  
+  .logo-text {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-label {
+    display: none;
+  }
+  
+  .top-nav-item {
+    padding: 10px;
+    min-width: 44px;
+    justify-content: center;
+  }
+}
+

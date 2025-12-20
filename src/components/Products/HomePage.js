@@ -201,8 +201,27 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
   
   // Show login form on mount if showLoginOnMount is true (when navigation flags are set)
   React.useEffect(() => {
-    // Check for navigation flags on mount and when prop changes
-    const checkAndShowLogin = () => {
+    // Check if user is already authenticated - if so, don't show login
+    const checkAuth = async () => {
+      try {
+        const isAuthInStorage = localStorage.getItem('cvBuilderAuth') === 'true';
+        if (isAuthInStorage) {
+          // User is authenticated, hide login form
+          setShowLogin(false);
+          return;
+        }
+        
+        // Check with authService
+        const user = await authService.getCurrentUser();
+        if (user) {
+          setShowLogin(false);
+          return;
+        }
+      } catch (err) {
+        console.error('Error checking auth:', err);
+      }
+      
+      // Check for navigation flags on mount and when prop changes
       const hasNavIntent = sessionStorage.getItem('navigateToCVBuilder') === 'true' ||
                            sessionStorage.getItem('navigateToIDCardPrint') === 'true' ||
                            localStorage.getItem('navigateToCVBuilder') === 'true' ||
@@ -217,17 +236,30 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
     };
     
     // Check immediately
-    checkAndShowLogin();
+    checkAuth();
     
     // Also listen for hash changes in case navigation flags are set after mount
     const handleHashChange = () => {
-      checkAndShowLogin();
+      checkAuth();
+    };
+    
+    // Listen for authentication events to hide login form
+    const handleUserAuthenticated = () => {
+      console.log('User authenticated event received, hiding login form');
+      setShowLogin(false);
+      // Clear navigation flags after successful authentication
+      sessionStorage.removeItem('navigateToCVBuilder');
+      sessionStorage.removeItem('navigateToIDCardPrint');
+      localStorage.removeItem('navigateToCVBuilder');
+      localStorage.removeItem('navigateToIDCardPrint');
     };
     
     window.addEventListener('hashchange', handleHashChange);
+    window.addEventListener('userAuthenticated', handleUserAuthenticated);
     
     return () => {
       window.removeEventListener('hashchange', handleHashChange);
+      window.removeEventListener('userAuthenticated', handleUserAuthenticated);
     };
   }, [showLoginOnMount]);
 
@@ -1567,19 +1599,25 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
             </p>
             <div className="footer-logo">
               <img 
-                src="/images/glory-logo.png" 
+                src={`${process.env.PUBLIC_URL || ''}/images/glory-logo.png`}
                 alt="GLORY Logo" 
                 className="footer-logo-image"
+                onLoad={() => console.log('Footer logo loaded successfully')}
                 onError={(e) => {
                   console.error('Footer logo failed to load:', e.target.src);
-                  // Don't hide, show a fallback text instead
-                  e.target.style.display = 'none';
+                  // Try alternative path
+                  const img = e.target;
+                  img.src = '/images/glory-logo.png';
+                  img.onerror = () => {
+                    img.style.display = 'none';
                   const fallback = document.createElement('span');
                   fallback.textContent = 'GLORY';
                   fallback.style.color = '#ffffff';
                   fallback.style.fontSize = '1.5rem';
                   fallback.style.fontWeight = '700';
-                  e.target.parentNode.appendChild(fallback);
+                    fallback.className = 'footer-logo-fallback';
+                    img.parentNode.appendChild(fallback);
+                  };
                 }}
               />
             </div>
@@ -1650,6 +1688,31 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
         </div>
 
         <div className="footer-bottom">
+          <div className="footer-bottom-logo">
+            <img 
+              src={`${process.env.PUBLIC_URL || ''}/images/glory-logo.png`}
+              alt="GLORY Logo" 
+              className="footer-bottom-logo-image"
+              onLoad={() => console.log('Footer bottom logo loaded successfully')}
+              onError={(e) => {
+                console.error('Footer bottom logo failed to load:', e.target.src);
+                console.error('Trying fallback path...');
+                // Try alternative path
+                const img = e.target;
+                img.src = '/images/glory-logo.png';
+                img.onerror = () => {
+                  img.style.display = 'none';
+                  const fallback = document.createElement('span');
+                  fallback.textContent = 'GLORY';
+                  fallback.style.color = '#ffffff';
+                  fallback.style.fontSize = '1.2rem';
+                  fallback.style.fontWeight = '700';
+                  fallback.className = 'footer-logo-fallback';
+                  img.parentNode.appendChild(fallback);
+                };
+              }}
+            />
+          </div>
           <div className="footer-copyright">
             <p>&copy; {new Date().getFullYear()} GLORY. All rights reserved.</p>
             <p className="footer-tagline">Empowering professionals with quality tools and services.</p>

@@ -1,16 +1,49 @@
-/* CV Preview Container - Two Column Layout */
+/* Right Container - Ensure proper overflow handling and centering */
+.template2-container.right-container {
+  overflow-x: auto !important;
+  overflow-y: auto !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  align-items: stretch !important;
+  padding: 0 !important;
+  position: relative !important;
+  width: 100% !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+/* CV Preview Container - A4 Page Format with Two Column Layout */
+/* A4 dimensions: 210mm × 297mm at 96 DPI = 794px × 1123px */
+/* Using 800px width for better rendering, maintaining A4 aspect ratio */
 .template2-root .cv-preview {
   background: white;
-  min-height: 100vh;
   padding: 0;
   font-family: 'Arial', sans-serif;
   color: #333;
   display: grid !important;
   grid-template-columns: 35% 65% !important;
   gap: 0;
-  max-width: 1200px;
-  margin: 0 auto;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+  
+  /* Fixed A4 base size */
+  width: 800px !important;
+  min-width: 800px !important;
+  max-width: 800px !important;
+  min-height: 1129px !important; /* A4 aspect ratio: 800 * (297/210) */
+  height: auto !important;
+  
+  /* Center the preview */
+  margin: 0 auto !important;
+  
+  /* Scale origin for proportional scaling */
+  transform-origin: top center !important;
+  
+  /* Ensure it's visible and not clipped */
+  position: relative !important;
+  flex-shrink: 0 !important;
 }
 
 /* Left Column - Purple Background (Personal info, contacts, skills) */
@@ -670,203 +703,328 @@
   box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
-/* Responsive Design */
-@media (max-width: 1024px) {
-  .template2-root .cv-preview {
-    grid-template-columns: 1fr !important;
-  }
-  
-  .template2-root .cv-left-column,
-  .template2-root .cv-right-column {
-    min-height: auto;
-    padding: 25px 20px;
-  }
+/* Preview Controls - Button to show A4 preview - ALWAYS VISIBLE */
+.template2-container .preview-controls,
+.right-container.template2-container > .preview-controls:first-child {
+  padding: 20px 15px !important;
+  text-align: center !important;
+  background: #f0f4f8 !important;
+  border-bottom: 2px solid #667eea !important;
+  width: 100% !important;
+  flex-shrink: 0 !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative !important;
+  z-index: 1000 !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+  order: -1 !important;
 }
 
-@media (max-width: 768px) {
-  .template2-root .cv-preview {
-    grid-template-columns: 1fr !important;
+.template2-container .preview-a4-button,
+.right-container.template2-container .preview-a4-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: white !important;
+  border: 2px solid #764ba2 !important;
+  padding: 15px 30px !important;
+  font-size: 16pt !important;
+  font-weight: 700 !important;
+  border-radius: 10px !important;
+  cursor: pointer !important;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4) !important;
+  transition: all 0.3s ease !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  width: auto !important;
+  min-width: 250px !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  }
+  
+.template2-container .preview-a4-button:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4) !important;
+  }
+  
+/* A4 Preview Modal */
+.a4-preview-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 10000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.a4-preview-modal-content {
+  position: relative;
+  background: #f5f5f5;
+  border-radius: 8px;
+  padding: 20px;
+  max-width: 100%;
+  max-height: 100vh;
+  overflow: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  }
+  
+/* Mobile: Full screen modal */
+@media screen and (max-width: 768px) {
+  .a4-preview-modal-overlay {
+    padding: 0;
+    align-items: flex-start;
+  }
+  
+  .a4-preview-modal-content {
+    width: 100%;
+    height: 100vh;
     max-width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+    padding: 50px 5px 5px 5px;
+    box-sizing: border-box;
+  }
   }
   
-  .template2-root .cv-left-column {
-    padding: 20px 15px;
-    min-height: auto;
-  }
-  
-  .template2-root .cv-right-column {
-    padding: 20px 15px;
-    min-height: auto;
-  }
-  
-  .template2-root .cv-header {
-    flex-direction: column;
+.a4-preview-close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 10001;
+  display: flex;
     align-items: center;
-    text-align: center;
-    gap: 20px;
-  }
-  
-  .template2-root .profile-image-container {
-    width: 120px;
-    height: 120px;
-  }
-  
-  .template2-root .header-name {
-    font-size: 24px;
-    text-align: center;
-    width: 100%;
-  }
-  
-  .template2-root .header-title {
-    font-size: 16px;
-  }
-  
-  .template2-root .header-contact {
-    align-items: center;
-  }
-  
-  /* Other Information grid becomes single column on small screens */
-  .template2-root .other-info-grid {
-    grid-template-columns: 1fr !important;
-    gap: 8px;
-  }
-  
-  .template2-root .skills-container,
-  .template2-root .languages-container,
-  .template2-root .hobbies-container {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-  
-  .template2-root .skill-pill,
-  .template2-root .language-pill,
-  .template2-root .hobby-pill {
-    flex: 1;
-    min-width: 100px;
-    font-size: 0.85rem;
-    padding: 4px 8px;
-  }
-  
-  .template2-root .section-heading {
-    font-size: 1.3rem;
-  }
-  
-  .template2-root .cv-section {
-    padding: 10px;
-    margin-bottom: 12px;
-  }
+  justify-content: center;
+  transition: all 0.2s;
 }
 
-@media (max-width: 480px) {
-  .template2-root .cv-preview {
-    font-size: 0.85rem;
-  }
-  
-  .template2-root .cv-left-column,
-  .template2-root .cv-right-column {
-    padding: 15px 12px;
-  }
-  
-  .template2-root .cv-header {
-    gap: 15px;
-    padding-bottom: 15px;
-    margin-bottom: 15px;
-  }
-  
-  .template2-root .profile-image-container {
-    width: 100px;
-    height: 100px;
-  }
-  
-  .template2-root .header-name {
+.a4-preview-close-button:hover {
+  background: rgba(0, 0, 0, 0.8);
+  transform: scale(1.1);
+}
+
+@media screen and (max-width: 768px) {
+  .a4-preview-close-button {
+    top: 5px;
+    right: 5px;
+    width: 35px;
+    height: 35px;
     font-size: 20px;
-    line-height: 1.2;
-    text-align: center;
-    width: 100%;
+    background: rgba(0, 0, 0, 0.7);
+  }
   }
   
-  .template2-root .header-title {
-    font-size: 14px;
-    line-height: 1.3;
+.a4-preview-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 20px;
+  min-height: 100%;
+  width: 100%;
+  box-sizing: border-box;
   }
   
-  .template2-root .header-contact {
+/* A4 Size Preview - Fixed dimensions */
+.a4-size-preview .template2-root .cv-preview {
+  width: 800px !important;
+  min-width: 800px !important;
+  max-width: 800px !important;
+  min-height: 1129px !important;
+  grid-template-columns: 35% 65% !important;
+}
+
+/* A4 Preview Wrapper */
+.a4-preview-wrapper {
+  width: 100%;
+  max-width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+    padding: 10px;
+  box-sizing: border-box;
+  position: relative;
+  }
+
+/* Normal Preview - Desktop view */
+.normal-preview {
+  display: block;
+  }
+  
+/* Show button on ALL screen sizes for now - for testing */
+.template2-container .preview-controls {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  }
+  
+.template2-container .preview-a4-button {
+  display: inline-flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Show button on all devices, hide normal preview */
+.template2-container .normal-preview {
+  display: none !important;
+  }
+  
+.template2-container .preview-controls,
+.right-container.template2-container .preview-controls {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative !important;
+  z-index: 1000 !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 60px !important;
+  }
+  
+.template2-container .preview-a4-button,
+.right-container.template2-container .preview-a4-button {
+  display: inline-flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  }
+  
+/* Mobile: Scale A4 preview in modal to fit screen */
+@media screen and (max-width: 768px) {
+  .a4-preview-modal-content {
+    padding: 45px 0 0 0 !important;
+    display: flex;
     flex-direction: column;
-    gap: 6px;
   }
   
-  .template2-root .section-heading {
-    font-size: 1.1rem;
-    margin-bottom: 8px;
+  .a4-preview-container {
+    padding: 0 !important;
+    width: 100% !important;
+    height: calc(100vh - 45px) !important;
+    max-height: calc(100vh - 45px) !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    overflow: hidden !important;
+    flex: 1;
+    box-sizing: border-box !important;
   }
   
-  .template2-root .cv-section {
-    padding: 8px;
-    margin-bottom: 10px;
-  }
-  
-  .template2-root .skill-pill,
-  .template2-root .language-pill,
-  .template2-root .hobby-pill {
-    font-size: 0.75rem;
-    padding: 3px 6px;
-    min-width: 80px;
-  }
-  
-  .template2-root .other-info-grid {
-    gap: 6px;
-  }
-  
-  .template2-root .info-item {
-    padding: 5px 8px;
-  }
-  
-  .template2-root .info-label,
-  .template2-root .info-value {
-    font-size: 1rem !important;
+  .a4-size-preview .template2-root .cv-preview {
+    /* Scale is now calculated by JavaScript - keep original dimensions */
+    transform-origin: center center !important;
+    zoom: 1 !important;
+    /* Keep original dimensions for scaling calculation */
+    width: 800px !important;
+    min-width: 800px !important;
+    max-width: 800px !important;
+    min-height: 1129px !important;
   }
 }
 
-@media (max-width: 360px) {
-  .template2-root .cv-preview {
-    font-size: 0.8rem;
+@media screen and (max-width: 480px) {
+  .a4-preview-modal-content {
+    padding: 40px 0 0 0 !important;
   }
   
-  .template2-root .cv-left-column,
-  .template2-root .cv-right-column {
-    padding: 12px 10px;
+  .a4-preview-container {
+    padding: 0 !important;
+    height: calc(100vh - 40px) !important;
+    max-height: calc(100vh - 40px) !important;
   }
   
-  .template2-root .profile-image-container {
-    width: 90px;
-    height: 90px;
+  .a4-size-preview .template2-root .cv-preview {
+    /* Scale is now calculated by JavaScript */
+    transform-origin: center center !important;
+    zoom: 1 !important;
   }
-  
-  .template2-root .header-name {
-    font-size: 18px;
-    text-align: center;
+}
+
+/* Responsive Design - Mobile A4 Page Display */
+@media screen and (max-width: 900px) {
+  .a4-preview-wrapper {
     width: 100%;
+    max-width: calc(100vw - 20px);
+    padding: 5px;
   }
   
-  .template2-root .header-title {
-    font-size: 12px;
+  .a4-preview-wrapper .template2-root .cv-preview {
+    width: 800px !important;
+    min-width: 800px !important;
+    max-width: 800px !important;
+    min-height: 1129px !important;
+    zoom: calc((100vw - 20px) / 800);
+    transform: scale(calc((100vw - 20px) / 800));
+    transform-origin: top center;
+    grid-template-columns: 35% 65% !important;
+    display: grid !important;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .a4-preview-wrapper {
+    width: 100%;
+    max-width: calc(100vw - 10px);
+    padding: 5px;
   }
   
-  .template2-root .section-heading {
-    font-size: 1rem;
+  .a4-preview-wrapper .template2-root .cv-preview {
+    width: 800px !important;
+    min-width: 800px !important;
+    max-width: 800px !important;
+    min-height: 1129px !important;
+    zoom: min(
+      calc((100vw - 10px) / 800),
+      calc((100vh - 150px) / 1129)
+    );
+    transform: scale(min(
+      calc((100vw - 10px) / 800),
+      calc((100vh - 150px) / 1129)
+    ));
+    transform-origin: top center;
+    grid-template-columns: 35% 65% !important;
+    display: grid !important;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .a4-preview-wrapper {
+    width: 100%;
+    max-width: calc(100vw - 10px);
+    padding: 5px;
   }
   
-  .template2-root .cv-section {
-    padding: 6px;
-    margin-bottom: 8px;
-  }
-  
-  .template2-root .skill-pill,
-  .template2-root .language-pill,
-  .template2-root .hobby-pill {
-    font-size: 0.7rem;
-    padding: 2px 5px;
-    min-width: 70px;
+  .a4-preview-wrapper .template2-root .cv-preview {
+    width: 800px !important;
+    min-width: 800px !important;
+    max-width: 800px !important;
+    min-height: 1129px !important;
+    zoom: min(
+      calc((100vw - 10px) / 800),
+      calc((100vh - 120px) / 1129)
+    );
+    transform: scale(min(
+      calc((100vw - 10px) / 800),
+      calc((100vh - 120px) / 1129)
+    ));
+    transform-origin: top center;
+    grid-template-columns: 35% 65% !important;
+    display: grid !important;
   }
 }

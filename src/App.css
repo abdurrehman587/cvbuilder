@@ -342,6 +342,7 @@ html {
 
 .container {
   display: flex;
+  flex-direction: column;
   gap: 20px;
   height: auto;
   min-height: calc(100vh - 120px);
@@ -366,11 +367,13 @@ html {
   flex-direction: column;
   gap: 5px;
   overflow: visible;
+  width: 100%;
 }
 
 .right-container {
   background-color: white;
   overflow: visible;
+  display: none;
 }
 
 h2 {
@@ -429,11 +432,13 @@ p {
 @media (max-width: 1024px) {
   .container {
     gap: 15px;
+    flex-direction: column;
   }
   
   .left-container,
   .right-container {
     padding: 10px;
+    width: 100%;
   }
   
   .app-header-cv {
@@ -564,7 +569,17 @@ p {
   
   .right-container {
     overflow-x: auto;
-    overflow-y: visible;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Ensure template containers allow scaled content */
+  .template1-container.right-container,
+  .template2-container.right-container,
+  .template3-container.right-container,
+  .template4-container.right-container {
+    overflow-x: auto !important;
+    overflow-y: auto !important;
   }
 }
 
@@ -638,6 +653,25 @@ p {
   .right-container {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Ensure preview controls button is visible on mobile */
+  .template1-container .preview-controls,
+  .template2-container .preview-controls,
+  .template3-container .preview-controls,
+  .template4-container .preview-controls {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+  
+  .template1-container .preview-a4-button,
+  .template2-container .preview-a4-button,
+  .template3-container .preview-a4-button,
+  .template4-container .preview-a4-button {
+    display: inline-flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
   }
 }
 

@@ -1,6 +1,11 @@
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { Capacitor } from '@capacitor/core';
+import { registerPlugin } from '@capacitor/core';
 import './pdf1.css';
+
+// Register FileDownload plugin
+const FileDownload = registerPlugin('FileDownload');
 
 // PDF Generation Configuration
 const PDF_CONFIG = {
@@ -17,7 +22,24 @@ const PDF_CONFIG = {
 
 // Helper Functions
 const validateCVPreview = () => {
-  const cvPreview = document.querySelector('.cv-preview');
+  // First try to find the hidden A4 preview element (always available for PDF)
+  // This is the one that's always rendered but hidden off-screen
+  let cvPreview = document.querySelector('.cv-preview.a4-size-preview.pdf-mode[style*="visibility: hidden"]');
+  
+  // If not found, try to find any A4 preview element
+  if (!cvPreview) {
+    cvPreview = document.querySelector('.cv-preview.a4-size-preview.pdf-mode');
+  }
+  
+  // If still not found, try to find any A4 preview element
+  if (!cvPreview) {
+    cvPreview = document.querySelector('.cv-preview.a4-size-preview');
+  }
+  
+  // If not found, try to find any cv-preview element
+  if (!cvPreview) {
+    cvPreview = document.querySelector('.cv-preview');
+  }
   
   if (!cvPreview) {
     throw new Error('CV preview not found. Please make sure the CV is loaded.');
@@ -31,7 +53,56 @@ const validateCVPreview = () => {
   return cvPreview;
 };
 
+const applyPageBreaks = (cvPreview) => {
+  const pageHeight = 1129; // A4 page height in pixels
+  const padding = 20; // Top and bottom padding
+  const usablePageHeight = pageHeight - (padding * 2);
+  
+  // Get all sections
+  const sections = cvPreview.querySelectorAll('.cv-section');
+  
+  // Reset all sections first
+  sections.forEach(section => {
+    section.style.marginTop = '';
+    section.style.pageBreakBefore = '';
+    section.style.breakBefore = '';
+  });
+  
+  // Check each section to see if it would be cut off
+  sections.forEach((section, index) => {
+    // Get the section's position relative to the preview container
+    const sectionTop = section.offsetTop;
+    const sectionHeight = section.offsetHeight;
+    
+    // Calculate which page this section starts on (accounting for padding)
+    const positionOnPage = (sectionTop - padding) % pageHeight;
+    const currentPage = Math.floor((sectionTop - padding) / pageHeight);
+    
+    // Check if section would be cut off (starts too close to page end)
+    // Leave at least 10% of page height as buffer
+    const minSpaceRequired = usablePageHeight * 0.1;
+    const spaceRemaining = pageHeight - positionOnPage - padding;
+    const wouldBeCutOff = sectionHeight > spaceRemaining && spaceRemaining < (usablePageHeight - minSpaceRequired);
+    
+    if (wouldBeCutOff && index > 0) {
+      // Move section to next page
+      const nextPageStart = (currentPage + 1) * pageHeight + padding;
+      const marginNeeded = nextPageStart - sectionTop;
+      
+      // Only add margin if it's positive (section is before the next page start)
+      if (marginNeeded > 0) {
+        section.style.marginTop = `${marginNeeded}px`;
+        section.style.pageBreakBefore = 'always';
+        section.style.breakBefore = 'page';
+      }
+    }
+  });
+};
+
 const setupPDFMode = (cvPreview) => {
+  // Apply page breaks to prevent section cutoff
+  applyPageBreaks(cvPreview);
+  
   // Hide download button
   const downloadButton = cvPreview.querySelector('.download-pdf-container');
   const originalDisplay = downloadButton ? downloadButton.style.display : '';
@@ -39,10 +110,39 @@ const setupPDFMode = (cvPreview) => {
     downloadButton.style.display = 'none';
   }
 
-  // Store original dimensions
+  // Store original styles
   const originalWidth = cvPreview.style.width || '';
   const originalMaxWidth = cvPreview.style.maxWidth || '';
   const originalMinWidth = cvPreview.style.minWidth || '';
+  const originalTransform = cvPreview.style.transform || '';
+  const originalDisplayStyle = cvPreview.style.display || '';
+  const originalVisibility = cvPreview.style.visibility || '';
+  const originalOpacity = cvPreview.style.opacity || '';
+  const originalPosition = cvPreview.style.position || '';
+  const originalZIndex = cvPreview.style.zIndex || '';
+  const originalTop = cvPreview.style.top || '';
+  const originalLeft = cvPreview.style.left || '';
+  
+  // Make sure preview is visible and positioned correctly for PDF generation
+  // If it's in a modal, ensure the modal is visible too
+  const modal = cvPreview.closest('.a4-preview-modal-content');
+  const modalOverlay = cvPreview.closest('.a4-preview-modal-overlay');
+  let originalModalDisplay = '';
+  let originalModalOverlayDisplay = '';
+  
+  if (modal) {
+    originalModalDisplay = modal.style.display || '';
+    modal.style.display = 'flex';
+    modal.style.visibility = 'visible';
+    modal.style.opacity = '1';
+  }
+  
+  if (modalOverlay) {
+    originalModalOverlayDisplay = modalOverlay.style.display || '';
+    modalOverlay.style.display = 'flex';
+    modalOverlay.style.visibility = 'visible';
+    modalOverlay.style.opacity = '1';
+  }
   
   // Force A4 dimensions for PDF generation
   // A4: 210mm x 297mm at 96 DPI ≈ 794px x 1123px
@@ -52,34 +152,75 @@ const setupPDFMode = (cvPreview) => {
   cvPreview.style.minWidth = '800px';
   cvPreview.style.margin = '0 auto';
   cvPreview.style.display = 'block';
+  cvPreview.style.visibility = 'visible';
+  cvPreview.style.opacity = '1';
+  cvPreview.style.position = 'fixed';
+  cvPreview.style.top = '0';
+  cvPreview.style.left = '0';
+  cvPreview.style.zIndex = '99999';
+  cvPreview.style.background = '#ffffff';
+  
+  // Remove any transform scale (from zoom controls)
+  cvPreview.style.transform = 'scale(1)';
+  cvPreview.style.transformOrigin = 'center center';
 
-  // Apply PDF mode styling
+  // Ensure PDF mode styling is applied
   cvPreview.classList.add('pdf-mode');
+  cvPreview.classList.add('a4-size-preview');
 
   return { 
     downloadButton, 
     originalDisplay,
     originalWidth,
     originalMaxWidth,
-    originalMinWidth
+    originalMinWidth,
+    originalTransform,
+    originalDisplayStyle,
+    originalVisibility,
+    originalOpacity,
+    originalPosition,
+    originalZIndex,
+    originalTop,
+    originalLeft,
+    modal,
+    modalOverlay,
+    originalModalDisplay,
+    originalModalOverlayDisplay
   };
 };
 
-const cleanupPDFMode = (cvPreview, downloadButton, originalDisplay, originalWidth, originalMaxWidth, originalMinWidth) => {
+const cleanupPDFMode = (cvPreview, downloadButton, originalDisplay, originalWidth, originalMaxWidth, originalMinWidth, originalTransform, originalDisplayStyle, originalVisibility, originalOpacity, originalPosition, originalZIndex, originalTop, originalLeft, modal, modalOverlay, originalModalDisplay, originalModalOverlayDisplay) => {
   // Restore download button
   if (downloadButton) {
     downloadButton.style.display = originalDisplay;
   }
   
-  // Restore original dimensions
+  // Restore modal visibility if it was hidden
+  if (modal && originalModalDisplay) {
+    modal.style.display = originalModalDisplay;
+  }
+  if (modalOverlay && originalModalOverlayDisplay) {
+    modalOverlay.style.display = originalModalOverlayDisplay;
+  }
+  
+  // Restore original styles
   cvPreview.style.width = originalWidth;
   cvPreview.style.maxWidth = originalMaxWidth;
   cvPreview.style.minWidth = originalMinWidth;
   cvPreview.style.margin = '';
-  cvPreview.style.display = '';
+  cvPreview.style.display = originalDisplayStyle || '';
+  cvPreview.style.visibility = originalVisibility || '';
+  cvPreview.style.opacity = originalOpacity || '';
+  cvPreview.style.transform = originalTransform || '';
+  cvPreview.style.transformOrigin = '';
+  cvPreview.style.position = originalPosition || '';
+  cvPreview.style.zIndex = originalZIndex || '';
+  cvPreview.style.top = originalTop || '';
+  cvPreview.style.left = originalLeft || '';
   
-  // Remove PDF mode styling
-  cvPreview.classList.remove('pdf-mode');
+  // Note: We keep pdf-mode class as it might be needed for the preview
+  // Only remove it if it wasn't there originally
+  // (This is handled by the component's state)
 };
 
 const updateButtonState = (text, disabled = false) => {
@@ -166,6 +307,12 @@ const generateCanvas = async (cvPreview) => {
     offsetHeight: cvPreview.offsetHeight
   });
 
+  // Apply page breaks to original preview before cloning
+  applyPageBreaks(cvPreview);
+  
+  // Force a reflow to ensure page breaks are applied
+  void cvPreview.offsetHeight;
+
   // Preload all images and convert blob URLs to base64
   console.log('Preloading and converting images...');
   const imageData = await preloadAndConvertImages(cvPreview);
@@ -176,6 +323,13 @@ const generateCanvas = async (cvPreview) => {
   // Using 800px width for better quality rendering
   const a4WidthPx = 800;
   const a4HeightPx = Math.round(a4WidthPx * (PDF_CONFIG.pageHeight / PDF_CONFIG.pageWidth)); // Maintain A4 aspect ratio
+  
+  // Ensure the preview element has correct dimensions before generating canvas
+  if (cvPreview.style.width !== '800px') {
+    cvPreview.style.width = '800px';
+    cvPreview.style.minWidth = '800px';
+    cvPreview.style.maxWidth = '800px';
+  }
   
   const canvas = await html2canvas(cvPreview, {
     scale: PDF_CONFIG.scale,
@@ -191,12 +345,31 @@ const generateCanvas = async (cvPreview) => {
     foreignObjectRendering: false,
     imageTimeout: PDF_CONFIG.imageTimeout,
     onclone: (clonedDoc) => {
-      const clonedPreview = clonedDoc.querySelector('.cv-preview');
+      // Try to find A4 preview first, then fallback to any cv-preview
+      let clonedPreview = clonedDoc.querySelector('.cv-preview.a4-size-preview');
+      if (!clonedPreview) {
+        clonedPreview = clonedDoc.querySelector('.cv-preview');
+      }
+      
       if (clonedPreview) {
         clonedPreview.style.visibility = 'visible';
         clonedPreview.style.display = 'block';
-        clonedPreview.style.width = 'auto';
+        clonedPreview.style.width = '800px';
+        clonedPreview.style.minWidth = '800px';
+        clonedPreview.style.maxWidth = '800px';
         clonedPreview.style.height = 'auto';
+        clonedPreview.style.transform = 'scale(1)';
+        clonedPreview.style.transformOrigin = 'center center';
+        clonedPreview.style.margin = '0 auto';
+        clonedPreview.style.opacity = '1';
+        
+        // Ensure pdf-mode class is applied
+        clonedPreview.classList.add('pdf-mode');
+        clonedPreview.classList.add('a4-size-preview');
+        
+        // Ensure background is white
+        clonedPreview.style.background = '#ffffff';
+        clonedPreview.style.backgroundColor = '#ffffff';
         
         // Remove margins and padding from body and html for zero-margin PDF
         const clonedBody = clonedDoc.body;
@@ -204,10 +377,14 @@ const generateCanvas = async (cvPreview) => {
         if (clonedBody) {
           clonedBody.style.margin = '0';
           clonedBody.style.padding = '0';
+          clonedBody.style.backgroundColor = '#ffffff';
+          clonedBody.style.background = '#ffffff';
         }
         if (clonedHtml) {
           clonedHtml.style.margin = '0';
           clonedHtml.style.padding = '0';
+          clonedHtml.style.backgroundColor = '#ffffff';
+          clonedHtml.style.background = '#ffffff';
         }
         
         // Ensure profile images are visible in cloned document
@@ -222,6 +399,36 @@ const generateCanvas = async (cvPreview) => {
             container.style.visibility = 'visible';
             container.style.display = 'flex';
             container.style.opacity = '1';
+          }
+        });
+        
+        // Apply page breaks to cloned document to prevent section cutoff
+        // Use the same logic as the original preview
+        const pageHeight = 1129;
+        const padding = 20;
+        const usablePageHeight = pageHeight - (padding * 2);
+        const clonedSections = clonedPreview.querySelectorAll('.cv-section');
+        
+        clonedSections.forEach((section, index) => {
+          // Force a reflow to get accurate measurements
+          void section.offsetHeight;
+          
+          const sectionTop = section.offsetTop;
+          const sectionHeight = section.offsetHeight || section.scrollHeight;
+          const positionOnPage = (sectionTop - padding) % pageHeight;
+          const currentPage = Math.floor((sectionTop - padding) / pageHeight);
+          const minSpaceRequired = usablePageHeight * 0.1;
+          const spaceRemaining = pageHeight - positionOnPage - padding;
+          const wouldBeCutOff = sectionHeight > spaceRemaining && spaceRemaining < (usablePageHeight - minSpaceRequired);
+          
+          if (wouldBeCutOff && index > 0) {
+            const nextPageStart = (currentPage + 1) * pageHeight + padding;
+            const marginNeeded = nextPageStart - sectionTop;
+            if (marginNeeded > 0) {
+              section.style.marginTop = `${marginNeeded}px`;
+              section.style.pageBreakBefore = 'always';
+              section.style.breakBefore = 'page';
+            }
           }
         });
       }
@@ -314,7 +521,7 @@ const generateFileName = () => {
 
 // Main PDF Generation Function
 const generatePDF = async () => {
-  let cvPreview, downloadButton, originalDisplay, originalWidth, originalMaxWidth, originalMinWidth;
+  let cvPreview, downloadButton, originalDisplay, originalWidth, originalMaxWidth, originalMinWidth, originalTransform, originalDisplayStyle, originalVisibility, originalOpacity, originalPosition, originalZIndex, originalTop, originalLeft, modal, modalOverlay, originalModalDisplay, originalModalOverlayDisplay;
 
   try {
     console.log('Starting PDF generation...');
@@ -332,6 +539,18 @@ const generatePDF = async () => {
     originalWidth = setup.originalWidth;
     originalMaxWidth = setup.originalMaxWidth;
     originalMinWidth = setup.originalMinWidth;
+    originalTransform = setup.originalTransform;
+    originalDisplayStyle = setup.originalDisplayStyle;
+    originalVisibility = setup.originalVisibility;
+    originalOpacity = setup.originalOpacity;
+    originalPosition = setup.originalPosition;
+    originalZIndex = setup.originalZIndex;
+    originalTop = setup.originalTop;
+    originalLeft = setup.originalLeft;
+    modal = setup.modal;
+    modalOverlay = setup.modalOverlay;
+    originalModalDisplay = setup.originalModalDisplay;
+    originalModalOverlayDisplay = setup.originalModalOverlayDisplay;
     
     // Wait a bit for layout to settle after setting fixed width
     await new Promise(resolve => setTimeout(resolve, 100));
@@ -344,7 +563,56 @@ const generatePDF = async () => {
     
     // Download PDF
     const fileName = generateFileName();
-    pdf.save(fileName);
+    const isNative = Capacitor.isNativePlatform();
+    
+    if (isNative) {
+      // On mobile, save PDF directly to Downloads folder using native plugin
+      try {
+        // Get PDF as blob
+        const pdfBlob = pdf.output('blob');
+        
+        // Convert blob to base64
+        const base64Data = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const base64 = reader.result.split(',')[1]; // Remove data:application/pdf;base64, prefix
+            resolve(base64);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(pdfBlob);
+        });
+        
+        console.log('Attempting to use native FileDownload plugin...');
+        console.log('File name:', fileName);
+        
+        try {
+          // Use native plugin to save directly to Downloads folder
+          const result = await FileDownload.savePdfToDownloads({
+            base64Data: base64Data,
+            fileName: fileName
+          });
+          
+          console.log('FileDownload plugin result:', result);
+          
+          if (result && result.success) {
+            alert(`✅ PDF saved successfully to Downloads folder!\n\nFile: ${fileName}\n\nPath: ${result.path || 'Downloads'}`);
+          } else {
+            throw new Error('Plugin returned unsuccessful result');
+          }
+        } catch (error) {
+          console.error('Error using FileDownload plugin:', error);
+          // Fallback: Show error message
+          alert(`Failed to save PDF to Downloads folder. Error: ${error.message}\n\nPlease check the console logs for more details.\n\nNote: The file must be saved to Downloads folder, not app data.`);
+          throw error;
+        }
+      } catch (error) {
+        console.error('Error saving PDF on mobile:', error);
+        alert(`Error saving PDF: ${error.message}\n\nPlease check app permissions and try again.`);
+      }
+    } else {
+      // On web, use normal download
+      pdf.save(fileName);
+    }
     
     console.log('PDF download completed');
     
@@ -354,7 +622,7 @@ const generatePDF = async () => {
   } finally {
     // Cleanup
     if (cvPreview) {
-      cleanupPDFMode(cvPreview, downloadButton, originalDisplay, originalWidth, originalMaxWidth, originalMinWidth);
+      cleanupPDFMode(cvPreview, downloadButton, originalDisplay, originalWidth, originalMaxWidth, originalMinWidth, originalTransform, originalDisplayStyle, originalVisibility, originalOpacity, originalPosition, originalZIndex, originalTop, originalLeft, modal, modalOverlay, originalModalDisplay, originalModalOverlayDisplay);
     }
     updateButtonState('📄 Download PDF', false);
   }

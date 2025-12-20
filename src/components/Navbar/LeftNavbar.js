@@ -48,21 +48,12 @@ const LeftNavbar = ({ isAuthenticated, onLogout }) => {
   }, []);
 
   const navigateToMarketplace = () => {
-    const currentHash = window.location.hash;
-    
-    // If already on marketplace page, do nothing
-    if (currentHash === '#products' || currentHash.startsWith('#product/') || currentHash === '#cart' || currentHash === '#checkout' || currentHash.startsWith('#order-details') || currentHash === '#admin') {
-      return;
-    }
-    
-    // Navigate to marketplace using hash (no page reload)
+    // Facebook-style: Instant navigation using localStorage
     localStorage.setItem('selectedApp', 'marketplace');
     localStorage.setItem('showProductsPage', 'true');
     sessionStorage.setItem('showProductsPage', 'true');
-    // Use hash change instead of page reload to preserve session
-    window.location.hash = '#products';
-    // Trigger a custom event to notify App.js
-    window.dispatchEvent(new CustomEvent('navigateToMarketplace'));
+    // Trigger navigation event for App.js to handle
+    window.dispatchEvent(new CustomEvent('navigateToSection', { detail: 'marketplace' }));
   };
 
   const navigateToCVBuilder = () => {
@@ -72,27 +63,17 @@ const LeftNavbar = ({ isAuthenticated, onLogout }) => {
       localStorage.setItem('selectedApp', 'cv-builder');
       localStorage.setItem('navigateToCVBuilder', 'true');
       sessionStorage.setItem('navigateToCVBuilder', 'true');
-      // Navigate to products page to show login
-      window.location.hash = '#products';
-      // Trigger a small delay to ensure hash change is processed
-      setTimeout(() => {
-        window.dispatchEvent(new Event('hashchange'));
-      }, 50);
+      // Navigate to marketplace to show login
+      navigateToMarketplace();
       return;
     }
     
-    // Navigate to CV Builder dashboard using hash-based routing
-    // Set navigation flags to prevent logout
-    sessionStorage.setItem('isNavigating', 'true');
-    sessionStorage.setItem('navigationTimestamp', Date.now().toString());
-    sessionStorage.setItem('navigateToCVBuilder', 'true');
+    // Facebook-style: Instant navigation
     localStorage.setItem('selectedApp', 'cv-builder');
     localStorage.removeItem('showProductsPage');
     sessionStorage.removeItem('showProductsPage');
-    // Clear hash to show dashboard
-    window.location.hash = '';
-    // Trigger a custom event to notify App.js
-    window.dispatchEvent(new CustomEvent('navigateToCVBuilder'));
+    // Trigger navigation event for App.js to handle
+    window.dispatchEvent(new CustomEvent('navigateToSection', { detail: 'cv-builder' }));
   };
 
   const navigateToIDCardPrinter = () => {
@@ -103,28 +84,18 @@ const LeftNavbar = ({ isAuthenticated, onLogout }) => {
       localStorage.setItem('idCardView', 'dashboard');
       localStorage.setItem('navigateToIDCardPrint', 'true');
       sessionStorage.setItem('navigateToIDCardPrint', 'true');
-      // Navigate to products page to show login
-      window.location.hash = '#products';
-      // Trigger a small delay to ensure hash change is processed
-      setTimeout(() => {
-        window.dispatchEvent(new Event('hashchange'));
-      }, 50);
+      // Navigate to marketplace to show login
+      navigateToMarketplace();
       return;
     }
     
-    // Navigate to ID Card Printer dashboard using hash-based routing
-    // Set navigation flags to prevent logout
-    sessionStorage.setItem('isNavigating', 'true');
-    sessionStorage.setItem('navigationTimestamp', Date.now().toString());
-    sessionStorage.setItem('navigateToIDCardPrint', 'true');
+    // Facebook-style: Instant navigation
     localStorage.setItem('selectedApp', 'id-card-print');
     localStorage.setItem('idCardView', 'dashboard');
     localStorage.removeItem('showProductsPage');
     sessionStorage.removeItem('showProductsPage');
-    // Clear hash to show dashboard
-    window.location.hash = '';
-    // Trigger a custom event to notify App.js
-    window.dispatchEvent(new CustomEvent('navigateToIDCardPrinter'));
+    // Trigger navigation event for App.js to handle
+    window.dispatchEvent(new CustomEvent('navigateToSection', { detail: 'id-card-print' }));
   };
 
   const handleSignIn = () => {

@@ -1,9 +1,12 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import usePreviewHandler from './PreviewHandler2';
 import generatePDF from './pdf2';
 import './Preview2.css';
 
 function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges }) {
+  const [showA4Preview, setShowA4Preview] = useState(false);
+  const [a4Scale, setA4Scale] = useState(1);
+  const a4PreviewRef = useRef(null);
   const { formData: hookFormData, formatContactInfo, updatePreviewData } = usePreviewHandler(propFormData);
   // Use propFormData as primary source (from app state/database) and merge with hook data for DOM-only fields
   const formData = { 
@@ -18,6 +21,7 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges })
   useEffect(() => {
     updatePreviewData();
   }, [propFormData, updatePreviewData]);
+
 
   // Ensure dynamic inputs update preview on typing
   useEffect(() => {
@@ -38,6 +42,48 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges })
     document.addEventListener('input', onInput, true);
     return () => document.removeEventListener('input', onInput, true);
   }, [updatePreviewData]);
+
+  // Calculate A4 preview scale for mobile devices
+  useEffect(() => {
+    const calculateScale = () => {
+      if (!showA4Preview) return;
+      
+      const isMobile = window.innerWidth <= 768;
+      if (!isMobile) {
+        setA4Scale(1);
+        return;
+      }
+
+      // A4 dimensions: 800px × 1129px
+      const a4Width = 800;
+      const a4Height = 1129;
+      
+      // Available space (accounting for close button ~45px and padding)
+      const availableWidth = window.innerWidth - 10; // 5px padding on each side
+      const availableHeight = window.innerHeight - 45; // 45px for close button
+      
+      // Calculate scale to fit both dimensions
+      const scaleX = availableWidth / a4Width;
+      const scaleY = availableHeight / a4Height;
+      
+      // Use the smaller scale to ensure it fits both dimensions
+      const scale = Math.min(scaleX, scaleY);
+      
+      // Set a minimum scale to prevent it from being too small
+      setA4Scale(Math.max(scale, 0.2));
+    };
+
+    calculateScale();
+    
+    // Recalculate on resize (orientation change, etc.)
+    window.addEventListener('resize', calculateScale);
+    window.addEventListener('orientationchange', calculateScale);
+    
+    return () => {
+      window.removeEventListener('resize', calculateScale);
+      window.removeEventListener('orientationchange', calculateScale);
+    };
+  }, [showA4Preview]);
   
   // Default sections to show on page load: professional-summary, skills, languages, references
   const displayData = {
@@ -100,267 +146,312 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges })
     });
   });
 
-  return (
-    <div className="right-container">
-      <div className="template2-root">
-        <div className="cv-preview">
-          {/* Two Column Layout */}
-          {/* Left Column - Purple Background */}
-          <div className="cv-left-column">
-          {/* CV Header - Left Column */}
-          <div className="cv-header">
-            {/* Profile Image Container */}
-            <div className="profile-image-container">
-              {profileImageUrl ? (
-                <img 
-                  src={profileImageUrl} 
-                  alt="Profile" 
-                  className="profile-image"
-                />
-              ) : (
-                <div className="profile-placeholder">
-                  CV
-                </div>
-              )}
-            </div>
-
-            {/* Header Content */}
-            <div className="header-content">
-              {/* Name */}
-              <h1 className="header-name">
-                {displayData.name}
-              </h1>
-
-              {/* Position/Title */}
-              {displayData.position && (
-                <h2 className="header-title">
-                  {displayData.position}
-                </h2>
-              )}
-
-              {/* Contact Information */}
-              {contactInfo && contactInfo.length > 0 && (
-                <div className="header-contact">
-                  {contactInfo.map((contact, index) => (
-                    <div key={index} className="contact-item">
-                      <span className="contact-icon">{contact.icon}</span>
-                      <span>{contact.value}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+  // Render the CV preview content (reusable for both normal and modal view)
+  const renderCVContent = () => (
+    <>
+      {/* Two Column Layout */}
+      {/* Left Column - Purple Background */}
+      <div className="cv-left-column">
+        {/* CV Header - Left Column */}
+        <div className="cv-header">
+          {/* Profile Image Container */}
+          <div className="profile-image-container">
+            {profileImageUrl ? (
+              <img 
+                src={profileImageUrl} 
+                alt="Profile" 
+                className="profile-image"
+              />
+            ) : (
+              <div className="profile-placeholder">
+                CV
+              </div>
+            )}
           </div>
 
-          {/* Skills Section - Left Column */}
-          {displayData.skills && displayData.skills.length > 0 && (
-            <div className="cv-section left-column">
-              <h3 className="section-heading left-column">Skills</h3>
-              <div className="section-content">
-                <div className="skills-container">
-                  {displayData.skills.map((skill, index) => (
-                    <div key={index} className="skill-pill">
-                      <span className="skill-name">{skill}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
+          {/* Header Content */}
+          <div className="header-content">
+            {/* Name */}
+            <h1 className="header-name">
+              {displayData.name}
+            </h1>
 
-          {/* Other Information Section - Left Column */}
-          {displayData.otherInfo && displayData.otherInfo.length > 0 && (
-            <div className="cv-section left-column">
-              <h3 className="section-heading left-column">Other Information</h3>
-              <div className="section-content">
-                <div
-                  className="other-info-grid"
-                  style={{ gridTemplateColumns: '1fr', gridAutoFlow: 'row' }}
-                >
-                  {displayData.otherInfo.map((info, index) => (
-                    <div key={index} className="info-item">
-                      <span className="info-label">{info.label}:</span>
-                      <span className="info-value">{info.value}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
+            {/* Position/Title */}
+            {displayData.position && (
+              <h2 className="header-title">
+                {displayData.position}
+              </h2>
+            )}
 
-          {/* Languages Section - Left Column */}
-          {displayData.languages && displayData.languages.length > 0 && (
-            <div className="cv-section left-column">
-              <h3 className="section-heading left-column">Languages</h3>
-              <div className="section-content">
-                <div className="languages-container">
-                  {displayData.languages.map((language, index) => (
-                    <div key={index} className="language-pill">
-                      <span className="language-name">{language}</span>
-                    </div>
-                  ))}
-                </div>
+            {/* Contact Information */}
+            {contactInfo && contactInfo.length > 0 && (
+              <div className="header-contact">
+                {contactInfo.map((contact, index) => (
+                  <div key={index} className="contact-item">
+                    <span className="contact-icon">{contact.icon}</span>
+                    <span>{contact.value}</span>
+                  </div>
+                ))}
               </div>
-            </div>
-          )}
-
-          {/* Hobbies Section - Left Column */}
-          {displayData.hobbies && displayData.hobbies.length > 0 && (
-            <div className="cv-section left-column">
-              <h3 className="section-heading left-column">Hobbies</h3>
-              <div className="section-content">
-                <div className="hobbies-container">
-                  {displayData.hobbies.map((hobby, index) => (
-                    <div key={index} className="hobby-pill">
-                      <span className="hobby-name">{hobby}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
-        {/* Right Column - White Background */}
-        <div className="cv-right-column">
-          {/* Professional Summary Section - Right Column */}
-          <div className="cv-section right-column">
-            <h3 className="section-heading right-column">Professional Summary</h3>
+        {/* Skills Section - Left Column */}
+        {displayData.skills && displayData.skills.length > 0 && (
+          <div className="cv-section left-column">
+            <h3 className="section-heading left-column">Skills</h3>
             <div className="section-content">
-              <p className="professional-summary-text">
-                {displayData.professionalSummary}
-              </p>
+              <div className="skills-container">
+                {displayData.skills.map((skill, index) => (
+                  <div key={index} className="skill-pill">
+                    <span className="skill-name">{skill}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
+        )}
 
-          {/* Education Section - Right Column */}
-          {displayData.education && displayData.education.length > 0 && (
-            <div className="cv-section right-column">
-              <h3 className="section-heading right-column">Education</h3>
-              <div className="section-content">
-                {displayData.education.map((edu, index) => (
-                  <div key={index} className="education-item">
-                    <div className="education-single-line">
-                      <span className="education-degree">{edu.degree}</span>
-                      {edu.board && <span className="education-board"> • {edu.board}</span>}
-                      {edu.year && <span className="education-year"> • {edu.year}</span>}
-                      {edu.marks && <span className="education-marks"> • {edu.marks}</span>}
-                    </div>
+        {/* Other Information Section - Left Column */}
+        {displayData.otherInfo && displayData.otherInfo.length > 0 && (
+          <div className="cv-section left-column">
+            <h3 className="section-heading left-column">Other Information</h3>
+            <div className="section-content">
+              <div
+                className="other-info-grid"
+                style={{ gridTemplateColumns: '1fr', gridAutoFlow: 'row' }}
+              >
+                {displayData.otherInfo.map((info, index) => (
+                  <div key={index} className="info-item">
+                    <span className="info-label">{info.label}:</span>
+                    <span className="info-value">{info.value}</span>
                   </div>
                 ))}
               </div>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Experience Section - Right Column */}
-          {displayData.experience && displayData.experience.length > 0 && (
-            <div className="cv-section right-column">
-              <h3 className="section-heading right-column">Experience</h3>
-              <div className="section-content">
-                {displayData.experience.map((exp, index) => (
-                  <div key={index} className="experience-item">
-                    <div className="experience-header">
-                      <span className="experience-job-title">{exp.jobTitle || 'No job title'}</span>
-                      {exp.duration && <span className="experience-duration">{exp.duration}</span>}
-                    </div>
-                    {exp.company && (
-                      <div className="experience-company-line">
-                        <span className="experience-company">{exp.company}</span>
-                      </div>
-                    )}
-                    {exp.jobDetails && (
-                      <div className="experience-details">
-                        <ul className="experience-details-list">
-                          {exp.jobDetails.split('\n').map((detail, detailIndex) => (
-                            detail.trim() && (
-                              <li key={detailIndex} className="experience-detail-item">
-                                {detail.trim()}
-                              </li>
-                            )
-                          ))}
-                        </ul>
-                      </div>
-                    )}
+        {/* Languages Section - Left Column */}
+        {displayData.languages && displayData.languages.length > 0 && (
+          <div className="cv-section left-column">
+            <h3 className="section-heading left-column">Languages</h3>
+            <div className="section-content">
+              <div className="languages-container">
+                {displayData.languages.map((language, index) => (
+                  <div key={index} className="language-pill">
+                    <span className="language-name">{language}</span>
                   </div>
                 ))}
               </div>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Certifications Section - Right Column */}
-          {displayData.certifications && displayData.certifications.length > 0 && (
-            <div className="cv-section right-column">
-              <h3 className="section-heading right-column">Certifications</h3>
-              <div className="section-content">
-                <div className="certifications-content">
-                  {displayData.certifications.map((cert, index) => (
-                    <div key={index} className="certification-item">
-                      <p className="certification-text">{cert}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Custom Section - Right Column */}
-          {displayData.customSection && displayData.customSection.length > 0 && displayData.customSection.map((custom, sectionIndex) => {
-            // Handle both old format (with 'detail') and new format (with 'details' array)
-            const details = custom.details || (custom.detail ? [custom.detail] : []);
-            const heading = custom.heading || '';
-            
-            // Skip sections without heading or details
-            if (!heading && details.length === 0) return null;
-            
-            return (
-              <div key={sectionIndex} className="cv-section right-column">
-                <h3 className="section-heading right-column">
-                  {heading || 'Custom Section'}
-                </h3>
-                <div className="section-content">
-                  <div className="custom-section-content">
-                    {details.map((detail, detailIndex) => (
-                      detail && (
-                        <div key={detailIndex} className="custom-section-item">
-                          <p className="custom-section-detail">{detail}</p>
-                        </div>
-                      )
-                    ))}
+        {/* Hobbies Section - Left Column */}
+        {displayData.hobbies && displayData.hobbies.length > 0 && (
+          <div className="cv-section left-column">
+            <h3 className="section-heading left-column">Hobbies</h3>
+            <div className="section-content">
+              <div className="hobbies-container">
+                {displayData.hobbies.map((hobby, index) => (
+                  <div key={index} className="hobby-pill">
+                    <span className="hobby-name">{hobby}</span>
                   </div>
-                </div>
-              </div>
-            );
-          })}
-
-          {/* References Section - Right Column */}
-          {displayData.references && displayData.references.length > 0 && (
-            <div className="cv-section right-column">
-              <h3 className="section-heading right-column">References</h3>
-              <div className="section-content">
-                <div className="references-content">
-                  {displayData.references.map((reference, index) => (
-                    <div key={index} className="reference-item">
-                      <p className="reference-text">{reference}</p>
-                    </div>
-                  ))}
-                </div>
+                ))}
               </div>
             </div>
-          )}
+          </div>
+        )}
+      </div>
 
-          {/* Download PDF Button - Right Column */}
-          <div className="download-pdf-container">
-            <button 
-              className="download-pdf-button" 
-              onClick={generatePDF}
-              title="Download CV as PDF"
-            >
-              📄 Download PDF
-            </button>
+      {/* Right Column - White Background */}
+      <div className="cv-right-column">
+        {/* Professional Summary Section - Right Column */}
+        <div className="cv-section right-column">
+          <h3 className="section-heading right-column">Professional Summary</h3>
+          <div className="section-content">
+            <p className="professional-summary-text">
+              {displayData.professionalSummary}
+            </p>
           </div>
         </div>
+
+        {/* Education Section - Right Column */}
+        {displayData.education && displayData.education.length > 0 && (
+          <div className="cv-section right-column">
+            <h3 className="section-heading right-column">Education</h3>
+            <div className="section-content">
+              {displayData.education.map((edu, index) => (
+                <div key={index} className="education-item">
+                  <div className="education-single-line">
+                    <span className="education-degree">{edu.degree}</span>
+                    {edu.board && <span className="education-board"> • {edu.board}</span>}
+                    {edu.year && <span className="education-year"> • {edu.year}</span>}
+                    {edu.marks && <span className="education-marks"> • {edu.marks}</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Experience Section - Right Column */}
+        {displayData.experience && displayData.experience.length > 0 && (
+          <div className="cv-section right-column">
+            <h3 className="section-heading right-column">Experience</h3>
+            <div className="section-content">
+              {displayData.experience.map((exp, index) => (
+                <div key={index} className="experience-item">
+                  <div className="experience-header">
+                    <span className="experience-job-title">{exp.jobTitle || 'No job title'}</span>
+                    {exp.duration && <span className="experience-duration">{exp.duration}</span>}
+                  </div>
+                  {exp.company && (
+                    <div className="experience-company-line">
+                      <span className="experience-company">{exp.company}</span>
+                    </div>
+                  )}
+                  {exp.jobDetails && (
+                    <div className="experience-details">
+                      <ul className="experience-details-list">
+                        {exp.jobDetails.split('\n').map((detail, detailIndex) => (
+                          detail.trim() && (
+                            <li key={detailIndex} className="experience-detail-item">
+                              {detail.trim()}
+                            </li>
+                          )
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Certifications Section - Right Column */}
+        {displayData.certifications && displayData.certifications.length > 0 && (
+          <div className="cv-section right-column">
+            <h3 className="section-heading right-column">Certifications</h3>
+            <div className="section-content">
+              <div className="certifications-content">
+                {displayData.certifications.map((cert, index) => (
+                  <div key={index} className="certification-item">
+                    <p className="certification-text">{cert}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Custom Section - Right Column */}
+        {displayData.customSection && displayData.customSection.length > 0 && displayData.customSection.map((custom, sectionIndex) => {
+          // Handle both old format (with 'detail') and new format (with 'details' array)
+          const details = custom.details || (custom.detail ? [custom.detail] : []);
+          const heading = custom.heading || '';
+          
+          // Skip sections without heading or details
+          if (!heading && details.length === 0) return null;
+          
+          return (
+            <div key={sectionIndex} className="cv-section right-column">
+              <h3 className="section-heading right-column">
+                {heading || 'Custom Section'}
+              </h3>
+              <div className="section-content">
+                <div className="custom-section-content">
+                  {details.map((detail, detailIndex) => (
+                    detail && (
+                      <div key={detailIndex} className="custom-section-item">
+                        <p className="custom-section-detail">{detail}</p>
+                      </div>
+                    )
+                  ))}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+
+        {/* References Section - Right Column */}
+        {displayData.references && displayData.references.length > 0 && (
+          <div className="cv-section right-column">
+            <h3 className="section-heading right-column">References</h3>
+            <div className="section-content">
+              <div className="references-content">
+                {displayData.references.map((reference, index) => (
+                  <div key={index} className="reference-item">
+                    <p className="reference-text">{reference}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Download PDF Button - Right Column */}
+        <div className="download-pdf-container">
+          <button 
+            className="download-pdf-button" 
+            onClick={generatePDF}
+            title="Download CV as PDF"
+          >
+            📄 Download PDF
+          </button>
         </div>
       </div>
+    </>
+  );
+
+  return (
+    <div className="right-container template2-container">
+      {/* Preview Button - Show on all devices */}
+      <div className="preview-controls">
+        <button 
+          className="preview-a4-button"
+          onClick={() => setShowA4Preview(true)}
+          title="View A4 Preview"
+        >
+          📄 View A4 Preview
+        </button>
+      </div>
+
+      {/* A4 Preview Modal */}
+      {showA4Preview && (
+        <div className="a4-preview-modal-overlay" onClick={() => setShowA4Preview(false)}>
+          <div className="a4-preview-modal-content" onClick={(e) => e.stopPropagation()}>
+            <button 
+              className="a4-preview-close-button"
+              onClick={() => setShowA4Preview(false)}
+              aria-label="Close Preview"
+            >
+              ×
+            </button>
+            <div className="a4-preview-container" ref={a4PreviewRef}>
+              <div className="template2-root">
+                <div 
+                  className="cv-preview a4-size-preview"
+                  style={{
+                    transform: `scale(${a4Scale})`,
+                    transformOrigin: 'center center',
+                    width: '800px',
+                    minWidth: '800px',
+                    maxWidth: '800px',
+                    minHeight: '1129px',
+                    height: 'auto'
+                  }}
+                >
+                  {renderCVContent()}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

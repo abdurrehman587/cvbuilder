@@ -25,13 +25,36 @@
                 redirectUrl += hash;
             }
             
-            // Immediate redirect using replace (faster than href)
-            window.location.replace(redirectUrl);
+            console.log('Redirecting to:', redirectUrl);
             
-            // Fallback: if redirect doesn't work, show message (shouldn't be seen)
+            // Try multiple redirect methods for maximum compatibility
+            try {
+                // Method 1: window.location.replace (preferred)
+                window.location.replace(redirectUrl);
+            } catch (e) {
+                console.error('Replace failed, trying href:', e);
+                try {
+                    // Method 2: window.location.href (fallback)
+                    window.location.href = redirectUrl;
+                } catch (e2) {
+                    console.error('Href failed, trying assign:', e2);
+                    // Method 3: window.location.assign (last resort)
+                    window.location.assign(redirectUrl);
+                }
+            }
+            
+            // Fallback: if redirect doesn't work, show message and try to close
             setTimeout(function() {
-                document.body.innerHTML = '<div style="text-align: center; padding: 50px; font-family: Arial, sans-serif;"><h2>Redirecting to app...</h2><p>If the app doesn\'t open automatically, please open it manually.</p><p>You can close this page.</p></div>';
-            }, 500);
+                // Try to close the window (works in some browsers)
+                try {
+                    window.close();
+                } catch (e) {
+                    console.log('Could not close window:', e);
+                }
+                
+                // Show message to user
+                document.body.innerHTML = '<div style="text-align: center; padding: 50px; font-family: Arial, sans-serif;"><h2>Redirecting to app...</h2><p>If the app doesn\'t open automatically, please:</p><ol style="text-align: left; max-width: 400px; margin: 20px auto;"><li>Open the app manually</li><li>Or close this page and try signing in again</li></ol><p style="margin-top: 30px;"><small>You can safely close this page.</small></p></div>';
+            }, 1000);
         })();
     </script>
 </head>

@@ -1,6 +1,11 @@
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { Capacitor, registerPlugin } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
 import './pdf5.css';
+
+// Register FileDownload plugin
+const FileDownload = registerPlugin('FileDownload');
 
 // PDF Generation Configuration
 const PDF_CONFIG = {
@@ -421,7 +426,50 @@ const generatePDF = async () => {
     
     // Download PDF
     const fileName = generateFileName();
-    pdf.save(fileName);
+    const isNative = Capacitor.isNativePlatform();
+    
+    if (isNative) {
+      // On mobile, save PDF directly to Downloads folder
+      try {
+        const pdfBlob = pdf.output('blob');
+        const base64Data = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const base64 = reader.result.split(',')[1];
+            resolve(base64);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(pdfBlob);
+        });
+        // Use native plugin to save directly to Downloads folder
+        console.log('Attempting to use native FileDownload plugin...');
+        console.log('File name:', fileName);
+        
+        try {
+          const result = await FileDownload.savePdfToDownloads({
+            base64Data: base64Data,
+            fileName: fileName
+          });
+          
+          console.log('FileDownload plugin result:', result);
+          
+          if (result && result.success) {
+            alert(`✅ PDF saved successfully to Downloads folder!\n\nFile: ${fileName}\n\nPath: ${result.path || 'Downloads'}`);
+          } else {
+            throw new Error('Plugin returned unsuccessful result');
+          }
+        } catch (error) {
+          console.error('Error using FileDownload plugin:', error);
+          alert(`Failed to save PDF to Downloads folder. Error: ${error.message}\n\nPlease check the console logs for more details.\n\nNote: The file must be saved to Downloads folder, not app data.`);
+          throw error;
+        }
+      } catch (error) {
+        console.error('Error saving PDF on mobile:', error);
+        alert(`Error saving PDF: ${error.message}\n\nPlease check app permissions and try again.`);
+      }
+    } else {
+      pdf.save(fileName);
+    }
     
     console.log('PDF download completed');
     
@@ -474,7 +522,51 @@ const generateCompactPDF = async () => {
     const nameInput = document.querySelector('#name-input');
     const userName = nameInput ? nameInput.value.trim() : 'CV';
     const fileName = userName ? `${userName.replace(/\s+/g, '_')}_CV_Compact.pdf` : `CV_Compact_${new Date().toISOString().split('T')[0]}.pdf`;
-    pdf.save(fileName);
+    const isNative = Capacitor.isNativePlatform();
+    
+    if (isNative) {
+      // On mobile, save PDF directly to Downloads folder
+      try {
+        const pdfBlob = pdf.output('blob');
+        const base64Data = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const base64 = reader.result.split(',')[1];
+            resolve(base64);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(pdfBlob);
+        });
+        
+        // Use native plugin to save directly to Downloads folder
+        console.log('Attempting to use native FileDownload plugin...');
+        console.log('File name:', fileName);
+        
+        try {
+          const result = await FileDownload.savePdfToDownloads({
+            base64Data: base64Data,
+            fileName: fileName
+          });
+          
+          console.log('FileDownload plugin result:', result);
+          
+          if (result && result.success) {
+            alert(`✅ PDF saved successfully to Downloads folder!\n\nFile: ${fileName}\n\nPath: ${result.path || 'Downloads'}`);
+          } else {
+            throw new Error('Plugin returned unsuccessful result');
+          }
+        } catch (error) {
+          console.error('Error using FileDownload plugin:', error);
+          alert(`Failed to save PDF to Downloads folder. Error: ${error.message}\n\nPlease check the console logs for more details.\n\nNote: The file must be saved to Downloads folder, not app data.`);
+          throw error;
+        }
+      } catch (error) {
+        console.error('Error saving PDF on mobile:', error);
+        alert(`Error saving PDF: ${error.message}\n\nPlease check app permissions and try again.`);
+      }
+    } else {
+      pdf.save(fileName);
+    }
     
     console.log('Compact PDF download completed');
     

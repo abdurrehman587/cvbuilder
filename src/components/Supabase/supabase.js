@@ -190,6 +190,9 @@ export const authService = {
     
     console.log('Google Sign-In - redirectUrl:', mobileRedirectUrl);
     
+    // Set flag to indicate Google sign-in started (for OAuth callback detection)
+    sessionStorage.setItem('googleSignInStarted', 'true');
+    
     // Dispatch event immediately to show loading state
     window.dispatchEvent(new CustomEvent('googleSignInStarted'));
     

@@ -26,6 +26,7 @@ import Checkout from './components/Checkout/Checkout';
 import OrderDetails from './components/OrderDetails/OrderDetails';
 import OrderHistory from './components/OrderHistory/OrderHistory';
 import LeftNavbar from './components/Navbar/LeftNavbar';
+import TopNav from './components/TopNav/TopNav';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
 
@@ -40,13 +41,15 @@ function App() {
     return savedView === 'print' ? 'print' : 'dashboard';
   });
   const [selectedApp, setSelectedApp] = useState(() => {
-    // Default to marketplace (homepage) on initial load
+    // Read from localStorage - preserve user's current section
+    // Only default to marketplace if truly no saved app (first visit)
     const savedApp = localStorage.getItem('selectedApp');
-    const hash = window.location.hash;
-    if (!hash && !savedApp) {
-      return 'marketplace';
+    if (savedApp) {
+      return savedApp; // Preserve user's section
     }
-    return savedApp || 'marketplace';
+    // First visit - default to marketplace
+    localStorage.setItem('selectedApp', 'marketplace');
+    return 'marketplace';
   }); // 'marketplace', 'cv-builder', or 'id-card-print'
   const [formData, setFormData] = useState({
     name: '',
@@ -68,9 +71,16 @@ function App() {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [formResetKey, setFormResetKey] = useState(0);
   const showProductsPageRef = React.useRef(false);
+  const productDetailIdRef = React.useRef(null); // Ref to access current productDetailId in callbacks
+  const sessionCheckIntervalRef = React.useRef(null); // Ref for session check interval
+  const hasInitializedRef = React.useRef(false); // Track if we've already initialized to prevent re-initialization on tab switch
   const [forceShowProductsPage, setForceShowProductsPage] = useState(false);
-  const [hashKey, setHashKey] = useState(0); // Force re-render on hash change
-  const [currentHash, setCurrentHash] = useState(window.location.hash); // Track current hash for routing
+  const [productDetailId, setProductDetailId] = useState(null);
+  
+  // Update ref whenever productDetailId changes
+  React.useEffect(() => {
+    productDetailIdRef.current = productDetailId;
+  }, [productDetailId]);
 
   // Use the useAutoSave hook for Supabase integration
   const { 
@@ -106,22 +116,40 @@ function App() {
     hookMarkAsChanged(); // Use hook's markAsChanged instead of local state
   };
 
-  // Handle "Make a new CV" button
-  const handleMakeNewCV = () => {
-    console.log('handleMakeNewCV called - resetting products page flags and setting cv-builder view');
-    // Reset products page flags to ensure CV builder can be shown
+  // Facebook-like navigation handlers - Instant switching like Facebook
+  const handleNavigateToSection = (section) => {
+    // Update localStorage immediately (single source of truth)
+    localStorage.setItem('selectedApp', section);
+    
+    // Update React state immediately for instant UI update
+    setSelectedApp(section);
+    setCurrentView('dashboard');
+    
+    // Clear any conflicting flags
     setForceShowProductsPage(false);
     showProductsPageRef.current = false;
     localStorage.removeItem('showProductsPage');
     sessionStorage.removeItem('showProductsPage');
-    // Clear products page hash if present
-    if (window.location.hash === '#products') {
-      window.location.hash = '';
-    }
     
-    // Set selected product to cv-builder
+    // Force immediate re-render by updating a key
+    // This ensures the component switches instantly like Facebook
+  };
+
+  // Handle "Make a new CV" button - Facebook-style instant navigation
+  const handleMakeNewCV = () => {
+    console.log('handleMakeNewCV called - creating new CV');
+    
+    // Ensure we're on CV Builder section
     localStorage.setItem('selectedApp', 'cv-builder');
+    setSelectedApp('cv-builder');
     
+    // Reset products page flags
+    setForceShowProductsPage(false);
+    showProductsPageRef.current = false;
+    localStorage.removeItem('showProductsPage');
+    sessionStorage.removeItem('showProductsPage');
+    
+    // Reset form data
     const newFormData = {
       name: '',
       position: '',
@@ -142,11 +170,12 @@ function App() {
     setAutoSaveStatus('');
     setFormResetKey(prev => prev + 1); // Force form re-render
     createNewCV(); // Reset the hook state
-    // Always set template to template1 for new CV (ensure it's set before setting currentView)
-      setSelectedTemplate('template1');
-    // Set currentView to cv-builder - this should trigger the form/preview to show
+    
+    // Set template to template1 and switch to form view
+    setSelectedTemplate('template1');
     setCurrentView('cv-builder');
-    console.log('handleMakeNewCV - currentView set to cv-builder, selectedTemplate set to template1');
+    
+    console.log('handleMakeNewCV - Form view activated');
   };
 
   useEffect(() => {
@@ -155,37 +184,76 @@ function App() {
     sessionStorage.removeItem('isNavigating');
     sessionStorage.removeItem('isReloading');
     
-    // Get initial session from Supabase (this is the source of truth)
+    // Declare loadingTimeout in outer scope so it can be accessed by cleanup
+    let loadingTimeout;
+    
+    // Get initial session from Supabase with timeout (8 seconds)
     const getInitialSession = async () => {
+      let timeoutId;
+      
+      // Set a maximum loading timeout (10 seconds total)
+      loadingTimeout = setTimeout(() => {
+        console.warn('Authentication check timeout - stopping loading after 10 seconds');
+        setIsLoading(false);
+      }, 10000);
+
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (error) {
+        // Create a timeout promise for the Supabase call (8 seconds)
+        const timeoutPromise = new Promise((_, reject) => {
+          timeoutId = setTimeout(() => {
+            reject(new Error('Supabase session check timed out'));
+          }, 8000);
+        });
+
+        // Race between Supabase call and timeout
+        const sessionPromise = supabase.auth.getSession();
+        const result = await Promise.race([
+          sessionPromise,
+          timeoutPromise
+        ]);
+
+        // Clear the Supabase timeout since we got a response
+        if (timeoutId) clearTimeout(timeoutId);
+        if (loadingTimeout) clearTimeout(loadingTimeout);
+
+        // Check if result is from timeout (it will be an error) or from Supabase
+        if (result && result.data !== undefined) {
+          const { data: { session }, error } = result;
+          
+          if (error) {
+            console.log('Error getting initial session:', error);
+            setIsAuthenticated(false);
+            localStorage.removeItem('cvBuilderAuth');
+          } else if (session?.user) {
+            setIsAuthenticated(true);
+            localStorage.setItem('cvBuilderAuth', 'true');
+          } else {
+            setIsAuthenticated(false);
+            localStorage.removeItem('cvBuilderAuth');
+          }
+        }
+      } catch (error) {
+        // Clear timeouts
+        if (timeoutId) clearTimeout(timeoutId);
+        if (loadingTimeout) clearTimeout(loadingTimeout);
+        
+        // If it's a timeout error, use localStorage as fallback
+        if (error.message === 'Supabase session check timed out') {
+          console.warn('Supabase session check timed out after 8 seconds, using localStorage fallback');
+          const cachedAuth = localStorage.getItem('cvBuilderAuth');
+          setIsAuthenticated(cachedAuth === 'true');
+        } else {
           console.log('Error getting initial session:', error);
           setIsAuthenticated(false);
           localStorage.removeItem('cvBuilderAuth');
-        } else if (session?.user) {
-          setIsAuthenticated(true);
-          localStorage.setItem('cvBuilderAuth', 'true');
-        } else {
-          setIsAuthenticated(false);
-            localStorage.removeItem('cvBuilderAuth');
         }
-      } catch (error) {
-        console.log('Error getting initial session:', error);
-        setIsAuthenticated(false);
-        localStorage.removeItem('cvBuilderAuth');
       } finally {
+        // Ensure loading is stopped
         setIsLoading(false);
       }
     };
 
     getInitialSession();
-
-    // Add timeout to prevent infinite loading (30 seconds)
-    const loadingTimeout = setTimeout(() => {
-      console.warn('Authentication check timeout - stopping loading');
-      setIsLoading(false);
-    }, 30000);
 
     // Handle deep links for OAuth callback (mobile app) - OPTIMIZED
     const handleAppUrl = async (url) => {
@@ -257,6 +325,25 @@ function App() {
                   console.log('Session set successfully:', session.user?.email);
                   setIsAuthenticated(true);
                   localStorage.setItem('cvBuilderAuth', 'true');
+                  
+                  // Dispatch authentication event to hide login forms
+                  window.dispatchEvent(new CustomEvent('userAuthenticated'));
+                  
+                  // Navigate to homepage after successful OAuth login
+                  sessionStorage.removeItem('navigateToCVBuilder');
+                  localStorage.removeItem('navigateToCVBuilder');
+                  sessionStorage.removeItem('navigateToIDCardPrint');
+                  localStorage.removeItem('navigateToIDCardPrint');
+                  localStorage.setItem('selectedApp', 'marketplace');
+                  localStorage.setItem('showProductsPage', 'true');
+                  sessionStorage.setItem('showProductsPage', 'true');
+                  setForceShowProductsPage(true);
+                  showProductsPageRef.current = true;
+                  
+                  // Navigate to products page
+                  if (window.location.hash !== '#products') {
+                    window.location.hash = '#products';
+                  }
                 }
                 setIsLoading(false);
               } catch (sessionError) {
@@ -276,6 +363,25 @@ function App() {
             console.log('Session found:', session.user?.email);
             setIsAuthenticated(true);
             localStorage.setItem('cvBuilderAuth', 'true');
+            
+            // Dispatch authentication event to hide login forms
+            window.dispatchEvent(new CustomEvent('userAuthenticated'));
+            
+            // Navigate to homepage after OAuth login
+            sessionStorage.removeItem('navigateToCVBuilder');
+            localStorage.removeItem('navigateToCVBuilder');
+            sessionStorage.removeItem('navigateToIDCardPrint');
+            localStorage.removeItem('navigateToIDCardPrint');
+            localStorage.setItem('selectedApp', 'marketplace');
+            localStorage.setItem('showProductsPage', 'true');
+            sessionStorage.setItem('showProductsPage', 'true');
+            setForceShowProductsPage(true);
+            showProductsPageRef.current = true;
+            
+            // Navigate to products page
+            if (window.location.hash !== '#products') {
+              window.location.hash = '#products';
+            }
           }
           
         } catch (urlError) {
@@ -286,6 +392,25 @@ function App() {
           if (session?.user) {
             setIsAuthenticated(true);
             localStorage.setItem('cvBuilderAuth', 'true');
+            
+            // Dispatch authentication event to hide login forms
+            window.dispatchEvent(new CustomEvent('userAuthenticated'));
+            
+            // Navigate to homepage after OAuth login
+            sessionStorage.removeItem('navigateToCVBuilder');
+            localStorage.removeItem('navigateToCVBuilder');
+            sessionStorage.removeItem('navigateToIDCardPrint');
+            localStorage.removeItem('navigateToIDCardPrint');
+            localStorage.setItem('selectedApp', 'marketplace');
+            localStorage.setItem('showProductsPage', 'true');
+            sessionStorage.setItem('showProductsPage', 'true');
+            setForceShowProductsPage(true);
+            showProductsPageRef.current = true;
+            
+            // Navigate to products page
+            if (window.location.hash !== '#products') {
+              window.location.hash = '#products';
+            }
           }
         }
       }
@@ -293,6 +418,83 @@ function App() {
 
     // Listen for app URL open events (deep links)
     CapacitorApp.addListener('appUrlOpen', handleAppUrl);
+
+    // Fallback: If deep link doesn't work, check for session periodically after Google sign-in starts
+    const handleGoogleSignInStarted = () => {
+      console.log('Google sign-in started, setting up fallback session check');
+      
+      // Clear any existing interval
+      if (sessionCheckIntervalRef.current) {
+        clearInterval(sessionCheckIntervalRef.current);
+        sessionCheckIntervalRef.current = null;
+      }
+      
+      // Check for session every 2 seconds for up to 30 seconds
+      let checkCount = 0;
+      const maxChecks = 15; // 15 * 2 seconds = 30 seconds
+      
+      sessionCheckIntervalRef.current = setInterval(async () => {
+        checkCount++;
+        
+        try {
+          const { data: { session }, error } = await supabase.auth.getSession();
+          
+          if (session?.user && !isAuthenticated) {
+            console.log('Fallback: Session found after Google sign-in:', session.user.email);
+            setIsAuthenticated(true);
+            localStorage.setItem('cvBuilderAuth', 'true');
+            setIsLoading(false);
+            
+            // Dispatch authentication event to hide login forms
+            window.dispatchEvent(new CustomEvent('userAuthenticated'));
+            
+            // Close browser if still open
+            Browser.close().catch(() => {});
+            
+            // Navigate to homepage after OAuth login
+            sessionStorage.removeItem('navigateToCVBuilder');
+            localStorage.removeItem('navigateToCVBuilder');
+            sessionStorage.removeItem('navigateToIDCardPrint');
+            localStorage.removeItem('navigateToIDCardPrint');
+            localStorage.setItem('selectedApp', 'marketplace');
+            localStorage.setItem('showProductsPage', 'true');
+            sessionStorage.setItem('showProductsPage', 'true');
+            setForceShowProductsPage(true);
+            showProductsPageRef.current = true;
+            
+            // Navigate to products page
+            if (window.location.hash !== '#products') {
+              window.location.hash = '#products';
+            }
+            
+            // Clear interval
+            if (sessionCheckIntervalRef.current) {
+              clearInterval(sessionCheckIntervalRef.current);
+              sessionCheckIntervalRef.current = null;
+            }
+          } else if (checkCount >= maxChecks) {
+            console.log('Fallback: Max checks reached, stopping session check');
+            if (sessionCheckIntervalRef.current) {
+              clearInterval(sessionCheckIntervalRef.current);
+              sessionCheckIntervalRef.current = null;
+            }
+          }
+        } catch (err) {
+          console.error('Fallback session check error:', err);
+        }
+      }, 2000);
+      
+      // Clean up interval after max time
+      setTimeout(() => {
+        if (sessionCheckIntervalRef.current) {
+          clearInterval(sessionCheckIntervalRef.current);
+          sessionCheckIntervalRef.current = null;
+        }
+      }, 30000);
+    };
+    
+    // Listen for Google sign-in start event
+    window.addEventListener('googleSignInStarted', handleGoogleSignInStarted);
 
     // Listen for auth state changes (this is the authoritative source)
     // Supabase handles session management internally
@@ -314,8 +516,10 @@ function App() {
         // Check if this is an OAuth callback (Google login)
         const isOAuthCallback = window.location.hash.includes('access_token') || 
                                 window.location.hash.includes('code') ||
-                                window.location.search.includes('code');
+                                window.location.search.includes('code') ||
+                                sessionStorage.getItem('googleSignInStarted') === 'true';
         
+        // For OAuth logins (Google sign-in), always redirect to homepage
         if (isOAuthCallback) {
           // Clear OAuth hash/query from URL
           if (window.location.hash.includes('access_token') || window.location.hash.includes('code')) {
@@ -324,6 +528,9 @@ function App() {
           if (window.location.search.includes('code')) {
             window.history.replaceState({}, document.title, window.location.pathname);
           }
+          
+          // Clear Google sign-in flag
+          sessionStorage.removeItem('googleSignInStarted');
           
           // For Google OAuth login, redirect to homepage (products page)
           // Clear any navigation flags to ensure user lands on homepage
@@ -368,46 +575,11 @@ function App() {
       }
     });
     
-    // Check selected app on mount
-    // Default to marketplace (homepage) if no hash and no specific app selected
-    const hash = window.location.hash;
+    // Simple initialization: Just sync React state with localStorage
+    // No complex routing logic - that's handled in render
     const savedApp = localStorage.getItem('selectedApp');
-    
-    // Check if user is navigating to a dashboard (has navigation flags)
-    const hasNavigationIntent = sessionStorage.getItem('navigateToCVBuilder') === 'true' ||
-                                 sessionStorage.getItem('navigateToIDCardPrint') === 'true' ||
-                                 localStorage.getItem('navigateToCVBuilder') === 'true' ||
-                                 localStorage.getItem('navigateToIDCardPrint') === 'true';
-    
-    // If navigating to a dashboard, ensure we don't set hash to #products
-    if (hasNavigationIntent && (savedApp === 'cv-builder' || savedApp === 'id-card-print')) {
-      // Clear products page flags
-      localStorage.removeItem('showProductsPage');
-      sessionStorage.removeItem('showProductsPage');
-      setForceShowProductsPage(false);
-      showProductsPageRef.current = false;
-      // Ensure hash is NOT #products
-      if (window.location.hash === '#products') {
-        window.history.replaceState(null, '', window.location.pathname);
-      }
-      // Set the selected app
+    if (savedApp && selectedApp !== savedApp) {
       setSelectedApp(savedApp);
-    } else if (!hash && !savedApp && !hasNavigationIntent) {
-      // If no hash and no saved app, default to homepage
-      localStorage.setItem('selectedApp', 'marketplace');
-      localStorage.setItem('showProductsPage', 'true');
-      sessionStorage.setItem('showProductsPage', 'true');
-      setSelectedApp('marketplace');
-      setForceShowProductsPage(true);
-      showProductsPageRef.current = true;
-      // Set hash to products page
-      if (window.location.hash !== '#products') {
-        window.location.hash = '#products';
-      }
-    } else {
-      // If there's a saved app or navigation intent, use it
-      const app = savedApp || 'marketplace';
-    setSelectedApp(app);
     }
     
     // DON'T remove navigateToCVBuilder flag here - let the PRIORITY 0 routing check handle it
@@ -422,107 +594,17 @@ function App() {
       setCurrentView('dashboard');
     };
 
-    // Listen for hash changes to handle products page navigation
-    const handleHashChange = () => {
-      // Update current hash state to trigger re-render
-      setCurrentHash(window.location.hash);
-      
-      // Force re-render when hash changes
-      setHashKey(prev => prev + 1);
-      
-      if (window.location.hash === '#products') {
-        // Hash changed to #products - ensure flags are set
-        localStorage.setItem('selectedApp', 'marketplace');
-        localStorage.setItem('showProductsPage', 'true');
-        sessionStorage.setItem('showProductsPage', 'true');
-        setForceShowProductsPage(true);
-        showProductsPageRef.current = true;
-      } else if (window.location.hash.startsWith('#admin')) {
-        // Hash changed to #admin or #admin?tab=xxx - clear products page flags
-        setForceShowProductsPage(false);
-        showProductsPageRef.current = false;
-        localStorage.removeItem('showProductsPage');
-        sessionStorage.removeItem('showProductsPage');
-      } else if (window.location.hash === '' || !window.location.hash) {
-        // Hash cleared - user navigating to a dashboard
-        // Don't clear products page flags here, let routing logic handle it
-        // Just update the hash state
-      } else if (window.location.hash !== '#products' && (forceShowProductsPage || showProductsPageRef.current)) {
-        // Hash changed away from #products - clear products page state
-        setForceShowProductsPage(false);
-        showProductsPageRef.current = false;
-        localStorage.removeItem('showProductsPage');
-        sessionStorage.removeItem('showProductsPage');
-      }
-    };
-    
-    // Listen for custom navigation events (from Navbar and Header)
-    const handleNavigateToMarketplace = () => {
-      localStorage.setItem('selectedApp', 'marketplace');
-      localStorage.setItem('showProductsPage', 'true');
-      sessionStorage.setItem('showProductsPage', 'true');
-      setForceShowProductsPage(true);
-      showProductsPageRef.current = true;
-      setCurrentHash('#products');
-      setHashKey(prev => prev + 1);
-    };
-    
-    const handleNavigateToCVBuilder = () => {
-      console.log('handleNavigateToCVBuilder called - navigating to CV Builder');
-      localStorage.setItem('selectedApp', 'cv-builder');
-      localStorage.removeItem('showProductsPage');
-      sessionStorage.removeItem('showProductsPage');
-      sessionStorage.removeItem('navigateToCVBuilder');
-      localStorage.removeItem('navigateToCVBuilder');
-      setForceShowProductsPage(false);
-      showProductsPageRef.current = false;
-      setSelectedApp('cv-builder');
-      setCurrentView('dashboard');
-      // Don't set hash here - let the navbar handle it, or set it after a brief delay
-      if (window.location.hash !== '') {
-        window.location.hash = '';
-      }
-      setCurrentHash('');
-      setHashKey(prev => prev + 1);
-    };
-    
-    const handleNavigateToIDCardPrinter = () => {
-      console.log('handleNavigateToIDCardPrinter called - navigating to ID Card Printer');
-      localStorage.setItem('selectedApp', 'id-card-print');
-      localStorage.setItem('idCardView', 'dashboard');
-      localStorage.removeItem('showProductsPage');
-      sessionStorage.removeItem('showProductsPage');
-      sessionStorage.removeItem('navigateToIDCardPrint');
-      localStorage.removeItem('navigateToIDCardPrint');
-      setForceShowProductsPage(false);
-      showProductsPageRef.current = false;
-      setSelectedApp('id-card-print');
-      setIdCardView('dashboard');
-      // Don't set hash here - let the navbar handle it, or set it after a brief delay
-      if (window.location.hash !== '') {
-        window.location.hash = '';
-      }
-      setCurrentHash('');
-      setHashKey(prev => prev + 1);
-    };
-    
-    // Check hash on mount
-    setCurrentHash(window.location.hash);
-    
-    // Check hash on mount to handle page reloads
-    if (window.location.hash === '#products') {
-          localStorage.setItem('showProductsPage', 'true');
-          sessionStorage.setItem('showProductsPage', 'true');
-      setForceShowProductsPage(true);
-      showProductsPageRef.current = true;
-    }
-
     // Listen for authentication events from Login component
     window.addEventListener('userAuthenticated', handleAuth);
-    window.addEventListener('hashchange', handleHashChange);
-    window.addEventListener('navigateToMarketplace', handleNavigateToMarketplace);
-    window.addEventListener('navigateToCVBuilder', handleNavigateToCVBuilder);
-    window.addEventListener('navigateToIDCardPrinter', handleNavigateToIDCardPrinter);
+    
+    // Listen for Facebook-style navigation events from LeftNavbar
+    const handleSectionNavigation = (e) => {
+      const section = e.detail;
+      if (section) {
+        handleNavigateToSection(section);
+      }
+    };
+    window.addEventListener('navigateToSection', handleSectionNavigation);
     
     // Handle page unload (tab/window close) - logout user
     // Use multiple events to reliably detect tab/window close
@@ -557,6 +639,8 @@ function App() {
     });
     
     // Handle beforeunload - fires when tab/window is closing
+    // NOTE: This event can fire on tab switches in some browsers, so we don't clear selectedApp here
+    // Only pagehide with e.persisted === false should clear selectedApp
     const handleBeforeUnload = (e) => {
       // Check if this is a very recent navigation/reload (within 1 second)
       // This prevents logout during page reloads or hash-based navigation
@@ -576,10 +660,12 @@ function App() {
       }
       
       // Tab/browser is closing - logout user
+      // NOTE: Don't clear selectedApp here - it can fire on tab switches
+      // Only clear auth state, selectedApp will be cleared in pagehide if actually closing
       if (localStorage.getItem('cvBuilderAuth') === 'true') {
         // Clear authentication state immediately (synchronous)
         localStorage.removeItem('cvBuilderAuth');
-        localStorage.removeItem('selectedApp');
+        // DO NOT clear selectedApp here - it will be cleared in pagehide if actually closing
         sessionStorage.removeItem('showProductsPage');
         sessionStorage.removeItem('navigateToCVBuilder');
         sessionStorage.removeItem('navigateToIDCardPrint');
@@ -619,11 +705,13 @@ function App() {
         return;
       }
       
-      // Tab/browser is closing - logout user
+      // Tab/browser is ACTUALLY closing (not cached) - logout user
+      // Only clear auth state, NEVER clear selectedApp - it should persist
       if (localStorage.getItem('cvBuilderAuth') === 'true') {
         // Clear authentication state immediately
         localStorage.removeItem('cvBuilderAuth');
-        localStorage.removeItem('selectedApp');
+        // DO NOT clear selectedApp - it should persist across sessions
+        // localStorage.removeItem('selectedApp'); // REMOVED - preserve state
         sessionStorage.removeItem('showProductsPage');
         sessionStorage.removeItem('navigateToCVBuilder');
         sessionStorage.removeItem('navigateToIDCardPrint');
@@ -640,20 +728,65 @@ function App() {
     // Note: Removed visibilitychange handler - it was causing logout on tab switches
     // Only beforeunload and pagehide are used to detect tab/window closes
     
+    // Preserve selectedApp when window regains focus - CRITICAL for tab switching
+    const handleVisibilityChange = () => {
+      if (!document.hidden && isAuthenticated) {
+        // Tab regained focus - IMMEDIATELY restore state from localStorage
+        // This is critical to prevent reset to homepage when switching tabs
+        const savedApp = localStorage.getItem('selectedApp');
+        
+        // CRITICAL: Always restore state immediately, regardless of current React state
+        // This ensures the UI updates immediately when tab regains focus
+        if (savedApp === 'cv-builder' || savedApp === 'id-card-print') {
+          // FORCE restore the selected app state immediately
+          setSelectedApp(savedApp);
+          // Clear products page flags
+          localStorage.removeItem('showProductsPage');
+          sessionStorage.removeItem('showProductsPage');
+          setForceShowProductsPage(false);
+          showProductsPageRef.current = false;
+          // Ensure selectedApp is set in localStorage (defensive)
+          localStorage.setItem('selectedApp', savedApp);
+        } else if (savedApp === 'marketplace') {
+          // Restore marketplace state
+          setSelectedApp('marketplace');
+          const showProducts = localStorage.getItem('showProductsPage') === 'true' || 
+                              sessionStorage.getItem('showProductsPage') === 'true';
+          if (showProducts) {
+            setForceShowProductsPage(true);
+            showProductsPageRef.current = true;
+          }
+        } else if (!savedApp) {
+          // If no saved app, default to marketplace
+          // But only if user is authenticated (first visit after login)
+          localStorage.setItem('selectedApp', 'marketplace');
+          setSelectedApp('marketplace');
+        }
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('beforeunload', handleBeforeUnload);
     window.addEventListener('pagehide', handlePageHide);
     
     return () => {
       window.removeEventListener('userAuthenticated', handleAuth);
-      window.removeEventListener('hashchange', handleHashChange);
-      window.removeEventListener('navigateToMarketplace', handleNavigateToMarketplace);
-      window.removeEventListener('navigateToCVBuilder', handleNavigateToCVBuilder);
-      window.removeEventListener('navigateToIDCardPrinter', handleNavigateToIDCardPrinter);
+      window.removeEventListener('navigateToSection', handleSectionNavigation);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('beforeunload', handleBeforeUnload);
       window.removeEventListener('pagehide', handlePageHide);
       delete window.navigateToDashboard;
-      // Clear loading timeout
-      clearTimeout(loadingTimeout);
+      // Clear loading timeout if it exists
+      if (loadingTimeout) {
+        clearTimeout(loadingTimeout);
+      }
+      // Clear session check interval if it exists
+      if (sessionCheckIntervalRef.current) {
+        clearInterval(sessionCheckIntervalRef.current);
+        sessionCheckIntervalRef.current = null;
+      }
+      // Remove Google sign-in event listener
+      window.removeEventListener('googleSignInStarted', handleGoogleSignInStarted);
       // Remove App URL listener
       CapacitorApp.removeAllListeners();
       // Cleanup auth state change subscription
@@ -663,6 +796,42 @@ function App() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]); // Include isAuthenticated to have current value
+
+  // CRITICAL: Continuously sync React state with localStorage to prevent resets
+  // This ensures selectedApp state always matches localStorage, especially on tab switches
+  // Use a ref to track last synced value to prevent infinite loops
+  const lastSyncedAppRef = React.useRef(null);
+  
+  useEffect(() => {
+    if (!isAuthenticated || isLoading) return;
+    
+    // Read from localStorage
+    const savedApp = localStorage.getItem('selectedApp');
+    
+    // Only update if localStorage value is different from what we last synced
+    // This prevents infinite loops
+    if (savedApp) {
+      if (lastSyncedAppRef.current !== savedApp) {
+        lastSyncedAppRef.current = savedApp;
+        setSelectedApp(savedApp);
+        
+        // If localStorage says cv-builder or id-card-print, clear marketplace flags
+        if (savedApp === 'cv-builder' || savedApp === 'id-card-print') {
+          setForceShowProductsPage(false);
+          showProductsPageRef.current = false;
+          localStorage.removeItem('showProductsPage');
+          sessionStorage.removeItem('showProductsPage');
+        }
+      }
+    } else {
+      // First visit - default to marketplace
+      if (lastSyncedAppRef.current !== 'marketplace') {
+        localStorage.setItem('selectedApp', 'marketplace');
+        lastSyncedAppRef.current = 'marketplace';
+        setSelectedApp('marketplace');
+      }
+    }
+  }, [isAuthenticated, isLoading]); // Removed selectedApp from dependencies to prevent infinite loop
 
   const handleLogout = async () => {
     try {
@@ -817,12 +986,9 @@ function App() {
     showProductsPageRef.current = false;
     localStorage.removeItem('showProductsPage');
     sessionStorage.removeItem('showProductsPage');
-    // Clear products page hash if present
-    if (window.location.hash === '#products') {
-      window.location.hash = '';
-    }
     // Ensure selectedApp is set to cv-builder
     localStorage.setItem('selectedApp', 'cv-builder');
+    setSelectedApp('cv-builder');
     // Navigate to dashboard
     setCurrentView('dashboard');
   };
@@ -837,6 +1003,10 @@ function App() {
     // Load the CV data and switch to CV builder view
     if (cv && cv.id) {
       try {
+        // CRITICAL: Ensure we're on CV Builder section before loading CV
+        localStorage.setItem('selectedApp', 'cv-builder');
+        setSelectedApp('cv-builder');
+        
         // Use the loadCV function from the hook to properly set currentCVId
         const loadedFormData = await loadCV(cv.id);
         if (loadedFormData) {
@@ -858,21 +1028,7 @@ function App() {
   // Get current product for header
   const currentProduct = localStorage.getItem('selectedApp') || 'cv-builder';
   
-  // Check if user wants to see admin panel (support #admin and #admin?tab=xxx)
-  const showAdminPanel = window.location.hash.startsWith('#admin') && isAuthenticated && !isLoading;
-  
-  // Check if user wants to see product detail page
-  const productDetailMatch = window.location.hash.match(/^#product\/([a-f0-9-]+)$/i);
-  const productDetailId = productDetailMatch ? productDetailMatch[1] : null;
-
-  // Check if user wants to see cart
-  const showCart = currentHash === '#cart';
-  const showCheckout = currentHash === '#checkout';
-  const showOrderDetails = currentHash.startsWith('#order-details');
-  const showOrderHistory = currentHash === '#order-history';
-
-  // Simple check: Show products page if URL hash is #products
-  const showProductsPageHash = currentHash === '#products';
+  // All hash-based routing removed - user will add navigation one by one
 
   // Expose function to reset products page flag (for Header to call)
   // MUST be called before ANY conditional returns (React Hooks rule)
@@ -901,10 +1057,22 @@ function App() {
 
   // Simple routing: Use localStorage.selectedApp to determine which dashboard to show
   // Initialize selectedApp from localStorage on mount
+  // NOTE: This runs after the main useEffect, so it should only run if selectedApp wasn't already set
   useEffect(() => {
     const savedApp = localStorage.getItem('selectedApp');
-    if (savedApp) {
+    if (savedApp && (savedApp === 'cv-builder' || savedApp === 'id-card-print')) {
+      // Only set if we're on a dashboard app and it's not already set correctly
+      // This ensures we don't override the main initialization logic
       setSelectedApp(savedApp);
+      // Clear products page flags
+      localStorage.removeItem('showProductsPage');
+      sessionStorage.removeItem('showProductsPage');
+      setForceShowProductsPage(false);
+      showProductsPageRef.current = false;
+      // Ensure hash is NOT #products when on dashboard
+      if (window.location.hash === '#products') {
+        window.history.replaceState(null, '', window.location.pathname);
+      }
     }
   }, []);
   
@@ -912,99 +1080,372 @@ function App() {
   // It will only be reset when user explicitly navigates to a product via Header buttons
   // This ensures products page stays visible and doesn't redirect
 
-  // PRIORITY -1: Check if user wants to see product detail page (HIGHEST PRIORITY)
-  if (productDetailId) {
-    return wrapWithNavbar(
-      <>
-        <Header 
-          isAuthenticated={isAuthenticated} 
-          onLogout={handleLogout}
-          showProductsOnHeader={true}
-        />
-        <ProductDetail productId={productDetailId} />
-      </>
-    );
-  }
-
-  // PRIORITY -1: Check if user wants to see cart (HIGHEST PRIORITY)
-  if (showCart) {
-    return wrapWithNavbar(
-      <>
-        <Header 
-          isAuthenticated={isAuthenticated} 
-          onLogout={handleLogout}
-          showProductsOnHeader={true}
-        />
-        <Cart />
-      </>
-    );
-  }
-
-  if (showCheckout) {
-    return wrapWithNavbar(
-      <>
-        <Header 
-          isAuthenticated={isAuthenticated} 
-          onLogout={handleLogout}
-          showProductsOnHeader={true}
-        />
-        <Checkout />
-      </>
-    );
-  }
-
-  if (showOrderDetails) {
-    return wrapWithNavbar(
-      <>
-        <Header 
-          isAuthenticated={isAuthenticated} 
-          onLogout={handleLogout}
-          showProductsOnHeader={true}
-        />
-        <OrderDetails />
-      </>
-    );
-  }
-
-  if (showOrderHistory && isAuthenticated) {
-    return wrapWithNavbar(
-      <>
-        <Header 
-          isAuthenticated={isAuthenticated} 
-          onLogout={handleLogout}
-          showProductsOnHeader={true}
-        />
-        <OrderHistory />
-      </>
-    );
-  }
-
-  // PRIORITY -1: Check if user wants to see admin panel (HIGHEST PRIORITY)
-  if (showAdminPanel) {
-    return wrapWithNavbar(
-      <>
-        <Header 
-          isAuthenticated={isAuthenticated} 
-          onLogout={handleLogout}
-          currentProduct={currentProduct}
-        />
-        <MarketplaceAdmin />
-      </>
-    );
-  }
-
-  // Simple routing based on selectedApp from localStorage
-  // Check URL hash first for marketplace pages, then check selectedApp for dashboards
+  // Facebook-like navigation: Simple section-based routing
+  // CRITICAL: Read directly from localStorage - don't default to marketplace if user is on a dashboard
+  const savedAppForNav = localStorage.getItem('selectedApp');
+  const currentSection = savedAppForNav || 'marketplace';
   
-  // Get current selectedApp from localStorage - default to 'marketplace' for homepage
-  // On page reload, if no hash and no saved app, show homepage
-  const hash = window.location.hash;
-  const savedApp = localStorage.getItem('selectedApp');
-  
-  // Prioritize savedApp - if it's set to a dashboard (cv-builder or id-card-print), always use it
-  // This ensures that when navigating to a dashboard, it stays there even if hash changes
-  const currentSelectedApp = (savedApp === 'cv-builder' || savedApp === 'id-card-print') ? savedApp :
-                              (hash === '#products' ? 'marketplace' : (savedApp || 'marketplace'));
+  // Wrap content with TopNav for authenticated users
+  const wrapWithTopNav = (content) => {
+    if (!isAuthenticated || isLoading) {
+      return content;
+    }
+    // Always read current section from localStorage on every render - don't use React state
+    const currentSectionForNav = localStorage.getItem('selectedApp') || 'marketplace';
+    return (
+      <>
+        <TopNav 
+          currentSection={currentSectionForNav}
+          onSectionChange={handleNavigateToSection}
+          isAuthenticated={isAuthenticated}
+        />
+        <div style={{ marginTop: '56px', minHeight: 'calc(100vh - 56px)' }}>
+          {content}
+        </div>
+      </>
+    );
+  };
+
+  // CRITICAL ROUTING: Check localStorage.getItem('selectedApp') FIRST - single source of truth
+  // This MUST happen FIRST for authenticated users to prevent homepage redirects
+  // Read directly from localStorage on EVERY render - don't rely on React state
+  if (isAuthenticated && !isLoading) {
+    // ALWAYS read from localStorage directly - don't use React state
+    let selectedAppFromStorage = localStorage.getItem('selectedApp');
+    
+    // CRITICAL: Don't update state in render function - that causes infinite loops
+    // State updates should only happen in useEffect or event handlers
+    // Just read from localStorage and use it for routing decisions
+    
+    // DEFENSIVE: If localStorage is empty but React state has a dashboard app value,
+    // use React state as fallback (this handles edge cases during tab switches)
+    // But localStorage.write is safe in render - it's synchronous and doesn't cause re-renders
+    if (!selectedAppFromStorage && (selectedApp === 'cv-builder' || selectedApp === 'id-card-print')) {
+      // Restore localStorage from React state (defensive measure)
+      localStorage.setItem('selectedApp', selectedApp);
+      selectedAppFromStorage = selectedApp;
+    }
+    
+    // CRITICAL: If localStorage has cv-builder or id-card-print, NEVER default to marketplace
+    // This is the absolute guarantee that prevents homepage redirects
+    // Only default to marketplace if truly no saved app (first visit)
+    const routingApp = selectedAppFromStorage || 'marketplace';
+    
+    // If user is on CV Builder section
+    if (routingApp === 'cv-builder') {
+      // Check if user wants to see the form (currentView === 'cv-builder')
+      // This takes priority over showing the dashboard
+      if (currentView === 'cv-builder') {
+        // Show CV Builder form/preview
+        const renderFormAndPreview = () => {
+          switch (selectedTemplate) {
+            case 'template1':
+              return (
+                <>
+                  <Form1 
+                    key={formResetKey}
+                    formData={formData}
+                    updateFormData={updateFormData}
+                    markAsChanged={hookMarkAsChanged}
+                  />
+                  <Preview1 
+                    formData={formData}
+                    autoSaveStatus={hookAutoSaveStatus}
+                    hasUnsavedChanges={hookHasUnsavedChanges}
+                  />
+                </>
+              );
+            case 'template2':
+              return (
+                <>
+                  <Form2 
+                    key={formResetKey}
+                    formData={formData}
+                    updateFormData={updateFormData}
+                    markAsChanged={hookMarkAsChanged}
+                  />
+                  <Preview2 
+                    formData={formData}
+                    autoSaveStatus={hookAutoSaveStatus}
+                    hasUnsavedChanges={hookHasUnsavedChanges}
+                  />
+                </>
+              );
+            case 'template3':
+              return (
+                <>
+                  <Form3 
+                    key={formResetKey}
+                    formData={formData}
+                    updateFormData={updateFormData}
+                    markAsChanged={hookMarkAsChanged}
+                  />
+                  <Preview3 
+                    formData={formData}
+                    autoSaveStatus={hookAutoSaveStatus}
+                    hasUnsavedChanges={hookHasUnsavedChanges}
+                  />
+                </>
+              );
+            case 'template4':
+              return (
+                <>
+                  <Form4 
+                    key={formResetKey}
+                    formData={formData}
+                    updateFormData={updateFormData}
+                    markAsChanged={hookMarkAsChanged}
+                  />
+                  <Preview4 
+                    formData={formData}
+                    autoSaveStatus={hookAutoSaveStatus}
+                    hasUnsavedChanges={hookHasUnsavedChanges}
+                  />
+                </>
+              );
+            case 'template5':
+              return (
+                <>
+                  <Form5 
+                    key={formResetKey}
+                    formData={formData}
+                    updateFormData={updateFormData}
+                    markAsChanged={hookMarkAsChanged}
+                  />
+                  <Preview5 
+                    formData={formData}
+                    autoSaveStatus={hookAutoSaveStatus}
+                    hasUnsavedChanges={hookHasUnsavedChanges}
+                  />
+                </>
+              );
+            default:
+              return (
+                <>
+                  <Form1 
+                    key={formResetKey}
+                    formData={formData}
+                    updateFormData={updateFormData}
+                    markAsChanged={hookMarkAsChanged}
+                  />
+                  <Preview1 
+                    formData={formData}
+                    autoSaveStatus={hookAutoSaveStatus}
+                    hasUnsavedChanges={hookHasUnsavedChanges}
+                  />
+                </>
+              );
+          }
+        };
+
+        return wrapWithTopNav(
+          wrapWithNavbar(
+            <>
+              <Header 
+                isAuthenticated={true} 
+                onLogout={handleLogout}
+                currentProduct="cv-builder"
+              />
+              <div className="app-header-cv">
+                <h1>CV Builder</h1>
+                <div className="header-actions">
+                  <div className="template-selector">
+                    <button
+                      onClick={() => handleTemplateSwitch('template1')}
+                      className={selectedTemplate === 'template1' ? 'active' : ''}
+                    >
+                      Template 1
+                    </button>
+                    <button
+                      onClick={() => handleTemplateSwitch('template2')}
+                      className={selectedTemplate === 'template2' ? 'active' : ''}
+                    >
+                      Template 2
+                    </button>
+                    <button
+                      onClick={() => handleTemplateSwitch('template3')}
+                      className={selectedTemplate === 'template3' ? 'active' : ''}
+                    >
+                      Template 3
+                    </button>
+                    <button
+                      onClick={() => handleTemplateSwitch('template4')}
+                      className={selectedTemplate === 'template4' ? 'active' : ''}
+                    >
+                      Template 4
+                    </button>
+                    <button
+                      onClick={() => handleTemplateSwitch('template5')}
+                      className={selectedTemplate === 'template5' ? 'active' : ''}
+                    >
+                      Template 5 (Europass)
+                    </button>
+                  </div>
+                  <div className="auto-save-status">
+                    {hookAutoSaveStatus ? (
+                      <div className={`status-indicator ${
+                        hookAutoSaveStatus.includes('saved') || hookAutoSaveStatus.includes('Saved') || hookAutoSaveStatus === 'Ready' ? 'success' : 
+                        hookAutoSaveStatus.includes('Saving') || hookAutoSaveStatus.includes('saving') ? 'warning' : 
+                        'error'
+                      }`} style={{ visibility: 'visible', opacity: 1 }}>
+                        {hookAutoSaveStatus}
+                      </div>
+                    ) : hookHasUnsavedChanges ? (
+                      <div className="status-indicator warning" style={{ visibility: 'visible', opacity: 1 }}>
+                        Unsaved Changes
+                      </div>
+                    ) : (
+                      <div className="status-indicator success" style={{ visibility: 'visible', opacity: 1 }}>
+                        Saved
+                      </div>
+                    )}
+                  </div>
+                  <button 
+                    onClick={handleBackToDashboard} 
+                    className="back-to-dashboard-button"
+                    style={{ visibility: 'visible', opacity: 1, display: 'block' }}
+                  >
+                    Back to Dashboard
+                  </button>
+                </div>
+              </div>
+              <div className="container">
+                {renderFormAndPreview()}
+              </div>
+            </>
+          )
+        );
+      }
+      
+      // Otherwise, show CV Dashboard
+      return wrapWithTopNav(
+        wrapWithNavbar(
+          <>
+            <Header 
+              isAuthenticated={true} 
+              onLogout={handleLogout}
+              currentProduct="cv-builder"
+            />
+            <CVDashboard 
+              onTemplateSelect={handleTemplateSelect}
+              onLogout={handleLogout}
+              onEditCV={handleEditCV}
+              onCreateNewCV={handleMakeNewCV}
+            />
+          </>
+        )
+      );
+    }
+    
+    // If user is on ID Card Printer section
+    if (routingApp === 'id-card-print') {
+      // Check if user wants to see the print page (idCardView === 'print')
+      // This takes priority over showing the dashboard
+      if (idCardView === 'print') {
+        const handleBackToIDCardDashboard = () => {
+          setIdCardView('dashboard');
+          localStorage.setItem('idCardView', 'dashboard');
+        };
+        
+        return wrapWithTopNav(
+          wrapWithNavbar(
+            <>
+              <Header 
+                isAuthenticated={true} 
+                onLogout={handleLogout}
+                currentProduct="id-card-print"
+              />
+              <div className="app-header-cv" style={{ 
+                display: 'flex', 
+                visibility: 'visible', 
+                opacity: 1, 
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
+                padding: '24px 20px 12px 20px', 
+                position: 'fixed',
+                top: 'calc(var(--header-height, 80px) + 56px)',
+                left: '200px',
+                right: 0,
+                zIndex: 999,
+                width: 'calc(100% - 200px)',
+                minHeight: '80px',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                margin: 0
+              }}>
+                <h1 style={{ color: 'white', margin: 0, fontSize: '24px', fontWeight: 700 }}>ID Card Printer</h1>
+                <button 
+                  onClick={handleBackToIDCardDashboard} 
+                  className="back-to-dashboard-button"
+                  style={{ 
+                    visibility: 'visible', 
+                    opacity: 1, 
+                    display: 'block',
+                    padding: '10px 20px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                    color: 'white',
+                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    fontWeight: 600,
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+                  }}
+                >
+                  Back to Dashboard
+                </button>
+              </div>
+              <div style={{ marginTop: 'calc(var(--header-height, 80px) + 56px + 80px)' }}>
+                <IDCardPrintPage />
+              </div>
+            </>
+          )
+        );
+      }
+      
+      // Otherwise, show ID Card Dashboard
+      return wrapWithTopNav(
+        wrapWithNavbar(
+          <>
+            <Header 
+              isAuthenticated={true} 
+              onLogout={handleLogout}
+              currentProduct="id-card-print"
+            />
+            <IDCardDashboard 
+              onCreateNewIDCard={() => {
+                setIdCardView('print');
+                localStorage.setItem('idCardView', 'print');
+              }}
+            />
+          </>
+        )
+      );
+    }
+    
+    // If user is on Marketplace, show ProductsPage
+    if (routingApp === 'marketplace') {
+      return wrapWithTopNav(
+        wrapWithNavbar(
+          <>
+            <Header 
+              isAuthenticated={isAuthenticated} 
+              currentProduct="products"
+              showProductsOnHeader={true}
+              onLogout={isAuthenticated ? handleLogout : undefined}
+            />
+            <ProductsPage />
+          </>
+        )
+      );
+    }
+  }
+
+  // All hash-based routing removed - user will add navigation one by one
   
   // PRIORITY: Check if we should show CV Builder form/preview FIRST
   // This ensures that when currentView is 'cv-builder', we show the form instead of dashboard
@@ -1195,42 +1636,11 @@ function App() {
   // This prevents stale localStorage flags from showing login page on new tabs
   // The later routing logic will handle showing homepage for direct domain visits
   
-  // Route to ID Card Printer Dashboard
-  if (isAuthenticated && !isLoading && currentSelectedApp === 'id-card-print') {
-    // Ensure idCardView is set correctly
-    const savedIdCardView = localStorage.getItem('idCardView');
-    if (idCardView === 'print' || savedIdCardView === 'print') {
-      return wrapWithNavbar(
-        <>
-          <Header 
-            isAuthenticated={true} 
-            onLogout={handleLogout}
-            currentProduct="id-card-print"
-          />
-          <IDCardPrintPage />
-        </>
-      );
-    } else {
-      // Show ID Card Dashboard
-      return wrapWithNavbar(
-        <>
-          <Header 
-            isAuthenticated={true} 
-            onLogout={handleLogout}
-            currentProduct="id-card-print"
-          />
-          <IDCardDashboard 
-            onCreateNewIDCard={() => {
-              setIdCardView('print');
-            }}
-          />
-        </>
-      );
-    }
-  }
+  // Duplicate routing logic removed - handled above in the main routing section
 
   // Route to CV Builder Dashboard
-  if (isAuthenticated && !isLoading && currentSelectedApp === 'cv-builder') {
+  const selectedAppForCV = localStorage.getItem('selectedApp');
+  if (isAuthenticated && !isLoading && selectedAppForCV === 'cv-builder') {
     // Check if user wants to go directly to CV form (when template is selected and goToCVForm flag is set)
     const goToCVForm = sessionStorage.getItem('goToCVForm') === 'true' || localStorage.getItem('goToCVForm') === 'true';
     const selectedTemplateFromStorage = localStorage.getItem('selectedTemplate');
@@ -1368,12 +1778,7 @@ function App() {
     );
   }
   
-  // Simple products page check: Show if URL hash indicates marketplace page
-  // BUT don't show products page if user is navigating to a dashboard (has selectedApp set to cv-builder or id-card-print)
-  const hasDashboardNavigation = currentSelectedApp === 'cv-builder' || currentSelectedApp === 'id-card-print';
-  const shouldShowProductsPage = (showProductsPageHash || currentHash === '#products') && !hasDashboardNavigation;
-  
-  // PRIORITY 1.5: Check if we should show CV Builder form/preview BEFORE products page
+  // PRIORITY: Check if we should show CV Builder form/preview
   // This ensures that when currentView is 'cv-builder', we show the form instead of products page
   // ABSOLUTE PRIORITY: If currentView is 'cv-builder', show it regardless of products page flags
   if (currentView === 'cv-builder' && isAuthenticated && !isLoading) {
@@ -1582,20 +1987,7 @@ function App() {
     }
   }
   
-  // Show products page if URL hash indicates marketplace
-  if (shouldShowProductsPage) {
-    return wrapWithNavbar(
-      <>
-        <Header 
-          isAuthenticated={isAuthenticated} 
-          currentProduct="products"
-          showProductsOnHeader={true}
-          onLogout={isAuthenticated ? handleLogout : undefined}
-        />
-        <ProductsPage />
-      </>
-    );
-  }
+  // Products page routing is handled above in the authenticated user routing section
   
   // Show loading screen while checking authentication
   if (isLoading) {
@@ -1616,23 +2008,17 @@ function App() {
   // If user is not authenticated, show homepage (ProductsPage) instead of login
   // Only show login if they're explicitly trying to access a dashboard (with navigation flags)
   if (!isAuthenticated && !isLoading) {
-    // Get current hash
-    const currentHash = window.location.hash;
-    
     // Check if user has explicit navigation intent to a dashboard
     const hasNavigationIntent = sessionStorage.getItem('navigateToCVBuilder') === 'true' ||
                                  sessionStorage.getItem('navigateToIDCardPrint') === 'true' ||
                                  localStorage.getItem('navigateToCVBuilder') === 'true' ||
                                  localStorage.getItem('navigateToIDCardPrint') === 'true';
     
-    // Only clear navigation flags if there's no hash AND no navigation intent (direct visit to homepage)
-    // This ensures flags persist when navigating to #products from navbar buttons
-    if (!currentHash && !hasNavigationIntent) {
-      // Clear any dashboard selections that might cause login page to show
-      const savedApp = localStorage.getItem('selectedApp');
-      if (savedApp === 'cv-builder' || savedApp === 'id-card-print') {
-        localStorage.setItem('selectedApp', 'marketplace');
-      }
+    // Only clear navigation flags if there's no navigation intent (direct visit to homepage)
+    // BUT: Don't clear selectedApp for unauthenticated users - preserve it for when they log in
+    if (!hasNavigationIntent) {
+      // Don't clear selectedApp - preserve user's intended destination
+      // This ensures they go to the right place after logging in
       
       // Clear any stale navigation flags that might persist from previous sessions
       sessionStorage.removeItem('navigateToCVBuilder');
@@ -1649,9 +2035,8 @@ function App() {
       }
     }
     
-    // Only show login directly if there's explicit navigation intent AND no hash (meaning they're trying to access a dashboard directly)
-    // If there's a hash (like #products), show ProductsPage which will show login form
-    if (hasNavigationIntent && !currentHash) {
+    // Only show login directly if there's explicit navigation intent (meaning they're trying to access a dashboard directly)
+    if (hasNavigationIntent) {
       return wrapWithNavbar(
         <Login onAuth={handleAuth} />
       );
@@ -1671,10 +2056,139 @@ function App() {
     );
   }
   
-  // For authenticated users, default to homepage if no specific route
-  // Only show CV Builder Dashboard if explicitly selected
-  if (currentSelectedApp === 'cv-builder' && !shouldShowProductsPage) {
-    return wrapWithNavbar(
+  // FINAL FALLBACK: For authenticated users, check localStorage one more time
+  // This ensures we never show homepage if user is on a dashboard
+  const finalSelectedApp = localStorage.getItem('selectedApp');
+  
+  if (isAuthenticated && !isLoading) {
+    // If user is on CV Builder or ID Card, show it - NEVER show marketplace
+    if (finalSelectedApp === 'cv-builder') {
+      return wrapWithTopNav(
+        wrapWithNavbar(
+          <>
+            <Header 
+              isAuthenticated={true} 
+              onLogout={handleLogout}
+              currentProduct="cv-builder"
+            />
+            <CVDashboard 
+              onTemplateSelect={handleTemplateSelect}
+              onLogout={handleLogout}
+              onEditCV={handleEditCV}
+              onCreateNewCV={handleMakeNewCV}
+            />
+          </>
+        )
+      );
+    }
+    
+    if (finalSelectedApp === 'id-card-print') {
+      if (idCardView === 'print') {
+        const handleBackToIDCardDashboard = () => {
+          setIdCardView('dashboard');
+          localStorage.setItem('idCardView', 'dashboard');
+        };
+        
+        return wrapWithTopNav(
+          wrapWithNavbar(
+            <>
+              <Header 
+                isAuthenticated={true} 
+                onLogout={handleLogout}
+                currentProduct="id-card-print"
+              />
+              <div className="app-header-cv" style={{ 
+                display: 'flex', 
+                visibility: 'visible', 
+                opacity: 1, 
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
+                padding: '24px 20px 12px 20px', 
+                position: 'fixed',
+                top: 'calc(var(--header-height, 80px) + 56px)',
+                left: '200px',
+                right: 0,
+                zIndex: 999,
+                width: 'calc(100% - 200px)',
+                minHeight: '80px',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                margin: 0
+              }}>
+                <h1 style={{ color: 'white', margin: 0, fontSize: '24px', fontWeight: 700 }}>ID Card Printer</h1>
+                <button 
+                  onClick={handleBackToIDCardDashboard} 
+                  className="back-to-dashboard-button"
+                  style={{ 
+                    visibility: 'visible', 
+                    opacity: 1, 
+                    display: 'block',
+                    padding: '10px 20px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                    color: 'white',
+                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    fontWeight: 600,
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+                  }}
+                >
+                  Back to Dashboard
+                </button>
+              </div>
+              <div style={{ marginTop: 'calc(var(--header-height, 80px) + 56px + 80px)' }}>
+                <IDCardPrintPage />
+              </div>
+            </>
+          )
+        );
+      }
+      
+      return wrapWithTopNav(
+        wrapWithNavbar(
+          <>
+            <Header 
+              isAuthenticated={true} 
+              onLogout={handleLogout}
+              currentProduct="id-card-print"
+            />
+            <IDCardDashboard 
+              onCreateNewIDCard={() => {
+                setIdCardView('print');
+                localStorage.setItem('idCardView', 'print');
+              }}
+            />
+          </>
+        )
+      );
+    }
+    
+    // Only show marketplace if explicitly set to marketplace
+    if (finalSelectedApp === 'marketplace' || !finalSelectedApp) {
+      return wrapWithTopNav(
+        wrapWithNavbar(
+          <>
+            <Header 
+              isAuthenticated={isAuthenticated} 
+              currentProduct="products"
+              showProductsOnHeader={true}
+              onLogout={isAuthenticated ? handleLogout : undefined}
+            />
+            <ProductsPage />
+          </>
+        )
+      );
+    }
+  }
+  
+  // Ultimate fallback: Show CV Dashboard (shouldn't reach here)
+  return wrapWithTopNav(
+    wrapWithNavbar(
       <>
         <Header 
           isAuthenticated={true} 
@@ -1688,35 +2202,7 @@ function App() {
           onCreateNewCV={handleMakeNewCV}
         />
       </>
-    );
-  }
-  
-  // Default to homepage for authenticated users if no specific route
-  if (!currentSelectedApp || currentSelectedApp === 'marketplace' || (!hash && !savedApp)) {
-    return wrapWithNavbar(
-      <>
-        <Header 
-          isAuthenticated={isAuthenticated} 
-          currentProduct="products"
-          showProductsOnHeader={true}
-          onLogout={isAuthenticated ? handleLogout : undefined}
-        />
-        <ProductsPage />
-      </>
-    );
-  }
-  
-  // Final fallback: Show homepage
-  return wrapWithNavbar(
-    <>
-      <Header 
-        isAuthenticated={isAuthenticated} 
-        currentProduct="products"
-        showProductsOnHeader={true}
-        onLogout={isAuthenticated ? handleLogout : undefined}
-      />
-      <ProductsPage />
-    </>
+    )
   );
 }
 

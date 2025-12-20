@@ -276,6 +276,12 @@ function Preview5({ formData: propFormData, autoSaveStatus, hasUnsavedChanges })
                   <span className="europass-value">{displayData.email}</span>
                 </div>
               )}
+              {displayData.position && (
+                <div className="europass-field">
+                  <span className="europass-label">Position/Title:</span>
+                  <span className="europass-value">{displayData.position}</span>
+                </div>
+              )}
               {displayData.otherInfo && displayData.otherInfo.map((info, index) => {
                 if (['Date of Birth', 'Nationality', 'Gender'].includes(info.label)) {
                   return (
@@ -599,6 +605,12 @@ function Preview5({ formData: propFormData, autoSaveStatus, hasUnsavedChanges })
                     <div className="europass-field">
                       <span className="europass-label">E-mail:</span>
                       <span className="europass-value">{displayData.email}</span>
+                    </div>
+                  )}
+                  {displayData.position && (
+                    <div className="europass-field">
+                      <span className="europass-label">Position/Title:</span>
+                      <span className="europass-value">{displayData.position}</span>
                     </div>
                   )}
                   {displayData.otherInfo && displayData.otherInfo.map((info, index) => {

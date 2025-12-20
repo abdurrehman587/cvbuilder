@@ -1,9 +1,12 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import usePreviewHandler from './PreviewHandler3';
 import generatePDF from './pdf3';
 import './Preview3.css';
 
 function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges }) {
+  const [showA4Preview, setShowA4Preview] = useState(false);
+  const [a4Scale, setA4Scale] = useState(1);
+  const a4PreviewRef = useRef(null);
   const { formData: hookFormData, formatContactInfo, updatePreviewData } = usePreviewHandler(propFormData);
   // Use propFormData as primary source (from app state/database) and merge with hook data for DOM-only fields
   const formData = { 
@@ -18,6 +21,7 @@ function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges })
   useEffect(() => {
     updatePreviewData();
   }, [propFormData, updatePreviewData]);
+
 
   // Ensure dynamic inputs update preview on typing
   useEffect(() => {
@@ -38,6 +42,48 @@ function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges })
     document.addEventListener('input', onInput, true);
     return () => document.removeEventListener('input', onInput, true);
   }, [updatePreviewData]);
+
+  // Calculate A4 preview scale for mobile devices
+  useEffect(() => {
+    const calculateScale = () => {
+      if (!showA4Preview) return;
+      
+      const isMobile = window.innerWidth <= 768;
+      if (!isMobile) {
+        setA4Scale(1);
+        return;
+      }
+
+      // A4 dimensions: 800px × 1129px
+      const a4Width = 800;
+      const a4Height = 1129;
+      
+      // Available space (accounting for close button ~45px and padding)
+      const availableWidth = window.innerWidth - 10; // 5px padding on each side
+      const availableHeight = window.innerHeight - 45; // 45px for close button
+      
+      // Calculate scale to fit both dimensions
+      const scaleX = availableWidth / a4Width;
+      const scaleY = availableHeight / a4Height;
+      
+      // Use the smaller scale to ensure it fits both dimensions
+      const scale = Math.min(scaleX, scaleY);
+      
+      // Set a minimum scale to prevent it from being too small
+      setA4Scale(Math.max(scale, 0.2));
+    };
+
+    calculateScale();
+    
+    // Recalculate on resize (orientation change, etc.)
+    window.addEventListener('resize', calculateScale);
+    window.addEventListener('orientationchange', calculateScale);
+    
+    return () => {
+      window.removeEventListener('resize', calculateScale);
+      window.removeEventListener('orientationchange', calculateScale);
+    };
+  }, [showA4Preview]);
   
   // Default sections to show on page load: professional-summary, skills, languages, references
   const displayData = {
@@ -76,10 +122,9 @@ function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges })
   const profileImageUrl = getLocalProfileImageUrl();
   const contactInfo = formatContactInfo();
 
-  return (
-    <div className="right-container">
-      <div className="template3-root">
-        <div className="cv-preview">
+  // Render the CV preview content (reusable for both normal and modal view)
+  const renderCVContent = () => (
+    <>
           {/* Header with Graphics */}
           <div className="cv-header">
             <div className="header-graphics">
@@ -349,8 +394,54 @@ function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges })
               </button>
             </div>
           </div>
-        </div>
+    </>
+  );
+
+  return (
+    <div className="right-container template3-container">
+      {/* Preview Button - Show on all devices */}
+      <div className="preview-controls">
+        <button 
+          className="preview-a4-button"
+          onClick={() => setShowA4Preview(true)}
+          title="View A4 Preview"
+        >
+          📄 View A4 Preview
+        </button>
       </div>
+
+      {/* A4 Preview Modal */}
+      {showA4Preview && (
+        <div className="a4-preview-modal-overlay" onClick={() => setShowA4Preview(false)}>
+          <div className="a4-preview-modal-content" onClick={(e) => e.stopPropagation()}>
+            <button 
+              className="a4-preview-close-button"
+              onClick={() => setShowA4Preview(false)}
+              aria-label="Close Preview"
+            >
+              ×
+            </button>
+            <div className="a4-preview-container" ref={a4PreviewRef}>
+              <div className="template3-root">
+                <div 
+                  className="cv-preview a4-size-preview"
+                  style={{
+                    transform: `scale(${a4Scale})`,
+                    transformOrigin: 'center center',
+                    width: '800px',
+                    minWidth: '800px',
+                    maxWidth: '800px',
+                    minHeight: '1129px',
+                    height: 'auto'
+                  }}
+                >
+                  {renderCVContent()}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

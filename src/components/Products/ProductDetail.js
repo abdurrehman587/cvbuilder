@@ -11,6 +11,8 @@ const ProductDetail = ({ productId }) => {
   const [inCart, setInCart] = useState(false);
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [loadingRelated, setLoadingRelated] = useState(false);
+  const [mousePosition, setMousePosition] = useState({ x: 50, y: 50 });
+  const [isHovering, setIsHovering] = useState(false);
 
   useEffect(() => {
     const loadProduct = async () => {
@@ -295,7 +297,14 @@ const ProductDetail = ({ productId }) => {
       <div className="product-detail-container">
         <button 
           className="product-detail-back-button"
-          onClick={() => window.location.href = '/#products'}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Back to Products button clicked');
+            // Use window.location.href to ensure full navigation and state reset
+            window.location.href = '/#products';
+          }}
+          type="button"
         >
           ← Back to Products
         </button>
@@ -310,12 +319,37 @@ const ProductDetail = ({ productId }) => {
               </div>
             ) : (
               <>
-                <div className="product-detail-main-image-container">
+                <div 
+                  className="product-detail-main-image-container"
+                  onMouseMove={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const x = ((e.clientX - rect.left) / rect.width) * 100;
+                    const y = ((e.clientY - rect.top) / rect.height) * 100;
+                    setMousePosition({ x, y });
+                  }}
+                  onMouseEnter={() => setIsHovering(true)}
+                  onMouseLeave={() => setIsHovering(false)}
+                >
                   <img 
                     src={images[currentImageIndex]} 
                     alt={`${product.name} - Image ${currentImageIndex + 1}`}
                     className="product-detail-main-image"
+                    style={{
+                      transformOrigin: `${mousePosition.x}% ${mousePosition.y}%`,
+                      transform: isHovering ? 'scale(2)' : 'scale(1)',
+                      transition: isHovering ? 'none' : 'transform 0.3s ease'
+                    }}
                   />
+                  {isHovering && (
+                    <div 
+                      className="product-detail-magnifier"
+                      style={{
+                        left: `${mousePosition.x}%`,
+                        top: `${mousePosition.y}%`,
+                        transform: 'translate(-50%, -50%)'
+                      }}
+                  />
+                  )}
                   {images.length > 1 && (
                     <>
                       <button 
