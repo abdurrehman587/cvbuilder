@@ -817,22 +817,28 @@ function App() {
     if (savedApp) {
       if (lastSyncedAppRef.current !== savedApp) {
         lastSyncedAppRef.current = savedApp;
-        setSelectedApp(savedApp);
-        
-        // If localStorage says cv-builder or id-card-print, clear marketplace flags
-        if (savedApp === 'cv-builder' || savedApp === 'id-card-print') {
-          setForceShowProductsPage(false);
-          showProductsPageRef.current = false;
-          localStorage.removeItem('showProductsPage');
-          sessionStorage.removeItem('showProductsPage');
-        }
+        // Use requestAnimationFrame to ensure state update happens after render
+        requestAnimationFrame(() => {
+          setSelectedApp(savedApp);
+          
+          // If localStorage says cv-builder or id-card-print, clear marketplace flags
+          if (savedApp === 'cv-builder' || savedApp === 'id-card-print') {
+            setForceShowProductsPage(false);
+            showProductsPageRef.current = false;
+            localStorage.removeItem('showProductsPage');
+            sessionStorage.removeItem('showProductsPage');
+          }
+        });
       }
     } else {
       // First visit - default to marketplace
       if (lastSyncedAppRef.current !== 'marketplace') {
         localStorage.setItem('selectedApp', 'marketplace');
         lastSyncedAppRef.current = 'marketplace';
-        setSelectedApp('marketplace');
+        // Use requestAnimationFrame to ensure state update happens after render
+        requestAnimationFrame(() => {
+          setSelectedApp('marketplace');
+        });
       }
     }
   }, [isAuthenticated, isLoading]); // Removed selectedApp from dependencies to prevent infinite loop
@@ -1123,10 +1129,10 @@ function App() {
     
     // DEFENSIVE: If localStorage is empty but React state has a dashboard app value,
     // use React state as fallback (this handles edge cases during tab switches)
-    // But localStorage.write is safe in render - it's synchronous and doesn't cause re-renders
+    // NOTE: Writing to localStorage in render is safe, but we should avoid it if possible
+    // The useEffect will handle state sync, so we just use the value for routing
     if (!selectedAppFromStorage && (selectedApp === 'cv-builder' || selectedApp === 'id-card-print')) {
-      // Restore localStorage from React state (defensive measure)
-      localStorage.setItem('selectedApp', selectedApp);
+      // Use React state as fallback for routing (don't write to localStorage in render)
       selectedAppFromStorage = selectedApp;
     }
     
