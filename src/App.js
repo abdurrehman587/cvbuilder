@@ -40,15 +40,16 @@ function App() {
     const savedView = localStorage.getItem('idCardView');
     return savedView === 'print' ? 'print' : 'dashboard';
   });
+  // Initialize selectedApp from localStorage, but don't write to localStorage during init
+  // Writing during init can cause React error #301
   const [selectedApp, setSelectedApp] = useState(() => {
     // Read from localStorage - preserve user's current section
-    // Only default to marketplace if truly no saved app (first visit)
     const savedApp = localStorage.getItem('selectedApp');
     if (savedApp) {
       return savedApp; // Preserve user's section
     }
-    // First visit - default to marketplace
-    localStorage.setItem('selectedApp', 'marketplace');
+    // First visit - default to marketplace (don't write to localStorage here)
+    // It will be written when user navigates or in event handlers
     return 'marketplace';
   }); // 'marketplace', 'cv-builder', or 'id-card-print'
   const [formData, setFormData] = useState({
@@ -801,62 +802,10 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]); // Include isAuthenticated to have current value
 
-  // CRITICAL: Continuously sync React state with localStorage to prevent resets
-  // This ensures selectedApp state always matches localStorage, especially on tab switches
-  // Use a ref to track last synced value to prevent infinite loops
-  const lastSyncedAppRef = React.useRef(null);
-  const pendingUpdateRef = React.useRef(null);
-  
-  useEffect(() => {
-    if (!isAuthenticated || isLoading) return;
-    
-    // Read from localStorage
-    const savedApp = localStorage.getItem('selectedApp');
-    
-    // Only update if localStorage value is different from what we last synced
-    // This prevents infinite loops
-    if (savedApp) {
-      if (lastSyncedAppRef.current !== savedApp) {
-        lastSyncedAppRef.current = savedApp;
-        // Store pending update in ref to avoid state updates during render
-        pendingUpdateRef.current = savedApp;
-        
-        // Use Promise.resolve().then() to ensure update happens after current render cycle
-        // This prevents React error #301 (updating component during render)
-        Promise.resolve().then(() => {
-          if (pendingUpdateRef.current !== null) {
-            const appToSet = pendingUpdateRef.current;
-            pendingUpdateRef.current = null;
-            setSelectedApp(appToSet);
-            
-            // If localStorage says cv-builder or id-card-print, clear marketplace flags
-            if (appToSet === 'cv-builder' || appToSet === 'id-card-print') {
-              setForceShowProductsPage(false);
-              showProductsPageRef.current = false;
-              localStorage.removeItem('showProductsPage');
-              sessionStorage.removeItem('showProductsPage');
-            }
-          }
-        });
-      }
-    } else {
-      // First visit - default to marketplace
-      if (lastSyncedAppRef.current !== 'marketplace') {
-        localStorage.setItem('selectedApp', 'marketplace');
-        lastSyncedAppRef.current = 'marketplace';
-        // Store pending update in ref
-        pendingUpdateRef.current = 'marketplace';
-        
-        // Use Promise.resolve().then() to ensure update happens after current render cycle
-        Promise.resolve().then(() => {
-          if (pendingUpdateRef.current === 'marketplace') {
-            pendingUpdateRef.current = null;
-            setSelectedApp('marketplace');
-          }
-        });
-      }
-    }
-  }, [isAuthenticated, isLoading]); // Removed selectedApp from dependencies to prevent infinite loop
+  // REMOVED: State sync useEffect that was causing React error #301
+  // Instead, we read directly from localStorage in the render function for routing
+  // State updates only happen in event handlers (handleNavigateToSection, etc.)
+  // This completely prevents state updates during render
 
   const handleLogout = async () => {
     try {
@@ -1135,25 +1084,16 @@ function App() {
   // This MUST happen FIRST for authenticated users to prevent homepage redirects
   // Read directly from localStorage on EVERY render - don't rely on React state
   if (isAuthenticated && !isLoading) {
-    // ALWAYS read from localStorage directly - don't use React state
-    let selectedAppFromStorage = localStorage.getItem('selectedApp');
+    // ALWAYS read from localStorage directly - don't use React state for routing
+    // This is the single source of truth and prevents React error #301
+    const selectedAppFromStorage = localStorage.getItem('selectedApp');
     
-    // CRITICAL: Don't update state in render function - that causes infinite loops
-    // State updates should only happen in useEffect or event handlers
+    // CRITICAL: Don't update state or write to localStorage in render function
+    // State updates should only happen in event handlers
     // Just read from localStorage and use it for routing decisions
     
-    // DEFENSIVE: If localStorage is empty but React state has a dashboard app value,
-    // use React state as fallback (this handles edge cases during tab switches)
-    // NOTE: Writing to localStorage in render is safe, but we should avoid it if possible
-    // The useEffect will handle state sync, so we just use the value for routing
-    if (!selectedAppFromStorage && (selectedApp === 'cv-builder' || selectedApp === 'id-card-print')) {
-      // Use React state as fallback for routing (don't write to localStorage in render)
-      selectedAppFromStorage = selectedApp;
-    }
-    
-    // CRITICAL: If localStorage has cv-builder or id-card-print, NEVER default to marketplace
-    // This is the absolute guarantee that prevents homepage redirects
-    // Only default to marketplace if truly no saved app (first visit)
+    // If localStorage is empty, default to marketplace for routing
+    // Don't write to localStorage here - it will be set in event handlers
     const routingApp = selectedAppFromStorage || 'marketplace';
     
     // If user is on CV Builder section
