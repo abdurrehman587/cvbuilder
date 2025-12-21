@@ -1083,26 +1083,10 @@ function App() {
     };
   }, []);
 
-  // Simple routing: Use localStorage.selectedApp to determine which dashboard to show
-  // Initialize selectedApp from localStorage on mount
-  // NOTE: This runs after the main useEffect, so it should only run if selectedApp wasn't already set
-  useEffect(() => {
-    const savedApp = localStorage.getItem('selectedApp');
-    if (savedApp && (savedApp === 'cv-builder' || savedApp === 'id-card-print')) {
-      // Only set if we're on a dashboard app and it's not already set correctly
-      // This ensures we don't override the main initialization logic
-      setSelectedApp(savedApp);
-      // Clear products page flags
-      localStorage.removeItem('showProductsPage');
-      sessionStorage.removeItem('showProductsPage');
-      setForceShowProductsPage(false);
-      showProductsPageRef.current = false;
-      // Ensure hash is NOT #products when on dashboard
-      if (window.location.hash === '#products') {
-        window.history.replaceState(null, '', window.location.pathname);
-      }
-    }
-  }, []);
+  // REMOVED: useEffect that was updating state - this was causing React error #301
+  // We don't need to sync state here because render function reads directly from localStorage
+  // State updates should only happen in event handlers, not in useEffect hooks
+  // The routing logic already reads from localStorage directly, so no state sync needed
   
   // Keep forceShowProductsPage true once set - don't reset it automatically
   // It will only be reset when user explicitly navigates to a product via Header buttons
