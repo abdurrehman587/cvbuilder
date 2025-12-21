@@ -1,15 +1,26 @@
 import React from 'react';
 import './IDCardDashboard.css';
+import { setCurrentApp, setIDCardView } from '../../utils/routing';
 
+/**
+ * Fresh ID Card Dashboard - Rebuilt from scratch
+ * Simple, direct navigation using routing utilities
+ * No complex state management
+ */
 const IDCardDashboard = ({ onCreateNewIDCard }) => {
-  const handleCreateNewIDCard = () => {
+  // Fresh handler for creating new ID card
+  const handleCreateNewIDCard = React.useCallback(() => {
+    console.log('IDCardDashboard: Create New ID Card clicked');
+    
+    // Use routing utilities to set state
+    setCurrentApp('id-card-print');
+    setIDCardView('print');
+    
+    // Call parent handler if provided
     if (onCreateNewIDCard) {
       onCreateNewIDCard();
-    } else {
-      // Fallback: navigate to ID Card Print page
-      window.location.href = '/';
     }
-  };
+  }, [onCreateNewIDCard]);
 
   return (
     <div className="id-card-dashboard-container">
@@ -22,7 +33,18 @@ const IDCardDashboard = ({ onCreateNewIDCard }) => {
       </div>
       
       <div className="dashboard-options">
-        <div className="option-card" onClick={handleCreateNewIDCard}>
+        <div 
+          className="option-card" 
+          onClick={handleCreateNewIDCard}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleCreateNewIDCard();
+            }
+          }}
+        >
           <div className="option-icon">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
@@ -30,7 +52,7 @@ const IDCardDashboard = ({ onCreateNewIDCard }) => {
               <line x1="9" y1="21" x2="9" y2="9"/>
             </svg>
           </div>
-          <h3>Get Your ID Card Ready for Printing.</h3>
+          <h3>Get Your ID Card Ready for Printing</h3>
           <p>Start creating ID cards with front and back printing support</p>
         </div>
       </div>
@@ -39,4 +61,3 @@ const IDCardDashboard = ({ onCreateNewIDCard }) => {
 };
 
 export default IDCardDashboard;
-

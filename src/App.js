@@ -1395,12 +1395,15 @@ function App() {
               currentProduct="id-card-print"
             />
             <IDCardDashboard 
-              onCreateNewIDCard={() => {
+              onCreateNewIDCard={React.useCallback(() => {
+                console.log('App.js: onCreateNewIDCard called');
+                setCurrentApp('id-card-print');
                 setIDCardView('print');
                 startTransition(() => {
+                  setSelectedApp('id-card-print');
                   setIdCardView('print');
                 });
-              }}
+              }, [])}
             />
           </>
         )
@@ -2164,12 +2167,15 @@ function App() {
               currentProduct="id-card-print"
             />
             <IDCardDashboard 
-              onCreateNewIDCard={() => {
+              onCreateNewIDCard={React.useCallback(() => {
+                console.log('App.js: onCreateNewIDCard called');
+                setCurrentApp('id-card-print');
                 setIDCardView('print');
                 startTransition(() => {
+                  setSelectedApp('id-card-print');
                   setIdCardView('print');
                 });
-              }}
+              }, [])}
             />
           </>
         )

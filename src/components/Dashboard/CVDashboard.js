@@ -1,35 +1,60 @@
-import React, { useState } from 'react';
+import React from 'react';
 import './CVDashboard.css';
 import SearchCV from './SearchCV';
+import { setCurrentApp, setCVView } from '../../utils/routing';
 
+/**
+ * Fresh CV Dashboard - Rebuilt from scratch
+ * Simple, direct navigation using routing utilities
+ * No complex state management
+ */
 const CVDashboard = ({ onTemplateSelect, onLogout, onEditCV, onCreateNewCV }) => {
-  const [currentView, setCurrentView] = useState('dashboard');
+  const [currentView, setCurrentView] = React.useState('dashboard');
 
-  const handleMakeNewCV = () => {
+  // Fresh handler for creating new CV
+  const handleMakeNewCV = React.useCallback(() => {
+    console.log('CVDashboard: Create New CV clicked');
+    
+    // Use routing utilities to set state
+    setCurrentApp('cv-builder');
+    setCVView('cv-builder');
+    
+    // Call parent handler if provided
     if (onCreateNewCV) {
-      onCreateNewCV(); // Call the proper function that resets form data
-    } else {
-      onTemplateSelect('template1'); // Fallback to template selection
+      onCreateNewCV();
+    } else if (onTemplateSelect) {
+      // Fallback: select template 1
+      onTemplateSelect('template1');
     }
-  };
+  }, [onCreateNewCV, onTemplateSelect]);
 
-  const handleSearchCV = () => {
+  // Fresh handler for searching CVs
+  const handleSearchCV = React.useCallback(() => {
+    console.log('CVDashboard: Search CV clicked');
     setCurrentView('search-cv');
-  };
+  }, []);
 
-  const handleBackToDashboard = () => {
+  // Fresh handler for going back to dashboard
+  const handleBackToDashboard = React.useCallback(() => {
+    console.log('CVDashboard: Back to dashboard');
     setCurrentView('dashboard');
-  };
+  }, []);
 
-  const handleEditCV = (cv) => {
-    console.log('CV Dashboard - CV selected for editing:', cv);
+  // Fresh handler for editing CV
+  const handleEditCV = React.useCallback((cv) => {
+    console.log('CVDashboard: Edit CV clicked', cv);
+    
+    // Ensure we're on CV Builder section
+    setCurrentApp('cv-builder');
+    setCVView('cv-builder');
+    
+    // Call parent handler
     if (onEditCV) {
       onEditCV(cv);
     }
-  };
+  }, [onEditCV]);
 
-
-
+  // Show search view if active
   if (currentView === 'search-cv') {
     return (
       <SearchCV 
@@ -39,6 +64,7 @@ const CVDashboard = ({ onTemplateSelect, onLogout, onEditCV, onCreateNewCV }) =>
     );
   }
 
+  // Main dashboard view
   return (
     <div className="cv-dashboard-container">
       <div className="cv-dashboard-header">
@@ -50,7 +76,18 @@ const CVDashboard = ({ onTemplateSelect, onLogout, onEditCV, onCreateNewCV }) =>
       </div>
       
       <div className="cv-dashboard-options">
-        <div className="option-card" onClick={handleMakeNewCV}>
+        <div 
+          className="option-card" 
+          onClick={handleMakeNewCV}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleMakeNewCV();
+            }
+          }}
+        >
           <div className="option-icon">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -64,7 +101,18 @@ const CVDashboard = ({ onTemplateSelect, onLogout, onEditCV, onCreateNewCV }) =>
           <p>Start building your professional CV with our easy-to-use templates</p>
         </div>
 
-        <div className="option-card" onClick={handleSearchCV}>
+        <div 
+          className="option-card" 
+          onClick={handleSearchCV}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleSearchCV();
+            }
+          }}
+        >
           <div className="option-icon">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="11" cy="11" r="8"/>
@@ -80,24 +128,3 @@ const CVDashboard = ({ onTemplateSelect, onLogout, onEditCV, onCreateNewCV }) =>
 };
 
 export default CVDashboard;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
