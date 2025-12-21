@@ -505,97 +505,8 @@ function App() {
     // Listen for Google sign-in start event
     window.addEventListener('googleSignInStarted', handleGoogleSignInStarted);
 
-    // Listen for auth state changes (this is the authoritative source)
-    // Supabase handles session management internally
-    // CRITICAL: Use ref to check if mounted and defer all state updates to prevent React error #301
-    const authStateSubscription = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event, session?.user?.email);
-      
-      // Only update state if component is mounted and defer to prevent React error #301
-      const updateState = () => {
-        if (!isMountedRef.current) {
-          // Component not mounted yet, defer update
-          setTimeout(updateState, 0);
-          return;
-        }
-        
-        if (event === 'SIGNED_IN' && session?.user) {
-          setIsAuthenticated(true);
-          localStorage.setItem('cvBuilderAuth', 'true');
-          
-          // Set a flag to prevent logout immediately after login (for 10 seconds)
-          const loginTimestamp = Date.now();
-          sessionStorage.setItem('justLoggedIn', loginTimestamp.toString());
-          // Clear this flag after 10 seconds
-          setTimeout(() => {
-            sessionStorage.removeItem('justLoggedIn');
-          }, 10000);
-          
-          // Check if this is an OAuth callback (Google login)
-          const isOAuthCallback = window.location.hash.includes('access_token') || 
-                                  window.location.hash.includes('code') ||
-                                  window.location.search.includes('code') ||
-                                  sessionStorage.getItem('googleSignInStarted') === 'true';
-          
-          // For OAuth logins (Google sign-in), always redirect to homepage
-          if (isOAuthCallback) {
-            // Clear OAuth hash/query from URL
-            if (window.location.hash.includes('access_token') || window.location.hash.includes('code')) {
-              window.location.hash = '';
-            }
-            if (window.location.search.includes('code')) {
-              window.history.replaceState({}, document.title, window.location.pathname);
-            }
-            
-            // Clear Google sign-in flag
-            sessionStorage.removeItem('googleSignInStarted');
-            
-            // For Google OAuth login, redirect to homepage (products page)
-            // Clear any navigation flags to ensure user lands on homepage
-            sessionStorage.removeItem('navigateToCVBuilder');
-            localStorage.removeItem('navigateToCVBuilder');
-            sessionStorage.removeItem('navigateToIDCardPrint');
-            localStorage.removeItem('navigateToIDCardPrint');
-            
-            // Set homepage flags
-            localStorage.setItem('selectedApp', 'marketplace');
-            localStorage.setItem('showProductsPage', 'true');
-            sessionStorage.setItem('showProductsPage', 'true');
-            setForceShowProductsPage(true);
-            showProductsPageRef.current = true;
-            
-            // Navigate to products page
-            if (window.location.hash !== '#products') {
-              window.location.hash = '#products';
-            }
-          }
-          
-          // Trigger auth event for other components
-          window.dispatchEvent(new CustomEvent('userAuthenticated'));
-        } else if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED' && !session) {
-          setIsAuthenticated(false);
-          localStorage.removeItem('cvBuilderAuth');
-          sessionStorage.removeItem('justLoggedIn');
-        } else if (event === 'TOKEN_REFRESHED' && session?.user) {
-          // Session refreshed - user is still authenticated
-          setIsAuthenticated(true);
-          localStorage.setItem('cvBuilderAuth', 'true');
-        } else if (event === 'INITIAL_SESSION') {
-          // Initial session check - use session if available
-          if (session?.user) {
-            setIsAuthenticated(true);
-            localStorage.setItem('cvBuilderAuth', 'true');
-          } else {
-            setIsAuthenticated(false);
-            localStorage.removeItem('cvBuilderAuth');
-          }
-          setIsLoading(false);
-        }
-      };
-      
-      // Defer state update to prevent React error #301
-      setTimeout(updateState, 0);
-    });
+    // CRITICAL: Do NOT register onAuthStateChange here - it fires immediately and causes React error #301
+    // Instead, register it in a separate useEffect that runs after initial render
     
     // REMOVED: setSelectedApp call from useEffect - this was causing React error #301
     // We don't need to sync state here because render function reads directly from localStorage
@@ -805,15 +716,120 @@ function App() {
       window.removeEventListener('googleSignInStarted', handleGoogleSignInStarted);
       // Remove App URL listener
       CapacitorApp.removeAllListeners();
-      // Cleanup auth state change subscription
-      if (authStateSubscription && authStateSubscription.data && authStateSubscription.data.subscription) {
-        authStateSubscription.data.subscription.unsubscribe();
-      }
+      // Note: authStateSubscription is now in a separate useEffect, cleaned up there
       // Mark component as unmounted
       isMountedRef.current = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]); // Include isAuthenticated to have current value
+
+  // CRITICAL: Register onAuthStateChange in a separate useEffect that runs AFTER initial render
+  // This prevents the INITIAL_SESSION event from firing during render and causing React error #301
+  useEffect(() => {
+    // Only register after component is mounted
+    if (!isMountedRef.current) {
+      // Wait a bit for component to fully mount
+      const timer = setTimeout(() => {
+        if (isMountedRef.current) {
+          registerAuthListener();
+        }
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+
+    return registerAuthListener();
+
+    function registerAuthListener() {
+      // Listen for auth state changes (this is the authoritative source)
+      // Supabase handles session management internally
+      const authStateSubscription = supabase.auth.onAuthStateChange(async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.email);
+        
+        // Defer all state updates to prevent React error #301
+        setTimeout(() => {
+          if (event === 'SIGNED_IN' && session?.user) {
+            setIsAuthenticated(true);
+            localStorage.setItem('cvBuilderAuth', 'true');
+            
+            // Set a flag to prevent logout immediately after login (for 10 seconds)
+            const loginTimestamp = Date.now();
+            sessionStorage.setItem('justLoggedIn', loginTimestamp.toString());
+            // Clear this flag after 10 seconds
+            setTimeout(() => {
+              sessionStorage.removeItem('justLoggedIn');
+            }, 10000);
+            
+            // Check if this is an OAuth callback (Google login)
+            const isOAuthCallback = window.location.hash.includes('access_token') || 
+                                    window.location.hash.includes('code') ||
+                                    window.location.search.includes('code') ||
+                                    sessionStorage.getItem('googleSignInStarted') === 'true';
+            
+            // For OAuth logins (Google sign-in), always redirect to homepage
+            if (isOAuthCallback) {
+              // Clear OAuth hash/query from URL
+              if (window.location.hash.includes('access_token') || window.location.hash.includes('code')) {
+                window.location.hash = '';
+              }
+              if (window.location.search.includes('code')) {
+                window.history.replaceState({}, document.title, window.location.pathname);
+              }
+              
+              // Clear Google sign-in flag
+              sessionStorage.removeItem('googleSignInStarted');
+              
+              // For Google OAuth login, redirect to homepage (products page)
+              // Clear any navigation flags to ensure user lands on homepage
+              sessionStorage.removeItem('navigateToCVBuilder');
+              localStorage.removeItem('navigateToCVBuilder');
+              sessionStorage.removeItem('navigateToIDCardPrint');
+              localStorage.removeItem('navigateToIDCardPrint');
+              
+              // Set homepage flags
+              localStorage.setItem('selectedApp', 'marketplace');
+              localStorage.setItem('showProductsPage', 'true');
+              sessionStorage.setItem('showProductsPage', 'true');
+              setForceShowProductsPage(true);
+              showProductsPageRef.current = true;
+              
+              // Navigate to products page
+              if (window.location.hash !== '#products') {
+                window.location.hash = '#products';
+              }
+            }
+            
+            // Trigger auth event for other components
+            window.dispatchEvent(new CustomEvent('userAuthenticated'));
+          } else if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED' && !session) {
+            setIsAuthenticated(false);
+            localStorage.removeItem('cvBuilderAuth');
+            sessionStorage.removeItem('justLoggedIn');
+          } else if (event === 'TOKEN_REFRESHED' && session?.user) {
+            // Session refreshed - user is still authenticated
+            setIsAuthenticated(true);
+            localStorage.setItem('cvBuilderAuth', 'true');
+          } else if (event === 'INITIAL_SESSION') {
+            // Initial session check - use session if available
+            if (session?.user) {
+              setIsAuthenticated(true);
+              localStorage.setItem('cvBuilderAuth', 'true');
+            } else {
+              setIsAuthenticated(false);
+              localStorage.removeItem('cvBuilderAuth');
+            }
+            setIsLoading(false);
+          }
+        }, 0);
+      });
+
+      // Cleanup on unmount
+      return () => {
+        if (authStateSubscription && authStateSubscription.data && authStateSubscription.data.subscription) {
+          authStateSubscription.data.subscription.unsubscribe();
+        }
+      };
+    }
+  }, []); // Empty deps - only run once after mount
 
   // REMOVED: State sync useEffect that was causing React error #301
   // Instead, we read directly from localStorage in the render function for routing
