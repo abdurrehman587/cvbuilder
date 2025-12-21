@@ -181,6 +181,17 @@ function App() {
     console.log('handleMakeNewCV - Form view activated');
   }, [createNewCV]);
 
+  // Fresh handler for "Create New ID Card" button - Rebuilt from scratch
+  const handleCreateNewIDCard = React.useCallback(() => {
+    console.log('App.js: handleCreateNewIDCard called');
+    setCurrentApp('id-card-print');
+    setIDCardView('print');
+    startTransition(() => {
+      setSelectedApp('id-card-print');
+      setIdCardView('print');
+    });
+  }, []);
+
   useEffect(() => {
     // Mark component as mounted after initial render
     isMountedRef.current = true;
@@ -1390,15 +1401,7 @@ function App() {
               currentProduct="id-card-print"
             />
             <IDCardDashboard 
-              onCreateNewIDCard={React.useCallback(() => {
-                console.log('App.js: onCreateNewIDCard called');
-                setCurrentApp('id-card-print');
-                setIDCardView('print');
-                startTransition(() => {
-                  setSelectedApp('id-card-print');
-                  setIdCardView('print');
-                });
-              }, [])}
+              onCreateNewIDCard={handleCreateNewIDCard}
             />
           </>
         )
@@ -2162,15 +2165,7 @@ function App() {
               currentProduct="id-card-print"
             />
             <IDCardDashboard 
-              onCreateNewIDCard={React.useCallback(() => {
-                console.log('App.js: onCreateNewIDCard called');
-                setCurrentApp('id-card-print');
-                setIDCardView('print');
-                startTransition(() => {
-                  setSelectedApp('id-card-print');
-                  setIdCardView('print');
-                });
-              }, [])}
+              onCreateNewIDCard={handleCreateNewIDCard}
             />
           </>
         )
