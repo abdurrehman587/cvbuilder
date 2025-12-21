@@ -1981,16 +1981,20 @@ function App() {
       localStorage.removeItem('navigateToCVBuilder');
       localStorage.removeItem('navigateToIDCardPrint');
       
-      // CRITICAL: Only set marketplace if no current section exists
-      // Don't override if user is on CV Builder or ID Card
+      // CRITICAL: Don't set marketplace automatically - preserve current section
+      // Only set if truly no section exists, and default to cv-builder instead of marketplace
       const currentSection = localStorage.getItem('selectedApp');
-      if (!currentSection || currentSection === 'marketplace') {
-        localStorage.setItem('selectedApp', 'marketplace');
+      if (!currentSection) {
+        // No section exists - default to CV Builder instead of marketplace
+        // This prevents redirect to homepage when switching tabs
         setTimeout(() => {
-          setSelectedApp('marketplace');
+          if (!localStorage.getItem('selectedApp')) {
+            localStorage.setItem('selectedApp', 'cv-builder');
+            setSelectedApp('cv-builder');
+          }
         }, 0);
       }
-      // If currentSection is cv-builder or id-card-print, preserve it - don't override
+      // If currentSection exists, preserve it - don't override
     }
     
     // Only show login directly if there's explicit navigation intent (meaning they're trying to access a dashboard directly)
