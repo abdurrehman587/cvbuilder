@@ -78,6 +78,7 @@ function App() {
   const hasInitializedRef = React.useRef(false);
   const isMountedRef = React.useRef(false); // Track if component has finished initial render
   const ignoreInitialSessionRef = React.useRef(true); // Ignore first INITIAL_SESSION event
+  const lastKnownAppRef = React.useRef(null); // Track last known app to prevent redirects
   const [productDetailId, setProductDetailId] = useState(null);
   
   // Update ref whenever productDetailId changes
