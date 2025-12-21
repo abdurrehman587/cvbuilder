@@ -2072,16 +2072,23 @@ function App() {
       localStorage.removeItem('navigateToCVBuilder');
       localStorage.removeItem('navigateToIDCardPrint');
       
-      localStorage.setItem('showProductsPage', 'true');
-      sessionStorage.setItem('showProductsPage', 'true');
-      // CRITICAL: Don't call setForceShowProductsPage in render - defer it
-      setTimeout(() => {
-        setForceShowProductsPage(true);
-        showProductsPageRef.current = true;
-      }, 0);
-      if (window.location.hash !== '#products') {
-        window.location.hash = '#products';
+      // CRITICAL: Only set marketplace if no current section exists
+      // Don't override if user is on CV Builder or ID Card
+      const currentSection = localStorage.getItem('selectedApp');
+      if (!currentSection || currentSection === 'marketplace') {
+        localStorage.setItem('showProductsPage', 'true');
+        sessionStorage.setItem('showProductsPage', 'true');
+        localStorage.setItem('selectedApp', 'marketplace');
+        // CRITICAL: Don't call setForceShowProductsPage in render - defer it
+        setTimeout(() => {
+          setForceShowProductsPage(true);
+          showProductsPageRef.current = true;
+        }, 0);
+        if (window.location.hash !== '#products') {
+          window.location.hash = '#products';
+        }
       }
+      // If currentSection is cv-builder or id-card-print, preserve it - don't override
     }
     
     // Only show login directly if there's explicit navigation intent (meaning they're trying to access a dashboard directly)
