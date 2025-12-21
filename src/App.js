@@ -1074,7 +1074,8 @@ function App() {
   // Facebook-like navigation: Simple section-based routing
   // CRITICAL: Read directly from localStorage - don't default to marketplace if user is on a dashboard
   const savedAppForNav = localStorage.getItem('selectedApp');
-  const currentSection = savedAppForNav || 'marketplace';
+  // CRITICAL: Default to 'cv-builder' NOT 'marketplace' to prevent homepage redirects
+  const currentSection = savedAppForNav || 'cv-builder';
   
   // Wrap content with TopNav for authenticated users
   const wrapWithTopNav = (content) => {
