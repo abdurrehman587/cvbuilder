@@ -711,15 +711,22 @@ function App() {
             }
           }, 0);
         } else if (!savedApp) {
-          // No saved app - only default to marketplace if user hasn't navigated anywhere
-          // Don't override if user is on a dashboard
-          const currentHash = window.location.hash;
-          if (!currentHash || currentHash === '#products' || currentHash === '') {
-            localStorage.setItem('selectedApp', 'marketplace');
+          // No saved app - try to preserve current state instead of defaulting to marketplace
+          // Check if user is on a form/view that indicates their section
+          if (currentView === 'cv-builder') {
+            // User is on CV Builder form - preserve that
+            localStorage.setItem('selectedApp', 'cv-builder');
             setTimeout(() => {
-              setSelectedApp('marketplace');
+              setSelectedApp('cv-builder');
+            }, 0);
+          } else if (idCardView === 'print') {
+            // User is on ID Card print - preserve that
+            localStorage.setItem('selectedApp', 'id-card-print');
+            setTimeout(() => {
+              setSelectedApp('id-card-print');
             }, 0);
           }
+          // Don't default to marketplace - let routing logic handle it
         }
       }
     };
@@ -1150,9 +1157,25 @@ function App() {
     // State updates should only happen in event handlers
     // Just read from localStorage and use it for routing decisions
     
-    // If localStorage is empty, default to marketplace for routing
-    // Don't write to localStorage here - it will be set in event handlers
-    const routingApp = selectedAppFromStorage || 'marketplace';
+    // CRITICAL: Only use marketplace if explicitly set - don't default to it
+    // This prevents redirect to homepage when switching tabs
+    // If selectedAppFromStorage is null/empty, preserve last known section or use currentView/idCardView
+    let routingApp = selectedAppFromStorage;
+    
+    // If no selectedApp in storage, try to infer from current state
+    if (!routingApp) {
+      if (currentView === 'cv-builder') {
+        routingApp = 'cv-builder';
+        // Save it for next time
+        localStorage.setItem('selectedApp', 'cv-builder');
+      } else if (idCardView === 'print') {
+        routingApp = 'id-card-print';
+        localStorage.setItem('selectedApp', 'id-card-print');
+      } else {
+        // Only default to marketplace on very first visit (no state at all)
+        routingApp = 'marketplace';
+      }
+    }
     
     // If user is on CV Builder section
     if (routingApp === 'cv-builder') {
@@ -2195,7 +2218,9 @@ function App() {
     }
     
     // Only show marketplace if explicitly set to marketplace
-    if (finalSelectedApp === 'marketplace' || !finalSelectedApp) {
+    // CRITICAL: Don't default to marketplace if finalSelectedApp is null/empty
+    // This prevents redirect to homepage when switching tabs
+    if (finalSelectedApp === 'marketplace') {
       return wrapWithTopNav(
         wrapWithNavbar(
           <>
