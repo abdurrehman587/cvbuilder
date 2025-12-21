@@ -1071,6 +1071,7 @@ function App() {
     // If no selectedApp in storage, try to infer from current state
     // CRITICAL: Don't write to localStorage during render - this causes React error #301
     // Only read from it and infer from current state
+    // CRITICAL: Don't default to marketplace - preserve last known section
     if (!routingApp) {
       if (currentView === 'cv-builder') {
         routingApp = 'cv-builder';
@@ -1079,8 +1080,9 @@ function App() {
         routingApp = 'id-card-print';
         // Don't write to localStorage here - it will be written in event handlers
       } else {
-        // Only default to marketplace on very first visit (no state at all)
-        routingApp = 'marketplace';
+        // CRITICAL: Don't default to marketplace - show CV Builder dashboard instead
+        // This prevents redirect to homepage when switching tabs
+        routingApp = 'cv-builder';
       }
     }
     
