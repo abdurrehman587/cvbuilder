@@ -139,25 +139,15 @@ function App() {
     });
   };
 
-  // Handle "Make a new CV" button - Fresh, simplified logic
-  const handleMakeNewCV = () => {
-    console.log('handleMakeNewCV called - creating new CV');
+  // Fresh handler for "Make a new CV" button - Rebuilt from scratch
+  const handleMakeNewCV = React.useCallback(() => {
+    console.log('App.js: handleMakeNewCV called - creating new CV');
     
     // Set app to CV Builder and view to form using routing utils
     setCurrentApp('cv-builder');
     setCVView('cv-builder');
     
-    // Update React state
-    startTransition(() => {
-      setSelectedApp('cv-builder');
-      setCurrentView('cv-builder');
-    });
-    
-    // Clear any old marketplace flags (no longer needed)
-    localStorage.removeItem('showProductsPage');
-    sessionStorage.removeItem('showProductsPage');
-    
-    // Reset form data
+    // Reset form data to empty
     const newFormData = {
       name: '',
       position: '',
@@ -180,11 +170,16 @@ function App() {
     createNewCV(); // Reset the hook state
     
     // Set template to template1 and switch to form view
-      setSelectedTemplate('template1');
-    setCurrentView('cv-builder');
+    setSelectedTemplate('template1');
+    
+    // Update React state using startTransition
+    startTransition(() => {
+      setSelectedApp('cv-builder');
+      setCurrentView('cv-builder');
+    });
     
     console.log('handleMakeNewCV - Form view activated');
-  };
+  }, [createNewCV]);
 
   useEffect(() => {
     // Mark component as mounted after initial render
