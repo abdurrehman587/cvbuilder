@@ -29,6 +29,7 @@ import LeftNavbar from './components/Navbar/LeftNavbar';
 import TopNav from './components/TopNav/TopNav';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
+import { getCurrentApp, setCurrentApp, getCVView, setCVView, getIDCardView, setIDCardView, getRoute } from './utils/routing';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -121,20 +122,21 @@ function App() {
     hookMarkAsChanged(); // Use hook's markAsChanged instead of local state
   };
 
-  // Facebook-like navigation handlers - Instant switching like Facebook
+  // Fresh, simplified navigation handler
   const handleNavigateToSection = (section) => {
-    // Update localStorage immediately (single source of truth)
-    localStorage.setItem('selectedApp', section);
+    // Update localStorage (single source of truth)
+    setCurrentApp(section);
+    
+    // Reset views to dashboard when switching sections
+    setCVView('dashboard');
+    setIDCardView('dashboard');
     
     // Update React state using startTransition to prevent React error #301
     startTransition(() => {
       setSelectedApp(section);
       setCurrentView('dashboard');
+      setIdCardView('dashboard');
     });
-    
-    // Clear any old marketplace flags (no longer needed)
-    localStorage.removeItem('showProductsPage');
-    sessionStorage.removeItem('showProductsPage');
   };
 
   // Handle "Make a new CV" button - Facebook-style instant navigation
@@ -1085,46 +1087,27 @@ function App() {
     );
   };
 
-  // CRITICAL ROUTING: Check localStorage.getItem('selectedApp') FIRST - single source of truth
-  // This MUST happen FIRST for authenticated users to prevent homepage redirects
-  // Read directly from localStorage on EVERY render - don't rely on React state
+  // ============================================
+  // FRESH ROUTING SYSTEM - SIMPLIFIED
+  // ============================================
+  // Single source of truth: localStorage via routing utils
+  // No state updates during render - only reads
+  // ============================================
+  
   if (isAuthenticated && !isLoading) {
-    // ALWAYS read from localStorage directly - don't use React state for routing
-    // This is the single source of truth and prevents React error #301
-    const selectedAppFromStorage = localStorage.getItem('selectedApp');
+    // Get current route from routing utility (reads from localStorage)
+    const route = getRoute();
+    const routingApp = route.app || 'cv-builder'; // Default to cv-builder, not marketplace
+    const cvView = route.cvView || 'dashboard';
+    const idCardView = route.idCardView || 'dashboard';
     
-    // CRITICAL: Don't update state or write to localStorage in render function
-    // State updates should only happen in event handlers
-    // Just read from localStorage and use it for routing decisions
-    
-    // CRITICAL: Only use marketplace if explicitly set - don't default to it
-    // This prevents redirect to homepage when switching tabs
-    // If selectedAppFromStorage is null/empty, preserve last known section or use currentView/idCardView
-    let routingApp = selectedAppFromStorage;
-    
-    // If no selectedApp in storage, try to infer from current state
-    // CRITICAL: Don't write to localStorage during render - this causes React error #301
-    // Only read from it and infer from current state
-    // CRITICAL: Don't default to marketplace - preserve last known section
-    if (!routingApp) {
-      if (currentView === 'cv-builder') {
-        routingApp = 'cv-builder';
-        // Don't write to localStorage here - it will be written in event handlers
-      } else if (idCardView === 'print') {
-        routingApp = 'id-card-print';
-        // Don't write to localStorage here - it will be written in event handlers
-      } else {
-        // CRITICAL: Don't default to marketplace - show CV Builder dashboard instead
-        // This prevents redirect to homepage when switching tabs
-        routingApp = 'cv-builder';
-      }
-    }
-    
-    // If user is on CV Builder section
+    // ============================================
+    // CV BUILDER SECTION
+    // ============================================
     if (routingApp === 'cv-builder') {
-      // Check if user wants to see the form (currentView === 'cv-builder')
+      // Check if user wants to see the form (cvView === 'cv-builder' OR currentView === 'cv-builder')
       // This takes priority over showing the dashboard
-      if (currentView === 'cv-builder') {
+      if (cvView === 'cv-builder' || currentView === 'cv-builder') {
         // Show CV Builder form/preview
         const renderFormAndPreview = () => {
           switch (selectedTemplate) {
@@ -1326,9 +1309,11 @@ function App() {
       );
     }
     
-    // If user is on ID Card Printer section
+    // ============================================
+    // ID CARD PRINTER SECTION
+    // ============================================
     if (routingApp === 'id-card-print') {
-      // Check if user wants to see the print page (idCardView === 'print')
+      // Check if user wants to see the print page
       // This takes priority over showing the dashboard
       if (idCardView === 'print') {
         const handleBackToIDCardDashboard = () => {
@@ -1407,8 +1392,10 @@ function App() {
             />
             <IDCardDashboard 
               onCreateNewIDCard={() => {
-                setIdCardView('print');
-                localStorage.setItem('idCardView', 'print');
+                setIDCardView('print');
+                startTransition(() => {
+                  setIdCardView('print');
+                });
               }}
             />
           </>
@@ -1416,7 +1403,9 @@ function App() {
       );
     }
     
-    // If user is on Marketplace, show ProductsPage
+    // ============================================
+    // MARKETPLACE SECTION
+    // ============================================
     if (routingApp === 'marketplace') {
       return wrapWithTopNav(
         wrapWithNavbar(
@@ -2172,8 +2161,10 @@ function App() {
             />
             <IDCardDashboard 
               onCreateNewIDCard={() => {
-                setIdCardView('print');
-                localStorage.setItem('idCardView', 'print');
+                setIDCardView('print');
+                startTransition(() => {
+                  setIdCardView('print');
+                });
               }}
             />
           </>
