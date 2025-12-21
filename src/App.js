@@ -75,7 +75,8 @@ function App() {
   const productDetailIdRef = React.useRef(null); // Ref to access current productDetailId in callbacks
   const sessionCheckIntervalRef = React.useRef(null); // Ref for session check interval
   const hasInitializedRef = React.useRef(false);
-  const isMountedRef = React.useRef(false); // Track if component has finished initial render // Track if we've already initialized to prevent re-initialization on tab switch
+  const isMountedRef = React.useRef(false); // Track if component has finished initial render
+  const ignoreInitialSessionRef = React.useRef(true); // Ignore first INITIAL_SESSION event // Track if we've already initialized to prevent re-initialization on tab switch
   const [forceShowProductsPage, setForceShowProductsPage] = useState(false);
   const [productDetailId, setProductDetailId] = useState(null);
   
@@ -760,6 +761,14 @@ function App() {
         // This prevents React error #301 from INITIAL_SESSION firing during render
         if (event === 'INITIAL_SESSION') {
           console.log('Skipping INITIAL_SESSION - already handled by getInitialSession');
+          // Mark that we've seen the initial session, so we can handle future ones if needed
+          ignoreInitialSessionRef.current = false;
+          return;
+        }
+        
+        // Double-check: if we're still ignoring initial session and this is somehow INITIAL_SESSION, skip it
+        if (ignoreInitialSessionRef.current && event === 'INITIAL_SESSION') {
+          console.log('Still ignoring INITIAL_SESSION');
           return;
         }
         
