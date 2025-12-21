@@ -201,6 +201,7 @@ function App() {
       let timeoutId;
       
       // Set a maximum loading timeout (10 seconds total)
+      // Already in setTimeout, so safe
       loadingTimeout = setTimeout(() => {
         console.warn('Authentication check timeout - stopping loading after 10 seconds');
         setIsLoading(false);
@@ -229,36 +230,46 @@ function App() {
         if (result && result.data !== undefined) {
           const { data: { session }, error } = result;
           
-          if (error) {
-            console.log('Error getting initial session:', error);
-            setIsAuthenticated(false);
-            localStorage.removeItem('cvBuilderAuth');
-          } else if (session?.user) {
-            setIsAuthenticated(true);
-            localStorage.setItem('cvBuilderAuth', 'true');
-          } else {
-            setIsAuthenticated(false);
-            localStorage.removeItem('cvBuilderAuth');
-          }
+          // Defer state updates to prevent React error #301
+          setTimeout(() => {
+            if (error) {
+              console.log('Error getting initial session:', error);
+              setIsAuthenticated(false);
+              localStorage.removeItem('cvBuilderAuth');
+            } else if (session?.user) {
+              setIsAuthenticated(true);
+              localStorage.setItem('cvBuilderAuth', 'true');
+            } else {
+              setIsAuthenticated(false);
+              localStorage.removeItem('cvBuilderAuth');
+            }
+          }, 0);
         }
       } catch (error) {
         // Clear timeouts
         if (timeoutId) clearTimeout(timeoutId);
         if (loadingTimeout) clearTimeout(loadingTimeout);
         
-        // If it's a timeout error, use localStorage as fallback
-        if (error.message === 'Supabase session check timed out') {
-          console.warn('Supabase session check timed out after 8 seconds, using localStorage fallback');
-          const cachedAuth = localStorage.getItem('cvBuilderAuth');
-          setIsAuthenticated(cachedAuth === 'true');
-        } else {
-          console.log('Error getting initial session:', error);
-          setIsAuthenticated(false);
-          localStorage.removeItem('cvBuilderAuth');
-        }
+        // Defer state updates to prevent React error #301
+        setTimeout(() => {
+          // If it's a timeout error, use localStorage as fallback
+          if (error.message === 'Supabase session check timed out') {
+            console.warn('Supabase session check timed out after 8 seconds, using localStorage fallback');
+            const cachedAuth = localStorage.getItem('cvBuilderAuth');
+            setIsAuthenticated(cachedAuth === 'true');
+          } else {
+            console.log('Error getting initial session:', error);
+            setIsAuthenticated(false);
+            localStorage.removeItem('cvBuilderAuth');
+          }
+          // Ensure loading is stopped
+          setIsLoading(false);
+        }, 0);
       } finally {
-        // Ensure loading is stopped
-        setIsLoading(false);
+        // Defer loading state update to prevent React error #301
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 0);
       }
     };
 
@@ -854,19 +865,18 @@ function App() {
 
     // Handle authentication from Login component
   const handleAuth = () => {
-    setIsAuthenticated(true);
-    setIsLoading(false);
-    
-    // Set a flag to prevent logout immediately after login (for 10 seconds)
-    const loginTimestamp = Date.now();
-    sessionStorage.setItem('justLoggedIn', loginTimestamp.toString());
-    // Clear this flag after 10 seconds
+    // CRITICAL: Defer ALL state updates to prevent React error #301
     setTimeout(() => {
-      sessionStorage.removeItem('justLoggedIn');
-    }, 10000);
-    
-    // Defer all state updates to prevent React error #301
-    setTimeout(() => {
+      setIsAuthenticated(true);
+      setIsLoading(false);
+      
+      // Set a flag to prevent logout immediately after login (for 10 seconds)
+      const loginTimestamp = Date.now();
+      sessionStorage.setItem('justLoggedIn', loginTimestamp.toString());
+      // Clear this flag after 10 seconds
+      setTimeout(() => {
+        sessionStorage.removeItem('justLoggedIn');
+      }, 10000);
       // Check if user is on products page (homepage) - this takes priority
       const isOnProductsPage = window.location.hash === '#products' || 
                                 window.location.hash === '' ||
