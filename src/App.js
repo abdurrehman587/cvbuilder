@@ -580,12 +580,9 @@ function App() {
       }
     });
     
-    // Simple initialization: Just sync React state with localStorage
-    // No complex routing logic - that's handled in render
-    const savedApp = localStorage.getItem('selectedApp');
-    if (savedApp && selectedApp !== savedApp) {
-      setSelectedApp(savedApp);
-    }
+    // REMOVED: setSelectedApp call from useEffect - this was causing React error #301
+    // We don't need to sync state here because render function reads directly from localStorage
+    // State updates should only happen in event handlers, not during render/useEffect
     
     // DON'T remove navigateToCVBuilder flag here - let the PRIORITY 0 routing check handle it
     // The flag will be removed after routing decision is made
@@ -833,103 +830,106 @@ function App() {
       sessionStorage.removeItem('justLoggedIn');
     }, 10000);
     
-    // Check if user is on products page (homepage) - this takes priority
-    const isOnProductsPage = window.location.hash === '#products' || 
-                              window.location.hash === '' ||
-                              localStorage.getItem('showProductsPage') === 'true' ||
-                              sessionStorage.getItem('showProductsPage') === 'true';
-    
-    // Check if user clicked on a template - if so, navigate to CV Dashboard after login
-    const templateClicked = sessionStorage.getItem('templateClicked') === 'true' || 
-                            localStorage.getItem('templateClicked') === 'true';
-    
-    // If user logged in from homepage (products page), keep them there
-    // UNLESS they clicked on a template - in that case, navigate to CV Dashboard
-    // This is the default behavior when logging in from header signin button
-    if (isOnProductsPage && !templateClicked) {
-      // Clear any navigation flags that might redirect away from homepage
-      sessionStorage.removeItem('navigateToCVBuilder');
-      localStorage.removeItem('navigateToCVBuilder');
-      sessionStorage.removeItem('navigateToIDCardPrint');
-      localStorage.removeItem('navigateToIDCardPrint');
+    // Defer all state updates to prevent React error #301
+    setTimeout(() => {
+      // Check if user is on products page (homepage) - this takes priority
+      const isOnProductsPage = window.location.hash === '#products' || 
+                                window.location.hash === '' ||
+                                localStorage.getItem('showProductsPage') === 'true' ||
+                                sessionStorage.getItem('showProductsPage') === 'true';
       
-      // Ensure products page flags are set
-      localStorage.setItem('selectedApp', 'marketplace');
-      localStorage.setItem('showProductsPage', 'true');
-      sessionStorage.setItem('showProductsPage', 'true');
-      setForceShowProductsPage(true);
-      showProductsPageRef.current = true;
-      setSelectedApp('marketplace');
+      // Check if user clicked on a template - if so, navigate to CV Dashboard after login
+      const templateClicked = sessionStorage.getItem('templateClicked') === 'true' || 
+                              localStorage.getItem('templateClicked') === 'true';
       
-      // Ensure hash is set to products page
-      if (window.location.hash !== '#products') {
-        window.location.hash = '#products';
-      }
-      
-      console.log('handleAuth: User logged in from homepage, keeping them on homepage');
-      return; // Exit early to prevent any redirects
-    }
-    
-    // If template was clicked, clear the flag after using it
-    if (templateClicked) {
-      sessionStorage.removeItem('templateClicked');
-      localStorage.removeItem('templateClicked');
-    }
-    
-    // If not on products page, check for navigation flags
-    // Get selected app from localStorage
-    const app = localStorage.getItem('selectedApp') || 'cv-builder';
-    setSelectedApp(app);
-    
-    // Check if user wants to navigate to ID Card Print dashboard after login (check FIRST)
-    const navigateToIDCardPrint = sessionStorage.getItem('navigateToIDCardPrint') === 'true' || 
-                                   localStorage.getItem('navigateToIDCardPrint') === 'true';
-    if (navigateToIDCardPrint) {
-      // Don't remove the flag here - let PRIORITY 0 routing check handle it
-      // Clear products page flags to allow navigation
-      setForceShowProductsPage(false);
-      showProductsPageRef.current = false;
-      localStorage.removeItem('showProductsPage');
-      sessionStorage.removeItem('showProductsPage');
-      // Ensure selectedApp is set correctly
-      localStorage.setItem('selectedApp', 'id-card-print');
-      setSelectedApp('id-card-print');
-      // Set idCardView to dashboard
-      setIdCardView('dashboard');
-      // DO NOT set currentView to 'dashboard' - this would trigger CV Builder routing
-      console.log('handleAuth: ID Card Print flag detected, setting idCardView to dashboard');
-    }
-    // Check if user wants to navigate to CV Builder dashboard after login
-    else {
-      const navigateToCVBuilder = sessionStorage.getItem('navigateToCVBuilder') === 'true' ||
-                                   localStorage.getItem('navigateToCVBuilder') === 'true';
-      if (navigateToCVBuilder) {
-        // Don't remove the flag here - let PRIORITY 0 routing check handle it
-        // Ensure selectedApp is set correctly
-        localStorage.setItem('selectedApp', 'cv-builder');
-        setSelectedApp('cv-builder');
-        setCurrentView('dashboard');
-        // Clear products page flags to allow navigation
-        setForceShowProductsPage(false);
-        showProductsPageRef.current = false;
-        localStorage.removeItem('showProductsPage');
-        sessionStorage.removeItem('showProductsPage');
-        console.log('handleAuth: CV Builder flag detected, setting currentView to dashboard');
-      } else if (currentView === 'cv-builder') {
-        // If user was on form/preview page, redirect to dashboard after login
-        setCurrentView('dashboard');
-      } else {
-        // Default: redirect to homepage if no specific navigation intent
+      // If user logged in from homepage (products page), keep them there
+      // UNLESS they clicked on a template - in that case, navigate to CV Dashboard
+      // This is the default behavior when logging in from header signin button
+      if (isOnProductsPage && !templateClicked) {
+        // Clear any navigation flags that might redirect away from homepage
+        sessionStorage.removeItem('navigateToCVBuilder');
+        localStorage.removeItem('navigateToCVBuilder');
+        sessionStorage.removeItem('navigateToIDCardPrint');
+        localStorage.removeItem('navigateToIDCardPrint');
+        
+        // Ensure products page flags are set
         localStorage.setItem('selectedApp', 'marketplace');
         localStorage.setItem('showProductsPage', 'true');
         sessionStorage.setItem('showProductsPage', 'true');
         setForceShowProductsPage(true);
         showProductsPageRef.current = true;
         setSelectedApp('marketplace');
-        window.location.hash = '#products';
-        console.log('handleAuth: No specific navigation intent, redirecting to homepage');
+        
+        // Ensure hash is set to products page
+        if (window.location.hash !== '#products') {
+          window.location.hash = '#products';
+        }
+        
+        console.log('handleAuth: User logged in from homepage, keeping them on homepage');
+        return; // Exit early to prevent any redirects
       }
-    }
+      
+      // If template was clicked, clear the flag after using it
+      if (templateClicked) {
+        sessionStorage.removeItem('templateClicked');
+        localStorage.removeItem('templateClicked');
+      }
+      
+      // If not on products page, check for navigation flags
+      // Get selected app from localStorage
+      const app = localStorage.getItem('selectedApp') || 'cv-builder';
+      setSelectedApp(app);
+      
+      // Check if user wants to navigate to ID Card Print dashboard after login (check FIRST)
+      const navigateToIDCardPrint = sessionStorage.getItem('navigateToIDCardPrint') === 'true' || 
+                                     localStorage.getItem('navigateToIDCardPrint') === 'true';
+      if (navigateToIDCardPrint) {
+        // Don't remove the flag here - let PRIORITY 0 routing check handle it
+        // Clear products page flags to allow navigation
+        setForceShowProductsPage(false);
+        showProductsPageRef.current = false;
+        localStorage.removeItem('showProductsPage');
+        sessionStorage.removeItem('showProductsPage');
+        // Ensure selectedApp is set correctly
+        localStorage.setItem('selectedApp', 'id-card-print');
+        setSelectedApp('id-card-print');
+        // Set idCardView to dashboard
+        setIdCardView('dashboard');
+        // DO NOT set currentView to 'dashboard' - this would trigger CV Builder routing
+        console.log('handleAuth: ID Card Print flag detected, setting idCardView to dashboard');
+      }
+      // Check if user wants to navigate to CV Builder dashboard after login
+      else {
+        const navigateToCVBuilder = sessionStorage.getItem('navigateToCVBuilder') === 'true' ||
+                                     localStorage.getItem('navigateToCVBuilder') === 'true';
+        if (navigateToCVBuilder) {
+          // Don't remove the flag here - let PRIORITY 0 routing check handle it
+          // Ensure selectedApp is set correctly
+          localStorage.setItem('selectedApp', 'cv-builder');
+          setSelectedApp('cv-builder');
+          setCurrentView('dashboard');
+          // Clear products page flags to allow navigation
+          setForceShowProductsPage(false);
+          showProductsPageRef.current = false;
+          localStorage.removeItem('showProductsPage');
+          sessionStorage.removeItem('showProductsPage');
+          console.log('handleAuth: CV Builder flag detected, setting currentView to dashboard');
+        } else if (currentView === 'cv-builder') {
+          // If user was on form/preview page, redirect to dashboard after login
+          setCurrentView('dashboard');
+        } else {
+          // Default: redirect to homepage if no specific navigation intent
+          localStorage.setItem('selectedApp', 'marketplace');
+          localStorage.setItem('showProductsPage', 'true');
+          sessionStorage.setItem('showProductsPage', 'true');
+          setForceShowProductsPage(true);
+          showProductsPageRef.current = true;
+          setSelectedApp('marketplace');
+          window.location.hash = '#products';
+          console.log('handleAuth: No specific navigation intent, redirecting to homepage');
+        }
+      }
+    }, 0);
   };
 
   // Helper function to wrap content with navbar - navbar is ALWAYS included
