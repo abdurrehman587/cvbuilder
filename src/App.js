@@ -126,9 +126,11 @@ function App() {
     // Update localStorage immediately (single source of truth)
     localStorage.setItem('selectedApp', section);
     
-    // Update React state immediately for instant UI update
-    setSelectedApp(section);
-    setCurrentView('dashboard');
+    // Update React state using startTransition to prevent React error #301
+    startTransition(() => {
+      setSelectedApp(section);
+      setCurrentView('dashboard');
+    });
     
     // Clear any old marketplace flags (no longer needed)
     localStorage.removeItem('showProductsPage');
@@ -141,7 +143,11 @@ function App() {
     
     // Ensure we're on CV Builder section
     localStorage.setItem('selectedApp', 'cv-builder');
-    setSelectedApp('cv-builder');
+    startTransition(() => {
+      startTransition(() => {
+      setSelectedApp('cv-builder');
+    });
+    });
     
     // Clear any old marketplace flags (no longer needed)
     localStorage.removeItem('showProductsPage');
@@ -351,7 +357,9 @@ function App() {
                   sessionStorage.removeItem('navigateToIDCardPrint');
                   localStorage.removeItem('navigateToIDCardPrint');
                   localStorage.setItem('selectedApp', 'marketplace');
-                  setSelectedApp('marketplace');
+                  startTransition(() => {
+                    setSelectedApp('marketplace');
+                  });
                 }
                 setIsLoading(false);
               } catch (sessionError) {
@@ -381,7 +389,9 @@ function App() {
             sessionStorage.removeItem('navigateToIDCardPrint');
             localStorage.removeItem('navigateToIDCardPrint');
             localStorage.setItem('selectedApp', 'marketplace');
-            setSelectedApp('marketplace');
+            startTransition(() => {
+              setSelectedApp('marketplace');
+            });
           }
           
         } catch (urlError) {
@@ -402,7 +412,9 @@ function App() {
             sessionStorage.removeItem('navigateToIDCardPrint');
             localStorage.removeItem('navigateToIDCardPrint');
             localStorage.setItem('selectedApp', 'marketplace');
-            setSelectedApp('marketplace');
+            startTransition(() => {
+              setSelectedApp('marketplace');
+            });
           }
         }
       }
@@ -449,7 +461,9 @@ function App() {
             sessionStorage.removeItem('navigateToIDCardPrint');
             localStorage.removeItem('navigateToIDCardPrint');
             localStorage.setItem('selectedApp', 'marketplace');
-            setSelectedApp('marketplace');
+            startTransition(() => {
+              setSelectedApp('marketplace');
+            });
             
             // Clear interval
             if (sessionCheckIntervalRef.current) {
@@ -493,7 +507,9 @@ function App() {
     // Expose function to navigate to dashboard from ProductsPage
     window.navigateToDashboard = () => {
       localStorage.setItem('selectedApp', 'cv-builder');
+      startTransition(() => {
       setSelectedApp('cv-builder');
+    });
       setCurrentView('dashboard');
     };
 
@@ -661,13 +677,17 @@ function App() {
             // User is on CV Builder form - preserve that
             localStorage.setItem('selectedApp', 'cv-builder');
             setTimeout(() => {
-              setSelectedApp('cv-builder');
+              startTransition(() => {
+      setSelectedApp('cv-builder');
+    });
             }, 0);
           } else if (idCardView === 'print') {
             // User is on ID Card print - preserve that
             localStorage.setItem('selectedApp', 'id-card-print');
             setTimeout(() => {
-              setSelectedApp('id-card-print');
+              startTransition(() => {
+        setSelectedApp('id-card-print');
+      });
             }, 0);
           }
           // Don't default to marketplace - let routing logic handle it
@@ -791,7 +811,9 @@ function App() {
               
               // Set homepage flags
             localStorage.setItem('selectedApp', 'marketplace');
-            setSelectedApp('marketplace');
+            startTransition(() => {
+              setSelectedApp('marketplace');
+            });
             }
             
             // Trigger auth event for other components
@@ -900,7 +922,9 @@ function App() {
       sessionStorage.removeItem('showProductsPage');
       // Ensure selectedApp is set correctly
       localStorage.setItem('selectedApp', 'id-card-print');
+      startTransition(() => {
       setSelectedApp('id-card-print');
+      });
       // Set idCardView to dashboard
       setIdCardView('dashboard');
       // DO NOT set currentView to 'dashboard' - this would trigger CV Builder routing
@@ -914,8 +938,12 @@ function App() {
         // Don't remove the flag here - let PRIORITY 0 routing check handle it
         // Ensure selectedApp is set correctly
         localStorage.setItem('selectedApp', 'cv-builder');
+          startTransition(() => {
+        startTransition(() => {
         setSelectedApp('cv-builder');
+    });
         setCurrentView('dashboard');
+          });
         // Clear products page flags to allow navigation
           // Removed - no longer needed
         localStorage.removeItem('showProductsPage');
@@ -927,7 +955,9 @@ function App() {
       } else {
         // Default: redirect to homepage if no specific navigation intent
         localStorage.setItem('selectedApp', 'marketplace');
+          startTransition(() => {
         setSelectedApp('marketplace');
+          });
         console.log('handleAuth: No specific navigation intent, redirecting to homepage');
       }
     }
@@ -956,7 +986,9 @@ function App() {
     console.log('handleBackToDashboard called - navigating to CV dashboard');
     // Ensure selectedApp is set to cv-builder
     localStorage.setItem('selectedApp', 'cv-builder');
-    setSelectedApp('cv-builder');
+    startTransition(() => {
+      setSelectedApp('cv-builder');
+    });
     // Navigate to dashboard
     setCurrentView('dashboard');
   };
@@ -973,7 +1005,9 @@ function App() {
       try {
         // CRITICAL: Ensure we're on CV Builder section before loading CV
         localStorage.setItem('selectedApp', 'cv-builder');
-        setSelectedApp('cv-builder');
+        startTransition(() => {
+      setSelectedApp('cv-builder');
+    });
         
         // Use the loadCV function from the hook to properly set currentCVId
         const loadedFormData = await loadCV(cv.id);
@@ -1990,7 +2024,9 @@ function App() {
         setTimeout(() => {
           if (!localStorage.getItem('selectedApp')) {
             localStorage.setItem('selectedApp', 'cv-builder');
-            setSelectedApp('cv-builder');
+            startTransition(() => {
+      setSelectedApp('cv-builder');
+    });
           }
         }, 0);
       }
