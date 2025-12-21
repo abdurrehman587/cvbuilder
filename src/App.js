@@ -128,6 +128,7 @@ function App() {
   const handleNavigateToSection = (section) => {
     // Update localStorage (single source of truth)
     setCurrentApp(section);
+    lastKnownAppRef.current = section; // Track as last known app
     
     // Reset views to dashboard when switching sections
     setCVView('dashboard');
@@ -189,6 +190,7 @@ function App() {
     console.log('App.js: handleCreateNewIDCard called');
     setCurrentApp('id-card-print');
     setIDCardView('print');
+    lastKnownAppRef.current = 'id-card-print'; // Track as last known app
     startTransition(() => {
       setSelectedApp('id-card-print');
       setIdCardView('print');
@@ -1116,7 +1118,25 @@ function App() {
   if (isAuthenticated && !isLoading) {
     // Get current route from routing utility (reads from localStorage)
     const route = getRoute();
-    const routingApp = route.app || 'cv-builder'; // Default to cv-builder, not marketplace
+    let routingApp = route.app;
+    
+    // CRITICAL: If routingApp is null, empty, or 'marketplace', use last known app or default to cv-builder
+    if (!routingApp || routingApp === 'marketplace') {
+      if (lastKnownAppRef.current && lastKnownAppRef.current !== 'marketplace') {
+        routingApp = lastKnownAppRef.current;
+        // Restore it to localStorage
+        setCurrentApp(routingApp);
+      } else {
+        routingApp = 'cv-builder'; // Default to cv-builder, NEVER marketplace
+        setCurrentApp('cv-builder');
+      }
+    }
+    
+    // Update ref to track current app
+    if (routingApp && routingApp !== 'marketplace') {
+      lastKnownAppRef.current = routingApp;
+    }
+    
     const cvView = route.cvView || 'dashboard';
     const idCardView = route.idCardView || 'dashboard';
     
