@@ -74,7 +74,8 @@ function App() {
   const showProductsPageRef = React.useRef(false);
   const productDetailIdRef = React.useRef(null); // Ref to access current productDetailId in callbacks
   const sessionCheckIntervalRef = React.useRef(null); // Ref for session check interval
-  const hasInitializedRef = React.useRef(false); // Track if we've already initialized to prevent re-initialization on tab switch
+  const hasInitializedRef = React.useRef(false);
+  const isMountedRef = React.useRef(false); // Track if component has finished initial render // Track if we've already initialized to prevent re-initialization on tab switch
   const [forceShowProductsPage, setForceShowProductsPage] = useState(false);
   const [productDetailId, setProductDetailId] = useState(null);
   
@@ -184,6 +185,9 @@ function App() {
   };
 
   useEffect(() => {
+    // Mark component as mounted after initial render
+    isMountedRef.current = true;
+    
     // Clear navigation flags on mount (after reload completes)
     // This ensures that if the page was reloaded (not closed), we don't logout
     sessionStorage.removeItem('isNavigating');
@@ -503,12 +507,18 @@ function App() {
 
     // Listen for auth state changes (this is the authoritative source)
     // Supabase handles session management internally
-    // CRITICAL: Wrap all state updates in setTimeout to prevent React error #301
+    // CRITICAL: Use ref to check if mounted and defer all state updates to prevent React error #301
     const authStateSubscription = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state changed:', event, session?.user?.email);
       
-      // Defer all state updates to prevent React error #301
-      setTimeout(() => {
+      // Only update state if component is mounted and defer to prevent React error #301
+      const updateState = () => {
+        if (!isMountedRef.current) {
+          // Component not mounted yet, defer update
+          setTimeout(updateState, 0);
+          return;
+        }
+        
         if (event === 'SIGNED_IN' && session?.user) {
           setIsAuthenticated(true);
           localStorage.setItem('cvBuilderAuth', 'true');
@@ -581,7 +591,10 @@ function App() {
           }
           setIsLoading(false);
         }
-      }, 0);
+      };
+      
+      // Defer state update to prevent React error #301
+      setTimeout(updateState, 0);
     });
     
     // REMOVED: setSelectedApp call from useEffect - this was causing React error #301
@@ -796,6 +809,8 @@ function App() {
       if (authStateSubscription && authStateSubscription.data && authStateSubscription.data.subscription) {
         authStateSubscription.data.subscription.unsubscribe();
       }
+      // Mark component as unmounted
+      isMountedRef.current = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]); // Include isAuthenticated to have current value
