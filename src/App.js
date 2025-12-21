@@ -237,13 +237,21 @@ function App() {
               console.log('Error getting initial session:', error);
               setIsAuthenticated(false);
               localStorage.removeItem('cvBuilderAuth');
+              setIsLoading(false);
             } else if (session?.user) {
               setIsAuthenticated(true);
               localStorage.setItem('cvBuilderAuth', 'true');
+              setIsLoading(false);
             } else {
               setIsAuthenticated(false);
               localStorage.removeItem('cvBuilderAuth');
+              setIsLoading(false);
             }
+          }, 0);
+        } else {
+          // No result - stop loading
+          setTimeout(() => {
+            setIsLoading(false);
           }, 0);
         }
       } catch (error) {
@@ -266,12 +274,8 @@ function App() {
           // Ensure loading is stopped
           setIsLoading(false);
         }, 0);
-      } finally {
-        // Defer loading state update to prevent React error #301
-        setTimeout(() => {
-          setIsLoading(false);
-        }, 0);
       }
+      // REMOVED: finally block - loading state is now set in each branch above
     };
 
     getInitialSession();
@@ -2031,8 +2035,11 @@ function App() {
       
       localStorage.setItem('showProductsPage', 'true');
       sessionStorage.setItem('showProductsPage', 'true');
-      setForceShowProductsPage(true);
-      showProductsPageRef.current = true;
+      // CRITICAL: Don't call setForceShowProductsPage in render - defer it
+      setTimeout(() => {
+        setForceShowProductsPage(true);
+        showProductsPageRef.current = true;
+      }, 0);
       if (window.location.hash !== '#products') {
         window.location.hash = '#products';
       }
