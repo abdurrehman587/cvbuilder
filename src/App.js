@@ -738,18 +738,23 @@ function App() {
   // CRITICAL: Register onAuthStateChange in a separate useEffect that runs AFTER initial render
   // This prevents the INITIAL_SESSION event from firing during render and causing React error #301
   useEffect(() => {
-    // Only register after component is mounted
-    if (!isMountedRef.current) {
-      // Wait a bit for component to fully mount
-      const timer = setTimeout(() => {
-        if (isMountedRef.current) {
-          registerAuthListener();
-        }
-      }, 0);
-      return () => clearTimeout(timer);
-    }
-
-    return registerAuthListener();
+    // Use queueMicrotask to ensure this runs after all synchronous code completes
+    // This is more reliable than setTimeout for ensuring render is complete
+    let cancelled = false;
+    
+    queueMicrotask(() => {
+      if (cancelled || !isMountedRef.current) return;
+      
+      // Additional delay to be absolutely sure render is complete
+      setTimeout(() => {
+        if (cancelled || !isMountedRef.current) return;
+        registerAuthListener();
+      }, 50);
+    });
+    
+    return () => {
+      cancelled = true;
+    };
 
     function registerAuthListener() {
       // Listen for auth state changes (this is the authoritative source)
