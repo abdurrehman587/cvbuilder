@@ -1082,7 +1082,8 @@ function App() {
       return content;
     }
     // Always read current section from localStorage on every render - don't use React state
-    const currentSectionForNav = localStorage.getItem('selectedApp') || 'marketplace';
+    // CRITICAL: Default to 'cv-builder' NOT 'marketplace' to prevent homepage redirects
+    const currentSectionForNav = localStorage.getItem('selectedApp') || 'cv-builder';
     return (
       <>
         <TopNav 
