@@ -2059,8 +2059,23 @@ function App() {
   const finalSelectedApp = localStorage.getItem('selectedApp');
   
   if (isAuthenticated && !isLoading) {
-    // If user is on CV Builder or ID Card, show it - NEVER show marketplace
-    if (finalSelectedApp === 'cv-builder') {
+    // If finalSelectedApp is null/empty, try to preserve current state
+    let appToShow = finalSelectedApp;
+    if (!appToShow) {
+      // No selectedApp - infer from current state
+      if (currentView === 'cv-builder') {
+        appToShow = 'cv-builder';
+      } else if (idCardView === 'print') {
+        appToShow = 'id-card-print';
+      } else {
+        // CRITICAL: Don't default to marketplace - show CV Builder instead
+        // This prevents redirect to homepage when switching tabs
+        appToShow = 'cv-builder';
+      }
+    }
+    
+    // If user is on CV Builder or ID Card, show it - NEVER show marketplace unless explicitly set
+    if (appToShow === 'cv-builder') {
       return wrapWithTopNav(
         wrapWithNavbar(
       <>
