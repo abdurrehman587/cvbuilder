@@ -170,7 +170,7 @@ function App() {
     createNewCV(); // Reset the hook state
     
     // Set template to template1 and switch to form view
-    setSelectedTemplate('template1');
+      setSelectedTemplate('template1');
     setCurrentView('cv-builder');
     
     console.log('handleMakeNewCV - Form view activated');
@@ -224,18 +224,18 @@ function App() {
           
           // Defer state updates to prevent React error #301
           setTimeout(() => {
-            if (error) {
-              console.log('Error getting initial session:', error);
-              setIsAuthenticated(false);
-              localStorage.removeItem('cvBuilderAuth');
+          if (error) {
+            console.log('Error getting initial session:', error);
+            setIsAuthenticated(false);
+            localStorage.removeItem('cvBuilderAuth');
               setIsLoading(false);
-            } else if (session?.user) {
-              setIsAuthenticated(true);
-              localStorage.setItem('cvBuilderAuth', 'true');
+          } else if (session?.user) {
+            setIsAuthenticated(true);
+            localStorage.setItem('cvBuilderAuth', 'true');
               setIsLoading(false);
-            } else {
-              setIsAuthenticated(false);
-              localStorage.removeItem('cvBuilderAuth');
+          } else {
+            setIsAuthenticated(false);
+            localStorage.removeItem('cvBuilderAuth');
               setIsLoading(false);
             }
           }, 0);
@@ -252,18 +252,18 @@ function App() {
         
         // Defer state updates to prevent React error #301
         setTimeout(() => {
-          // If it's a timeout error, use localStorage as fallback
-          if (error.message === 'Supabase session check timed out') {
-            console.warn('Supabase session check timed out after 8 seconds, using localStorage fallback');
-            const cachedAuth = localStorage.getItem('cvBuilderAuth');
-            setIsAuthenticated(cachedAuth === 'true');
-          } else {
-            console.log('Error getting initial session:', error);
-            setIsAuthenticated(false);
-            localStorage.removeItem('cvBuilderAuth');
-          }
-          // Ensure loading is stopped
-          setIsLoading(false);
+        // If it's a timeout error, use localStorage as fallback
+        if (error.message === 'Supabase session check timed out') {
+          console.warn('Supabase session check timed out after 8 seconds, using localStorage fallback');
+          const cachedAuth = localStorage.getItem('cvBuilderAuth');
+          setIsAuthenticated(cachedAuth === 'true');
+        } else {
+          console.log('Error getting initial session:', error);
+          setIsAuthenticated(false);
+          localStorage.removeItem('cvBuilderAuth');
+        }
+        // Ensure loading is stopped
+        setIsLoading(false);
         }, 0);
       }
       // REMOVED: finally block - loading state is now set in each branch above
@@ -810,10 +810,10 @@ function App() {
 
       // Cleanup on unmount
       return () => {
-        if (authStateSubscription && authStateSubscription.data && authStateSubscription.data.subscription) {
-          authStateSubscription.data.subscription.unsubscribe();
-        }
-      };
+      if (authStateSubscription && authStateSubscription.data && authStateSubscription.data.subscription) {
+        authStateSubscription.data.subscription.unsubscribe();
+      }
+    };
     }
   }, []); // Empty deps - only run once after mount
 
@@ -842,95 +842,95 @@ function App() {
   const handleAuth = () => {
     // CRITICAL: Defer ALL state updates to prevent React error #301
     setTimeout(() => {
-      setIsAuthenticated(true);
-      setIsLoading(false);
-      
-      // Set a flag to prevent logout immediately after login (for 10 seconds)
-      const loginTimestamp = Date.now();
-      sessionStorage.setItem('justLoggedIn', loginTimestamp.toString());
-      // Clear this flag after 10 seconds
-      setTimeout(() => {
-        sessionStorage.removeItem('justLoggedIn');
-      }, 10000);
-      // Check if user is on products page (homepage) - this takes priority
-      const isOnProductsPage = window.location.hash === '#products' || 
-                                window.location.hash === '' ||
+    setIsAuthenticated(true);
+    setIsLoading(false);
+    
+    // Set a flag to prevent logout immediately after login (for 10 seconds)
+    const loginTimestamp = Date.now();
+    sessionStorage.setItem('justLoggedIn', loginTimestamp.toString());
+    // Clear this flag after 10 seconds
+    setTimeout(() => {
+      sessionStorage.removeItem('justLoggedIn');
+    }, 10000);
+    // Check if user is on products page (homepage) - this takes priority
+    const isOnProductsPage = window.location.hash === '#products' || 
+                              window.location.hash === '' ||
                                 localStorage.getItem('selectedApp') === 'marketplace';
+    
+    // Check if user clicked on a template - if so, navigate to CV Dashboard after login
+    const templateClicked = sessionStorage.getItem('templateClicked') === 'true' || 
+                            localStorage.getItem('templateClicked') === 'true';
+    
+    // If user logged in from homepage (products page), keep them there
+    // UNLESS they clicked on a template - in that case, navigate to CV Dashboard
+    // This is the default behavior when logging in from header signin button
+    if (isOnProductsPage && !templateClicked) {
+      // Clear any navigation flags that might redirect away from homepage
+      sessionStorage.removeItem('navigateToCVBuilder');
+      localStorage.removeItem('navigateToCVBuilder');
+      sessionStorage.removeItem('navigateToIDCardPrint');
+      localStorage.removeItem('navigateToIDCardPrint');
       
-      // Check if user clicked on a template - if so, navigate to CV Dashboard after login
-      const templateClicked = sessionStorage.getItem('templateClicked') === 'true' || 
-                              localStorage.getItem('templateClicked') === 'true';
-      
-      // If user logged in from homepage (products page), keep them there
-      // UNLESS they clicked on a template - in that case, navigate to CV Dashboard
-      // This is the default behavior when logging in from header signin button
-      if (isOnProductsPage && !templateClicked) {
-        // Clear any navigation flags that might redirect away from homepage
-        sessionStorage.removeItem('navigateToCVBuilder');
-        localStorage.removeItem('navigateToCVBuilder');
-        sessionStorage.removeItem('navigateToIDCardPrint');
-        localStorage.removeItem('navigateToIDCardPrint');
-        
         // Set to marketplace
-        localStorage.setItem('selectedApp', 'marketplace');
-        setSelectedApp('marketplace');
-        
-        console.log('handleAuth: User logged in from homepage, keeping them on homepage');
-        return; // Exit early to prevent any redirects
-      }
+      localStorage.setItem('selectedApp', 'marketplace');
+      setSelectedApp('marketplace');
       
-      // If template was clicked, clear the flag after using it
-      if (templateClicked) {
-        sessionStorage.removeItem('templateClicked');
-        localStorage.removeItem('templateClicked');
-      }
-      
-      // If not on products page, check for navigation flags
-      // Get selected app from localStorage
-      const app = localStorage.getItem('selectedApp') || 'cv-builder';
-      setSelectedApp(app);
-      
-      // Check if user wants to navigate to ID Card Print dashboard after login (check FIRST)
-      const navigateToIDCardPrint = sessionStorage.getItem('navigateToIDCardPrint') === 'true' || 
-                                     localStorage.getItem('navigateToIDCardPrint') === 'true';
-      if (navigateToIDCardPrint) {
-        // Don't remove the flag here - let PRIORITY 0 routing check handle it
+      console.log('handleAuth: User logged in from homepage, keeping them on homepage');
+      return; // Exit early to prevent any redirects
+    }
+    
+    // If template was clicked, clear the flag after using it
+    if (templateClicked) {
+      sessionStorage.removeItem('templateClicked');
+      localStorage.removeItem('templateClicked');
+    }
+    
+    // If not on products page, check for navigation flags
+    // Get selected app from localStorage
+    const app = localStorage.getItem('selectedApp') || 'cv-builder';
+    setSelectedApp(app);
+    
+    // Check if user wants to navigate to ID Card Print dashboard after login (check FIRST)
+    const navigateToIDCardPrint = sessionStorage.getItem('navigateToIDCardPrint') === 'true' || 
+                                   localStorage.getItem('navigateToIDCardPrint') === 'true';
+    if (navigateToIDCardPrint) {
+      // Don't remove the flag here - let PRIORITY 0 routing check handle it
         // Clear any old marketplace flags
+      localStorage.removeItem('showProductsPage');
+      sessionStorage.removeItem('showProductsPage');
+      // Ensure selectedApp is set correctly
+      localStorage.setItem('selectedApp', 'id-card-print');
+      setSelectedApp('id-card-print');
+      // Set idCardView to dashboard
+      setIdCardView('dashboard');
+      // DO NOT set currentView to 'dashboard' - this would trigger CV Builder routing
+      console.log('handleAuth: ID Card Print flag detected, setting idCardView to dashboard');
+    }
+    // Check if user wants to navigate to CV Builder dashboard after login
+    else {
+      const navigateToCVBuilder = sessionStorage.getItem('navigateToCVBuilder') === 'true' ||
+                                   localStorage.getItem('navigateToCVBuilder') === 'true';
+      if (navigateToCVBuilder) {
+        // Don't remove the flag here - let PRIORITY 0 routing check handle it
+        // Ensure selectedApp is set correctly
+        localStorage.setItem('selectedApp', 'cv-builder');
+        setSelectedApp('cv-builder');
+        setCurrentView('dashboard');
+        // Clear products page flags to allow navigation
+          // Removed - no longer needed
         localStorage.removeItem('showProductsPage');
         sessionStorage.removeItem('showProductsPage');
-        // Ensure selectedApp is set correctly
-        localStorage.setItem('selectedApp', 'id-card-print');
-        setSelectedApp('id-card-print');
-        // Set idCardView to dashboard
-        setIdCardView('dashboard');
-        // DO NOT set currentView to 'dashboard' - this would trigger CV Builder routing
-        console.log('handleAuth: ID Card Print flag detected, setting idCardView to dashboard');
+        console.log('handleAuth: CV Builder flag detected, setting currentView to dashboard');
+      } else if (currentView === 'cv-builder') {
+        // If user was on form/preview page, redirect to dashboard after login
+        setCurrentView('dashboard');
+      } else {
+        // Default: redirect to homepage if no specific navigation intent
+        localStorage.setItem('selectedApp', 'marketplace');
+        setSelectedApp('marketplace');
+        console.log('handleAuth: No specific navigation intent, redirecting to homepage');
       }
-      // Check if user wants to navigate to CV Builder dashboard after login
-      else {
-        const navigateToCVBuilder = sessionStorage.getItem('navigateToCVBuilder') === 'true' ||
-                                     localStorage.getItem('navigateToCVBuilder') === 'true';
-        if (navigateToCVBuilder) {
-          // Don't remove the flag here - let PRIORITY 0 routing check handle it
-          // Ensure selectedApp is set correctly
-          localStorage.setItem('selectedApp', 'cv-builder');
-          setSelectedApp('cv-builder');
-          setCurrentView('dashboard');
-          // Clear products page flags to allow navigation
-          // Removed - no longer needed
-          localStorage.removeItem('showProductsPage');
-          sessionStorage.removeItem('showProductsPage');
-          console.log('handleAuth: CV Builder flag detected, setting currentView to dashboard');
-        } else if (currentView === 'cv-builder') {
-          // If user was on form/preview page, redirect to dashboard after login
-          setCurrentView('dashboard');
-        } else {
-          // Default: redirect to homepage if no specific navigation intent
-          localStorage.setItem('selectedApp', 'marketplace');
-          setSelectedApp('marketplace');
-          console.log('handleAuth: No specific navigation intent, redirecting to homepage');
-        }
-      }
+    }
     }, 0);
   };
 
@@ -998,7 +998,7 @@ function App() {
   
   // All hash-based routing removed - user will add navigation one by one
 
-  // Expose function to set ID Card view (for Header to call)
+    // Expose function to set ID Card view (for Header to call)
   useEffect(() => {
     window.setIdCardView = (view) => {
       setIdCardView(view);
@@ -1042,7 +1042,7 @@ function App() {
         <TopNav 
           currentSection={currentSectionForNav}
           onSectionChange={handleNavigateToSection}
-          isAuthenticated={isAuthenticated}
+          isAuthenticated={isAuthenticated} 
         />
         <div style={{ marginTop: '56px', minHeight: 'calc(100vh - 56px)' }}>
           {content}
@@ -1069,14 +1069,15 @@ function App() {
     let routingApp = selectedAppFromStorage;
     
     // If no selectedApp in storage, try to infer from current state
+    // CRITICAL: Don't write to localStorage during render - this causes React error #301
+    // Only read from it and infer from current state
     if (!routingApp) {
       if (currentView === 'cv-builder') {
         routingApp = 'cv-builder';
-        // Save it for next time
-        localStorage.setItem('selectedApp', 'cv-builder');
+        // Don't write to localStorage here - it will be written in event handlers
       } else if (idCardView === 'print') {
         routingApp = 'id-card-print';
-        localStorage.setItem('selectedApp', 'id-card-print');
+        // Don't write to localStorage here - it will be written in event handlers
       } else {
         // Only default to marketplace on very first visit (no state at all)
         routingApp = 'marketplace';
@@ -1192,10 +1193,10 @@ function App() {
 
         return wrapWithTopNav(
           wrapWithNavbar(
-            <>
-              <Header 
+      <>
+        <Header 
                 isAuthenticated={true} 
-                onLogout={handleLogout}
+          onLogout={handleLogout}
                 currentProduct="cv-builder"
               />
               <div className="app-header-cv">
@@ -1272,10 +1273,10 @@ function App() {
       // Otherwise, show CV Dashboard
       return wrapWithTopNav(
         wrapWithNavbar(
-          <>
-            <Header 
+      <>
+        <Header 
               isAuthenticated={true} 
-              onLogout={handleLogout}
+          onLogout={handleLogout}
               currentProduct="cv-builder"
             />
             <CVDashboard 
@@ -1301,10 +1302,10 @@ function App() {
         
         return wrapWithTopNav(
           wrapWithNavbar(
-            <>
-              <Header 
+      <>
+        <Header 
                 isAuthenticated={true} 
-                onLogout={handleLogout}
+          onLogout={handleLogout}
                 currentProduct="id-card-print"
               />
               <div className="app-header-cv" style={{ 
@@ -1362,10 +1363,10 @@ function App() {
       // Otherwise, show ID Card Dashboard
       return wrapWithTopNav(
         wrapWithNavbar(
-          <>
-            <Header 
+      <>
+        <Header 
               isAuthenticated={true} 
-              onLogout={handleLogout}
+          onLogout={handleLogout}
               currentProduct="id-card-print"
             />
             <IDCardDashboard 
@@ -1383,9 +1384,9 @@ function App() {
     if (routingApp === 'marketplace') {
       return wrapWithTopNav(
         wrapWithNavbar(
-          <>
-            <Header 
-              isAuthenticated={isAuthenticated} 
+      <>
+        <Header 
+          isAuthenticated={isAuthenticated} 
               currentProduct="products"
               showProductsOnHeader={true}
               onLogout={isAuthenticated ? handleLogout : undefined}
@@ -2020,24 +2021,24 @@ function App() {
     if (finalSelectedApp === 'cv-builder') {
       return wrapWithTopNav(
         wrapWithNavbar(
-          <>
-            <Header 
-              isAuthenticated={true} 
-              onLogout={handleLogout}
-              currentProduct="cv-builder"
-            />
-            <CVDashboard 
-              onTemplateSelect={handleTemplateSelect}
-              onLogout={handleLogout}
-              onEditCV={handleEditCV}
-              onCreateNewCV={handleMakeNewCV}
-            />
-          </>
+      <>
+        <Header 
+          isAuthenticated={true} 
+          onLogout={handleLogout}
+          currentProduct="cv-builder"
+        />
+        <CVDashboard 
+          onTemplateSelect={handleTemplateSelect}
+          onLogout={handleLogout}
+          onEditCV={handleEditCV}
+          onCreateNewCV={handleMakeNewCV}
+        />
+      </>
         )
       );
     }
     
-    if (finalSelectedApp === 'id-card-print') {
+    if (appToShow === 'id-card-print') {
       if (idCardView === 'print') {
         const handleBackToIDCardDashboard = () => {
           setIdCardView('dashboard');
@@ -2046,8 +2047,8 @@ function App() {
         
         return wrapWithTopNav(
           wrapWithNavbar(
-            <>
-              <Header 
+      <>
+        <Header 
                 isAuthenticated={true} 
                 onLogout={handleLogout}
                 currentProduct="id-card-print"
@@ -2124,20 +2125,20 @@ function App() {
     }
     
     // Only show marketplace if explicitly set to marketplace
-    // CRITICAL: Don't default to marketplace if finalSelectedApp is null/empty
+    // CRITICAL: Don't default to marketplace if appToShow is null/empty
     // This prevents redirect to homepage when switching tabs
-    if (finalSelectedApp === 'marketplace') {
+    if (appToShow === 'marketplace') {
       return wrapWithTopNav(
         wrapWithNavbar(
-          <>
-            <Header 
-              isAuthenticated={isAuthenticated} 
-              currentProduct="products"
-              showProductsOnHeader={true}
-              onLogout={isAuthenticated ? handleLogout : undefined}
-            />
-            <ProductsPage />
-          </>
+    <>
+      <Header 
+        isAuthenticated={isAuthenticated} 
+        currentProduct="products"
+        showProductsOnHeader={true}
+        onLogout={isAuthenticated ? handleLogout : undefined}
+      />
+      <ProductsPage />
+    </>
         )
       );
     }
