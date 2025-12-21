@@ -734,39 +734,36 @@ function App() {
     // Only beforeunload and pagehide are used to detect tab/window closes
     
     // Preserve selectedApp when window regains focus - CRITICAL for tab switching
+    // Use requestIdleCallback or setTimeout to prevent state updates during render
     const handleVisibilityChange = () => {
       if (!document.hidden && isAuthenticated) {
-        // Tab regained focus - IMMEDIATELY restore state from localStorage
-        // This is critical to prevent reset to homepage when switching tabs
-        const savedApp = localStorage.getItem('selectedApp');
-        
-        // CRITICAL: Always restore state immediately, regardless of current React state
-        // This ensures the UI updates immediately when tab regains focus
-        if (savedApp === 'cv-builder' || savedApp === 'id-card-print') {
-          // FORCE restore the selected app state immediately
-          setSelectedApp(savedApp);
-          // Clear products page flags
-          localStorage.removeItem('showProductsPage');
-          sessionStorage.removeItem('showProductsPage');
-          setForceShowProductsPage(false);
-          showProductsPageRef.current = false;
-          // Ensure selectedApp is set in localStorage (defensive)
-          localStorage.setItem('selectedApp', savedApp);
-        } else if (savedApp === 'marketplace') {
-          // Restore marketplace state
-          setSelectedApp('marketplace');
-          const showProducts = localStorage.getItem('showProductsPage') === 'true' || 
-                              sessionStorage.getItem('showProductsPage') === 'true';
-          if (showProducts) {
-            setForceShowProductsPage(true);
-            showProductsPageRef.current = true;
+        // Tab regained focus - restore state from localStorage
+        // Use setTimeout to ensure this doesn't happen during render
+        setTimeout(() => {
+          const savedApp = localStorage.getItem('selectedApp');
+          
+          // Only update if different from current state to prevent unnecessary re-renders
+          if (savedApp === 'cv-builder' || savedApp === 'id-card-print') {
+            setSelectedApp(prev => prev !== savedApp ? savedApp : prev);
+            // Clear products page flags
+            localStorage.removeItem('showProductsPage');
+            sessionStorage.removeItem('showProductsPage');
+            setForceShowProductsPage(false);
+            showProductsPageRef.current = false;
+          } else if (savedApp === 'marketplace') {
+            setSelectedApp(prev => prev !== 'marketplace' ? 'marketplace' : prev);
+            const showProducts = localStorage.getItem('showProductsPage') === 'true' || 
+                                sessionStorage.getItem('showProductsPage') === 'true';
+            if (showProducts) {
+              setForceShowProductsPage(true);
+              showProductsPageRef.current = true;
+            }
+          } else if (!savedApp) {
+            // If no saved app, default to marketplace
+            localStorage.setItem('selectedApp', 'marketplace');
+            setSelectedApp(prev => prev !== 'marketplace' ? 'marketplace' : prev);
           }
-        } else if (!savedApp) {
-          // If no saved app, default to marketplace
-          // But only if user is authenticated (first visit after login)
-          localStorage.setItem('selectedApp', 'marketplace');
-          setSelectedApp('marketplace');
-        }
+        }, 0);
       }
     };
     
