@@ -147,6 +147,7 @@ function App() {
     // Set app to CV Builder and view to form using routing utils
     setCurrentApp('cv-builder');
     setCVView('cv-builder');
+    lastKnownAppRef.current = 'cv-builder'; // Track as last known app
     
     // Reset form data to empty
     const newFormData = {
@@ -171,12 +172,12 @@ function App() {
     createNewCV(); // Reset the hook state
     
     // Set template to template1 and switch to form view
-      setSelectedTemplate('template1');
+    setSelectedTemplate('template1');
     
     // Update React state using startTransition
     startTransition(() => {
       setSelectedApp('cv-builder');
-    setCurrentView('cv-builder');
+      setCurrentView('cv-builder');
     });
     
     console.log('handleMakeNewCV - Form view activated');
@@ -659,48 +660,53 @@ function App() {
     // Only beforeunload and pagehide are used to detect tab/window closes
     
     // Preserve selectedApp when window regains focus - CRITICAL for tab switching
-    // Fresh, simplified logic - just preserve what's already there
+    // ULTRA-ROBUST: Always preserve last known section, never redirect to marketplace
     const handleVisibilityChange = () => {
       if (!document.hidden && isAuthenticated) {
-        // Tab regained focus - IMMEDIATELY read and preserve current state
-        // Use routing utility to get current app
-        const currentApp = getCurrentApp();
+        // Tab regained focus - IMMEDIATELY preserve current state
+        // Priority 1: Check localStorage
+        let appToPreserve = localStorage.getItem('selectedApp');
         
-        // CRITICAL: If no app is set, infer from current React state
-        // NEVER default to marketplace - always preserve current section
-        if (!currentApp || currentApp === 'marketplace') {
-          // Check if user is on a form/view that indicates their section
-          if (currentView === 'cv-builder') {
-            // User is on CV Builder form - preserve that
-            setCurrentApp('cv-builder');
-            setCVView('cv-builder');
-            startTransition(() => {
-              setSelectedApp('cv-builder');
-            });
-          } else if (idCardView === 'print') {
-            // User is on ID Card print - preserve that
-            setCurrentApp('id-card-print');
-            setIDCardView('print');
-            startTransition(() => {
-              setSelectedApp('id-card-print');
-            });
-          } else if (currentApp && currentApp !== 'marketplace') {
-            // App is set and not marketplace - just sync React state
-            startTransition(() => {
-              setSelectedApp(currentApp);
-            });
+        // Priority 2: If localStorage is empty or marketplace, use last known app from ref
+        if (!appToPreserve || appToPreserve === 'marketplace') {
+          if (lastKnownAppRef.current && lastKnownAppRef.current !== 'marketplace') {
+            appToPreserve = lastKnownAppRef.current;
+            // Restore it to localStorage
+            setCurrentApp(appToPreserve);
           } else {
-            // No clear indication - default to cv-builder (NOT marketplace)
-            setCurrentApp('cv-builder');
-            startTransition(() => {
-              setSelectedApp('cv-builder');
-            });
+            // Priority 3: Infer from React state
+            if (currentView === 'cv-builder') {
+              appToPreserve = 'cv-builder';
+            } else if (idCardView === 'print') {
+              appToPreserve = 'id-card-print';
+            } else {
+              // Priority 4: Default to cv-builder (NEVER marketplace)
+              appToPreserve = 'cv-builder';
+            }
+            setCurrentApp(appToPreserve);
           }
-        } else {
-          // App is set - just sync React state to match localStorage
-          startTransition(() => {
-            setSelectedApp(currentApp);
-          });
+        }
+        
+        // CRITICAL: If appToPreserve is marketplace, change it to cv-builder
+        if (appToPreserve === 'marketplace') {
+          appToPreserve = 'cv-builder';
+          setCurrentApp('cv-builder');
+        }
+        
+        // Update ref to track this as last known app
+        lastKnownAppRef.current = appToPreserve;
+        
+        // Sync React state
+        startTransition(() => {
+          setSelectedApp(appToPreserve);
+        });
+      } else if (document.hidden && isAuthenticated) {
+        // Tab lost focus - save current app to ref
+        const currentApp = getCurrentApp();
+        if (currentApp && currentApp !== 'marketplace') {
+          lastKnownAppRef.current = currentApp;
+        } else if (selectedApp && selectedApp !== 'marketplace') {
+          lastKnownAppRef.current = selectedApp;
         }
       }
     };
