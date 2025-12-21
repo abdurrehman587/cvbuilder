@@ -7,9 +7,10 @@
 /**
  * Get the current app section from localStorage
  * Returns: 'marketplace', 'cv-builder', or 'id-card-print'
+ * CRITICAL: Default to 'cv-builder' NOT 'marketplace' to prevent homepage redirects
  */
 export const getCurrentApp = () => {
-  return localStorage.getItem('selectedApp') || 'marketplace';
+  return localStorage.getItem('selectedApp') || 'cv-builder';
 };
 
 /**

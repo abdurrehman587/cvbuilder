@@ -43,15 +43,16 @@ function App() {
   });
   // Initialize selectedApp from localStorage, but don't write to localStorage during init
   // Writing during init can cause React error #301
+  // CRITICAL: Default to 'cv-builder' NOT 'marketplace' to prevent homepage redirects
   const [selectedApp, setSelectedApp] = useState(() => {
     // Read from localStorage - preserve user's current section
     const savedApp = localStorage.getItem('selectedApp');
     if (savedApp) {
       return savedApp; // Preserve user's section
     }
-    // First visit - default to marketplace (don't write to localStorage here)
+    // First visit - default to cv-builder (NOT marketplace) to prevent redirects
     // It will be written when user navigates or in event handlers
-    return 'marketplace';
+    return 'cv-builder';
   }); // 'marketplace', 'cv-builder', or 'id-card-print'
   const [formData, setFormData] = useState({
     name: '',
@@ -170,12 +171,12 @@ function App() {
     createNewCV(); // Reset the hook state
     
     // Set template to template1 and switch to form view
-    setSelectedTemplate('template1');
+      setSelectedTemplate('template1');
     
     // Update React state using startTransition
     startTransition(() => {
       setSelectedApp('cv-builder');
-      setCurrentView('cv-builder');
+    setCurrentView('cv-builder');
     });
     
     console.log('handleMakeNewCV - Form view activated');
@@ -658,49 +659,48 @@ function App() {
     // Only beforeunload and pagehide are used to detect tab/window closes
     
     // Preserve selectedApp when window regains focus - CRITICAL for tab switching
-    // This ensures the app stays on the current section when switching tabs/windows
+    // Fresh, simplified logic - just preserve what's already there
     const handleVisibilityChange = () => {
       if (!document.hidden && isAuthenticated) {
-        // Tab regained focus - IMMEDIATELY ensure localStorage is set correctly
-        // Don't wait for state updates - routing reads directly from localStorage
-        const savedApp = localStorage.getItem('selectedApp');
+        // Tab regained focus - IMMEDIATELY read and preserve current state
+        // Use routing utility to get current app
+        const currentApp = getCurrentApp();
         
-        // CRITICAL: Ensure selectedApp is preserved in localStorage
-        // If user was on CV Builder or ID Card, make sure it's still set
-        if (savedApp === 'cv-builder' || savedApp === 'id-card-print') {
-          // Ensure it's still in localStorage (defensive)
-          localStorage.setItem('selectedApp', savedApp);
-          // Update React state asynchronously to prevent render issues
-          setTimeout(() => {
-            setSelectedApp(savedApp);
-          }, 0);
-        } else if (savedApp === 'marketplace') {
-          // User is on marketplace - preserve that
-          localStorage.setItem('selectedApp', 'marketplace');
-          setTimeout(() => {
-            setSelectedApp('marketplace');
-          }, 0);
-        } else if (!savedApp) {
-          // No saved app - try to preserve current state instead of defaulting to marketplace
+        // CRITICAL: If no app is set, infer from current React state
+        // NEVER default to marketplace - always preserve current section
+        if (!currentApp || currentApp === 'marketplace') {
           // Check if user is on a form/view that indicates their section
           if (currentView === 'cv-builder') {
             // User is on CV Builder form - preserve that
-            localStorage.setItem('selectedApp', 'cv-builder');
-            setTimeout(() => {
-              startTransition(() => {
-      setSelectedApp('cv-builder');
-    });
-            }, 0);
+            setCurrentApp('cv-builder');
+            setCVView('cv-builder');
+            startTransition(() => {
+              setSelectedApp('cv-builder');
+            });
           } else if (idCardView === 'print') {
             // User is on ID Card print - preserve that
-            localStorage.setItem('selectedApp', 'id-card-print');
-            setTimeout(() => {
-              startTransition(() => {
-        setSelectedApp('id-card-print');
-      });
-            }, 0);
+            setCurrentApp('id-card-print');
+            setIDCardView('print');
+            startTransition(() => {
+              setSelectedApp('id-card-print');
+            });
+          } else if (currentApp && currentApp !== 'marketplace') {
+            // App is set and not marketplace - just sync React state
+            startTransition(() => {
+              setSelectedApp(currentApp);
+            });
+          } else {
+            // No clear indication - default to cv-builder (NOT marketplace)
+            setCurrentApp('cv-builder');
+            startTransition(() => {
+              setSelectedApp('cv-builder');
+            });
           }
-          // Don't default to marketplace - let routing logic handle it
+        } else {
+          // App is set - just sync React state to match localStorage
+          startTransition(() => {
+            setSelectedApp(currentApp);
+          });
         }
       }
     };
@@ -1001,7 +1001,7 @@ function App() {
     // Update React state
     startTransition(() => {
       setSelectedApp('cv-builder');
-      setCurrentView('dashboard');
+    setCurrentView('dashboard');
     });
   };
 
@@ -1215,9 +1215,9 @@ function App() {
                     autoSaveStatus={hookAutoSaveStatus}
                     hasUnsavedChanges={hookHasUnsavedChanges}
                   />
-                </>
-              );
-          }
+      </>
+    );
+  }
         };
 
         return wrapWithTopNav(
