@@ -917,8 +917,7 @@ function App() {
           setSelectedApp('cv-builder');
           setCurrentView('dashboard');
           // Clear products page flags to allow navigation
-          setForceShowProductsPage(false);
-          showProductsPageRef.current = false;
+          // Removed - no longer needed
           localStorage.removeItem('showProductsPage');
           sessionStorage.removeItem('showProductsPage');
           console.log('handleAuth: CV Builder flag detected, setting currentView to dashboard');
