@@ -71,13 +71,11 @@ function App() {
   const [autoSaveStatus, setAutoSaveStatus] = useState('');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [formResetKey, setFormResetKey] = useState(0);
-  const showProductsPageRef = React.useRef(false);
   const productDetailIdRef = React.useRef(null); // Ref to access current productDetailId in callbacks
   const sessionCheckIntervalRef = React.useRef(null); // Ref for session check interval
   const hasInitializedRef = React.useRef(false);
   const isMountedRef = React.useRef(false); // Track if component has finished initial render
-  const ignoreInitialSessionRef = React.useRef(true); // Ignore first INITIAL_SESSION event // Track if we've already initialized to prevent re-initialization on tab switch
-  const [forceShowProductsPage, setForceShowProductsPage] = useState(false);
+  const ignoreInitialSessionRef = React.useRef(true); // Ignore first INITIAL_SESSION event
   const [productDetailId, setProductDetailId] = useState(null);
   
   // Update ref whenever productDetailId changes
@@ -132,14 +130,9 @@ function App() {
     setSelectedApp(section);
     setCurrentView('dashboard');
     
-    // Clear any conflicting flags
-    setForceShowProductsPage(false);
-    showProductsPageRef.current = false;
+    // Clear any old marketplace flags (no longer needed)
     localStorage.removeItem('showProductsPage');
     sessionStorage.removeItem('showProductsPage');
-    
-    // Force immediate re-render by updating a key
-    // This ensures the component switches instantly like Facebook
   };
 
   // Handle "Make a new CV" button - Facebook-style instant navigation
@@ -150,9 +143,7 @@ function App() {
     localStorage.setItem('selectedApp', 'cv-builder');
     setSelectedApp('cv-builder');
     
-    // Reset products page flags
-    setForceShowProductsPage(false);
-    showProductsPageRef.current = false;
+    // Clear any old marketplace flags (no longer needed)
     localStorage.removeItem('showProductsPage');
     sessionStorage.removeItem('showProductsPage');
     
@@ -360,15 +351,7 @@ function App() {
                   sessionStorage.removeItem('navigateToIDCardPrint');
                   localStorage.removeItem('navigateToIDCardPrint');
                   localStorage.setItem('selectedApp', 'marketplace');
-                  localStorage.setItem('showProductsPage', 'true');
-                  sessionStorage.setItem('showProductsPage', 'true');
-                  setForceShowProductsPage(true);
-                  showProductsPageRef.current = true;
-                  
-                  // Navigate to products page
-                  if (window.location.hash !== '#products') {
-                    window.location.hash = '#products';
-                  }
+                  setSelectedApp('marketplace');
                 }
                 setIsLoading(false);
               } catch (sessionError) {
@@ -398,15 +381,7 @@ function App() {
             sessionStorage.removeItem('navigateToIDCardPrint');
             localStorage.removeItem('navigateToIDCardPrint');
             localStorage.setItem('selectedApp', 'marketplace');
-            localStorage.setItem('showProductsPage', 'true');
-            sessionStorage.setItem('showProductsPage', 'true');
-            setForceShowProductsPage(true);
-            showProductsPageRef.current = true;
-            
-            // Navigate to products page
-            if (window.location.hash !== '#products') {
-              window.location.hash = '#products';
-            }
+            setSelectedApp('marketplace');
           }
           
         } catch (urlError) {
@@ -427,15 +402,7 @@ function App() {
             sessionStorage.removeItem('navigateToIDCardPrint');
             localStorage.removeItem('navigateToIDCardPrint');
             localStorage.setItem('selectedApp', 'marketplace');
-            localStorage.setItem('showProductsPage', 'true');
-            sessionStorage.setItem('showProductsPage', 'true');
-            setForceShowProductsPage(true);
-            showProductsPageRef.current = true;
-            
-            // Navigate to products page
-            if (window.location.hash !== '#products') {
-              window.location.hash = '#products';
-            }
+            setSelectedApp('marketplace');
           }
         }
       }
@@ -482,15 +449,7 @@ function App() {
             sessionStorage.removeItem('navigateToIDCardPrint');
             localStorage.removeItem('navigateToIDCardPrint');
             localStorage.setItem('selectedApp', 'marketplace');
-            localStorage.setItem('showProductsPage', 'true');
-            sessionStorage.setItem('showProductsPage', 'true');
-            setForceShowProductsPage(true);
-            showProductsPageRef.current = true;
-            
-            // Navigate to products page
-            if (window.location.hash !== '#products') {
-              window.location.hash = '#products';
-            }
+            setSelectedApp('marketplace');
             
             // Clear interval
             if (sessionCheckIntervalRef.current) {
@@ -533,10 +492,8 @@ function App() {
 
     // Expose function to navigate to dashboard from ProductsPage
     window.navigateToDashboard = () => {
-      setForceShowProductsPage(false);
-      showProductsPageRef.current = false;
-      localStorage.removeItem('showProductsPage');
-      sessionStorage.removeItem('showProductsPage');
+      localStorage.setItem('selectedApp', 'cv-builder');
+      setSelectedApp('cv-builder');
       setCurrentView('dashboard');
     };
 
@@ -687,28 +644,15 @@ function App() {
         if (savedApp === 'cv-builder' || savedApp === 'id-card-print') {
           // Ensure it's still in localStorage (defensive)
           localStorage.setItem('selectedApp', savedApp);
-          // Clear products page flags to prevent redirect to marketplace
-          localStorage.removeItem('showProductsPage');
-          sessionStorage.removeItem('showProductsPage');
-          
           // Update React state asynchronously to prevent render issues
           setTimeout(() => {
             setSelectedApp(savedApp);
-            setForceShowProductsPage(false);
-            showProductsPageRef.current = false;
           }, 0);
         } else if (savedApp === 'marketplace') {
           // User is on marketplace - preserve that
           localStorage.setItem('selectedApp', 'marketplace');
-          const showProducts = localStorage.getItem('showProductsPage') === 'true' || 
-                              sessionStorage.getItem('showProductsPage') === 'true';
-          
           setTimeout(() => {
             setSelectedApp('marketplace');
-            if (showProducts) {
-              setForceShowProductsPage(true);
-              showProductsPageRef.current = true;
-            }
           }, 0);
         } else if (!savedApp) {
           // No saved app - try to preserve current state instead of defaulting to marketplace
@@ -846,16 +790,8 @@ function App() {
               localStorage.removeItem('navigateToIDCardPrint');
               
               // Set homepage flags
-              localStorage.setItem('selectedApp', 'marketplace');
-              localStorage.setItem('showProductsPage', 'true');
-              sessionStorage.setItem('showProductsPage', 'true');
-              setForceShowProductsPage(true);
-              showProductsPageRef.current = true;
-              
-              // Navigate to products page
-              if (window.location.hash !== '#products') {
-                window.location.hash = '#products';
-              }
+            localStorage.setItem('selectedApp', 'marketplace');
+            setSelectedApp('marketplace');
             }
             
             // Trigger auth event for other components
@@ -919,8 +855,7 @@ function App() {
       // Check if user is on products page (homepage) - this takes priority
       const isOnProductsPage = window.location.hash === '#products' || 
                                 window.location.hash === '' ||
-                                localStorage.getItem('showProductsPage') === 'true' ||
-                                sessionStorage.getItem('showProductsPage') === 'true';
+                                localStorage.getItem('selectedApp') === 'marketplace';
       
       // Check if user clicked on a template - if so, navigate to CV Dashboard after login
       const templateClicked = sessionStorage.getItem('templateClicked') === 'true' || 
@@ -936,18 +871,9 @@ function App() {
         sessionStorage.removeItem('navigateToIDCardPrint');
         localStorage.removeItem('navigateToIDCardPrint');
         
-        // Ensure products page flags are set
+        // Set to marketplace
         localStorage.setItem('selectedApp', 'marketplace');
-        localStorage.setItem('showProductsPage', 'true');
-        sessionStorage.setItem('showProductsPage', 'true');
-        setForceShowProductsPage(true);
-        showProductsPageRef.current = true;
         setSelectedApp('marketplace');
-        
-        // Ensure hash is set to products page
-        if (window.location.hash !== '#products') {
-          window.location.hash = '#products';
-        }
         
         console.log('handleAuth: User logged in from homepage, keeping them on homepage');
         return; // Exit early to prevent any redirects
@@ -969,9 +895,7 @@ function App() {
                                      localStorage.getItem('navigateToIDCardPrint') === 'true';
       if (navigateToIDCardPrint) {
         // Don't remove the flag here - let PRIORITY 0 routing check handle it
-        // Clear products page flags to allow navigation
-        setForceShowProductsPage(false);
-        showProductsPageRef.current = false;
+        // Clear any old marketplace flags
         localStorage.removeItem('showProductsPage');
         sessionStorage.removeItem('showProductsPage');
         // Ensure selectedApp is set correctly
@@ -1004,12 +928,7 @@ function App() {
         } else {
           // Default: redirect to homepage if no specific navigation intent
           localStorage.setItem('selectedApp', 'marketplace');
-          localStorage.setItem('showProductsPage', 'true');
-          sessionStorage.setItem('showProductsPage', 'true');
-          setForceShowProductsPage(true);
-          showProductsPageRef.current = true;
           setSelectedApp('marketplace');
-          window.location.hash = '#products';
           console.log('handleAuth: No specific navigation intent, redirecting to homepage');
         }
       }
@@ -1036,11 +955,6 @@ function App() {
 
   const handleBackToDashboard = () => {
     console.log('handleBackToDashboard called - navigating to CV dashboard');
-    // Clear any products page flags
-    setForceShowProductsPage(false);
-    showProductsPageRef.current = false;
-    localStorage.removeItem('showProductsPage');
-    sessionStorage.removeItem('showProductsPage');
     // Ensure selectedApp is set to cv-builder
     localStorage.setItem('selectedApp', 'cv-builder');
     setSelectedApp('cv-builder');
@@ -1085,28 +999,21 @@ function App() {
   
   // All hash-based routing removed - user will add navigation one by one
 
-  // Expose function to reset products page flag (for Header to call)
-  // MUST be called before ANY conditional returns (React Hooks rule)
+  // Expose function to set ID Card view (for Header to call)
   useEffect(() => {
-    window.resetProductsPageFlag = () => {
-      setForceShowProductsPage(false);
-      showProductsPageRef.current = false;
-    };
-    // Expose function to force show products page (for Header to call)
-    window.forceShowProductsPage = () => {
-      setForceShowProductsPage(true);
-      showProductsPageRef.current = true;
-    };
-    // Expose function to set ID Card view (for Header to call)
     window.setIdCardView = (view) => {
       setIdCardView(view);
       // Save to localStorage to persist through page reloads
       localStorage.setItem('idCardView', view);
     };
+    // Expose function to navigate to marketplace (for Header to call)
+    window.navigateToMarketplace = () => {
+      localStorage.setItem('selectedApp', 'marketplace');
+      setSelectedApp('marketplace');
+    };
     return () => {
-      delete window.resetProductsPageFlag;
-      delete window.forceShowProductsPage;
       delete window.setIdCardView;
+      delete window.navigateToMarketplace;
     };
   }, []);
 
@@ -2076,17 +1983,10 @@ function App() {
       // Don't override if user is on CV Builder or ID Card
       const currentSection = localStorage.getItem('selectedApp');
       if (!currentSection || currentSection === 'marketplace') {
-        localStorage.setItem('showProductsPage', 'true');
-        sessionStorage.setItem('showProductsPage', 'true');
         localStorage.setItem('selectedApp', 'marketplace');
-        // CRITICAL: Don't call setForceShowProductsPage in render - defer it
         setTimeout(() => {
-          setForceShowProductsPage(true);
-          showProductsPageRef.current = true;
+          setSelectedApp('marketplace');
         }, 0);
-        if (window.location.hash !== '#products') {
-          window.location.hash = '#products';
-        }
       }
       // If currentSection is cv-builder or id-card-print, preserve it - don't override
     }
