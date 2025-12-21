@@ -139,16 +139,18 @@ function App() {
     });
   };
 
-  // Handle "Make a new CV" button - Facebook-style instant navigation
+  // Handle "Make a new CV" button - Fresh, simplified logic
   const handleMakeNewCV = () => {
     console.log('handleMakeNewCV called - creating new CV');
     
-    // Ensure we're on CV Builder section
-    localStorage.setItem('selectedApp', 'cv-builder');
+    // Set app to CV Builder and view to form using routing utils
+    setCurrentApp('cv-builder');
+    setCVView('cv-builder');
+    
+    // Update React state
     startTransition(() => {
-      startTransition(() => {
       setSelectedApp('cv-builder');
-    });
+      setCurrentView('cv-builder');
     });
     
     // Clear any old marketplace flags (no longer needed)
@@ -986,13 +988,15 @@ function App() {
 
   const handleBackToDashboard = () => {
     console.log('handleBackToDashboard called - navigating to CV dashboard');
-    // Ensure selectedApp is set to cv-builder
-    localStorage.setItem('selectedApp', 'cv-builder');
+    // Set app to CV Builder and view to dashboard using routing utils
+    setCurrentApp('cv-builder');
+    setCVView('dashboard');
+    
+    // Update React state
     startTransition(() => {
       setSelectedApp('cv-builder');
+      setCurrentView('dashboard');
     });
-    // Navigate to dashboard
-    setCurrentView('dashboard');
   };
 
   // Handle template switching without resetting form data
