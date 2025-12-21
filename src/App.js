@@ -675,36 +675,52 @@ function App() {
     // Only beforeunload and pagehide are used to detect tab/window closes
     
     // Preserve selectedApp when window regains focus - CRITICAL for tab switching
-    // Use requestIdleCallback or setTimeout to prevent state updates during render
+    // This ensures the app stays on the current section when switching tabs/windows
     const handleVisibilityChange = () => {
       if (!document.hidden && isAuthenticated) {
-        // Tab regained focus - restore state from localStorage
-        // Use setTimeout to ensure this doesn't happen during render
-        setTimeout(() => {
-          const savedApp = localStorage.getItem('selectedApp');
+        // Tab regained focus - IMMEDIATELY ensure localStorage is set correctly
+        // Don't wait for state updates - routing reads directly from localStorage
+        const savedApp = localStorage.getItem('selectedApp');
+        
+        // CRITICAL: Ensure selectedApp is preserved in localStorage
+        // If user was on CV Builder or ID Card, make sure it's still set
+        if (savedApp === 'cv-builder' || savedApp === 'id-card-print') {
+          // Ensure it's still in localStorage (defensive)
+          localStorage.setItem('selectedApp', savedApp);
+          // Clear products page flags to prevent redirect to marketplace
+          localStorage.removeItem('showProductsPage');
+          sessionStorage.removeItem('showProductsPage');
           
-          // Only update if different from current state to prevent unnecessary re-renders
-          if (savedApp === 'cv-builder' || savedApp === 'id-card-print') {
-            setSelectedApp(prev => prev !== savedApp ? savedApp : prev);
-            // Clear products page flags
-            localStorage.removeItem('showProductsPage');
-            sessionStorage.removeItem('showProductsPage');
+          // Update React state asynchronously to prevent render issues
+          setTimeout(() => {
+            setSelectedApp(savedApp);
             setForceShowProductsPage(false);
             showProductsPageRef.current = false;
-          } else if (savedApp === 'marketplace') {
-            setSelectedApp(prev => prev !== 'marketplace' ? 'marketplace' : prev);
-            const showProducts = localStorage.getItem('showProductsPage') === 'true' || 
-                                sessionStorage.getItem('showProductsPage') === 'true';
+          }, 0);
+        } else if (savedApp === 'marketplace') {
+          // User is on marketplace - preserve that
+          localStorage.setItem('selectedApp', 'marketplace');
+          const showProducts = localStorage.getItem('showProductsPage') === 'true' || 
+                              sessionStorage.getItem('showProductsPage') === 'true';
+          
+          setTimeout(() => {
+            setSelectedApp('marketplace');
             if (showProducts) {
               setForceShowProductsPage(true);
               showProductsPageRef.current = true;
             }
-          } else if (!savedApp) {
-            // If no saved app, default to marketplace
+          }, 0);
+        } else if (!savedApp) {
+          // No saved app - only default to marketplace if user hasn't navigated anywhere
+          // Don't override if user is on a dashboard
+          const currentHash = window.location.hash;
+          if (!currentHash || currentHash === '#products' || currentHash === '') {
             localStorage.setItem('selectedApp', 'marketplace');
-            setSelectedApp(prev => prev !== 'marketplace' ? 'marketplace' : prev);
+            setTimeout(() => {
+              setSelectedApp('marketplace');
+            }, 0);
           }
-        }, 0);
+        }
       }
     };
     
