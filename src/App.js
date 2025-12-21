@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, startTransition } from 'react';
 import './App.css';
 import { SupabaseProvider } from './components/Supabase';
 import Login from './components/Login/Login';
@@ -756,8 +756,16 @@ function App() {
       const authStateSubscription = supabase.auth.onAuthStateChange(async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.email);
         
-        // Defer all state updates to prevent React error #301
-        setTimeout(() => {
+        // CRITICAL: Skip INITIAL_SESSION - we already handle it in getInitialSession
+        // This prevents React error #301 from INITIAL_SESSION firing during render
+        if (event === 'INITIAL_SESSION') {
+          console.log('Skipping INITIAL_SESSION - already handled by getInitialSession');
+          return;
+        }
+        
+        // Use startTransition to mark all state updates as non-urgent
+        // This prevents React error #301
+        startTransition(() => {
           if (event === 'SIGNED_IN' && session?.user) {
             setIsAuthenticated(true);
             localStorage.setItem('cvBuilderAuth', 'true');
@@ -819,18 +827,8 @@ function App() {
             // Session refreshed - user is still authenticated
             setIsAuthenticated(true);
             localStorage.setItem('cvBuilderAuth', 'true');
-          } else if (event === 'INITIAL_SESSION') {
-            // Initial session check - use session if available
-            if (session?.user) {
-              setIsAuthenticated(true);
-              localStorage.setItem('cvBuilderAuth', 'true');
-            } else {
-              setIsAuthenticated(false);
-              localStorage.removeItem('cvBuilderAuth');
-            }
-            setIsLoading(false);
           }
-        }, 0);
+        });
       });
 
       // Cleanup on unmount
