@@ -572,13 +572,13 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges })
         >
           📄 View A4 Preview
         </button>
-        <button 
+          <button 
           className="download-pdf-button-main"
-          onClick={generatePDF}
-          title="Download CV as PDF"
-        >
+            onClick={generatePDF}
+            title="Download CV as PDF"
+          >
           📥 Download PDF
-        </button>
+          </button>
       </div>
 
       {/* A4 Preview Element - Always rendered for PDF generation, hidden when modal is closed */}
@@ -678,9 +678,9 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges })
               >
                 {renderCVContent()}
               </div>
-            </div>
-          </div>
         </div>
+      </div>
+    </div>
       )}
     </>
   );

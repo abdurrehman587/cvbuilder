@@ -174,12 +174,12 @@ function App() {
     createNewCV(); // Reset the hook state
     
     // Set template to template1 and switch to form view
-    setSelectedTemplate('template1');
+      setSelectedTemplate('template1');
     
     // Update React state using startTransition
     startTransition(() => {
       setSelectedApp('cv-builder');
-      setCurrentView('cv-builder');
+    setCurrentView('cv-builder');
     });
     
     console.log('handleMakeNewCV - Form view activated');
@@ -1120,20 +1120,22 @@ function App() {
     const route = getRoute();
     let routingApp = route.app;
     
-    // CRITICAL: If routingApp is null, empty, or 'marketplace', use last known app or default to cv-builder
-    if (!routingApp || routingApp === 'marketplace') {
+    // CRITICAL: Only redirect if routingApp is null or empty (not if it's explicitly 'marketplace')
+    // If user explicitly clicked Marketplace, we should show it
+    if (!routingApp) {
+      // routingApp is null/empty - use last known app or default to cv-builder
       if (lastKnownAppRef.current && lastKnownAppRef.current !== 'marketplace') {
         routingApp = lastKnownAppRef.current;
         // Restore it to localStorage
         setCurrentApp(routingApp);
       } else {
-        routingApp = 'cv-builder'; // Default to cv-builder, NEVER marketplace
+        routingApp = 'cv-builder'; // Default to cv-builder if no last known app
         setCurrentApp('cv-builder');
       }
     }
     
-    // Update ref to track current app
-    if (routingApp && routingApp !== 'marketplace') {
+    // Update ref to track current app (including marketplace if explicitly set)
+    if (routingApp) {
       lastKnownAppRef.current = routingApp;
     }
     
@@ -1343,11 +1345,11 @@ function App() {
               onEditCV={handleEditCV}
               onCreateNewCV={handleMakeNewCV}
             />
-          </>
+      </>
         )
-      );
-    }
-    
+    );
+  }
+
     // ============================================
     // ID CARD PRINTER SECTION
     // ============================================
@@ -1428,15 +1430,15 @@ function App() {
               isAuthenticated={true} 
           onLogout={handleLogout}
               currentProduct="id-card-print"
-            />
+        />
             <IDCardDashboard 
               onCreateNewIDCard={handleCreateNewIDCard}
             />
-          </>
+      </>
         )
-      );
-    }
-    
+    );
+  }
+
     // ============================================
     // MARKETPLACE SECTION
     // ============================================
@@ -2115,9 +2117,9 @@ function App() {
         />
       </>
         )
-      );
-    }
-    
+    );
+  }
+  
     if (appToShow === 'id-card-print') {
       if (idCardView === 'print') {
         const handleBackToIDCardDashboard = () => {
@@ -2192,15 +2194,15 @@ function App() {
               isAuthenticated={true} 
               onLogout={handleLogout}
               currentProduct="id-card-print"
-            />
+        />
             <IDCardDashboard 
               onCreateNewIDCard={handleCreateNewIDCard}
             />
-          </>
+      </>
         )
-      );
-    }
-    
+    );
+  }
+  
     // Only show marketplace if explicitly set to marketplace
     // CRITICAL: Don't default to marketplace if appToShow is null/empty
     // This prevents redirect to homepage when switching tabs
