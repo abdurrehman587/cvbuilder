@@ -663,16 +663,16 @@ function App() {
     // Only beforeunload and pagehide are used to detect tab/window closes
     
     // Preserve selectedApp when window regains focus - CRITICAL for tab switching
-    // ULTRA-ROBUST: Always preserve last known section, never redirect to marketplace
+    // ULTRA-ROBUST: Always preserve last known section
     const handleVisibilityChange = () => {
       if (!document.hidden && isAuthenticated) {
         // Tab regained focus - IMMEDIATELY preserve current state
         // Priority 1: Check localStorage
         let appToPreserve = localStorage.getItem('selectedApp');
         
-        // Priority 2: If localStorage is empty or marketplace, use last known app from ref
-        if (!appToPreserve || appToPreserve === 'marketplace') {
-          if (lastKnownAppRef.current && lastKnownAppRef.current !== 'marketplace') {
+        // Priority 2: If localStorage is empty (but NOT if it's explicitly 'marketplace'), use last known app from ref
+        if (!appToPreserve) {
+          if (lastKnownAppRef.current) {
             appToPreserve = lastKnownAppRef.current;
             // Restore it to localStorage
             setCurrentApp(appToPreserve);
@@ -683,20 +683,15 @@ function App() {
             } else if (idCardView === 'print') {
               appToPreserve = 'id-card-print';
             } else {
-              // Priority 4: Default to cv-builder (NEVER marketplace)
+              // Priority 4: Default to cv-builder (only if we can't infer)
               appToPreserve = 'cv-builder';
             }
             setCurrentApp(appToPreserve);
           }
         }
+        // If appToPreserve is explicitly 'marketplace', keep it - user wants marketplace
         
-        // CRITICAL: If appToPreserve is marketplace, change it to cv-builder
-        if (appToPreserve === 'marketplace') {
-          appToPreserve = 'cv-builder';
-          setCurrentApp('cv-builder');
-        }
-        
-        // Update ref to track this as last known app
+        // Update ref to track this as last known app (including marketplace)
         lastKnownAppRef.current = appToPreserve;
         
         // Sync React state
@@ -704,11 +699,11 @@ function App() {
           setSelectedApp(appToPreserve);
         });
       } else if (document.hidden && isAuthenticated) {
-        // Tab lost focus - save current app to ref
+        // Tab lost focus - save current app to ref (including marketplace)
         const currentApp = getCurrentApp();
-        if (currentApp && currentApp !== 'marketplace') {
+        if (currentApp) {
           lastKnownAppRef.current = currentApp;
-        } else if (selectedApp && selectedApp !== 'marketplace') {
+        } else if (selectedApp) {
           lastKnownAppRef.current = selectedApp;
         }
       }
