@@ -3,7 +3,7 @@ import usePreviewHandler from './PreviewHandler1';
 import generatePDF from './pdf1';
 import './Preview1.css';
 
-function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges }) {
+function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, selectedTemplate, onTemplateSwitch }) {
   const [showA4Preview, setShowA4Preview] = useState(false);
   const [a4Scale, setA4Scale] = useState(1);
   const [userZoom, setUserZoom] = useState(1);
@@ -622,6 +622,31 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges })
             >
               ×
             </button>
+            
+            {/* Template Switcher */}
+            {onTemplateSwitch && (
+              <div className="a4-preview-template-switcher">
+                <label className="template-switcher-label">Template:</label>
+                <select 
+                  className="template-switcher-select"
+                  value={selectedTemplate || 'template1'}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    if (onTemplateSwitch) {
+                      onTemplateSwitch(e.target.value);
+                    }
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                  title="Switch Template"
+                >
+                  <option value="template1">Template 1</option>
+                  <option value="template2">Template 2</option>
+                  <option value="template3">Template 3</option>
+                  <option value="template4">Template 4</option>
+                  <option value="template5">Template 5 (Europass)</option>
+                </select>
+              </div>
+            )}
             
             {/* Zoom Controls */}
             <div className="a4-preview-zoom-controls">

@@ -1540,6 +1540,8 @@ function App() {
                   formData={formData}
                   autoSaveStatus={hookAutoSaveStatus}
                   hasUnsavedChanges={hookHasUnsavedChanges}
+                  selectedTemplate={selectedTemplate}
+                  onTemplateSwitch={handleTemplateSwitch}
                 />
               </>
             );
