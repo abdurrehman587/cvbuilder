@@ -4,7 +4,7 @@ import generatePDF from './pdf1';
 import { setCVView } from '../../utils/routing';
 import './Preview1.css';
 
-function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, selectedTemplate, onTemplateSwitch }) {
+function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, selectedTemplate, onTemplateSwitch, isPreviewPage }) {
   const [showA4Preview, setShowA4Preview] = useState(false);
   const [a4Scale, setA4Scale] = useState(1);
   const [userZoom, setUserZoom] = useState(1);
