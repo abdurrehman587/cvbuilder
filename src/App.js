@@ -1458,9 +1458,11 @@ function App() {
   
   // PRIORITY: Check if we should show CV Builder form/preview FIRST
   // This ensures that when currentView is 'cv-builder', we show the form instead of dashboard
+  // CRITICAL: Don't show CV form if user is on marketplace
   if (currentView === 'cv-builder' && isAuthenticated && !isLoading) {
     const selectedProduct = localStorage.getItem('selectedApp');
-    if (selectedProduct !== 'id-card-print') {
+    // Don't show CV form if user is on marketplace or id-card-print
+    if (selectedProduct !== 'id-card-print' && selectedProduct !== 'marketplace') {
       console.log('Rendering CV Builder form/preview - currentView is cv-builder');
       const renderFormAndPreview = () => {
         switch (selectedTemplate) {
