@@ -142,12 +142,28 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
   const [userZoom, setUserZoom] = useState(1);
   const a4PreviewRef = useRef(null);
   const { formData: hookFormData, formatContactInfo, updatePreviewData } = usePreviewHandler(propFormData);
+  
   // Use hookFormData as primary source (it merges propFormData with DOM data in PreviewHandler1)
   // This ensures we get all data whether from app state or DOM
-  // If hookFormData is empty or doesn't have data, fall back to propFormData
-  const formData = (hookFormData && (hookFormData.name || hookFormData.education?.length > 0 || hookFormData.experience?.length > 0)) 
-    ? hookFormData 
-    : (propFormData || {});
+  // If hookFormData is empty or doesn't have data, check localStorage and propFormData
+  let formData = hookFormData;
+  
+  // If hookFormData is empty, try localStorage
+  if (!formData || (!formData.name && !formData.education?.length && !formData.experience?.length)) {
+    const storedData = localStorage.getItem('cvFormData');
+    if (storedData) {
+      try {
+        const parsedData = JSON.parse(storedData);
+        console.log('Preview1 - Using stored data from localStorage:', parsedData);
+        formData = parsedData;
+      } catch (e) {
+        console.error('Preview1 - Error parsing stored data:', e);
+        formData = propFormData || {};
+      }
+    } else {
+      formData = propFormData || {};
+    }
+  }
   
   console.log('Preview1 - Final formData:', formData);
   console.log('Preview1 - formData.education:', formData.education);
