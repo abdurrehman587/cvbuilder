@@ -320,10 +320,12 @@ const usePreviewHandler = (passedFormData = null) => {
       };
       console.log('updatePreviewData - mergedData:', mergedData);
       setFormData(mergedData);
+      formDataRef.current = mergedData;
     } else {
       setFormData(newData);
+      formDataRef.current = newData;
     }
-  }, [getFormData, passedFormData, formData]);
+  }, [getFormData, passedFormData]);
 
   // Function to get profile image URL - memoized to prevent flickering
   const getProfileImageUrl = useMemo(() => {
