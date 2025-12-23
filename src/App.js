@@ -663,15 +663,27 @@ function App() {
     // Only beforeunload and pagehide are used to detect tab/window closes
     
     // Preserve selectedApp when window regains focus - CRITICAL for tab switching
-    // ULTRA-ROBUST: Always preserve last known section
+    // ULTRA-ROBUST: Always preserve last known section, NEVER redirect to marketplace
     const handleVisibilityChange = () => {
       if (!document.hidden && isAuthenticated) {
         // Tab regained focus - IMMEDIATELY preserve current state
         // Priority 1: Check localStorage
         let appToPreserve = localStorage.getItem('selectedApp');
         
-        // Priority 2: If localStorage is empty (but NOT if it's explicitly 'marketplace'), use last known app from ref
-        if (!appToPreserve) {
+        // CRITICAL: If appToPreserve is 'marketplace', check if user was actually on marketplace
+        // If lastKnownAppRef has a non-marketplace value, user was NOT on marketplace
+        // This prevents unwanted redirects to marketplace on tab switch
+        if (appToPreserve === 'marketplace') {
+          // If we have a last known app that's NOT marketplace, user was on that section
+          // Only preserve marketplace if lastKnownAppRef is also marketplace
+          if (lastKnownAppRef.current && lastKnownAppRef.current !== 'marketplace') {
+            // User was NOT on marketplace - restore their actual section
+            appToPreserve = lastKnownAppRef.current;
+            setCurrentApp(appToPreserve);
+          }
+          // If lastKnownAppRef is marketplace or null, keep marketplace (user was on it)
+        } else if (!appToPreserve) {
+          // Priority 2: If localStorage is empty, use last known app from ref
           if (lastKnownAppRef.current) {
             appToPreserve = lastKnownAppRef.current;
             // Restore it to localStorage
@@ -683,29 +695,36 @@ function App() {
             } else if (idCardView === 'print') {
               appToPreserve = 'id-card-print';
             } else {
-              // Priority 4: Default to cv-builder (only if we can't infer)
+              // Priority 4: Default to cv-builder (NEVER marketplace)
               appToPreserve = 'cv-builder';
             }
             setCurrentApp(appToPreserve);
           }
         }
-        // If appToPreserve is explicitly 'marketplace', keep it - user wants marketplace
+        // appToPreserve is now guaranteed to NOT be marketplace unless user was actually on it
         
-        // Update ref to track this as last known app (including marketplace)
-        lastKnownAppRef.current = appToPreserve;
+        // Update ref to track this as last known app (but skip marketplace unless user was on it)
+        if (appToPreserve && appToPreserve !== 'marketplace') {
+          lastKnownAppRef.current = appToPreserve;
+        } else if (appToPreserve === 'marketplace' && lastKnownAppRef.current === 'marketplace') {
+          // Only track marketplace if it was already in ref (user was on it)
+          lastKnownAppRef.current = 'marketplace';
+        }
         
         // Sync React state
         startTransition(() => {
           setSelectedApp(appToPreserve);
         });
       } else if (document.hidden && isAuthenticated) {
-        // Tab lost focus - save current app to ref (including marketplace)
+        // Tab lost focus - save current app to ref (but skip marketplace to prevent redirects)
         const currentApp = getCurrentApp();
-        if (currentApp) {
+        if (currentApp && currentApp !== 'marketplace') {
+          // Only save non-marketplace apps to prevent unwanted redirects
           lastKnownAppRef.current = currentApp;
-        } else if (selectedApp) {
+        } else if (selectedApp && selectedApp !== 'marketplace') {
           lastKnownAppRef.current = selectedApp;
         }
+        // Don't save marketplace to ref - this prevents it from being restored on tab switch
       }
     };
     
