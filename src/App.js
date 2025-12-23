@@ -1212,7 +1212,9 @@ function App() {
     // DEBUG: Log final routing decision
     console.log('App.js routing - Final routingApp:', routingApp, 'Will check marketplace:', routingApp === 'marketplace');
     
-    const cvView = route.cvView || 'dashboard';
+    // cvView was already declared at the beginning for preview check
+    // Use it here with default fallback if needed
+    const finalCvView = cvView || 'dashboard';
     const idCardView = route.idCardView || 'dashboard';
     
     // ============================================
