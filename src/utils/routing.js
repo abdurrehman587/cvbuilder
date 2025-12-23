@@ -25,7 +25,7 @@ export const setCurrentApp = (app) => {
 
 /**
  * Get the current view for CV Builder
- * Returns: 'dashboard' or 'cv-builder' (form view)
+ * Returns: 'dashboard', 'cv-builder' (form view), or 'preview' (preview page)
  */
 export const getCVView = () => {
   return localStorage.getItem('cvView') || 'dashboard';
@@ -35,7 +35,7 @@ export const getCVView = () => {
  * Set the current view for CV Builder
  */
 export const setCVView = (view) => {
-  if (view && ['dashboard', 'cv-builder'].includes(view)) {
+  if (view && ['dashboard', 'cv-builder', 'preview'].includes(view)) {
     localStorage.setItem('cvView', view);
   }
 };

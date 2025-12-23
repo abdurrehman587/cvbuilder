@@ -27,6 +27,7 @@ import OrderDetails from './components/OrderDetails/OrderDetails';
 import OrderHistory from './components/OrderHistory/OrderHistory';
 import LeftNavbar from './components/Navbar/LeftNavbar';
 import TopNav from './components/TopNav/TopNav';
+import PreviewPage from './components/PreviewPage/PreviewPage';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
 import { getCurrentApp, setCurrentApp, getCVView, setCVView, getIDCardView, setIDCardView, getRoute } from './utils/routing';
@@ -1517,6 +1518,22 @@ function App() {
 
   // All hash-based routing removed - user will add navigation one by one
   
+  // PRIORITY: Check if we should show Preview Page FIRST
+  // This ensures that when cvView is 'preview', we show the preview page
+  if (cvView === 'preview' && isAuthenticated && !isLoading) {
+    const selectedProduct = localStorage.getItem('selectedApp');
+    // Don't show preview if user is on marketplace or id-card-print
+    if (selectedProduct !== 'id-card-print' && selectedProduct !== 'marketplace') {
+      return (
+        <PreviewPage 
+          formData={formData}
+          selectedTemplate={selectedTemplate}
+          onTemplateSwitch={handleTemplateSwitch}
+        />
+      );
+    }
+  }
+
   // PRIORITY: Check if we should show CV Builder form/preview FIRST
   // This ensures that when currentView is 'cv-builder', we show the form instead of dashboard
   // CRITICAL: Don't show CV form if user is on marketplace

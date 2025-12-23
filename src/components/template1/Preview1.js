@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import usePreviewHandler from './PreviewHandler1';
 import generatePDF from './pdf1';
+import { setCVView } from '../../utils/routing';
 import './Preview1.css';
 
 function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, selectedTemplate, onTemplateSwitch }) {
@@ -561,13 +562,40 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
     </>
   );
 
+  // If this is the preview page, render the preview content directly
+  if (isPreviewPage) {
+    return (
+      <div 
+        className="cv-preview a4-size-preview pdf-mode"
+        style={{
+          width: '800px',
+          minWidth: '800px',
+          maxWidth: '800px',
+          minHeight: '1129px',
+          height: 'auto',
+          margin: '0 auto',
+          display: 'block',
+          boxSizing: 'border-box',
+          background: '#ffffff',
+          padding: '20px',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
+        }}
+      >
+        {renderCVContent()}
+      </div>
+    );
+  }
+
   return (
     <>
       {/* Action Buttons - Below Form */}
       <div className="cv-action-buttons">
         <button 
           className="preview-a4-button"
-          onClick={() => setShowA4Preview(true)}
+          onClick={() => {
+            setCVView('preview');
+            window.location.reload();
+          }}
           title="View A4 Preview"
         >
           📄 View A4 Preview
