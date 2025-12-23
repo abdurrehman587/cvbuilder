@@ -250,10 +250,13 @@ const usePreviewHandler = (passedFormData = null) => {
       console.log('PreviewHandler1 - mergedData.education:', mergedData.education);
       console.log('PreviewHandler1 - mergedData.experience:', mergedData.experience);
       setFormData(mergedData);
+      // Update ref immediately so updatePreviewData can check it
+      formDataRef.current = mergedData;
     } else {
       // If no passedFormData or stored data, just read from DOM
       const domData = getFormData();
       setFormData(domData);
+      formDataRef.current = domData;
     }
   }, [passedFormData, getFormData]);
 
