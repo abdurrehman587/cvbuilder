@@ -19,6 +19,12 @@ const usePreviewHandler = (passedFormData = null) => {
     customSection: [],
     references: []
   });
+  
+  // Use ref to track current formData to avoid stale closure issues
+  const formDataRef = useRef(formData);
+  useEffect(() => {
+    formDataRef.current = formData;
+  }, [formData]);
 
   // Function to get form data from Form1 inputs
   // This reads from DOM, so it works even when form is not visible (like on preview page)
@@ -287,8 +293,11 @@ const usePreviewHandler = (passedFormData = null) => {
     
     // If DOM is empty (form not in DOM, like on preview page), don't overwrite with empty data
     // Only update if DOM has data or if we don't have any data yet
-    if (!domHasData && (dataToUse || formData.name || formData.education?.length > 0 || formData.experience?.length > 0)) {
+    // Use formDataRef to get current state value (not stale closure)
+    const currentFormData = formDataRef.current;
+    if (!domHasData && (dataToUse || currentFormData.name || currentFormData.education?.length > 0 || currentFormData.experience?.length > 0)) {
       console.log('updatePreviewData - DOM is empty but we have data, skipping update to prevent overwrite');
+      console.log('updatePreviewData - currentFormData:', currentFormData);
       return; // Don't overwrite existing data with empty DOM data
     }
     
