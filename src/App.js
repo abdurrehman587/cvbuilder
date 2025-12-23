@@ -68,7 +68,9 @@ function App() {
     certifications: [],
     languages: [],
     hobbies: [],
-    references: []
+    references: [],
+    otherInfo: [],
+    customSection: []
   });
   // Local state for UI (will be overridden by hook)
   const [autoSaveStatus, setAutoSaveStatus] = useState('');

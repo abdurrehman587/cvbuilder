@@ -11,7 +11,8 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
   const a4PreviewRef = useRef(null);
   const { formData: hookFormData, formatContactInfo, updatePreviewData } = usePreviewHandler(propFormData);
   // Use propFormData as primary source (from app state/database) and merge with hook data for DOM-only fields
-  const formData = { 
+  // When on preview page, use propFormData directly since form isn't in DOM
+  const formData = isPreviewPage ? (propFormData || {}) : { 
     ...(propFormData || {}),
     ...(hookFormData || {}),
     profileImage: propFormData?.profileImage || hookFormData?.profileImage,
@@ -246,22 +247,23 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
   }, [showA4Preview, userZoom]);
   
   // Default sections to show on page load: professional-summary, skills, languages, references
+  // Ensure all data is properly extracted from formData
   const displayData = {
-    name: formData.name || '',
-    position: formData.position || '',
-    phone: formData.phone || '',
-    email: formData.email || '',
-    address: formData.address || '',
-    professionalSummary: formData.professionalSummary || 'To work with a organization that offers a creative, dynamic and professional environment, where my education, knowledge, skills and proven abilities can be fully utilized and which also offers learning opportunities for my career development in the long run.',
-    education: formData.education && formData.education.length > 0 ? formData.education : [],
-    experience: formData.experience && formData.experience.length > 0 ? formData.experience : [],
-    skills: Array.isArray(formData.skills) ? formData.skills.filter(skill => skill && skill.trim() !== '') : [],
-    certifications: formData.certifications && formData.certifications.length > 0 ? formData.certifications.filter(cert => cert && cert.trim() !== '') : [],
-    languages: formData.languages && formData.languages.length > 0 ? formData.languages.filter(lang => lang && lang.trim() !== '') : ['English', 'Urdu', 'Punjabi'],
-    hobbies: formData.hobbies && formData.hobbies.length > 0 ? formData.hobbies.filter(hobby => hobby && hobby.trim() !== '') : [],
-    otherInfo: formData.otherInfo && formData.otherInfo.length > 0 ? formData.otherInfo.filter(info => info.value && info.value.trim() !== '') : [],
-    customSection: formData.customSection && formData.customSection.length > 0 ? formData.customSection : [],
-    references: formData.references && formData.references.length > 0 ? formData.references.filter(ref => ref && ref.trim() !== '') : []
+    name: formData?.name || '',
+    position: formData?.position || '',
+    phone: formData?.phone || '',
+    email: formData?.email || '',
+    address: formData?.address || '',
+    professionalSummary: formData?.professionalSummary || 'To work with a organization that offers a creative, dynamic and professional environment, where my education, knowledge, skills and proven abilities can be fully utilized and which also offers learning opportunities for my career development in the long run.',
+    education: Array.isArray(formData?.education) && formData.education.length > 0 ? formData.education : [],
+    experience: Array.isArray(formData?.experience) && formData.experience.length > 0 ? formData.experience : [],
+    skills: Array.isArray(formData?.skills) ? formData.skills.filter(skill => skill && skill.trim() !== '') : [],
+    certifications: Array.isArray(formData?.certifications) && formData.certifications.length > 0 ? formData.certifications.filter(cert => cert && cert.trim() !== '') : [],
+    languages: Array.isArray(formData?.languages) && formData.languages.length > 0 ? formData.languages.filter(lang => lang && lang.trim() !== '') : [],
+    hobbies: Array.isArray(formData?.hobbies) && formData.hobbies.length > 0 ? formData.hobbies.filter(hobby => hobby && hobby.trim() !== '') : [],
+    otherInfo: Array.isArray(formData?.otherInfo) && formData.otherInfo.length > 0 ? formData.otherInfo.filter(info => info && info.value && info.value.trim() !== '') : [],
+    customSection: Array.isArray(formData?.customSection) && formData.customSection.length > 0 ? formData.customSection : [],
+    references: Array.isArray(formData?.references) && formData.references.length > 0 ? formData.references.filter(ref => ref && ref.trim() !== '') : []
   };
   
   // Create local getProfileImageUrl function that uses the merged formData
