@@ -5,14 +5,30 @@ import { setCVView } from '../../utils/routing';
 import './Preview1.css';
 
 // Function to capture all form data from DOM (similar to PreviewHandler1.getFormData)
-const getFormDataFromDOM = () => {
+// Takes existingFormData parameter to preserve profileImage from database
+const getFormDataFromDOM = (existingFormData = null) => {
+  // Get profileImage - prefer existing one (from database) if available, otherwise get from file input
+  let profileImage = null;
+  if (existingFormData?.profileImage) {
+    // If existing profileImage is from database (has .data property), preserve it
+    if (existingFormData.profileImage.data) {
+      profileImage = existingFormData.profileImage;
+    } else if (existingFormData.profileImage instanceof File) {
+      profileImage = existingFormData.profileImage;
+    }
+  }
+  // If no existing profileImage or it's not from database, try to get from file input
+  if (!profileImage) {
+    profileImage = document.getElementById('file-input')?.files?.[0] || null;
+  }
+  
   const data = {
     name: document.getElementById('name-input')?.value || '',
     position: document.getElementById('position-input')?.value || '',
     phone: document.getElementById('phone-input')?.value || '',
     email: document.getElementById('email-input')?.value || '',
     address: document.getElementById('address-input')?.value || '',
-    profileImage: document.getElementById('file-input')?.files?.[0] || null,
+    profileImage: profileImage,
     professionalSummary: document.getElementById('professional-summary-textarea')?.value || '',
     education: [],
     experience: [],
