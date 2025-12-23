@@ -456,34 +456,34 @@
   line-height: 1.3 !important;
 }
 
-/* CV Section - match PDF */
+/* CV Section - match PDF - COMPACT */
 .cv-preview.a4-size-preview.pdf-mode .cv-section {
-  margin-bottom: 6px !important;
-  padding: 12px 16px !important;
+  margin-bottom: 4px !important;
+  padding: 8px 12px !important;
   background: #ffffff !important;
-  border-left: 4px solid #667eea !important;
-  border-radius: 6px !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+  border-left: 3px solid #667eea !important;
+  border-radius: 4px !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06) !important;
   page-break-inside: avoid !important;
   break-inside: avoid !important;
   page-break-after: auto !important;
   break-after: auto !important;
 }
 
-/* Section headings - match PDF */
+/* Section headings - match PDF - COMPACT */
 .cv-preview.a4-size-preview.pdf-mode .section-heading {
-  font-size: 18pt !important;
+  font-size: 16pt !important;
   font-weight: 700 !important;
   color: #667eea !important;
   page-break-after: avoid !important;
   break-after: avoid !important;
   page-break-inside: avoid !important;
   break-inside: avoid !important;
-  margin: 0 0 8px 0 !important;
-  padding-bottom: 6px !important;
-  border-bottom: 2px solid #e8ecf4 !important;
+  margin: 0 0 4px 0 !important;
+  padding-bottom: 3px !important;
+  border-bottom: 1px solid #e8ecf4 !important;
   text-transform: uppercase !important;
-  letter-spacing: 0.5px !important;
+  letter-spacing: 0.3px !important;
   background: none !important;
   -webkit-background-clip: unset !important;
   -webkit-text-fill-color: #667eea !important;
@@ -587,8 +587,10 @@
 
 /* Experience job title - match PDF */
 .cv-preview.a4-size-preview.pdf-mode .experience-job-title {
-  font-size: 16pt !important;
+  font-size: 15pt !important;
   font-weight: 700 !important;
+  flex: 1 !important;
+  margin-right: 8px !important;
 }
 
 /* Experience company - match PDF */
@@ -670,17 +672,17 @@
   break-inside: avoid !important;
 }
 
-/* Professional Summary - match PDF */
+/* Professional Summary - match PDF - COMPACT */
 .cv-preview.a4-size-preview.pdf-mode .professional-summary-text {
-  font-size: 13pt !important;
+  font-size: 12pt !important;
   color: #555 !important;
-  line-height: 1.4 !important;
+  line-height: 1.3 !important;
   margin: 0 !important;
   text-align: justify !important;
-  padding: 10px !important;
+  padding: 6px 8px !important;
   background: #f8f9fa !important;
-  border-radius: 4px !important;
-  border-left: 3px solid #667eea !important;
+  border-radius: 3px !important;
+  border-left: 2px solid #667eea !important;
   border-top: none !important;
   border-right: none !important;
   border-bottom: none !important;
@@ -691,13 +693,13 @@
   box-sizing: border-box !important;
 }
 
-/* Education Items - match PDF */
+/* Education Items - match PDF - COMPACT */
 .cv-preview.a4-size-preview.pdf-mode .education-item {
-  margin-bottom: 6px !important;
-  padding: 8px 12px !important;
+  margin-bottom: 4px !important;
+  padding: 5px 8px !important;
   background: #f8f9fa !important;
-  border-radius: 4px !important;
-  border-left: 3px solid #667eea !important;
+  border-radius: 3px !important;
+  border-left: 2px solid #667eea !important;
   border-top: none !important;
   border-right: none !important;
   border-bottom: none !important;
@@ -725,14 +727,14 @@
 
 /* Experience Items - match PDF */
 .cv-preview.a4-size-preview.pdf-mode .experience-item {
-  margin-bottom: 16px !important;
+  margin-bottom: 10px !important;
   padding: 0 !important;
   background: transparent !important;
   border-radius: 0 !important;
   border-left: none !important;
   box-shadow: none !important;
   border-bottom: 1px solid #e8ecf4 !important;
-  padding-bottom: 12px !important;
+  padding-bottom: 8px !important;
   page-break-inside: avoid !important;
   break-inside: avoid !important;
 }
@@ -745,11 +747,13 @@
 
 .cv-preview.a4-size-preview.pdf-mode .experience-header {
   display: flex !important;
-  flex-direction: column !important;
-  align-items: flex-start !important;
-  margin-bottom: 6px !important;
-  line-height: 1.4 !important;
-  gap: 4px !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-bottom: 4px !important;
+  line-height: 1.3 !important;
+  gap: 8px !important;
+  width: 100% !important;
 }
 
 .cv-preview.a4-size-preview.pdf-mode .experience-company-line {
@@ -760,14 +764,16 @@
 }
 
 .cv-preview.a4-size-preview.pdf-mode .experience-duration {
-  font-size: 12pt !important;
+  font-size: 11pt !important;
   font-weight: 500 !important;
   color: #667eea !important;
   background: #f0f4ff !important;
-  padding: 3px 10px !important;
-  border-radius: 12px !important;
+  padding: 2px 8px !important;
+  border-radius: 10px !important;
   display: inline-block !important;
-  margin-top: 4px !important;
+  margin: 0 !important;
+  flex-shrink: 0 !important;
+  white-space: nowrap !important;
 }
 
 .cv-preview.a4-size-preview.pdf-mode .experience-company {
@@ -785,11 +791,11 @@
 }
 
 .cv-preview.a4-size-preview.pdf-mode .experience-details {
-  font-size: 13pt !important;
+  font-size: 12pt !important;
   color: #555 !important;
-  line-height: 1.5 !important;
+  line-height: 1.4 !important;
   margin-left: 0 !important;
-  margin-top: 8px !important;
+  margin-top: 5px !important;
   padding-left: 0 !important;
   border-left: none !important;
   text-align: left !important;
@@ -812,10 +818,10 @@
   display: block !important;
   width: 100% !important;
   padding: 0 !important;
-  padding-left: 18px !important;
-  font-size: 13pt !important;
+  padding-left: 14px !important;
+  font-size: 12pt !important;
   color: #555 !important;
-  line-height: 1.4 !important;
+  line-height: 1.3 !important;
   text-align: left !important;
   margin-bottom: 0 !important;
   margin-top: 0 !important;
