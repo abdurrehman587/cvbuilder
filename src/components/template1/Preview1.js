@@ -171,6 +171,11 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
       try {
         const parsedData = JSON.parse(storedData);
         console.log('Preview1 - Using stored data from localStorage:', parsedData);
+        // Preserve profileImage from propFormData if it exists and is from database
+        if (propFormData?.profileImage && propFormData.profileImage.data) {
+          parsedData.profileImage = propFormData.profileImage;
+          console.log('Preview1 - Preserved profileImage from propFormData:', parsedData.profileImage);
+        }
         formData = parsedData;
       } catch (e) {
         console.error('Preview1 - Error parsing stored data:', e);
@@ -178,6 +183,12 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
       }
     } else {
       formData = propFormData || {};
+    }
+  } else {
+    // Even if hookFormData has data, preserve profileImage from propFormData if it's from database
+    if (propFormData?.profileImage && propFormData.profileImage.data && (!formData.profileImage || !formData.profileImage.data)) {
+      formData = { ...formData, profileImage: propFormData.profileImage };
+      console.log('Preview1 - Preserved profileImage from propFormData in hookFormData:', formData.profileImage);
     }
   }
   
