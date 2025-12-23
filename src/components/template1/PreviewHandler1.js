@@ -298,9 +298,13 @@ const usePreviewHandler = (passedFormData = null) => {
     // Only update if DOM has data or if we don't have any data yet
     // Use formDataRef to get current state value (not stale closure)
     const currentFormData = formDataRef.current;
-    if (!domHasData && (dataToUse || currentFormData.name || currentFormData.education?.length > 0 || currentFormData.experience?.length > 0)) {
+    const hasExistingData = currentFormData.name || currentFormData.education?.length > 0 || currentFormData.experience?.length > 0;
+    const hasDataToUse = dataToUse && (dataToUse.name || dataToUse.education?.length > 0 || dataToUse.experience?.length > 0);
+    
+    if (!domHasData && (hasDataToUse || hasExistingData)) {
       console.log('updatePreviewData - DOM is empty but we have data, skipping update to prevent overwrite');
       console.log('updatePreviewData - currentFormData:', currentFormData);
+      console.log('updatePreviewData - hasDataToUse:', hasDataToUse, 'hasExistingData:', hasExistingData);
       return; // Don't overwrite existing data with empty DOM data
     }
     
