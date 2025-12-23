@@ -1004,9 +1004,9 @@
   font-weight: 700 !important;
 }
 
-/* Custom section detail - match PDF */
+/* Custom section detail - match PDF - COMPACT */
 .cv-preview.a4-size-preview.pdf-mode .custom-section-detail {
-  font-size: 13pt !important;
+  font-size: 12pt !important;
   font-weight: 400 !important;
 }
 
