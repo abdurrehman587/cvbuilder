@@ -440,20 +440,20 @@
   break-inside: avoid !important;
 }
 
-/* Apply PDF mode styles to A4 preview - Match PDF font sizes exactly */
+/* Apply PDF mode styles to A4 preview - Match PDF font sizes exactly - COMPACT */
 .cv-preview.a4-size-preview.pdf-mode {
-  padding: 20px !important;
+  padding: 15px !important;
   background: #ffffff !important;
-  font-size: 14pt !important;
+  font-size: 13pt !important;
   font-family: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif !important;
 }
 
-/* Base text elements - match PDF */
+/* Base text elements - match PDF - COMPACT */
 .cv-preview.a4-size-preview.pdf-mode p,
 .cv-preview.a4-size-preview.pdf-mode div,
 .cv-preview.a4-size-preview.pdf-mode span {
-  font-size: 14pt !important;
-  line-height: 1.3 !important;
+  font-size: 13pt !important;
+  line-height: 1.25 !important;
 }
 
 /* CV Section - match PDF - COMPACT */
