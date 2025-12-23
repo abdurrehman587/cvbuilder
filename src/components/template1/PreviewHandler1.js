@@ -247,10 +247,31 @@ const usePreviewHandler = (passedFormData = null) => {
   }, [formData.profileImage]);
 
   // Function to update preview data - memoized to prevent infinite re-renders
+  // This reads from DOM and updates state, but also merges with passedFormData if available
   const updatePreviewData = useCallback(() => {
     const newData = getFormData();
-    setFormData(newData);
-  }, [getFormData]);
+    console.log('updatePreviewData - newData from DOM:', newData);
+    
+    // If we have passedFormData, merge it with DOM data
+    if (passedFormData) {
+      const mergedData = {
+        ...newData, // Start with DOM data
+        ...passedFormData, // Override with passed data (from app state)
+        // But ensure these specific fields prefer passed data if they exist
+        profileImage: passedFormData.profileImage || newData.profileImage,
+        customSection: passedFormData.customSection && passedFormData.customSection.length > 0 
+          ? passedFormData.customSection 
+          : (newData.customSection || []),
+        otherInfo: passedFormData.otherInfo && passedFormData.otherInfo.length > 0
+          ? passedFormData.otherInfo
+          : (newData.otherInfo || [])
+      };
+      console.log('updatePreviewData - mergedData:', mergedData);
+      setFormData(mergedData);
+    } else {
+      setFormData(newData);
+    }
+  }, [getFormData, passedFormData]);
 
   // Function to get profile image URL - memoized to prevent flickering
   const getProfileImageUrl = useMemo(() => {
