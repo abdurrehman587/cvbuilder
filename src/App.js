@@ -1115,6 +1115,9 @@ function App() {
     const route = getRoute();
     let routingApp = route.app;
     
+    // DEBUG: Log initial routing state
+    console.log('App.js routing - Initial route.app:', route.app, 'localStorage selectedApp:', localStorage.getItem('selectedApp'));
+    
     // CRITICAL: Only redirect if routingApp is null or empty (not if it's explicitly 'marketplace')
     // If user explicitly clicked Marketplace, we should show it
     if (!routingApp) {
@@ -1134,8 +1137,31 @@ function App() {
       lastKnownAppRef.current = routingApp;
     }
     
+    // DEBUG: Log final routing decision
+    console.log('App.js routing - Final routingApp:', routingApp, 'Will check marketplace:', routingApp === 'marketplace');
+    
     const cvView = route.cvView || 'dashboard';
     const idCardView = route.idCardView || 'dashboard';
+    
+    // ============================================
+    // MARKETPLACE SECTION - CHECK FIRST to prevent override
+    // ============================================
+    if (routingApp === 'marketplace') {
+      console.log('App.js routing - Rendering MARKETPLACE');
+      return wrapWithTopNav(
+        wrapWithNavbar(
+      <>
+        <Header 
+          isAuthenticated={isAuthenticated} 
+              currentProduct="products"
+              showProductsOnHeader={true}
+              onLogout={isAuthenticated ? handleLogout : undefined}
+            />
+            <ProductsPage />
+          </>
+        )
+      );
+    }
     
     // ============================================
     // CV BUILDER SECTION
@@ -1434,24 +1460,7 @@ function App() {
     );
   }
 
-    // ============================================
-    // MARKETPLACE SECTION
-    // ============================================
-    if (routingApp === 'marketplace') {
-      return wrapWithTopNav(
-        wrapWithNavbar(
-      <>
-        <Header 
-          isAuthenticated={isAuthenticated} 
-              currentProduct="products"
-              showProductsOnHeader={true}
-              onLogout={isAuthenticated ? handleLogout : undefined}
-            />
-            <ProductsPage />
-          </>
-        )
-      );
-    }
+    // Marketplace section moved to top to prevent override
   }
 
   // All hash-based routing removed - user will add navigation one by one
