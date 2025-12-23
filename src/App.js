@@ -1520,17 +1520,22 @@ function App() {
   
   // PRIORITY: Check if we should show Preview Page FIRST
   // This ensures that when cvView is 'preview', we show the preview page
-  if (cvView === 'preview' && isAuthenticated && !isLoading) {
-    const selectedProduct = localStorage.getItem('selectedApp');
-    // Don't show preview if user is on marketplace or id-card-print
-    if (selectedProduct !== 'id-card-print' && selectedProduct !== 'marketplace') {
-      return (
-        <PreviewPage 
-          formData={formData}
-          selectedTemplate={selectedTemplate}
-          onTemplateSwitch={handleTemplateSwitch}
-        />
-      );
+  if (isAuthenticated && !isLoading) {
+    const route = getRoute();
+    const cvView = route.cvView;
+    
+    if (cvView === 'preview') {
+      const selectedProduct = localStorage.getItem('selectedApp');
+      // Don't show preview if user is on marketplace or id-card-print
+      if (selectedProduct !== 'id-card-print' && selectedProduct !== 'marketplace') {
+        return (
+          <PreviewPage 
+            formData={formData}
+            selectedTemplate={selectedTemplate}
+            onTemplateSwitch={handleTemplateSwitch}
+          />
+        );
+      }
     }
   }
 
