@@ -202,11 +202,18 @@ const usePreviewHandler = (passedFormData = null) => {
       console.log('PreviewHandler1 - passedFormData:', passedFormData);
       console.log('PreviewHandler1 - domData:', domData);
       
-      // Merge strategy: Use passedFormData as base, but fill in missing fields from DOM
-      const mergedData = {
-        ...domData, // Start with DOM data (has all fields)
+      // Check if DOM has meaningful data (not just empty strings)
+      const domHasData = domData.name || domData.position || domData.phone || 
+                        (domData.education && domData.education.length > 0) ||
+                        (domData.experience && domData.experience.length > 0);
+      
+      // Merge strategy: 
+      // - If DOM has data, use DOM as base and override with passedFormData
+      // - If DOM is empty (form not in DOM), use passedFormData as primary source
+      const mergedData = domHasData ? {
+        ...domData, // Start with DOM data (has all fields from form)
         ...passedFormData, // Override with passed data (from app state)
-        // But ensure these specific fields prefer passed data
+        // But ensure these specific fields prefer passed data if they exist
         profileImage: passedFormData.profileImage || domData.profileImage,
         customSection: passedFormData.customSection && passedFormData.customSection.length > 0 
           ? passedFormData.customSection 
@@ -214,6 +221,11 @@ const usePreviewHandler = (passedFormData = null) => {
         otherInfo: passedFormData.otherInfo && passedFormData.otherInfo.length > 0
           ? passedFormData.otherInfo
           : (domData.otherInfo || [])
+      } : {
+        // DOM is empty, use passedFormData as primary source
+        ...passedFormData,
+        // Still try to get profileImage from DOM if available
+        profileImage: passedFormData.profileImage || domData.profileImage
       };
       
       console.log('PreviewHandler1 - mergedData:', mergedData);
