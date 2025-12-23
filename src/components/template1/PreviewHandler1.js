@@ -266,18 +266,44 @@ const usePreviewHandler = (passedFormData = null) => {
     const newData = getFormData();
     console.log('updatePreviewData - newData from DOM:', newData);
     
-    // If we have passedFormData, merge it with DOM data
-    if (passedFormData) {
+    // Check if DOM has meaningful data
+    const domHasData = newData.name || newData.position || newData.phone || 
+                      (newData.education && newData.education.length > 0) ||
+                      (newData.experience && newData.experience.length > 0);
+    
+    // Check localStorage for stored data (in case form is not in DOM)
+    const storedData = localStorage.getItem('cvFormData');
+    let dataToUse = passedFormData;
+    
+    if (storedData && (!passedFormData || !passedFormData.name)) {
+      try {
+        const parsedData = JSON.parse(storedData);
+        console.log('updatePreviewData - Loaded from localStorage:', parsedData);
+        dataToUse = parsedData;
+      } catch (e) {
+        console.error('updatePreviewData - Error parsing stored data:', e);
+      }
+    }
+    
+    // If DOM is empty (form not in DOM, like on preview page), don't overwrite with empty data
+    // Only update if DOM has data or if we don't have any data yet
+    if (!domHasData && (dataToUse || formData.name || formData.education?.length > 0 || formData.experience?.length > 0)) {
+      console.log('updatePreviewData - DOM is empty but we have data, skipping update to prevent overwrite');
+      return; // Don't overwrite existing data with empty DOM data
+    }
+    
+    // If we have dataToUse, merge it with DOM data
+    if (dataToUse) {
       const mergedData = {
         ...newData, // Start with DOM data
-        ...passedFormData, // Override with passed data (from app state)
-        // But ensure these specific fields prefer passed data if they exist
-        profileImage: passedFormData.profileImage || newData.profileImage,
-        customSection: passedFormData.customSection && passedFormData.customSection.length > 0 
-          ? passedFormData.customSection 
+        ...dataToUse, // Override with dataToUse (from app state or localStorage)
+        // But ensure these specific fields prefer dataToUse if they exist
+        profileImage: dataToUse.profileImage || newData.profileImage,
+        customSection: dataToUse.customSection && dataToUse.customSection.length > 0 
+          ? dataToUse.customSection 
           : (newData.customSection || []),
-        otherInfo: passedFormData.otherInfo && passedFormData.otherInfo.length > 0
-          ? passedFormData.otherInfo
+        otherInfo: dataToUse.otherInfo && dataToUse.otherInfo.length > 0
+          ? dataToUse.otherInfo
           : (newData.otherInfo || [])
       };
       console.log('updatePreviewData - mergedData:', mergedData);
@@ -285,7 +311,7 @@ const usePreviewHandler = (passedFormData = null) => {
     } else {
       setFormData(newData);
     }
-  }, [getFormData, passedFormData]);
+  }, [getFormData, passedFormData, formData]);
 
   // Function to get profile image URL - memoized to prevent flickering
   const getProfileImageUrl = useMemo(() => {

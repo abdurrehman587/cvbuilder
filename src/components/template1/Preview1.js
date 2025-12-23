@@ -154,9 +154,12 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
   console.log('Preview1 - formData.experience:', formData.experience);
 
   // Refresh preview data from form inputs whenever app form data changes
+  // Only update if not on preview page (where form is not in DOM)
   useEffect(() => {
-    updatePreviewData();
-  }, [propFormData, updatePreviewData]);
+    if (!isPreviewPage) {
+      updatePreviewData();
+    }
+  }, [propFormData, updatePreviewData, isPreviewPage]);
 
   // Reset zoom and ensure consistent formatting when CV name changes (switching between CVs)
   // This ensures consistent formatting when switching between different CVs
