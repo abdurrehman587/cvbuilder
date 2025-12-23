@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 
 const usePreviewHandler = (passedFormData = null) => {
   const [formData, setFormData] = useState({
