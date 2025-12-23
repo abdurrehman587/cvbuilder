@@ -12,7 +12,14 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
   const { formData: hookFormData, formatContactInfo, updatePreviewData } = usePreviewHandler(propFormData);
   // Use hookFormData as primary source (it merges propFormData with DOM data in PreviewHandler1)
   // This ensures we get all data whether from app state or DOM
-  const formData = hookFormData || propFormData || {};
+  // If hookFormData is empty or doesn't have data, fall back to propFormData
+  const formData = (hookFormData && (hookFormData.name || hookFormData.education?.length > 0 || hookFormData.experience?.length > 0)) 
+    ? hookFormData 
+    : (propFormData || {});
+  
+  console.log('Preview1 - Final formData:', formData);
+  console.log('Preview1 - formData.education:', formData.education);
+  console.log('Preview1 - formData.experience:', formData.experience);
 
   // Refresh preview data from form inputs whenever app form data changes
   useEffect(() => {

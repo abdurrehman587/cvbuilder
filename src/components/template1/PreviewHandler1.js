@@ -197,31 +197,25 @@ const usePreviewHandler = (passedFormData = null) => {
   // Use passed form data if available, but also read from DOM to get latest values
   useEffect(() => {
     if (passedFormData) {
-      // Merge passed data with DOM data to ensure we have everything
+      // Always use passedFormData as primary source (from App.js state)
+      // This ensures we have all data even when form is not in DOM (preview page)
       const domData = getFormData();
       console.log('PreviewHandler1 - passedFormData:', passedFormData);
       console.log('PreviewHandler1 - domData:', domData);
       
-      // Check if DOM has meaningful data (not just empty strings)
+      // Check if DOM has meaningful data (form is still in DOM)
       const domHasData = domData.name || domData.position || domData.phone || 
                         (domData.education && domData.education.length > 0) ||
                         (domData.experience && domData.experience.length > 0);
       
-      // Check if passedFormData has meaningful data
-      const passedHasData = passedFormData.name || passedFormData.position || passedFormData.phone ||
-                           (passedFormData.education && passedFormData.education.length > 0) ||
-                           (passedFormData.experience && passedFormData.experience.length > 0);
-      
-      console.log('PreviewHandler1 - domHasData:', domHasData, 'passedHasData:', passedHasData);
-      
       // Merge strategy: 
-      // - If DOM has data, use DOM as base and override with passedFormData
-      // - If DOM is empty (form not in DOM), use passedFormData as primary source
-      // - Always prefer the source that has more complete data
-      const mergedData = domHasData ? {
-        ...domData, // Start with DOM data (has all fields from form)
-        ...passedFormData, // Override with passed data (from app state)
-        // But ensure these specific fields prefer passed data if they exist
+      // - Always start with passedFormData (from App.js state) as it's the source of truth
+      // - If DOM has data, merge DOM data to fill in any gaps
+      // - This ensures we have all data whether form is in DOM or not
+      const mergedData = {
+        ...passedFormData, // Start with passedFormData (source of truth from App.js)
+        ...(domHasData ? domData : {}), // Only merge DOM data if it has meaningful content
+        // Ensure these fields prefer passedFormData
         profileImage: passedFormData.profileImage || domData.profileImage,
         customSection: passedFormData.customSection && passedFormData.customSection.length > 0 
           ? passedFormData.customSection 
@@ -229,18 +223,11 @@ const usePreviewHandler = (passedFormData = null) => {
         otherInfo: passedFormData.otherInfo && passedFormData.otherInfo.length > 0
           ? passedFormData.otherInfo
           : (domData.otherInfo || [])
-      } : (passedHasData ? {
-        // DOM is empty but passedFormData has data, use passedFormData as primary source
-        ...passedFormData,
-        // Still try to get profileImage from DOM if available
-        profileImage: passedFormData.profileImage || domData.profileImage
-      } : {
-        // Both are empty, use passedFormData as fallback
-        ...passedFormData,
-        ...domData
-      });
+      };
       
       console.log('PreviewHandler1 - mergedData:', mergedData);
+      console.log('PreviewHandler1 - mergedData.education:', mergedData.education);
+      console.log('PreviewHandler1 - mergedData.experience:', mergedData.experience);
       setFormData(mergedData);
     } else {
       // If no passedFormData, just read from DOM
