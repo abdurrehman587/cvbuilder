@@ -10,17 +10,9 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
   const [userZoom, setUserZoom] = useState(1);
   const a4PreviewRef = useRef(null);
   const { formData: hookFormData, formatContactInfo, updatePreviewData } = usePreviewHandler(propFormData);
-  // Use propFormData as primary source (from app state/database) and merge with hook data for DOM-only fields
-  // Always merge both sources to ensure we have all data (form might still be in DOM even on preview page)
-  const formData = { 
-    ...(propFormData || {}),
-    ...(hookFormData || {}),
-    profileImage: propFormData?.profileImage || hookFormData?.profileImage,
-    // Ensure customSection comes from propFormData (app state) not DOM, but fallback to hookFormData
-    customSection: propFormData?.customSection || hookFormData?.customSection || [],
-    // Ensure otherInfo comes from propFormData (app state) not DOM, but fallback to hookFormData
-    otherInfo: propFormData?.otherInfo || hookFormData?.otherInfo || []
-  };
+  // Use hookFormData as primary source (it merges propFormData with DOM data in PreviewHandler1)
+  // This ensures we get all data whether from app state or DOM
+  const formData = hookFormData || propFormData || {};
 
   // Refresh preview data from form inputs whenever app form data changes
   useEffect(() => {
