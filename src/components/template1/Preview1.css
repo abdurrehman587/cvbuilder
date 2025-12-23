@@ -593,15 +593,27 @@
   margin-right: 8px !important;
 }
 
-/* Experience company - match PDF */
+/* Experience company - match PDF - COMPACT */
 .cv-preview.a4-size-preview.pdf-mode .experience-company {
-  font-size: 13pt !important;
+  font-size: 12pt !important;
   font-weight: 600 !important;
+  color: #667eea !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
-/* Experience duration - match PDF */
+/* Experience duration - match PDF - COMPACT */
 .cv-preview.a4-size-preview.pdf-mode .experience-duration {
-  font-size: 12pt !important;
+  font-size: 11pt !important;
+  font-weight: 500 !important;
+  color: #667eea !important;
+  background: #f0f4ff !important;
+  padding: 2px 8px !important;
+  border-radius: 10px !important;
+  display: inline-block !important;
+  margin: 0 !important;
+  flex-shrink: 0 !important;
+  white-space: nowrap !important;
 }
 
 /* Profile Image Container - match PDF */
@@ -777,7 +789,7 @@
 }
 
 .cv-preview.a4-size-preview.pdf-mode .experience-company {
-  font-size: 13pt !important;
+  font-size: 12pt !important;
   font-weight: 600 !important;
   color: #667eea !important;
   margin: 0 !important;
