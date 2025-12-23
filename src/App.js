@@ -1243,7 +1243,7 @@ function App() {
     if (routingApp === 'cv-builder') {
       // Check if user wants to see the form (cvView === 'cv-builder' OR currentView === 'cv-builder')
       // This takes priority over showing the dashboard
-      if (cvView === 'cv-builder' || currentView === 'cv-builder') {
+      if (finalCvView === 'cv-builder' || currentView === 'cv-builder') {
         // Show CV Builder form/preview
         const renderFormAndPreview = () => {
           switch (selectedTemplate) {
