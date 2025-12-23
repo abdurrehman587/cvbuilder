@@ -34,7 +34,7 @@ const usePreviewHandler = (passedFormData = null) => {
         otherInfo: passedFormData.otherInfo || domData.otherInfo || []
       });
     }
-  }, [passedFormData]);
+  }, [passedFormData, getFormData]);
 
   // Cleanup object URLs to prevent memory leaks
   useEffect(() => {
@@ -217,6 +217,31 @@ const usePreviewHandler = (passedFormData = null) => {
 
     return data;
   }, [formData.hobbies]);
+
+  // Use passed form data if available, but also read from DOM to get latest values
+  useEffect(() => {
+    if (passedFormData) {
+      // Merge passed data with DOM data to ensure we have everything
+      const domData = getFormData();
+      setFormData({
+        ...passedFormData,
+        ...domData,
+        // Prefer passed data for these fields (from app state/database)
+        profileImage: passedFormData.profileImage || domData.profileImage,
+        customSection: passedFormData.customSection || domData.customSection || [],
+        otherInfo: passedFormData.otherInfo || domData.otherInfo || []
+      });
+    }
+  }, [passedFormData, getFormData]);
+
+  // Cleanup object URLs to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (formData.profileImage && formData.profileImage instanceof File) {
+        URL.revokeObjectURL(URL.createObjectURL(formData.profileImage));
+      }
+    };
+  }, [formData.profileImage]);
 
   // Function to update preview data - memoized to prevent infinite re-renders
   const updatePreviewData = useCallback(() => {
