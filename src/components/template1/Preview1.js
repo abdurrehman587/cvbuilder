@@ -613,8 +613,12 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges })
           <div className="a4-preview-modal-content" onClick={(e) => e.stopPropagation()}>
             <button 
               className="a4-preview-close-button"
-              onClick={() => setShowA4Preview(false)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowA4Preview(false);
+              }}
               aria-label="Close Preview"
+              title="Close Preview"
             >
               ×
             </button>
