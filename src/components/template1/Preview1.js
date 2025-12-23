@@ -40,7 +40,12 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
 
 
   // Ensure dynamic inputs update preview on typing
+  // Only listen to DOM events if not on preview page
   useEffect(() => {
+    if (isPreviewPage) {
+      return; // Don't listen to DOM events on preview page
+    }
+    
     const onInput = (e) => {
       if (e && e.target && e.target.classList && (
         e.target.classList.contains('father-name-input') ||
@@ -57,7 +62,7 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
     };
     document.addEventListener('input', onInput, true);
     return () => document.removeEventListener('input', onInput, true);
-  }, [updatePreviewData]);
+  }, [updatePreviewData, isPreviewPage]);
 
   // Add page break indicators and prevent section cutoff
   useEffect(() => {

@@ -65,26 +65,47 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
           ← Back
         </button>
 
-        {/* Template Switcher */}
+        {/* Template Switcher - Buttons */}
         {onTemplateSwitch && (
           <div className="preview-page-template-switcher">
             <label className="preview-template-label">Template:</label>
-            <select 
-              className="preview-template-select"
-              value={selectedTemplate || 'template1'}
-              onChange={(e) => {
-                if (onTemplateSwitch) {
-                  onTemplateSwitch(e.target.value);
-                }
-              }}
-              title="Switch Template"
-            >
-              <option value="template1">Template 1</option>
-              <option value="template2">Template 2</option>
-              <option value="template3">Template 3</option>
-              <option value="template4">Template 4</option>
-              <option value="template5">Template 5 (Europass)</option>
-            </select>
+            <div className="preview-template-buttons">
+              <button
+                className={`preview-template-button ${selectedTemplate === 'template1' ? 'active' : ''}`}
+                onClick={() => onTemplateSwitch('template1')}
+                title="Template 1"
+              >
+                T1
+              </button>
+              <button
+                className={`preview-template-button ${selectedTemplate === 'template2' ? 'active' : ''}`}
+                onClick={() => onTemplateSwitch('template2')}
+                title="Template 2"
+              >
+                T2
+              </button>
+              <button
+                className={`preview-template-button ${selectedTemplate === 'template3' ? 'active' : ''}`}
+                onClick={() => onTemplateSwitch('template3')}
+                title="Template 3"
+              >
+                T3
+              </button>
+              <button
+                className={`preview-template-button ${selectedTemplate === 'template4' ? 'active' : ''}`}
+                onClick={() => onTemplateSwitch('template4')}
+                title="Template 4"
+              >
+                T4
+              </button>
+              <button
+                className={`preview-template-button ${selectedTemplate === 'template5' ? 'active' : ''}`}
+                onClick={() => onTemplateSwitch('template5')}
+                title="Template 5 (Europass)"
+              >
+                T5
+              </button>
+            </div>
           </div>
         )}
 

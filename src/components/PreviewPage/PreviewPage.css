@@ -60,10 +60,16 @@
   white-space: nowrap;
 }
 
-.preview-template-select {
-  background: #667eea;
-  color: white;
-  border: none;
+.preview-template-buttons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.preview-template-button {
+  background: #e5e7eb;
+  color: #4b5563;
+  border: 2px solid transparent;
   border-radius: 8px;
   padding: 8px 16px;
   font-size: 14px;
@@ -71,23 +77,24 @@
   cursor: pointer;
   outline: none;
   transition: all 0.2s;
-  min-width: 160px;
+  min-width: 50px;
 }
 
-.preview-template-select:hover {
+.preview-template-button:hover {
+  background: #d1d5db;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.preview-template-button.active {
+  background: #667eea;
+  color: white;
+  border-color: #5568d3;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.preview-template-button.active:hover {
   background: #5568d3;
-  transform: scale(1.02);
-}
-
-.preview-template-select:focus {
-  background: #5568d3;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
-}
-
-.preview-template-select option {
-  background: white;
-  color: #2c3e50;
-  padding: 8px;
 }
 
 .preview-page-download-button {
@@ -138,12 +145,22 @@
 
   .preview-page-template-switcher {
     width: 100%;
-    justify-content: space-between;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
   }
 
-  .preview-template-select {
-    flex: 1;
-    min-width: 0;
+  .preview-template-buttons {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+  }
+
+  .preview-template-button {
+    width: 100%;
+    padding: 10px 8px;
+    font-size: 12px;
   }
 
   .preview-page-download-button {
