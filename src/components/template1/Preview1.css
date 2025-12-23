@@ -395,7 +395,7 @@
 
 @media screen and (max-width: 768px) {
   .a4-preview-zoom-controls {
-    top: 50px;
+    top: 110px;
     padding: 6px 10px;
     gap: 6px;
   }
