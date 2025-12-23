@@ -199,14 +199,29 @@ const usePreviewHandler = (passedFormData = null) => {
     if (passedFormData) {
       // Merge passed data with DOM data to ensure we have everything
       const domData = getFormData();
-      setFormData({
-        ...passedFormData,
-        ...domData,
-        // Prefer passed data for these fields (from app state/database)
+      console.log('PreviewHandler1 - passedFormData:', passedFormData);
+      console.log('PreviewHandler1 - domData:', domData);
+      
+      // Merge strategy: Use passedFormData as base, but fill in missing fields from DOM
+      const mergedData = {
+        ...domData, // Start with DOM data (has all fields)
+        ...passedFormData, // Override with passed data (from app state)
+        // But ensure these specific fields prefer passed data
         profileImage: passedFormData.profileImage || domData.profileImage,
-        customSection: passedFormData.customSection || domData.customSection || [],
-        otherInfo: passedFormData.otherInfo || domData.otherInfo || []
-      });
+        customSection: passedFormData.customSection && passedFormData.customSection.length > 0 
+          ? passedFormData.customSection 
+          : (domData.customSection || []),
+        otherInfo: passedFormData.otherInfo && passedFormData.otherInfo.length > 0
+          ? passedFormData.otherInfo
+          : (domData.otherInfo || [])
+      };
+      
+      console.log('PreviewHandler1 - mergedData:', mergedData);
+      setFormData(mergedData);
+    } else {
+      // If no passedFormData, just read from DOM
+      const domData = getFormData();
+      setFormData(domData);
     }
   }, [passedFormData, getFormData]);
 

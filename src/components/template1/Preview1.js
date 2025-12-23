@@ -264,6 +264,11 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
   
   // Default sections to show on page load: professional-summary, skills, languages, references
   // Ensure all data is properly extracted from formData
+  // Debug: Log formData to see what we're getting
+  console.log('Preview1 - Full formData:', formData);
+  console.log('Preview1 - propFormData:', propFormData);
+  console.log('Preview1 - hookFormData:', hookFormData);
+  
   const displayData = {
     name: formData?.name || '',
     position: formData?.position || '',
@@ -281,6 +286,8 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
     customSection: Array.isArray(formData?.customSection) && formData.customSection.length > 0 ? formData.customSection : [],
     references: Array.isArray(formData?.references) && formData.references.length > 0 ? formData.references.filter(ref => ref && ref.trim() !== '') : []
   };
+  
+  console.log('Preview1 - displayData:', displayData);
   
   // Create local getProfileImageUrl function that uses the merged formData
   const getLocalProfileImageUrl = () => {
