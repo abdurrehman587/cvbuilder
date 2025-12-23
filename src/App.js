@@ -1537,29 +1537,6 @@ function App() {
 
   // All hash-based routing removed - user will add navigation one by one
   
-  // PRIORITY: Check if we should show Preview Page FIRST (before any other routing)
-  // This ensures that when cvView is 'preview', we show the preview page
-  if (isAuthenticated && !isLoading) {
-    const route = getRoute();
-    const cvView = route.cvView;
-    
-    // Check for preview page - this must happen before any other CV Builder routing
-    if (cvView === 'preview') {
-      const selectedProduct = localStorage.getItem('selectedApp');
-      // Don't show preview if user is on marketplace or id-card-print
-      if (selectedProduct !== 'id-card-print' && selectedProduct !== 'marketplace') {
-        console.log('App.js: Rendering Preview Page - cvView is preview');
-        return (
-          <PreviewPage 
-            formData={formData}
-            selectedTemplate={selectedTemplate}
-            onTemplateSwitch={handleTemplateSwitch}
-          />
-        );
-      }
-    }
-  }
-
   // PRIORITY: Check if we should show CV Builder form/preview FIRST
   // This ensures that when currentView is 'cv-builder', we show the form instead of dashboard
   // CRITICAL: Don't show CV form if user is on marketplace
