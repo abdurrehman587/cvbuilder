@@ -477,6 +477,22 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
       if (formData.profileImage.data) {
         return formData.profileImage.data;
       }
+      // If it's a string (direct base64 URL), use it directly
+      if (typeof formData.profileImage === 'string') {
+        return formData.profileImage;
+      }
+    }
+    // Also check propFormData as fallback
+    if (propFormData?.profileImage) {
+      if (propFormData.profileImage instanceof File) {
+        return URL.createObjectURL(propFormData.profileImage);
+      }
+      if (propFormData.profileImage.data) {
+        return propFormData.profileImage.data;
+      }
+      if (typeof propFormData.profileImage === 'string') {
+        return propFormData.profileImage;
+      }
     }
     return null;
   };
