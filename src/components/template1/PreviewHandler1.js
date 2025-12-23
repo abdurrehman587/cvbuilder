@@ -196,11 +196,26 @@ const usePreviewHandler = (passedFormData = null) => {
 
   // Use passed form data if available, but also read from DOM to get latest values
   useEffect(() => {
-    if (passedFormData) {
-      // Always use passedFormData as primary source (from App.js state)
+    // First, check localStorage for form data (in case it was stored before navigation)
+    const storedData = localStorage.getItem('cvFormData');
+    let dataToUse = passedFormData;
+    
+    if (storedData && (!passedFormData || !passedFormData.name)) {
+      try {
+        const parsedData = JSON.parse(storedData);
+        console.log('PreviewHandler1 - Loaded form data from localStorage:', parsedData);
+        dataToUse = parsedData;
+      } catch (e) {
+        console.error('PreviewHandler1 - Error parsing stored form data:', e);
+      }
+    }
+    
+    if (dataToUse) {
+      // Always use dataToUse as primary source (from App.js state or localStorage)
       // This ensures we have all data even when form is not in DOM (preview page)
       const domData = getFormData();
       console.log('PreviewHandler1 - passedFormData:', passedFormData);
+      console.log('PreviewHandler1 - dataToUse:', dataToUse);
       console.log('PreviewHandler1 - domData:', domData);
       
       // Check if DOM has meaningful data (form is still in DOM)
@@ -209,19 +224,19 @@ const usePreviewHandler = (passedFormData = null) => {
                         (domData.experience && domData.experience.length > 0);
       
       // Merge strategy: 
-      // - Always start with passedFormData (from App.js state) as it's the source of truth
+      // - Always start with dataToUse (from App.js state or localStorage) as it's the source of truth
       // - If DOM has data, merge DOM data to fill in any gaps
       // - This ensures we have all data whether form is in DOM or not
       const mergedData = {
-        ...passedFormData, // Start with passedFormData (source of truth from App.js)
+        ...dataToUse, // Start with dataToUse (source of truth)
         ...(domHasData ? domData : {}), // Only merge DOM data if it has meaningful content
-        // Ensure these fields prefer passedFormData
-        profileImage: passedFormData.profileImage || domData.profileImage,
-        customSection: passedFormData.customSection && passedFormData.customSection.length > 0 
-          ? passedFormData.customSection 
+        // Ensure these fields prefer dataToUse
+        profileImage: dataToUse.profileImage || domData.profileImage,
+        customSection: dataToUse.customSection && dataToUse.customSection.length > 0 
+          ? dataToUse.customSection 
           : (domData.customSection || []),
-        otherInfo: passedFormData.otherInfo && passedFormData.otherInfo.length > 0
-          ? passedFormData.otherInfo
+        otherInfo: dataToUse.otherInfo && dataToUse.otherInfo.length > 0
+          ? dataToUse.otherInfo
           : (domData.otherInfo || [])
       };
       
@@ -230,7 +245,7 @@ const usePreviewHandler = (passedFormData = null) => {
       console.log('PreviewHandler1 - mergedData.experience:', mergedData.experience);
       setFormData(mergedData);
     } else {
-      // If no passedFormData, just read from DOM
+      // If no passedFormData or stored data, just read from DOM
       const domData = getFormData();
       setFormData(domData);
     }

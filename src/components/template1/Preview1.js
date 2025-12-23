@@ -4,7 +4,7 @@ import generatePDF from './pdf1';
 import { setCVView } from '../../utils/routing';
 import './Preview1.css';
 
-function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, selectedTemplate, onTemplateSwitch, isPreviewPage }) {
+function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, selectedTemplate, onTemplateSwitch, isPreviewPage, updateFormData }) {
   const [showA4Preview, setShowA4Preview] = useState(false);
   const [a4Scale, setA4Scale] = useState(1);
   const [userZoom, setUserZoom] = useState(1);
@@ -621,11 +621,24 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
       <div className="cv-action-buttons">
         <button 
           className="preview-a4-button"
-          onClick={() => {
-            console.log('Preview button clicked - setting cvView to preview');
-            // First, update preview data to capture all current form data from DOM
-            updatePreviewData();
-            // Small delay to ensure data is captured before navigation
+          onClick={async () => {
+            console.log('Preview button clicked - capturing form data and syncing to App.js');
+            
+            // Capture all form data from DOM
+            const capturedData = getFormDataFromDOM();
+            console.log('Captured form data from DOM:', capturedData);
+            
+            // Sync to App.js state if updateFormData is available
+            if (updateFormData) {
+              updateFormData(capturedData);
+              console.log('Synced form data to App.js state');
+            } else {
+              // Fallback: Store in localStorage
+              localStorage.setItem('cvFormData', JSON.stringify(capturedData));
+              console.log('Stored form data in localStorage');
+            }
+            
+            // Small delay to ensure data is synced
             setTimeout(() => {
               setCVView('preview');
               // Ensure selectedApp is set to cv-builder

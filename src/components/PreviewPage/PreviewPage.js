@@ -11,6 +11,21 @@ import Preview4 from '../template4/Preview4';
 import Preview5 from '../template5/Preview5';
 
 function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
+  // On mount, check if formData is empty and try to load from localStorage
+  useEffect(() => {
+    if ((!formData || !formData.name) && !formData?.education?.length && !formData?.experience?.length) {
+      const storedData = localStorage.getItem('cvFormData');
+      if (storedData) {
+        try {
+          const parsedData = JSON.parse(storedData);
+          console.log('PreviewPage - Loaded form data from localStorage:', parsedData);
+          // Note: We can't update App.js state from here, but PreviewHandler1 will use this
+        } catch (e) {
+          console.error('PreviewPage - Error parsing stored form data:', e);
+        }
+      }
+    }
+  }, []);
   const [userZoom, setUserZoom] = useState(1);
   const previewRef = useRef(null);
 
