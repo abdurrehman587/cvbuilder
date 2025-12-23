@@ -818,8 +818,9 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
           onClick={async () => {
             console.log('Preview button clicked - capturing form data and syncing to App.js');
             
-            // Capture all form data from DOM
-            const capturedData = getFormDataFromDOM();
+            // Capture all form data from DOM, preserving profileImage from existing formData if it's from database
+            const existingData = propFormData || hookFormData || formData;
+            const capturedData = getFormDataFromDOM(existingData);
             console.log('Captured form data from DOM:', capturedData);
             
             // Sync to App.js state if updateFormData is available
