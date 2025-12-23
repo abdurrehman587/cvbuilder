@@ -20,10 +20,19 @@ const usePreviewHandler = (passedFormData = null) => {
     references: []
   });
 
-  // Use passed form data if available
+  // Use passed form data if available, but also read from DOM to get latest values
   useEffect(() => {
     if (passedFormData) {
-      setFormData(passedFormData);
+      // Merge passed data with DOM data to ensure we have everything
+      const domData = getFormData();
+      setFormData({
+        ...passedFormData,
+        ...domData,
+        // Prefer passed data for these fields (from app state/database)
+        profileImage: passedFormData.profileImage || domData.profileImage,
+        customSection: passedFormData.customSection || domData.customSection || [],
+        otherInfo: passedFormData.otherInfo || domData.otherInfo || []
+      });
     }
   }, [passedFormData]);
 

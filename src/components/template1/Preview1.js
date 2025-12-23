@@ -11,13 +11,15 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
   const a4PreviewRef = useRef(null);
   const { formData: hookFormData, formatContactInfo, updatePreviewData } = usePreviewHandler(propFormData);
   // Use propFormData as primary source (from app state/database) and merge with hook data for DOM-only fields
-  // When on preview page, use propFormData directly since form isn't in DOM
-  const formData = isPreviewPage ? (propFormData || {}) : { 
+  // Always merge both sources to ensure we have all data (form might still be in DOM even on preview page)
+  const formData = { 
     ...(propFormData || {}),
     ...(hookFormData || {}),
     profileImage: propFormData?.profileImage || hookFormData?.profileImage,
-    // Ensure customSection comes from propFormData (app state) not DOM
-    customSection: propFormData?.customSection || hookFormData?.customSection || []
+    // Ensure customSection comes from propFormData (app state) not DOM, but fallback to hookFormData
+    customSection: propFormData?.customSection || hookFormData?.customSection || [],
+    // Ensure otherInfo comes from propFormData (app state) not DOM, but fallback to hookFormData
+    otherInfo: propFormData?.otherInfo || hookFormData?.otherInfo || []
   };
 
   // Refresh preview data from form inputs whenever app form data changes
@@ -41,12 +43,8 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
 
 
   // Ensure dynamic inputs update preview on typing
-  // Only listen to DOM events if not on preview page
+  // Listen to DOM events to catch real-time updates (form might still be in DOM)
   useEffect(() => {
-    if (isPreviewPage) {
-      return; // Don't listen to DOM events on preview page
-    }
-    
     const onInput = (e) => {
       if (e && e.target && e.target.classList && (
         e.target.classList.contains('father-name-input') ||
@@ -56,14 +54,32 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
         e.target.classList.contains('marital-status-input') ||
         e.target.classList.contains('religion-input') ||
         e.target.classList.contains('custom-label-input-field') ||
-        e.target.classList.contains('custom-value-input-field')
+        e.target.classList.contains('custom-value-input-field') ||
+        e.target.classList.contains('degree-input') ||
+        e.target.classList.contains('board-input') ||
+        e.target.classList.contains('year-input') ||
+        e.target.classList.contains('marks-input') ||
+        e.target.classList.contains('job-title-input') ||
+        e.target.classList.contains('company-input') ||
+        e.target.classList.contains('duration-input') ||
+        e.target.classList.contains('job-details-textarea') ||
+        e.target.id === 'name-input' ||
+        e.target.id === 'position-input' ||
+        e.target.id === 'phone-input' ||
+        e.target.id === 'email-input' ||
+        e.target.id === 'address-input' ||
+        e.target.id === 'professional-summary-textarea'
       )) {
         updatePreviewData();
       }
     };
     document.addEventListener('input', onInput, true);
-    return () => document.removeEventListener('input', onInput, true);
-  }, [updatePreviewData, isPreviewPage]);
+    document.addEventListener('change', onInput, true);
+    return () => {
+      document.removeEventListener('input', onInput, true);
+      document.removeEventListener('change', onInput, true);
+    };
+  }, [updatePreviewData]);
 
   // Add page break indicators and prevent section cutoff
   useEffect(() => {
