@@ -593,8 +593,14 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
         <button 
           className="preview-a4-button"
           onClick={() => {
+            console.log('Preview button clicked - setting cvView to preview');
             setCVView('preview');
-            window.location.reload();
+            // Ensure selectedApp is set to cv-builder
+            localStorage.setItem('selectedApp', 'cv-builder');
+            // Small delay to ensure localStorage is written before reload
+            setTimeout(() => {
+              window.location.reload();
+            }, 50);
           }}
           title="View A4 Preview"
         >
