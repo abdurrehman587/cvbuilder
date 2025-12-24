@@ -1232,10 +1232,13 @@ function App() {
   // ABSOLUTE PRIORITY: Check for admin panel route FIRST (hash-based routing)
   // This must take priority over ALL other routing logic, even authentication
   // Check this BEFORE authentication check to ensure admin panel always shows
-  if (window.location.hash === '#admin' || window.location.hash.startsWith('#admin')) {
+  const currentHash = window.location.hash;
+  if (currentHash === '#admin' || currentHash.startsWith('#admin')) {
+    console.log('App.js - Admin panel route detected, hash:', currentHash);
     // Even if not authenticated, we might want to show admin panel (it will handle auth internally)
     // But for now, only show if authenticated
     if (isAuthenticated && !isLoading) {
+      console.log('App.js - Rendering MarketplaceAdmin component');
       return (
         <>
           <Header 
@@ -1247,6 +1250,8 @@ function App() {
           <MarketplaceAdmin />
         </>
       );
+    } else {
+      console.log('App.js - Admin panel route detected but user not authenticated or still loading');
     }
   }
   
