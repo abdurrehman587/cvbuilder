@@ -1229,10 +1229,13 @@ function App() {
   // No state updates during render - only reads
   // ============================================
   
-  if (isAuthenticated && !isLoading) {
-    // ABSOLUTE PRIORITY: Check for admin panel route FIRST (hash-based routing)
-    // This must take priority over ALL other routing logic
-    if (window.location.hash === '#admin' || window.location.hash.startsWith('#admin')) {
+  // ABSOLUTE PRIORITY: Check for admin panel route FIRST (hash-based routing)
+  // This must take priority over ALL other routing logic, even authentication
+  // Check this BEFORE authentication check to ensure admin panel always shows
+  if (window.location.hash === '#admin' || window.location.hash.startsWith('#admin')) {
+    // Even if not authenticated, we might want to show admin panel (it will handle auth internally)
+    // But for now, only show if authenticated
+    if (isAuthenticated && !isLoading) {
       return (
         <>
           <Header 
@@ -1245,6 +1248,9 @@ function App() {
         </>
       );
     }
+  }
+  
+  if (isAuthenticated && !isLoading) {
     
     // Get current route from routing utility (reads from localStorage)
     const route = getRoute();
