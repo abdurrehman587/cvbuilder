@@ -348,7 +348,8 @@ Cart
                   localStorage.removeItem('showProductsPage');
                   sessionStorage.removeItem('showProductsPage');
                   // Clear any other navigation flags
-                  localStorage.removeItem('selectedApp');
+                  // DON'T clear selectedApp - let admin panel routing handle it
+                  // localStorage.removeItem('selectedApp'); // Removed - let routing handle it
                   sessionStorage.removeItem('navigateToCVBuilder');
                   sessionStorage.removeItem('navigateToIDCardPrint');
                   // Navigate to admin panel
