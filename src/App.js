@@ -1230,6 +1230,22 @@ function App() {
   // ============================================
   
   if (isAuthenticated && !isLoading) {
+    // ABSOLUTE PRIORITY: Check for admin panel route FIRST (hash-based routing)
+    // This must take priority over ALL other routing logic
+    if (window.location.hash === '#admin' || window.location.hash.startsWith('#admin')) {
+      return (
+        <>
+          <Header 
+            isAuthenticated={isAuthenticated} 
+            currentProduct="products"
+            showProductsOnHeader={false}
+            onLogout={isAuthenticated ? handleLogout : undefined}
+          />
+          <MarketplaceAdmin />
+        </>
+      );
+    }
+    
     // Get current route from routing utility (reads from localStorage)
     const route = getRoute();
     const cvView = route.cvView;
@@ -2240,22 +2256,6 @@ function App() {
           showProductsOnHeader={true}
         />
         <ProductsPage showLoginOnMount={hasNavigationIntent} />
-      </>
-    );
-  }
-  
-  // PRIORITY: Check for admin panel route FIRST (hash-based routing)
-  // This should take absolute priority over all other routing
-  if (window.location.hash === '#admin' || window.location.hash.startsWith('#admin')) {
-    return (
-      <>
-        <Header 
-          isAuthenticated={isAuthenticated} 
-          currentProduct="products"
-          showProductsOnHeader={false}
-          onLogout={isAuthenticated ? handleLogout : undefined}
-        />
-        <MarketplaceAdmin />
       </>
     );
   }
