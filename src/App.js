@@ -1037,6 +1037,10 @@ function App() {
 
   const handleBackToDashboard = () => {
     console.log('handleBackToDashboard called - navigating to CV dashboard');
+    // Clear the goToCVForm flag to prevent showing form
+    sessionStorage.removeItem('goToCVForm');
+    localStorage.removeItem('goToCVForm');
+    
     // Set app to CV Builder and view to dashboard using routing utils
     setCurrentApp('cv-builder');
     setCVView('dashboard');
@@ -1044,8 +1048,14 @@ function App() {
     // Update React state
     startTransition(() => {
       setSelectedApp('cv-builder');
-    setCurrentView('dashboard');
+      setCurrentView('dashboard');
     });
+    
+    // Force a page reload to ensure routing state is properly applied
+    // Small delay to ensure localStorage is written
+    setTimeout(() => {
+      window.location.reload();
+    }, 50);
   };
 
   // Handle template switching without resetting form data
