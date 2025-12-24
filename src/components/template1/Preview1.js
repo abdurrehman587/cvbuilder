@@ -823,14 +823,69 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
             const capturedData = getFormDataFromDOM(existingData);
             console.log('Captured form data from DOM:', capturedData);
             
+            // Merge captured data with propFormData to ensure we have all data (especially from database)
+            // Prefer propFormData for fields that might not be in DOM (like profileImage from database)
+            const mergedData = {
+              ...capturedData,
+              ...propFormData, // Override with propFormData to preserve database-loaded data
+              // But keep captured data for fields that were updated in form
+              profileImage: propFormData?.profileImage || capturedData.profileImage,
+              // Ensure arrays are preserved from propFormData if they exist
+              education: propFormData?.education && propFormData.education.length > 0 
+                ? propFormData.education 
+                : capturedData.education,
+              experience: propFormData?.experience && propFormData.experience.length > 0 
+                ? propFormData.experience 
+                : capturedData.experience,
+              skills: propFormData?.skills && propFormData.skills.length > 0 
+                ? propFormData.skills 
+                : capturedData.skills,
+              certifications: propFormData?.certifications && propFormData.certifications.length > 0 
+                ? propFormData.certifications 
+                : capturedData.certifications,
+              languages: propFormData?.languages && propFormData.languages.length > 0 
+                ? propFormData.languages 
+                : capturedData.languages,
+              hobbies: propFormData?.hobbies && propFormData.hobbies.length > 0 
+                ? propFormData.hobbies 
+                : capturedData.hobbies,
+              otherInfo: propFormData?.otherInfo && propFormData.otherInfo.length > 0 
+                ? propFormData.otherInfo 
+                : capturedData.otherInfo,
+              customSection: propFormData?.customSection && propFormData.customSection.length > 0 
+                ? propFormData.customSection 
+                : capturedData.customSection,
+              references: propFormData?.references && propFormData.references.length > 0 
+                ? propFormData.references 
+                : capturedData.references
+            };
+            
+            console.log('Merged form data (DOM + propFormData):', mergedData);
+            
             // Sync to App.js state if updateFormData is available
             if (updateFormData) {
-              updateFormData(capturedData);
-              console.log('Synced form data to App.js state');
-            } else {
-              // Fallback: Store in localStorage
-              localStorage.setItem('cvFormData', JSON.stringify(capturedData));
-              console.log('Stored form data in localStorage');
+              updateFormData(mergedData);
+              console.log('Synced merged form data to App.js state');
+            }
+            
+            // Always store in localStorage before navigating to preview
+            // This ensures data is available when returning from preview
+            try {
+              // Create a serializable copy (handle profileImage properly)
+              const serializableData = {
+                ...mergedData,
+                profileImage: mergedData.profileImage 
+                  ? (mergedData.profileImage.data 
+                      ? { data: mergedData.profileImage.data } 
+                      : mergedData.profileImage instanceof File 
+                        ? null // Can't serialize File objects
+                        : mergedData.profileImage)
+                  : null
+              };
+              localStorage.setItem('cvFormData', JSON.stringify(serializableData));
+              console.log('Stored form data in localStorage before navigating to preview');
+            } catch (e) {
+              console.error('Error storing form data in localStorage:', e);
             }
             
             // Small delay to ensure data is synced

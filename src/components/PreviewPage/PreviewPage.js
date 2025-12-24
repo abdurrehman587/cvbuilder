@@ -58,16 +58,47 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
 
   const handleBack = () => {
     // Ensure formData is stored in localStorage before navigating back
-    if (formData) {
+    // Use formData from props (which comes from App.js state) or fallback to localStorage
+    const dataToStore = formData;
+    
+    if (dataToStore) {
       try {
+        // Create a serializable copy (handle profileImage properly)
+        const serializableData = {
+          ...dataToStore,
+          profileImage: dataToStore.profileImage 
+            ? (dataToStore.profileImage.data 
+                ? { data: dataToStore.profileImage.data } 
+                : dataToStore.profileImage instanceof File 
+                  ? null // Can't serialize File objects
+                  : dataToStore.profileImage)
+            : null
+        };
+        
         // Store formData in localStorage so it can be loaded when returning to form
-        localStorage.setItem('cvFormData', JSON.stringify(formData));
+        localStorage.setItem('cvFormData', JSON.stringify(serializableData));
         // Set a flag to indicate we're returning from preview (not creating new CV)
         localStorage.setItem('returningFromPreview', 'true');
-        console.log('PreviewPage - Stored formData in localStorage before navigating back:', formData);
+        console.log('PreviewPage - Stored formData in localStorage before navigating back:', serializableData);
       } catch (e) {
         console.error('PreviewPage - Error storing formData:', e);
+        // If serialization fails, try storing without profileImage
+        try {
+          const { profileImage, ...dataWithoutImage } = dataToStore;
+          localStorage.setItem('cvFormData', JSON.stringify(dataWithoutImage));
+          localStorage.setItem('returningFromPreview', 'true');
+          console.log('PreviewPage - Stored formData without profileImage due to serialization error');
+        } catch (e2) {
+          console.error('PreviewPage - Error storing formData even without profileImage:', e2);
+        }
       }
+    } else {
+      // If no formData in props, try to get from localStorage (should already be there)
+      const storedData = localStorage.getItem('cvFormData');
+      if (!storedData) {
+        console.warn('PreviewPage - No formData available to store when going back');
+      }
+      localStorage.setItem('returningFromPreview', 'true');
     }
     
     // Set CV view to builder and reload
