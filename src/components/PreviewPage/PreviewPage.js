@@ -62,6 +62,8 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
       try {
         // Store formData in localStorage so it can be loaded when returning to form
         localStorage.setItem('cvFormData', JSON.stringify(formData));
+        // Set a flag to indicate we're returning from preview (not creating new CV)
+        localStorage.setItem('returningFromPreview', 'true');
         console.log('PreviewPage - Stored formData in localStorage before navigating back:', formData);
       } catch (e) {
         console.error('PreviewPage - Error storing formData:', e);
@@ -70,6 +72,9 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
     
     // Set CV view to builder and reload
     setCVView('cv-builder');
+    // Set goToCVForm flag to ensure form is shown (not dashboard)
+    sessionStorage.setItem('goToCVForm', 'true');
+    localStorage.setItem('goToCVForm', 'true');
     // Small delay to ensure localStorage is written
     setTimeout(() => {
       window.location.reload(); // Force reload to update the view

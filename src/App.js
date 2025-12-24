@@ -118,13 +118,27 @@ function App() {
   React.useEffect(() => {
     // Only load from localStorage if we're on cv-builder view and formData is empty
     const cvView = getCVView();
-    if (cvView === 'cv-builder' && (!formData.name && !formData.education?.length && !formData.experience?.length)) {
+    if (cvView === 'cv-builder') {
       const storedData = localStorage.getItem('cvFormData');
       if (storedData) {
         try {
           const parsedData = JSON.parse(storedData);
-          console.log('App.js - Loading formData from localStorage:', parsedData);
-          setFormData(parsedData);
+          // Only load if formData is empty or if stored data has more content
+          const hasStoredData = parsedData.name || parsedData.education?.length > 0 || parsedData.experience?.length > 0;
+          const hasCurrentData = formData.name || formData.education?.length > 0 || formData.experience?.length > 0;
+          
+          if (hasStoredData && !hasCurrentData) {
+            console.log('App.js - Loading formData from localStorage (returning from preview):', parsedData);
+            setFormData(parsedData);
+          } else if (hasStoredData && hasCurrentData) {
+            // If both have data, prefer stored data if it's more complete
+            const storedDataComplete = (parsedData.education?.length || 0) + (parsedData.experience?.length || 0);
+            const currentDataComplete = (formData.education?.length || 0) + (formData.experience?.length || 0);
+            if (storedDataComplete > currentDataComplete) {
+              console.log('App.js - Loading formData from localStorage (stored data is more complete):', parsedData);
+              setFormData(parsedData);
+            }
+          }
         } catch (e) {
           console.error('App.js - Error parsing stored form data:', e);
         }
