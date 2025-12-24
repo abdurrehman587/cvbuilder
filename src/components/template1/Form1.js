@@ -27,6 +27,47 @@ function Form({ formData, updateFormData, markAsChanged }) {
         initializeForm();
     }, [initializeForm]);
 
+    // Sync form fields with formData when it changes (e.g., when returning from preview)
+    useEffect(() => {
+        if (formData) {
+            // Update name input
+            const nameInput = document.getElementById('name-input');
+            if (nameInput && nameInput.value !== (formData.name || '')) {
+                nameInput.value = formData.name || '';
+            }
+            
+            // Update position input
+            const positionInput = document.getElementById('position-input');
+            if (positionInput && positionInput.value !== (formData.position || '')) {
+                positionInput.value = formData.position || '';
+            }
+            
+            // Update phone input
+            const phoneInput = document.getElementById('phone-input');
+            if (phoneInput && phoneInput.value !== (formData.phone || '')) {
+                phoneInput.value = formData.phone || '';
+            }
+            
+            // Update email input
+            const emailInput = document.getElementById('email-input');
+            if (emailInput && emailInput.value !== (formData.email || '')) {
+                emailInput.value = formData.email || '';
+            }
+            
+            // Update address input
+            const addressInput = document.getElementById('address-input');
+            if (addressInput && addressInput.value !== (formData.address || '')) {
+                addressInput.value = formData.address || '';
+            }
+            
+            // Update professional summary
+            const summaryTextarea = document.getElementById('professional-summary-textarea');
+            if (summaryTextarea && summaryTextarea.value !== (formData.professionalSummary || '')) {
+                summaryTextarea.value = formData.professionalSummary || '';
+            }
+        }
+    }, [formData]);
+
     // Debug logs removed for cleaner console
     return (
         <div className="left-container">
