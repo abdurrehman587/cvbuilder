@@ -187,6 +187,23 @@ function App() {
   const handleMakeNewCV = React.useCallback(() => {
     console.log('App.js: handleMakeNewCV called - creating new CV');
     
+    // Check if we're returning from preview - if so, don't reset form
+    const returningFromPreview = localStorage.getItem('returningFromPreview') === 'true';
+    if (returningFromPreview) {
+      console.log('App.js - Returning from preview, preserving form data');
+      localStorage.removeItem('returningFromPreview');
+      // Don't reset form data - it will be loaded from localStorage
+      // Still set the view and app state
+      setCurrentApp('cv-builder');
+      setCVView('cv-builder');
+      lastKnownAppRef.current = 'cv-builder';
+      startTransition(() => {
+        setSelectedApp('cv-builder');
+        setCurrentView('cv-builder');
+      });
+      return;
+    }
+    
     // Set app to CV Builder and view to form using routing utils
     setCurrentApp('cv-builder');
     setCVView('cv-builder');
@@ -206,7 +223,9 @@ function App() {
       certifications: [],
       languages: [],
       hobbies: [],
-      references: []
+      references: [],
+      otherInfo: [],
+      customSection: []
     };
     setFormData(newFormData);
     setHasUnsavedChanges(false);
