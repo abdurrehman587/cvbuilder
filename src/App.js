@@ -1127,6 +1127,27 @@ function App() {
         const loadedFormData = await loadCV(cv.id);
         if (loadedFormData) {
           setFormData(loadedFormData);
+          
+          // Store formData in localStorage immediately after loading from database
+          // This ensures it's available when navigating to preview
+          try {
+            // Create a serializable copy (handle profileImage properly)
+            const serializableData = {
+              ...loadedFormData,
+              profileImage: loadedFormData.profileImage 
+                ? (loadedFormData.profileImage.data 
+                    ? { data: loadedFormData.profileImage.data } 
+                    : loadedFormData.profileImage instanceof File 
+                      ? null // Can't serialize File objects
+                      : loadedFormData.profileImage)
+                : null
+            };
+            localStorage.setItem('cvFormData', JSON.stringify(serializableData));
+            console.log('App.js - Stored loaded CV formData in localStorage:', serializableData);
+          } catch (e) {
+            console.error('App.js - Error storing loaded CV formData in localStorage:', e);
+          }
+          
           setCurrentView('cv-builder');
           setSelectedTemplate(cv.template_id || 'template1');
           console.log('CV loaded for editing, currentCVId should be set in hook');
