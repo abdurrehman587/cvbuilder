@@ -57,8 +57,23 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
   };
 
   const handleBack = () => {
+    // Ensure formData is stored in localStorage before navigating back
+    if (formData) {
+      try {
+        // Store formData in localStorage so it can be loaded when returning to form
+        localStorage.setItem('cvFormData', JSON.stringify(formData));
+        console.log('PreviewPage - Stored formData in localStorage before navigating back:', formData);
+      } catch (e) {
+        console.error('PreviewPage - Error storing formData:', e);
+      }
+    }
+    
+    // Set CV view to builder and reload
     setCVView('cv-builder');
-    window.location.reload(); // Force reload to update the view
+    // Small delay to ensure localStorage is written
+    setTimeout(() => {
+      window.location.reload(); // Force reload to update the view
+    }, 50);
   };
 
   const handleDownloadPDF = () => {

@@ -114,7 +114,23 @@ function App() {
 
 
   // Load saved draft on component mount
-  // Removed localStorage loading - form data will reset on page reload
+  // Load formData from localStorage when returning from preview page
+  React.useEffect(() => {
+    // Only load from localStorage if we're on cv-builder view and formData is empty
+    const cvView = getCVView();
+    if (cvView === 'cv-builder' && (!formData.name && !formData.education?.length && !formData.experience?.length)) {
+      const storedData = localStorage.getItem('cvFormData');
+      if (storedData) {
+        try {
+          const parsedData = JSON.parse(storedData);
+          console.log('App.js - Loading formData from localStorage:', parsedData);
+          setFormData(parsedData);
+        } catch (e) {
+          console.error('App.js - Error parsing stored form data:', e);
+        }
+      }
+    }
+  }, []); // Only run on mount
 
   // Removed localStorage saving on page unload - form data will reset on page reload
 
