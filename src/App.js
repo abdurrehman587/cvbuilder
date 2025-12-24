@@ -2368,6 +2368,22 @@ function App() {
     );
   }
   
+    // Check for admin panel route (hash-based routing)
+    // This should take priority over other routing
+    if (window.location.hash === '#admin' || window.location.hash.startsWith('#admin')) {
+      return (
+        <>
+          <Header 
+            isAuthenticated={isAuthenticated} 
+            currentProduct="products"
+            showProductsOnHeader={false}
+            onLogout={isAuthenticated ? handleLogout : undefined}
+          />
+          <MarketplaceAdmin />
+        </>
+      );
+    }
+    
     // Only show marketplace if explicitly set to marketplace
     // CRITICAL: Don't default to marketplace if appToShow is null/empty
     // This prevents redirect to homepage when switching tabs
