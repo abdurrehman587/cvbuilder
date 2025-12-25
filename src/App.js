@@ -1251,12 +1251,11 @@ function App() {
   // ABSOLUTE PRIORITY: Check for admin panel route FIRST (hash-based routing)
   // This must take priority over ALL other routing logic
   // Check this BEFORE authentication check to ensure admin panel always shows
-  // Use both state and direct hash read as fallback to ensure we catch it
-  const hashToCheck = currentHash || window.location.hash;
-  console.log('App.js - Routing check, hashToCheck:', hashToCheck, 'currentHash state:', currentHash, 'window.location.hash:', window.location.hash);
+  // Always read directly from window.location.hash to ensure we get the latest value
+  const hashToCheck = window.location.hash;
   
+  // Force check - this should ALWAYS run first
   if (hashToCheck === '#admin' || hashToCheck.startsWith('#admin/')) {
-    console.log('App.js - ✅ Admin panel route detected! Rendering AdminDashboard');
     // Show admin dashboard - it will handle authentication check internally
     // DO NOT wrap with TopNav - admin panel should be full screen
     return (
@@ -1271,8 +1270,6 @@ function App() {
       </>
     );
   }
-  
-  console.log('App.js - ❌ Admin panel route NOT detected, continuing with normal routing');
   
   if (isAuthenticated && !isLoading) {
     
