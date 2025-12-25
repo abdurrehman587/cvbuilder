@@ -1973,6 +1973,7 @@ function App() {
                 formData={formData}
                 autoSaveStatus={hookAutoSaveStatus}
                 hasUnsavedChanges={hookHasUnsavedChanges}
+                updateFormData={updateFormData}
               />
             </>
           );
