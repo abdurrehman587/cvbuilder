@@ -888,25 +888,6 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
               console.error('Error storing form data in localStorage:', e);
             }
             
-            // Store in localStorage for persistence
-            try {
-              // Create a serializable copy (handle profileImage properly)
-              const serializableData = {
-                ...mergedData,
-                profileImage: mergedData.profileImage 
-                  ? (mergedData.profileImage.data 
-                      ? { data: mergedData.profileImage.data } 
-                      : mergedData.profileImage instanceof File 
-                        ? null // Can't serialize File objects
-                        : mergedData.profileImage)
-                  : null
-              };
-              localStorage.setItem('cvFormData', JSON.stringify(serializableData));
-              console.log('Stored form data in localStorage before navigating to preview');
-            } catch (e) {
-              console.error('Error storing form data in localStorage:', e);
-            }
-            
             // Small delay to ensure data is synced, then navigate to preview page
             setTimeout(() => {
               setCVView('preview');
