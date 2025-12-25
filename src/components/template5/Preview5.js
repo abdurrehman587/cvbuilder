@@ -232,6 +232,197 @@ function Preview5({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, i
     });
   });
 
+  // If this is the preview page, render the preview content directly
+  if (isPreviewPage) {
+    return (
+      <div 
+        className="template5-root"
+        style={{
+          width: '800px',
+          minWidth: '800px',
+          maxWidth: '800px',
+          minHeight: '1129px',
+          height: 'auto',
+          margin: '0 auto',
+          padding: '0'
+        }}
+      >
+        <div className="cv-preview europass-cv a4-size-preview pdf-mode">
+          {/* Europass Header - Redesigned */}
+          <div className="europass-header" style={{ border: 'none', borderBottom: 'none', margin: 0, marginBottom: 0, padding: 0, outline: 'none', boxShadow: 'none', width: '100%', overflow: 'visible' }}>
+            <div className="europass-header-content" style={{ border: 'none', borderBottom: 'none', margin: 0, padding: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', flexWrap: 'wrap', gap: '15px', overflow: 'visible' }}>
+              {/* Left Side - Curriculum Vitae Title */}
+              <h1 className="europass-title" style={{ margin: 0, padding: 0, fontSize: '40pt', flex: '0 0 auto' }}>CURRICULUM VITAE</h1>
+              
+              {/* Right Side - Profile Image (if uploaded) */}
+              {profileImageUrl && (
+                <div className="europass-profile-image-container" style={{ flex: '0 0 auto', margin: 0, padding: 0 }}>
+                  <img 
+                    src={profileImageUrl} 
+                    alt="Profile" 
+                    className="europass-profile-image"
+                    style={{ 
+                      width: '120px', 
+                      height: '120px', 
+                      borderRadius: '50%', 
+                      objectFit: 'cover',
+                      border: '3px solid #003366',
+                      margin: 0,
+                      padding: 0
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Personal Information Section */}
+          <div className="europass-section">
+            <h2 className="europass-section-title">Personal Information</h2>
+            <div className="europass-section-content">
+              <div className="europass-info-grid">
+                <div className="europass-info-item">
+                  <div className="europass-info-label">First Name(s) / Surname(s)</div>
+                  <div className="europass-info-value">{displayData.name || ''}</div>
+                </div>
+                {displayData.position && (
+                  <div className="europass-info-item">
+                    <div className="europass-info-label">Desired Employment / Occupation</div>
+                    <div className="europass-info-value">{displayData.position}</div>
+                  </div>
+                )}
+                {contactInfo && contactInfo.length > 0 && contactInfo.map((contact, index) => (
+                  <div key={index} className="europass-info-item">
+                    <div className="europass-info-label">{contact.label || ''}</div>
+                    <div className="europass-info-value">{contact.value || ''}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Professional Summary */}
+          {displayData.professionalSummary && (
+            <div className="europass-section">
+              <h2 className="europass-section-title">Personal Statement</h2>
+              <div className="europass-section-content">
+                <div className="europass-text-content">{displayData.professionalSummary}</div>
+              </div>
+            </div>
+          )}
+
+          {/* Work Experience */}
+          {displayData.experience && displayData.experience.length > 0 && (
+            <div className="europass-section">
+              <h2 className="europass-section-title">Work Experience</h2>
+              <div className="europass-section-content">
+                {displayData.experience.map((exp, index) => (
+                  <div key={index} className="europass-experience-item">
+                    <div className="europass-experience-header">
+                      <div className="europass-experience-title">{exp.jobTitle || ''}</div>
+                      <div className="europass-experience-date">{exp.duration || ''}</div>
+                    </div>
+                    <div className="europass-experience-company">{exp.company || ''}</div>
+                    {exp.jobDetails && (
+                      <div className="europass-experience-description">{exp.jobDetails}</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Education and Training */}
+          {displayData.education && displayData.education.length > 0 && (
+            <div className="europass-section">
+              <h2 className="europass-section-title">Education and Training</h2>
+              <div className="europass-section-content">
+                {displayData.education.map((edu, index) => (
+                  <div key={index} className="europass-education-item">
+                    <div className="europass-education-header">
+                      <div className="europass-education-title">{edu.degree || ''}</div>
+                      <div className="europass-education-date">{edu.year || ''}</div>
+                    </div>
+                    <div className="europass-education-institution">{edu.board || ''}</div>
+                    {edu.marks && (
+                      <div className="europass-education-grade">Grade: {edu.marks}</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Skills */}
+          {displayData.skills && displayData.skills.length > 0 && (
+            <div className="europass-section">
+              <h2 className="europass-section-title">Personal Skills</h2>
+              <div className="europass-section-content">
+                <div className="europass-skills-grid">
+                  {displayData.skills.map((skill, index) => (
+                    <div key={index} className="europass-skill-item">{skill}</div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Languages */}
+          {displayData.languages && displayData.languages.length > 0 && (
+            <div className="europass-section">
+              <h2 className="europass-section-title">Languages</h2>
+              <div className="europass-section-content">
+                {displayData.languages.map((lang, index) => (
+                  <div key={index} className="europass-language-item">{lang}</div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Additional Information (Custom Sections) */}
+          {displayData.customSection && displayData.customSection.length > 0 && (
+            <div className="europass-section">
+              <h2 className="europass-section-title">Additional Information</h2>
+              <div className="europass-section-content">
+                {displayData.customSection.map((custom, sectionIndex) => {
+                  const details = custom.details || (custom.detail ? [custom.detail] : []);
+                  const heading = custom.heading || 'Additional Information';
+                  
+                  if (details.length === 0) return null;
+                  
+                  return (
+                    <div key={sectionIndex} className="europass-additional-item">
+                      <div className="europass-additional-label">{heading}:</div>
+                      <div className="europass-additional-value">
+                        {details.map((detail, detailIndex) => (
+                          <div key={detailIndex}>{detail}</div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Annexes Section */}
+          {displayData.references && displayData.references.length > 0 && (
+            <div className="europass-section">
+              <h2 className="europass-section-title">Annexes</h2>
+              <div className="europass-section-content">
+                {displayData.references.map((reference, index) => (
+                  <div key={index} className="europass-reference-item">
+                    {reference}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="right-container">
       {/* Hidden HTML preview for image generation */}
