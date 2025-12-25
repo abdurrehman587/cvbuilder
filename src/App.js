@@ -1251,37 +1251,23 @@ function App() {
   // ABSOLUTE PRIORITY: Check for admin panel route FIRST (hash-based routing)
   // This must take priority over ALL other routing logic
   // Check this BEFORE authentication check to ensure admin panel always shows
-  if (currentHash === '#admin' || currentHash.startsWith('#admin/')) {
-    console.log('App.js - Admin panel route detected, hash:', currentHash);
+  // Use both state and direct hash read as fallback to ensure we catch it
+  const hashToCheck = currentHash || window.location.hash;
+  if (hashToCheck === '#admin' || hashToCheck.startsWith('#admin/')) {
+    console.log('App.js - Admin panel route detected, currentHash state:', currentHash, 'window.location.hash:', window.location.hash);
     // Show admin dashboard - it will handle authentication check internally
-    if (isAuthenticated && !isLoading) {
-      console.log('App.js - Rendering AdminDashboard component');
-      return (
-        <>
-          <Header 
-            isAuthenticated={isAuthenticated} 
-            currentProduct="products"
-            showProductsOnHeader={false}
-            onLogout={isAuthenticated ? handleLogout : undefined}
-          />
-          <AdminDashboard />
-        </>
-      );
-    } else {
-      console.log('App.js - Admin panel route detected but user not authenticated or still loading');
-      // Still show admin dashboard - it will show access denied if not admin
-      return (
-        <>
-          <Header 
-            isAuthenticated={isAuthenticated} 
-            currentProduct="products"
-            showProductsOnHeader={false}
-            onLogout={isAuthenticated ? handleLogout : undefined}
-          />
-          <AdminDashboard />
-        </>
-      );
-    }
+    console.log('App.js - Rendering AdminDashboard component, isAuthenticated:', isAuthenticated, 'isLoading:', isLoading);
+    return (
+      <>
+        <Header 
+          isAuthenticated={isAuthenticated} 
+          currentProduct="products"
+          showProductsOnHeader={false}
+          onLogout={isAuthenticated ? handleLogout : undefined}
+        />
+        <AdminDashboard />
+      </>
+    );
   }
   
   if (isAuthenticated && !isLoading) {
