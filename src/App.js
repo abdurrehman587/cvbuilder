@@ -36,6 +36,7 @@ import { getCurrentApp, setCurrentApp, getCVView, setCVView, getIDCardView, setI
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentHash, setCurrentHash] = useState(window.location.hash);
   const [selectedTemplate, setSelectedTemplate] = useState('template1');
   const [currentView, setCurrentView] = useState('dashboard');
   // Initialize idCardView from localStorage if available, otherwise default to 'dashboard'
