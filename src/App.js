@@ -138,9 +138,10 @@ function App() {
     // Check if we're returning from preview
     const returningFromPreview = localStorage.getItem('returningFromPreview') === 'true';
     const cvView = getCVView();
+    const goToCVForm = sessionStorage.getItem('goToCVForm') === 'true' || localStorage.getItem('goToCVForm') === 'true';
     
-    // Always load from localStorage if returning from preview or if on cv-builder view
-    if (returningFromPreview || cvView === 'cv-builder') {
+    // Always load from localStorage if returning from preview, on cv-builder view, or goToCVForm flag is set
+    if (returningFromPreview || cvView === 'cv-builder' || goToCVForm) {
       const storedData = localStorage.getItem('cvFormData');
       if (storedData) {
         try {
@@ -148,12 +149,14 @@ function App() {
           const hasStoredData = parsedData.name || parsedData.education?.length > 0 || parsedData.experience?.length > 0;
           const hasCurrentData = formData.name || formData.education?.length > 0 || formData.experience?.length > 0;
           
-          // If returning from preview, always load stored data (it's the most recent)
-          if (returningFromPreview && hasStoredData) {
-            console.log('App.js - Loading formData from localStorage (returning from preview):', parsedData);
+          // If returning from preview OR goToCVForm flag is set, always load stored data (it's the most recent)
+          if ((returningFromPreview || goToCVForm) && hasStoredData) {
+            console.log('App.js - Loading formData from localStorage (returning from preview or goToCVForm):', parsedData);
             setFormData(parsedData);
-            // Clear the flag after loading
+            // Clear the flags after loading
             localStorage.removeItem('returningFromPreview');
+            sessionStorage.removeItem('goToCVForm');
+            localStorage.removeItem('goToCVForm');
           } else if (hasStoredData && !hasCurrentData) {
             // If not returning from preview but formData is empty, load stored data
             console.log('App.js - Loading formData from localStorage (form is empty):', parsedData);
