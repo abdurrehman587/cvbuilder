@@ -61,6 +61,12 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
     // Show loading indicator
     setIsLoading(true);
     
+    // Set a timeout to clear loading state if navigation takes too long (5 seconds)
+    const loadingTimeout = setTimeout(() => {
+      console.warn('PreviewPage - Navigation timeout, clearing loading state');
+      setIsLoading(false);
+    }, 5000);
+    
     // Ensure formData is stored in localStorage before navigating back
     // Use formData from props (which comes from App.js state) or fallback to localStorage
     const dataToStore = formData;
@@ -113,20 +119,18 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
     
     // Small delay to ensure localStorage is written and loading indicator is visible
     setTimeout(() => {
-      // Navigate back without reload to preserve form data
-      // Use hash change to trigger navigation
+      // Clear timeout since we're navigating now
+      clearTimeout(loadingTimeout);
+      
+      // Navigate back - use direct navigation instead of hash change
+      // This is more reliable and will cause the component to unmount, clearing loading state
       window.location.hash = '#cv-builder';
       
-      // Additional delay to ensure navigation happens
+      // Force immediate navigation with reload to ensure clean state
+      // The component will unmount on navigation, so loading state will be cleared
       setTimeout(() => {
-        // Force navigation by updating hash - this will trigger App.js to re-render
-        // without losing the form data that's already in localStorage
-        window.location.hash = '#cv-builder';
-        // If hash change doesn't work, reload as fallback
-        if (window.location.hash !== '#cv-builder') {
-          window.location.reload();
-        }
-      }, 100);
+        window.location.reload();
+      }, 200);
     }, 100);
   };
 
