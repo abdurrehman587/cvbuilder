@@ -115,6 +115,23 @@ function App() {
   // }, [hookAutoSaveStatus, hookHasUnsavedChanges, currentCVId, formData.name]);
 
 
+  // Listen for hash changes to trigger re-renders when admin panel is accessed
+  React.useEffect(() => {
+    const handleHashChange = () => {
+      setCurrentHash(window.location.hash);
+    };
+    
+    // Set initial hash
+    setCurrentHash(window.location.hash);
+    
+    // Listen for hash changes
+    window.addEventListener('hashchange', handleHashChange);
+    
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, []);
+
   // Load saved draft on component mount
   // Load formData from localStorage when returning from preview page
   React.useEffect(() => {
@@ -1234,7 +1251,6 @@ function App() {
   // ABSOLUTE PRIORITY: Check for admin panel route FIRST (hash-based routing)
   // This must take priority over ALL other routing logic
   // Check this BEFORE authentication check to ensure admin panel always shows
-  const currentHash = window.location.hash;
   if (currentHash === '#admin' || currentHash.startsWith('#admin/')) {
     console.log('App.js - Admin panel route detected, hash:', currentHash);
     // Show admin dashboard - it will handle authentication check internally
