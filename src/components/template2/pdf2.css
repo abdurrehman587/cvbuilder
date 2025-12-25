@@ -17,7 +17,7 @@
   background: white !important;
   color: #333;
   display: grid !important;
-  grid-template-columns: 45% 55% !important;
+  grid-template-columns: 42% 58% !important;
   gap: 0 !important;
   /* A4 dimensions: 210mm x 297mm at 96 DPI = 794px x 1123px */
   /* Using 800px width for better rendering, maintaining A4 aspect ratio */
