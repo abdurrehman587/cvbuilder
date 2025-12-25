@@ -151,20 +151,23 @@ function App() {
           const hasStoredData = parsedData.name || parsedData.education?.length > 0 || parsedData.experience?.length > 0;
           const hasCurrentData = formData.name || formData.education?.length > 0 || formData.experience?.length > 0;
           
-          // If returning from preview OR goToCVForm flag is set, always load stored data (it's the most recent)
+          // If returning from preview OR goToCVForm flag is set, ALWAYS load stored data (it's the most recent)
+          // This ensures data loads every time, not just the first time
           if ((returningFromPreview || goToCVForm) && hasStoredData) {
             console.log('App.js - Loading formData from localStorage (returning from preview or goToCVForm):', parsedData);
+            console.log('App.js - Current formData before loading:', formData);
             setFormData(parsedData);
-            // Clear the flags after loading - but only if we actually loaded the data
+            // Clear the flags after loading
             localStorage.removeItem('returningFromPreview');
             sessionStorage.removeItem('goToCVForm');
             localStorage.removeItem('goToCVForm');
+            console.log('App.js - Form data loaded and flags cleared');
           } else if (hasStoredData && !hasCurrentData) {
             // If not returning from preview but formData is empty, load stored data
             console.log('App.js - Loading formData from localStorage (form is empty):', parsedData);
             setFormData(parsedData);
-          } else if (hasStoredData && hasCurrentData) {
-            // If both have data, prefer stored data if it's more complete
+          } else if (hasStoredData && hasCurrentData && !returningFromPreview && !goToCVForm) {
+            // Only check completeness if NOT returning from preview (to avoid overwriting on subsequent loads)
             const storedDataComplete = (parsedData.education?.length || 0) + (parsedData.experience?.length || 0);
             const currentDataComplete = (formData.education?.length || 0) + (formData.experience?.length || 0);
             if (storedDataComplete > currentDataComplete) {
