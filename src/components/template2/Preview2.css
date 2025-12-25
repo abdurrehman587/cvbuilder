@@ -877,7 +877,7 @@
   min-width: 800px !important;
   max-width: 800px !important;
   min-height: 1129px !important;
-  grid-template-columns: 45% 55% !important;
+  grid-template-columns: 42% 58% !important;
 }
 
 /* A4 Preview Wrapper */
@@ -1001,7 +1001,7 @@
     zoom: calc((100vw - 20px) / 800);
     transform: scale(calc((100vw - 20px) / 800));
     transform-origin: top center;
-    grid-template-columns: 45% 55% !important;
+    grid-template-columns: 42% 58% !important;
     display: grid !important;
   }
 }
@@ -1027,7 +1027,7 @@
       calc((100vh - 150px) / 1129)
     ));
     transform-origin: top center;
-    grid-template-columns: 45% 55% !important;
+    grid-template-columns: 42% 58% !important;
     display: grid !important;
   }
 }
@@ -1053,7 +1053,7 @@
       calc((100vh - 120px) / 1129)
     ));
     transform-origin: top center;
-    grid-template-columns: 45% 55% !important;
+    grid-template-columns: 42% 58% !important;
     display: grid !important;
   }
 }
