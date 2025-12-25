@@ -474,14 +474,14 @@
 .template2-root .other-info-grid {
   display: grid !important;
   grid-template-columns: 1fr !important;
-  gap: 8px;
+  gap: 6px;
 }
 
 .template2-root .info-item {
   display: flex;
   justify-content: space-between;
-  gap: 8px;
-  padding: 6px 8px;
+  gap: 6px;
+  padding: 5px 8px;
   background: rgba(255, 255, 255, 0.08);
   border-radius: 6px;
   border-left: 2px solid rgba(255, 255, 255, 0.25);
