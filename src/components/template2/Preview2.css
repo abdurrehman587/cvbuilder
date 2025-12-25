@@ -23,7 +23,7 @@
   font-family: 'Arial', sans-serif;
   color: #333;
   display: grid !important;
-  grid-template-columns: 40% 60% !important;
+  grid-template-columns: 45% 55% !important;
   gap: 0;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   box-sizing: border-box;
@@ -50,8 +50,9 @@
 .template2-root .cv-left-column {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
   color: white;
-  padding: 30px 25px;
+  padding: 25px 20px;
   min-height: 100vh;
+  box-sizing: border-box;
 }
 
 /* Right Column - White Background (Professional content) */
@@ -69,25 +70,25 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  margin-bottom: 40px;
-  padding-bottom: 25px;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
   border-bottom: 2px solid rgba(255, 255, 255, 0.3);
 }
 
 /* Profile Image Container - Left Column Style */
 .template2-root .profile-image-container {
-  width: 160px;
-  height: 160px;
+  width: 140px;
+  height: 140px;
   border-radius: 50%;
   overflow: hidden;
-  border: 4px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
   background: rgba(255, 255, 255, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  margin: 0 auto 25px auto;
+  margin: 0 auto 20px auto;
 }
 
 .template2-root .profile-image {
@@ -121,10 +122,10 @@
 }
 
 .template2-root .header-name {
-  font-size: 34px;
+  font-size: 28px;
   font-weight: 700;
   color: white;
-  margin: 0 0 8px 0;
+  margin: 0 0 6px 0;
   line-height: 1.2;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   text-align: center;
@@ -132,10 +133,10 @@
 }
 
 .template2-root .header-title {
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 500;
   color: white;
-  margin: 0 0 20px 0;
+  margin: 0 0 18px 0;
   line-height: 1.3;
   font-style: italic;
 }
@@ -143,20 +144,20 @@
 .template2-root .header-contact {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   width: 100%;
 }
 
 .template2-root .contact-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 16px;
+  gap: 10px;
+  font-size: 14px;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.9);
-  padding: 8px 12px;
+  padding: 6px 10px;
   background: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
+  border-radius: 6px;
   backdrop-filter: blur(10px);
   transition: all 0.3s ease;
   width: 100%;
@@ -199,7 +200,7 @@
 
 /* CV Section Styling - Left Column */
 .template2-root .cv-section.left-column {
-  margin-bottom: 30px;
+  margin-bottom: 22px;
   padding: 0;
   background: transparent;
   border-radius: 0;
@@ -225,14 +226,14 @@
 
 /* Section Heading - Left Column */
 .template2-root .section-heading.left-column {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
   color: white;
-  margin: 0 0 15px 0;
-  padding-bottom: 8px;
+  margin: 0 0 12px 0;
+  padding-bottom: 6px;
   border-bottom: 2px solid rgba(255, 255, 255, 0.3);
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.8px;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
@@ -423,17 +424,17 @@
 .template2-root .skills-container {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .template2-root .skill-pill {
   background: rgba(255, 255, 255, 0.1);
   color: white;
-  padding: 10px 15px;
-  border-radius: 8px;
-  font-size: 15px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 14px;
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
@@ -490,14 +491,14 @@
 }
 
 .template2-root .info-item span {
-  font-size: 16px !important;
+  font-size: 14px !important;
   color: white !important;
   line-height: 1.3 !important;
 }
   image.png
 .template2-root .info-item .info-label {
   color: white !important;
-  font-size: 16px !important;
+  font-size: 14px !important;
   font-weight: 600 !important;
   letter-spacing: 0.1px;
   line-height: 1.3 !important;
@@ -506,7 +507,7 @@
 
 .template2-root .info-item .info-value {
   color: white !important;
-  font-size: 16px !important;
+  font-size: 14px !important;
   font-weight: 600 !important;
   line-height: 1.3 !important;
   text-transform: none !important;
@@ -517,17 +518,17 @@
 .template2-root .languages-container {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .template2-root .language-pill {
   background: rgba(255, 255, 255, 0.1);
   color: white;
-  padding: 10px 15px;
-  border-radius: 8px;
-  font-size: 15px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 14px;
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
@@ -848,7 +849,7 @@
   min-width: 800px !important;
   max-width: 800px !important;
   min-height: 1129px !important;
-  grid-template-columns: 40% 60% !important;
+  grid-template-columns: 45% 55% !important;
 }
 
 /* A4 Preview Wrapper */
@@ -972,7 +973,7 @@
     zoom: calc((100vw - 20px) / 800);
     transform: scale(calc((100vw - 20px) / 800));
     transform-origin: top center;
-    grid-template-columns: 40% 60% !important;
+    grid-template-columns: 45% 55% !important;
     display: grid !important;
   }
 }
@@ -998,7 +999,7 @@
       calc((100vh - 150px) / 1129)
     ));
     transform-origin: top center;
-    grid-template-columns: 40% 60% !important;
+    grid-template-columns: 45% 55% !important;
     display: grid !important;
   }
 }
@@ -1024,7 +1025,7 @@
       calc((100vh - 120px) / 1129)
     ));
     transform-origin: top center;
-    grid-template-columns: 40% 60% !important;
+    grid-template-columns: 45% 55% !important;
     display: grid !important;
   }
 }
