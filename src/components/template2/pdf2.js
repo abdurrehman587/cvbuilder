@@ -155,7 +155,7 @@ const generateCanvas = async (cvPreview) => {
       style.textContent = `
         .template2-root.pdf-mode .cv-preview.pdf-mode {
           display: grid !important;
-          grid-template-columns: 45% 55% !important;
+          grid-template-columns: 42% 58% !important;
           gap: 0 !important;
           padding: 0 !important;
           background: white !important;
@@ -167,9 +167,11 @@ const generateCanvas = async (cvPreview) => {
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
           background: -webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
           color: white !important;
-          padding: 25px 20px !important;
+          padding: 20px 18px !important;
           display: block !important;
           box-sizing: border-box !important;
+          overflow-wrap: break-word !important;
+          word-wrap: break-word !important;
         }
         .template2-root.pdf-mode .cv-preview.pdf-mode .cv-left-column * {
           color: white !important;

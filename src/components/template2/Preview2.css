@@ -23,7 +23,7 @@
   font-family: 'Arial', sans-serif;
   color: #333;
   display: grid !important;
-  grid-template-columns: 45% 55% !important;
+  grid-template-columns: 42% 58% !important;
   gap: 0;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   box-sizing: border-box;
@@ -50,9 +50,11 @@
 .template2-root .cv-left-column {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
   color: white;
-  padding: 25px 20px;
+  padding: 20px 18px;
   min-height: 100vh;
   box-sizing: border-box;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 /* Right Column - White Background (Professional content) */
@@ -70,25 +72,25 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  margin-bottom: 30px;
-  padding-bottom: 20px;
+  margin-bottom: 25px;
+  padding-bottom: 18px;
   border-bottom: 2px solid rgba(255, 255, 255, 0.3);
 }
 
 /* Profile Image Container - Left Column Style */
 .template2-root .profile-image-container {
-  width: 140px;
-  height: 140px;
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
   overflow: hidden;
   border: 3px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   background: rgba(255, 255, 255, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  margin: 0 auto 20px auto;
+  margin: 0 auto 18px auto;
 }
 
 .template2-root .profile-image {
@@ -122,46 +124,52 @@
 }
 
 .template2-root .header-name {
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 700;
   color: white;
-  margin: 0 0 6px 0;
+  margin: 0 0 5px 0;
   line-height: 1.2;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   text-align: center;
   width: 100%;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .template2-root .header-title {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 500;
   color: white;
-  margin: 0 0 18px 0;
+  margin: 0 0 16px 0;
   line-height: 1.3;
   font-style: italic;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .template2-root .header-contact {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   width: 100%;
 }
 
 .template2-root .contact-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 14px;
+  gap: 8px;
+  font-size: 13px;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.9);
-  padding: 6px 10px;
+  padding: 5px 8px;
   background: rgba(255, 255, 255, 0.1);
-  border-radius: 6px;
+  border-radius: 5px;
   backdrop-filter: blur(10px);
   transition: all 0.3s ease;
   width: 100%;
   box-sizing: border-box;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 .template2-root .contact-item .contact-icon {
@@ -200,12 +208,14 @@
 
 /* CV Section Styling - Left Column */
 .template2-root .cv-section.left-column {
-  margin-bottom: 22px;
+  margin-bottom: 18px;
   padding: 0;
   background: transparent;
   border-radius: 0;
   border-left: none;
   box-shadow: none;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 /* CV Section Styling - Right Column */
@@ -226,15 +236,17 @@
 
 /* Section Heading - Left Column */
 .template2-root .section-heading.left-column {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   color: white;
-  margin: 0 0 12px 0;
-  padding-bottom: 6px;
+  margin: 0 0 10px 0;
+  padding-bottom: 5px;
   border-bottom: 2px solid rgba(255, 255, 255, 0.3);
   text-transform: uppercase;
-  letter-spacing: 0.8px;
+  letter-spacing: 0.6px;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 /* Section Heading - Right Column */
@@ -424,22 +436,25 @@
 .template2-root .skills-container {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .template2-root .skill-pill {
   background: rgba(255, 255, 255, 0.1);
   color: white;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 14px;
+  padding: 6px 10px;
+  border-radius: 5px;
+  font-size: 13px;
   font-weight: 600;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  line-height: 1.3;
 }
 
 .template2-root .skill-pill:before {
@@ -491,49 +506,62 @@
 }
 
 .template2-root .info-item span {
-  font-size: 14px !important;
+  font-size: 13px !important;
   color: white !important;
   line-height: 1.3 !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
 }
   image.png
 .template2-root .info-item .info-label {
   color: white !important;
-  font-size: 14px !important;
+  font-size: 13px !important;
   font-weight: 600 !important;
   letter-spacing: 0.1px;
   line-height: 1.3 !important;
   text-transform: none !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  flex-shrink: 0;
+  min-width: 0;
 }
 
 .template2-root .info-item .info-value {
   color: white !important;
-  font-size: 14px !important;
+  font-size: 13px !important;
   font-weight: 600 !important;
   line-height: 1.3 !important;
   text-transform: none !important;
   text-align: right !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  flex: 1;
+  min-width: 0;
 }
 
 /* Languages Section Styling - Left Column */
 .template2-root .languages-container {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .template2-root .language-pill {
   background: rgba(255, 255, 255, 0.1);
   color: white;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 14px;
+  padding: 6px 10px;
+  border-radius: 5px;
+  font-size: 13px;
   font-weight: 600;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  line-height: 1.3;
 }
 
 .template2-root .language-pill:before {
