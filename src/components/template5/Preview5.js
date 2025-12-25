@@ -338,14 +338,24 @@ function Preview5({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, i
               <div className="europass-section-content">
                 {displayData.experience.map((exp, index) => (
                   <div key={index} className="europass-experience-item">
-                    <div className="europass-experience-header">
-                      <div className="europass-experience-title">{exp.jobTitle || ''}</div>
-                      <div className="europass-experience-date">{exp.duration || ''}</div>
+                    <div className="europass-date-range">
+                      {exp.duration || 'Date range'}
                     </div>
-                    <div className="europass-experience-company">{exp.company || ''}</div>
-                    {exp.jobDetails && (
-                      <div className="europass-experience-description">{exp.jobDetails}</div>
-                    )}
+                    <div className="europass-experience-details">
+                      <div className="europass-job-title">{exp.jobTitle || 'Job title'}</div>
+                      {exp.company && (
+                        <div className="europass-company">{exp.company}</div>
+                      )}
+                      {exp.jobDetails && (
+                        <div className="europass-job-description">
+                          {exp.jobDetails.split('\n').filter(detail => detail.trim()).map((detail, detailIndex) => (
+                            <div key={detailIndex} className="europass-description-line">
+                              {detail.trim()}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
