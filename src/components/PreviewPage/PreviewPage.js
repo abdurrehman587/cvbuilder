@@ -27,6 +27,7 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
     }
   }, []);
   const [userZoom, setUserZoom] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
   const previewRef = useRef(null);
 
   // Get the appropriate preview component based on selected template
@@ -57,6 +58,9 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
   };
 
   const handleBack = () => {
+    // Show loading indicator
+    setIsLoading(true);
+    
     // Ensure formData is stored in localStorage before navigating back
     // Use formData from props (which comes from App.js state) or fallback to localStorage
     const dataToStore = formData;
@@ -106,19 +110,24 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
     // Set goToCVForm flag to ensure form is shown (not dashboard)
     sessionStorage.setItem('goToCVForm', 'true');
     localStorage.setItem('goToCVForm', 'true');
-    // Navigate back without reload to preserve form data
-    // Use hash change to trigger navigation
-    window.location.hash = '#cv-builder';
-    // Small delay to ensure localStorage is written, then navigate
+    
+    // Small delay to ensure localStorage is written and loading indicator is visible
     setTimeout(() => {
-      // Force navigation by updating hash - this will trigger App.js to re-render
-      // without losing the form data that's already in localStorage
+      // Navigate back without reload to preserve form data
+      // Use hash change to trigger navigation
       window.location.hash = '#cv-builder';
-      // If hash change doesn't work, reload as fallback
-      if (window.location.hash !== '#cv-builder') {
-        window.location.reload();
-      }
-    }, 50);
+      
+      // Additional delay to ensure navigation happens
+      setTimeout(() => {
+        // Force navigation by updating hash - this will trigger App.js to re-render
+        // without losing the form data that's already in localStorage
+        window.location.hash = '#cv-builder';
+        // If hash change doesn't work, reload as fallback
+        if (window.location.hash !== '#cv-builder') {
+          window.location.reload();
+        }
+      }, 100);
+    }, 100);
   };
 
   const handleDownloadPDF = () => {
@@ -130,14 +139,32 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
 
   return (
     <div className="preview-page-container">
+      {/* Loading Overlay */}
+      {isLoading && (
+        <div className="preview-page-loading-overlay">
+          <div className="preview-page-loading-spinner">
+            <div className="spinner"></div>
+            <p className="loading-text">Loading form data...</p>
+          </div>
+        </div>
+      )}
+      
       {/* Header with controls */}
       <div className="preview-page-header">
         <button 
           className="preview-page-back-button"
           onClick={handleBack}
           title="Back to CV Builder"
+          disabled={isLoading}
         >
-          ← Back
+          {isLoading ? (
+            <>
+              <span className="spinner-small"></span>
+              Loading...
+            </>
+          ) : (
+            '← Back'
+          )}
         </button>
 
         {/* Template Switcher - Buttons */}
