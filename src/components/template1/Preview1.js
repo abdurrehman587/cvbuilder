@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import usePreviewHandler from './PreviewHandler1';
 import generatePDF from './pdf1';
 import { setCVView } from '../../utils/routing';
@@ -467,8 +467,10 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
   console.log('Preview1 - displayData:', displayData);
   
   // Create local getProfileImageUrl function that uses the merged formData
-  const getLocalProfileImageUrl = () => {
-    if (formData.profileImage) {
+  // Use useMemo to recalculate when formData or propFormData changes
+  const profileImageUrl = useMemo(() => {
+    // First check formData (which includes merged data from hook, localStorage, and props)
+    if (formData?.profileImage) {
       // If it's a File object, create object URL
       if (formData.profileImage instanceof File) {
         return URL.createObjectURL(formData.profileImage);
@@ -495,9 +497,7 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
       }
     }
     return null;
-  };
-  
-  const profileImageUrl = getLocalProfileImageUrl();
+  }, [formData?.profileImage, propFormData?.profileImage]);
   const contactInfo = formatContactInfo();
   
   // Debug: Log contact information
@@ -888,15 +888,29 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
               console.error('Error storing form data in localStorage:', e);
             }
             
-            // Small delay to ensure data is synced
+            // Store in localStorage for persistence
+            try {
+              // Create a serializable copy (handle profileImage properly)
+              const serializableData = {
+                ...mergedData,
+                profileImage: mergedData.profileImage 
+                  ? (mergedData.profileImage.data 
+                      ? { data: mergedData.profileImage.data } 
+                      : mergedData.profileImage instanceof File 
+                        ? null // Can't serialize File objects
+                        : mergedData.profileImage)
+                  : null
+              };
+              localStorage.setItem('cvFormData', JSON.stringify(serializableData));
+              console.log('Stored form data in localStorage before showing A4 preview');
+            } catch (e) {
+              console.error('Error storing form data in localStorage:', e);
+            }
+            
+            // Small delay to ensure state is updated, then show A4 preview modal
             setTimeout(() => {
-              setCVView('preview');
-              // Ensure selectedApp is set to cv-builder
-              localStorage.setItem('selectedApp', 'cv-builder');
-              // Another small delay to ensure localStorage is written before reload
-              setTimeout(() => {
-                window.location.reload();
-              }, 50);
+              setShowA4Preview(true);
+              console.log('A4 Preview modal opened with latest form data including profile image');
             }, 100);
           }}
           title="View A4 Preview"
