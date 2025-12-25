@@ -135,19 +135,28 @@ function App() {
   // Load saved draft on component mount
   // Load formData from localStorage when returning from preview page
   React.useEffect(() => {
-    // Only load from localStorage if we're on cv-builder view and formData is empty
+    // Check if we're returning from preview
+    const returningFromPreview = localStorage.getItem('returningFromPreview') === 'true';
     const cvView = getCVView();
-    if (cvView === 'cv-builder') {
+    
+    // Always load from localStorage if returning from preview or if on cv-builder view
+    if (returningFromPreview || cvView === 'cv-builder') {
       const storedData = localStorage.getItem('cvFormData');
       if (storedData) {
         try {
           const parsedData = JSON.parse(storedData);
-          // Only load if formData is empty or if stored data has more content
           const hasStoredData = parsedData.name || parsedData.education?.length > 0 || parsedData.experience?.length > 0;
           const hasCurrentData = formData.name || formData.education?.length > 0 || formData.experience?.length > 0;
           
-          if (hasStoredData && !hasCurrentData) {
+          // If returning from preview, always load stored data (it's the most recent)
+          if (returningFromPreview && hasStoredData) {
             console.log('App.js - Loading formData from localStorage (returning from preview):', parsedData);
+            setFormData(parsedData);
+            // Clear the flag after loading
+            localStorage.removeItem('returningFromPreview');
+          } else if (hasStoredData && !hasCurrentData) {
+            // If not returning from preview but formData is empty, load stored data
+            console.log('App.js - Loading formData from localStorage (form is empty):', parsedData);
             setFormData(parsedData);
           } else if (hasStoredData && hasCurrentData) {
             // If both have data, prefer stored data if it's more complete
@@ -206,12 +215,21 @@ function App() {
   const handleMakeNewCV = React.useCallback(() => {
     console.log('App.js: handleMakeNewCV called - creating new CV');
     
-    // Check if we're returning from preview - if so, don't reset form
+    // Check if we're returning from preview - if so, load data from localStorage
     const returningFromPreview = localStorage.getItem('returningFromPreview') === 'true';
     if (returningFromPreview) {
-      console.log('App.js - Returning from preview, preserving form data');
+      console.log('App.js - Returning from preview, loading form data from localStorage');
+      const storedData = localStorage.getItem('cvFormData');
+      if (storedData) {
+        try {
+          const parsedData = JSON.parse(storedData);
+          console.log('App.js - Loading formData from localStorage in handleMakeNewCV:', parsedData);
+          setFormData(parsedData);
+        } catch (e) {
+          console.error('App.js - Error parsing stored form data in handleMakeNewCV:', e);
+        }
+      }
       localStorage.removeItem('returningFromPreview');
-      // Don't reset form data - it will be loaded from localStorage
       // Still set the view and app state
       setCurrentApp('cv-builder');
       setCVView('cv-builder');
