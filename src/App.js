@@ -132,13 +132,15 @@ function App() {
     };
   }, []);
 
-  // Load saved draft on component mount
+  // Load saved draft on component mount and when hash/view changes
   // Load formData from localStorage when returning from preview page
   React.useEffect(() => {
     // Check if we're returning from preview
     const returningFromPreview = localStorage.getItem('returningFromPreview') === 'true';
     const cvView = getCVView();
     const goToCVForm = sessionStorage.getItem('goToCVForm') === 'true' || localStorage.getItem('goToCVForm') === 'true';
+    
+    console.log('App.js - Data loading check:', { returningFromPreview, cvView, goToCVForm, currentHash });
     
     // Always load from localStorage if returning from preview, on cv-builder view, or goToCVForm flag is set
     if (returningFromPreview || cvView === 'cv-builder' || goToCVForm) {
@@ -153,7 +155,7 @@ function App() {
           if ((returningFromPreview || goToCVForm) && hasStoredData) {
             console.log('App.js - Loading formData from localStorage (returning from preview or goToCVForm):', parsedData);
             setFormData(parsedData);
-            // Clear the flags after loading
+            // Clear the flags after loading - but only if we actually loaded the data
             localStorage.removeItem('returningFromPreview');
             sessionStorage.removeItem('goToCVForm');
             localStorage.removeItem('goToCVForm');
@@ -173,9 +175,11 @@ function App() {
         } catch (e) {
           console.error('App.js - Error parsing stored form data:', e);
         }
+      } else {
+        console.log('App.js - No stored data found in localStorage');
       }
     }
-  }, []); // Only run on mount
+  }, [currentHash]); // Run when hash changes (which happens on navigation)
 
   // Removed localStorage saving on page unload - form data will reset on page reload
 
