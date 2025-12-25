@@ -1419,6 +1419,7 @@ function App() {
                     formData={formData}
                     autoSaveStatus={hookAutoSaveStatus}
                     hasUnsavedChanges={hookHasUnsavedChanges}
+                    updateFormData={updateFormData}
                   />
                 </>
               );
@@ -1839,7 +1840,7 @@ function App() {
             return (
               <>
                 <Form2 formData={formData} updateFormData={updateFormData} />
-                <Preview2 formData={formData} />
+                <Preview2 formData={formData} updateFormData={updateFormData} />
               </>
             );
           case 'template3':
