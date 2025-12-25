@@ -169,9 +169,38 @@ const AdminPanel = ({ initialView = 'marketplace' }) => {
   }
 
 
+  const handleBackToAdmin = () => {
+    window.location.hash = '#admin';
+  };
+
   return (
     <div className="admin-panel">
       <div className="admin-header">
+        <button 
+          onClick={handleBackToAdmin}
+          style={{
+            marginBottom: '15px',
+            padding: '8px 16px',
+            backgroundColor: '#f0f0f0',
+            border: '1px solid #ddd',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontSize: '14px',
+            fontWeight: '500',
+            color: '#666',
+            transition: 'all 0.3s ease'
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.backgroundColor = '#e0e0e0';
+            e.target.style.color = '#333';
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.backgroundColor = '#f0f0f0';
+            e.target.style.color = '#666';
+          }}
+        >
+          ← Back to Admin Dashboard
+        </button>
         <h1>Admin Panel</h1>
         <div className="admin-actions">
           <button 

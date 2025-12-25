@@ -87,10 +87,27 @@ const AdminDashboard = () => {
     );
   }
 
+  const handleBack = () => {
+    // Clear admin hash and navigate back
+    window.location.hash = '';
+    // Optionally set selectedApp to go to a specific section
+    const savedApp = localStorage.getItem('selectedApp') || 'cv-builder';
+    localStorage.setItem('selectedApp', savedApp);
+  };
+
   return (
     <div className="admin-dashboard">
       <div className="admin-dashboard-header">
-        <h1>Admin Dashboard</h1>
+        <div className="admin-header-top">
+          <button 
+            className="admin-back-button"
+            onClick={handleBack}
+            title="Go Back"
+          >
+            ← Back
+          </button>
+          <h1>Admin Dashboard</h1>
+        </div>
         <div className="admin-nav">
           <button
             className={activeSection === 'dashboard' ? 'active' : ''}
