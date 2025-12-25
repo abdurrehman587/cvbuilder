@@ -122,16 +122,11 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
       // Clear timeout since we're navigating now
       clearTimeout(loadingTimeout);
       
-      // Navigate back - use direct navigation instead of hash change
-      // This is more reliable and will cause the component to unmount, clearing loading state
+      // Navigate back using direct reload - this is the most reliable method
+      // The component will unmount on reload, so loading state will be cleared automatically
       window.location.hash = '#cv-builder';
-      
-      // Force immediate navigation with reload to ensure clean state
-      // The component will unmount on navigation, so loading state will be cleared
-      setTimeout(() => {
-        window.location.reload();
-      }, 200);
-    }, 100);
+      window.location.reload();
+    }, 150);
   };
 
   const handleDownloadPDF = () => {
