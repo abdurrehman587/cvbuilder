@@ -176,7 +176,7 @@ const generateCanvas = async (cvPreview) => {
         .template2-root.pdf-mode .cv-preview.pdf-mode .cv-right-column {
           background: white !important;
           color: #333 !important;
-          padding: 30px 35px !important;
+          padding: 30px 10px !important;
           display: block !important;
         }
       `;
