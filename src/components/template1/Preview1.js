@@ -902,15 +902,20 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
                   : null
               };
               localStorage.setItem('cvFormData', JSON.stringify(serializableData));
-              console.log('Stored form data in localStorage before showing A4 preview');
+              console.log('Stored form data in localStorage before navigating to preview');
             } catch (e) {
               console.error('Error storing form data in localStorage:', e);
             }
             
-            // Small delay to ensure state is updated, then show A4 preview modal
+            // Small delay to ensure data is synced, then navigate to preview page
             setTimeout(() => {
-              setShowA4Preview(true);
-              console.log('A4 Preview modal opened with latest form data including profile image');
+              setCVView('preview');
+              // Ensure selectedApp is set to cv-builder
+              localStorage.setItem('selectedApp', 'cv-builder');
+              // Another small delay to ensure localStorage is written before reload
+              setTimeout(() => {
+                window.location.reload();
+              }, 50);
             }, 100);
           }}
           title="View A4 Preview"
