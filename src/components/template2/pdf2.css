@@ -32,9 +32,11 @@
 .template2-root .cv-preview.pdf-mode .cv-left-column {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
   color: white !important;
-  padding: 25px 20px !important;
+  padding: 20px 18px !important;
   min-height: auto !important;
   box-sizing: border-box !important;
+  overflow-wrap: break-word !important;
+  word-wrap: break-word !important;
 }
 
 /* Right Column - White Background (Professional content) */
