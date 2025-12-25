@@ -442,6 +442,28 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, i
     </>
   );
 
+  // If this is the preview page, render the preview content directly
+  if (isPreviewPage) {
+    return (
+      <div 
+        className="template2-root"
+        style={{
+          width: '800px',
+          minWidth: '800px',
+          maxWidth: '800px',
+          minHeight: '1129px',
+          height: 'auto',
+          margin: '0 auto',
+          padding: '0'
+        }}
+      >
+        <div className="cv-preview a4-size-preview pdf-mode">
+          {renderCVContent()}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="right-container template2-container">
       {/* Preview Button - Show on all devices */}
