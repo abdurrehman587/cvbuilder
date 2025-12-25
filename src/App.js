@@ -2154,43 +2154,6 @@ function App() {
           }}>
             <h1 style={{ color: 'white', margin: 0, fontSize: '24px', fontWeight: 700 }}>CV Builder</h1>
             <div className="header-actions" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-              <div className="template-selector" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-              <button
-                className={`template-button ${selectedTemplate === 'template1' ? 'active' : ''}`}
-                onClick={() => handleTemplateSwitch('template1')}
-                  style={{ visibility: 'visible', opacity: 1 }}
-              >
-                Template 1
-              </button>
-              <button
-                className={`template-button ${selectedTemplate === 'template2' ? 'active' : ''}`}
-                onClick={() => handleTemplateSwitch('template2')}
-                  style={{ visibility: 'visible', opacity: 1 }}
-              >
-                Template 2
-              </button>
-              <button
-                className={`template-button ${selectedTemplate === 'template3' ? 'active' : ''}`}
-                onClick={() => handleTemplateSwitch('template3')}
-                  style={{ visibility: 'visible', opacity: 1 }}
-              >
-                Template 3
-              </button>
-              <button
-                className={`template-button ${selectedTemplate === 'template4' ? 'active' : ''}`}
-                onClick={() => handleTemplateSwitch('template4')}
-                  style={{ visibility: 'visible', opacity: 1 }}
-              >
-                Template 4
-              </button>
-              <button
-                className={`template-button ${selectedTemplate === 'template5' ? 'active' : ''}`}
-                onClick={() => handleTemplateSwitch('template5')}
-                  style={{ visibility: 'visible', opacity: 1 }}
-              >
-                Template 5 (Europass)
-              </button>
-            </div>
               <div className="auto-save-status" style={{ display: 'flex', alignItems: 'center', visibility: 'visible' }}>
               {hookAutoSaveStatus ? (
                 <div className={`status-indicator ${
