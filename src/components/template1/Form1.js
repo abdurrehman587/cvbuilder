@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import useFormHandler from './FormHandler1';
 import './Form1.css';
 
@@ -90,6 +90,48 @@ function Form({ formData, updateFormData, markAsChanged }) {
                             }
                         }}
                     />
+                    {/* Profile Image Preview */}
+                    {(() => {
+                        let imageUrl = null;
+                        if (formData?.profileImage) {
+                            // If it's a File object, create object URL
+                            if (formData.profileImage instanceof File) {
+                                imageUrl = URL.createObjectURL(formData.profileImage);
+                            }
+                            // If it's base64 data from database, use it directly
+                            else if (formData.profileImage.data) {
+                                imageUrl = formData.profileImage.data;
+                            }
+                            // If it's a string (direct base64 URL), use it directly
+                            else if (typeof formData.profileImage === 'string') {
+                                imageUrl = formData.profileImage;
+                            }
+                        }
+                        
+                        return imageUrl ? (
+                            <div className="profile-image-preview-container">
+                                <img 
+                                    src={imageUrl} 
+                                    alt="Profile Preview" 
+                                    className="profile-image-preview"
+                                />
+                                <button
+                                    type="button"
+                                    className="remove-image-button"
+                                    onClick={() => {
+                                        handleInputChange('profileImage', null);
+                                        const fileInput = document.getElementById('file-input');
+                                        if (fileInput) {
+                                            fileInput.value = '';
+                                        }
+                                    }}
+                                    title="Remove Image"
+                                >
+                                    ×
+                                </button>
+                            </div>
+                        ) : null;
+                    })()}
                 </div>
 
                 <div className="name-input-container input-group">

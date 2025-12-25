@@ -31,6 +31,57 @@
   width: fit-content;  /* Added to make button only as wide as needed */
 }
 
+/* Profile Image Preview */
+.profile-image-preview-container {
+  position: relative;
+  display: inline-block;
+  margin-top: 12px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border: 2px solid #667eea;
+}
+
+.profile-image-preview {
+  display: block;
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.remove-image-button {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(220, 38, 38, 0.9);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  line-height: 1;
+  padding: 0;
+}
+
+.remove-image-button:hover {
+  background: rgba(220, 38, 38, 1);
+  transform: scale(1.1);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+}
+
+.remove-image-button:active {
+  transform: scale(0.95);
+}
+
 /* Input Group Styling */
 .input-group {
   margin-bottom: 4px;
