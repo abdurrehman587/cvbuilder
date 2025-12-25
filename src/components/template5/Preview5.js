@@ -4,16 +4,48 @@ import usePreviewHandler from './PreviewHandler5';
 import generatePDF, { generateCompactPDF } from './pdf5';
 import './Preview5.css';
 
-function Preview5({ formData: propFormData, autoSaveStatus, hasUnsavedChanges }) {
+function Preview5({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, isPreviewPage }) {
   const { formData: hookFormData, formatContactInfo, updatePreviewData } = usePreviewHandler(propFormData);
-  // Use propFormData as primary source (from app state/database) and merge with hook data for DOM-only fields
-  const formData = { 
-    ...(propFormData || {}),
-    ...(hookFormData || {}),
-    profileImage: propFormData?.profileImage || hookFormData?.profileImage,
-    // Ensure customSection comes from propFormData (app state) not DOM
-    customSection: propFormData?.customSection || hookFormData?.customSection || []
-  };
+  
+  // Use hookFormData as primary source (it merges propFormData with DOM data in PreviewHandler5)
+  // This ensures we get all data whether from app state or DOM
+  // If hookFormData is empty or doesn't have data, check localStorage and propFormData
+  let formData = hookFormData;
+  
+  // If hookFormData is empty, try localStorage
+  if (!formData || (!formData.name && !formData.education?.length && !formData.experience?.length)) {
+    const storedData = localStorage.getItem('cvFormData');
+    if (storedData) {
+      try {
+        const parsedData = JSON.parse(storedData);
+        console.log('Preview5 - Using stored data from localStorage:', parsedData);
+        // Preserve profileImage from propFormData if it exists and is from database
+        if (propFormData?.profileImage && propFormData.profileImage.data) {
+          parsedData.profileImage = propFormData.profileImage;
+          console.log('Preview5 - Preserved profileImage from propFormData:', parsedData.profileImage);
+        }
+        formData = parsedData;
+      } catch (e) {
+        console.error('Preview5 - Error parsing stored data:', e);
+        formData = propFormData || {};
+      }
+    } else {
+      formData = propFormData || {};
+    }
+  } else {
+    // Even if hookFormData has data, preserve profileImage from propFormData if it's from database
+    if (propFormData?.profileImage && propFormData.profileImage.data) {
+      formData = { ...formData, profileImage: propFormData.profileImage };
+    }
+    // Merge with propFormData to ensure we have all fields
+    formData = { 
+      ...(propFormData || {}),
+      ...formData,
+      profileImage: propFormData?.profileImage || formData?.profileImage,
+      customSection: propFormData?.customSection || formData?.customSection || [],
+      otherInfo: propFormData?.otherInfo || formData?.otherInfo || []
+    };
+  }
 
   // State for image rendering
   const [previewImage, setPreviewImage] = useState(null);

@@ -3,24 +3,59 @@ import usePreviewHandler from './PreviewHandler4';
 import generatePDF from './pdf4';
 import './Preview4.css';
 
-function Preview4({ formData: propFormData, autoSaveStatus, hasUnsavedChanges }) {
+function Preview4({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, isPreviewPage }) {
   const [showA4Preview, setShowA4Preview] = useState(false);
   const [a4Scale, setA4Scale] = useState(1);
   const a4PreviewRef = useRef(null);
   const { formData: hookFormData, formatContactInfo, updatePreviewData } = usePreviewHandler(propFormData);
-  // Use propFormData as primary source (from app state/database) and merge with hook data for DOM-only fields
-  const formData = { 
-    ...(propFormData || {}),
-    ...(hookFormData || {}),
-    profileImage: propFormData?.profileImage || hookFormData?.profileImage,
-    // Ensure customSection comes from propFormData (app state) not DOM
-    customSection: propFormData?.customSection || hookFormData?.customSection || []
-  };
+  
+  // Use hookFormData as primary source (it merges propFormData with DOM data in PreviewHandler4)
+  // This ensures we get all data whether from app state or DOM
+  // If hookFormData is empty or doesn't have data, check localStorage and propFormData
+  let formData = hookFormData;
+  
+  // If hookFormData is empty, try localStorage
+  if (!formData || (!formData.name && !formData.education?.length && !formData.experience?.length)) {
+    const storedData = localStorage.getItem('cvFormData');
+    if (storedData) {
+      try {
+        const parsedData = JSON.parse(storedData);
+        console.log('Preview4 - Using stored data from localStorage:', parsedData);
+        // Preserve profileImage from propFormData if it exists and is from database
+        if (propFormData?.profileImage && propFormData.profileImage.data) {
+          parsedData.profileImage = propFormData.profileImage;
+          console.log('Preview4 - Preserved profileImage from propFormData:', parsedData.profileImage);
+        }
+        formData = parsedData;
+      } catch (e) {
+        console.error('Preview4 - Error parsing stored data:', e);
+        formData = propFormData || {};
+      }
+    } else {
+      formData = propFormData || {};
+    }
+  } else {
+    // Even if hookFormData has data, preserve profileImage from propFormData if it's from database
+    if (propFormData?.profileImage && propFormData.profileImage.data) {
+      formData = { ...formData, profileImage: propFormData.profileImage };
+    }
+    // Merge with propFormData to ensure we have all fields
+    formData = { 
+      ...(propFormData || {}),
+      ...formData,
+      profileImage: propFormData?.profileImage || formData?.profileImage,
+      customSection: propFormData?.customSection || formData?.customSection || [],
+      otherInfo: propFormData?.otherInfo || formData?.otherInfo || []
+    };
+  }
 
   // Refresh preview data from form inputs whenever app form data changes
+  // Only update if not on preview page (where form is not in DOM)
   useEffect(() => {
-    updatePreviewData();
-  }, [propFormData, updatePreviewData]);
+    if (!isPreviewPage) {
+      updatePreviewData();
+    }
+  }, [propFormData, updatePreviewData, isPreviewPage]);
 
 
   // Ensure dynamic inputs update preview on typing
