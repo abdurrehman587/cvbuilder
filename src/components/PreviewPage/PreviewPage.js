@@ -101,14 +101,23 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
       localStorage.setItem('returningFromPreview', 'true');
     }
     
-    // Set CV view to builder and reload
+    // Set CV view to builder
     setCVView('cv-builder');
     // Set goToCVForm flag to ensure form is shown (not dashboard)
     sessionStorage.setItem('goToCVForm', 'true');
     localStorage.setItem('goToCVForm', 'true');
-    // Small delay to ensure localStorage is written
+    // Navigate back without reload to preserve form data
+    // Use hash change to trigger navigation
+    window.location.hash = '#cv-builder';
+    // Small delay to ensure localStorage is written, then navigate
     setTimeout(() => {
-      window.location.reload(); // Force reload to update the view
+      // Force navigation by updating hash - this will trigger App.js to re-render
+      // without losing the form data that's already in localStorage
+      window.location.hash = '#cv-builder';
+      // If hash change doesn't work, reload as fallback
+      if (window.location.hash !== '#cv-builder') {
+        window.location.reload();
+      }
     }, 50);
   };
 
