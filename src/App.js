@@ -1500,38 +1500,6 @@ function App() {
               <div className="app-header-cv">
                 <h1>CV Builder</h1>
                 <div className="header-actions">
-                  <div className="template-selector">
-                    <button
-                      onClick={() => handleTemplateSwitch('template1')}
-                      className={selectedTemplate === 'template1' ? 'active' : ''}
-                    >
-                      Template 1
-                    </button>
-                    <button
-                      onClick={() => handleTemplateSwitch('template2')}
-                      className={selectedTemplate === 'template2' ? 'active' : ''}
-                    >
-                      Template 2
-                    </button>
-                    <button
-                      onClick={() => handleTemplateSwitch('template3')}
-                      className={selectedTemplate === 'template3' ? 'active' : ''}
-                    >
-                      Template 3
-                    </button>
-                    <button
-                      onClick={() => handleTemplateSwitch('template4')}
-                      className={selectedTemplate === 'template4' ? 'active' : ''}
-                    >
-                      Template 4
-                    </button>
-                    <button
-                      onClick={() => handleTemplateSwitch('template5')}
-                      className={selectedTemplate === 'template5' ? 'active' : ''}
-                    >
-                      Template 5 (Europass)
-                    </button>
-                  </div>
                   <div className="auto-save-status">
                     {hookAutoSaveStatus ? (
                       <div className={`status-indicator ${
