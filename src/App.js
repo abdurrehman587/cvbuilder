@@ -20,6 +20,7 @@ import IDCardDashboard from './components/IDCardDashboard/IDCardDashboard';
 import ProductsPage from './components/Products/HomePage';
 import Header from './components/Header/Header';
 import MarketplaceAdmin from './components/MarketplaceAdmin/MarketplaceAdmin';
+import AdminDashboard from './components/Admin/AdminDashboard';
 import ProductDetail from './components/Products/ProductDetail';
 import Cart from './components/Cart/Cart';
 import Checkout from './components/Checkout/Checkout';
@@ -1230,15 +1231,14 @@ function App() {
   // ============================================
   
   // ABSOLUTE PRIORITY: Check for admin panel route FIRST (hash-based routing)
-  // This must take priority over ALL other routing logic, even authentication
+  // This must take priority over ALL other routing logic
   // Check this BEFORE authentication check to ensure admin panel always shows
   const currentHash = window.location.hash;
-  if (currentHash === '#admin' || currentHash.startsWith('#admin')) {
+  if (currentHash === '#admin' || currentHash.startsWith('#admin/')) {
     console.log('App.js - Admin panel route detected, hash:', currentHash);
-    // Even if not authenticated, we might want to show admin panel (it will handle auth internally)
-    // But for now, only show if authenticated
+    // Show admin dashboard - it will handle authentication check internally
     if (isAuthenticated && !isLoading) {
-      console.log('App.js - Rendering MarketplaceAdmin component');
+      console.log('App.js - Rendering AdminDashboard component');
       return (
         <>
           <Header 
@@ -1247,11 +1247,23 @@ function App() {
             showProductsOnHeader={false}
             onLogout={isAuthenticated ? handleLogout : undefined}
           />
-          <MarketplaceAdmin />
+          <AdminDashboard />
         </>
       );
     } else {
       console.log('App.js - Admin panel route detected but user not authenticated or still loading');
+      // Still show admin dashboard - it will show access denied if not admin
+      return (
+        <>
+          <Header 
+            isAuthenticated={isAuthenticated} 
+            currentProduct="products"
+            showProductsOnHeader={false}
+            onLogout={isAuthenticated ? handleLogout : undefined}
+          />
+          <AdminDashboard />
+        </>
+      );
     }
   }
   

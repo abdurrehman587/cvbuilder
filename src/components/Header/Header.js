@@ -340,22 +340,15 @@ Cart
                 )}
               </button>
             )}
-            {isAuthenticated && isAdmin && window.location.hash !== '#admin' && (
+            {isAuthenticated && isAdmin && !window.location.hash.startsWith('#admin') && (
               <button 
                 type="button"
                 onClick={() => {
-                  // Clear any products page flags
-                  localStorage.removeItem('showProductsPage');
-                  sessionStorage.removeItem('showProductsPage');
-                  // Clear any other navigation flags
-                  // DON'T clear selectedApp - let admin panel routing handle it
-                  // localStorage.removeItem('selectedApp'); // Removed - let routing handle it
-                  sessionStorage.removeItem('navigateToCVBuilder');
-                  sessionStorage.removeItem('navigateToIDCardPrint');
-                  // Navigate to admin panel
-                  window.location.href = '/#admin';
+                  // Navigate to admin dashboard
+                  window.location.hash = '#admin';
                 }}
                 className="admin-btn-header"
+                title="Open Admin Dashboard"
               >
                 Admin Panel
               </button>
