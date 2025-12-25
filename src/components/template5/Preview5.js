@@ -60,13 +60,16 @@ function Preview5({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, i
   });
 
   // Refresh preview data from form inputs whenever app form data changes
+  // Only update if not on preview page (where form is not in DOM)
   useEffect(() => {
-    updatePreviewData();
+    if (!isPreviewPage) {
+      updatePreviewData();
+    }
     // Update drag position when formData changes
     setDragPosition({
       marginRight: formData.headerRightMargin !== undefined ? formData.headerRightMargin : 20
     });
-  }, [propFormData, updatePreviewData, formData.headerRightMargin]);
+  }, [propFormData, updatePreviewData, formData.headerRightMargin, isPreviewPage]);
   
   // Drag handlers for preview
   const handlePreviewMouseDown = (e) => {
