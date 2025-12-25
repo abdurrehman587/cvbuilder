@@ -254,25 +254,45 @@ function Preview5({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, i
               {/* Left Side - Curriculum Vitae Title */}
               <h1 className="europass-title" style={{ margin: 0, padding: 0, fontSize: '40pt', flex: '0 0 auto' }}>CURRICULUM VITAE</h1>
               
-              {/* Right Side - Profile Image (if uploaded) */}
-              {profileImageUrl && (
-                <div className="europass-profile-image-container" style={{ flex: '0 0 auto', margin: 0, padding: 0 }}>
+              {/* Right Side - Profile Image (if uploaded) and Logo */}
+              <div className="europass-header-right" style={{ display: 'flex', alignItems: 'center', gap: `${formData.headerGap !== undefined ? formData.headerGap : 6}px`, flexShrink: 1, overflow: 'visible', marginLeft: 'auto', marginRight: `${formData.headerRightMargin !== undefined ? formData.headerRightMargin : 20}px` }}>
+                {/* Profile Image - Only show if uploaded */}
+                {profileImageUrl && (
+                  <div className="europass-profile-image-container" style={{ width: '85px', height: '85px', borderRadius: '50%', overflow: 'hidden', border: '2px solid #003399', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <img 
+                      src={profileImageUrl} 
+                      alt="Profile" 
+                      className="europass-profile-image"
+                      style={{ 
+                        width: '100%', 
+                        height: '100%', 
+                        objectFit: 'cover',
+                        margin: 0,
+                        padding: 0
+                      }}
+                    />
+                  </div>
+                )}
+                
+                {/* Europass Logo */}
+                <div className="europass-logo-container" style={{ margin: 0, padding: 0, width: '260px', maxWidth: '260px', minWidth: '90px', flexShrink: 1, display: 'flex', visibility: 'visible', opacity: 1, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}>
                   <img 
-                    src={profileImageUrl} 
-                    alt="Profile" 
-                    className="europass-profile-image"
-                    style={{ 
-                      width: '120px', 
-                      height: '120px', 
-                      borderRadius: '50%', 
-                      objectFit: 'cover',
-                      border: '3px solid #003366',
-                      margin: 0,
-                      padding: 0
+                    src="/images/europass-logo.png.png" 
+                    alt="Europass" 
+                    className="europass-logo"
+                    style={{ maxWidth: '100%', height: 'auto', display: 'block' }}
+                    onError={(e) => {
+                      // Try alternative filename if first one fails
+                      if (e.target.src.includes('europass-logo.png.png')) {
+                        e.target.src = '/images/europass-logo.png';
+                      } else {
+                        console.error('Europass logo failed to load:', e.target.src);
+                        console.warn('Logo image not found, but keeping placeholder');
+                      }
                     }}
                   />
                 </div>
-              )}
+              </div>
             </div>
           </div>
 
