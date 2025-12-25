@@ -369,14 +369,18 @@ function Preview5({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, i
               <div className="europass-section-content">
                 {displayData.education.map((edu, index) => (
                   <div key={index} className="europass-education-item">
-                    <div className="europass-education-header">
-                      <div className="europass-education-title">{edu.degree || ''}</div>
-                      <div className="europass-education-date">{edu.year || ''}</div>
+                    <div className="europass-date-range">
+                      {edu.year || 'Date range'}
                     </div>
-                    <div className="europass-education-institution">{edu.board || ''}</div>
-                    {edu.marks && (
-                      <div className="europass-education-grade">Grade: {edu.marks}</div>
-                    )}
+                    <div className="europass-education-details">
+                      <div className="europass-degree">{edu.degree || 'Qualification'}</div>
+                      {edu.board && (
+                        <div className="europass-institution">{edu.board}</div>
+                      )}
+                      {edu.marks && (
+                        <div className="europass-grade">Grade: {edu.marks}</div>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
