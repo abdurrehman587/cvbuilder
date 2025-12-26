@@ -135,15 +135,60 @@ function App() {
   // Load saved draft on component mount and when hash/view changes
   // Load formData from localStorage when returning from preview page
   React.useEffect(() => {
-    // Check if we're returning from preview
+    // Check if we're returning from preview - check this FIRST before any other logic
     const returningFromPreview = localStorage.getItem('returningFromPreview') === 'true';
     const cvView = getCVView();
     const goToCVForm = sessionStorage.getItem('goToCVForm') === 'true' || localStorage.getItem('goToCVForm') === 'true';
     
-    console.log('App.js - Data loading check:', { returningFromPreview, cvView, goToCVForm, currentHash });
+    console.log('App.js - Data loading check (mount/reload):', { 
+      returningFromPreview, 
+      cvView, 
+      goToCVForm, 
+      currentHash,
+      timestamp: new Date().toISOString()
+    });
     
-    // Always load from localStorage if returning from preview, on cv-builder view, or goToCVForm flag is set
-    if (returningFromPreview || cvView === 'cv-builder' || goToCVForm) {
+    // If returning from preview OR goToCVForm flag is set, ALWAYS load from localStorage
+    // This is the primary condition - don't check other things first
+    if (returningFromPreview || goToCVForm) {
+      const storedData = localStorage.getItem('cvFormData');
+      if (storedData) {
+        try {
+          const parsedData = JSON.parse(storedData);
+          const hasStoredData = parsedData.name || parsedData.education?.length > 0 || parsedData.experience?.length > 0;
+          
+          if (hasStoredData) {
+            console.log('App.js - Loading formData from localStorage (returning from preview or goToCVForm):', parsedData);
+            console.log('App.js - Flags that triggered load:', { returningFromPreview, goToCVForm });
+            setFormData(parsedData);
+            // Clear the flags AFTER setting the data
+            localStorage.removeItem('returningFromPreview');
+            sessionStorage.removeItem('goToCVForm');
+            localStorage.removeItem('goToCVForm');
+            console.log('App.js - Form data loaded and flags cleared');
+          } else {
+            console.log('App.js - Stored data exists but is empty, not loading');
+            // Still clear flags even if data is empty
+            localStorage.removeItem('returningFromPreview');
+            sessionStorage.removeItem('goToCVForm');
+            localStorage.removeItem('goToCVForm');
+          }
+        } catch (e) {
+          console.error('App.js - Error parsing stored form data:', e);
+          // Clear flags even on error
+          localStorage.removeItem('returningFromPreview');
+          sessionStorage.removeItem('goToCVForm');
+          localStorage.removeItem('goToCVForm');
+        }
+      } else {
+        console.log('App.js - No stored data found in localStorage, but flags were set');
+        // Clear flags even if no data
+        localStorage.removeItem('returningFromPreview');
+        sessionStorage.removeItem('goToCVForm');
+        localStorage.removeItem('goToCVForm');
+      }
+    } else if (cvView === 'cv-builder') {
+      // Only if NOT returning from preview, check if we should load stored data
       const storedData = localStorage.getItem('cvFormData');
       if (storedData) {
         try {
@@ -151,23 +196,12 @@ function App() {
           const hasStoredData = parsedData.name || parsedData.education?.length > 0 || parsedData.experience?.length > 0;
           const hasCurrentData = formData.name || formData.education?.length > 0 || formData.experience?.length > 0;
           
-          // If returning from preview OR goToCVForm flag is set, ALWAYS load stored data (it's the most recent)
-          // This ensures data loads every time, not just the first time
-          if ((returningFromPreview || goToCVForm) && hasStoredData) {
-            console.log('App.js - Loading formData from localStorage (returning from preview or goToCVForm):', parsedData);
-            console.log('App.js - Current formData before loading:', formData);
-            setFormData(parsedData);
-            // Clear the flags after loading
-            localStorage.removeItem('returningFromPreview');
-            sessionStorage.removeItem('goToCVForm');
-            localStorage.removeItem('goToCVForm');
-            console.log('App.js - Form data loaded and flags cleared');
-          } else if (hasStoredData && !hasCurrentData) {
-            // If not returning from preview but formData is empty, load stored data
+          if (hasStoredData && !hasCurrentData) {
+            // If formData is empty, load stored data
             console.log('App.js - Loading formData from localStorage (form is empty):', parsedData);
             setFormData(parsedData);
-          } else if (hasStoredData && hasCurrentData && !returningFromPreview && !goToCVForm) {
-            // Only check completeness if NOT returning from preview (to avoid overwriting on subsequent loads)
+          } else if (hasStoredData && hasCurrentData) {
+            // If both have data, prefer stored data if it's more complete
             const storedDataComplete = (parsedData.education?.length || 0) + (parsedData.experience?.length || 0);
             const currentDataComplete = (formData.education?.length || 0) + (formData.experience?.length || 0);
             if (storedDataComplete > currentDataComplete) {
@@ -178,11 +212,9 @@ function App() {
         } catch (e) {
           console.error('App.js - Error parsing stored form data:', e);
         }
-      } else {
-        console.log('App.js - No stored data found in localStorage');
       }
     }
-  }, [currentHash]); // Run when hash changes (which happens on navigation)
+  }, []); // Run ONLY on mount - page reload will trigger this
 
   // Removed localStorage saving on page unload - form data will reset on page reload
 
