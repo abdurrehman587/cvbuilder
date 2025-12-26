@@ -28,6 +28,7 @@ const usePreviewHandler = (passedFormData = null) => {
 
   // Function to get form data from Form1 inputs
   // This reads from DOM, so it works even when form is not visible (like on preview page)
+  // Use ref for hobbies to prevent infinite loop - hobbies are read from current formDataRef
   const getFormData = useCallback(() => {
     const data = {
       name: document.getElementById('name-input')?.value || '',
@@ -42,7 +43,7 @@ const usePreviewHandler = (passedFormData = null) => {
       skills: [],
       certifications: [],
       languages: [],
-      hobbies: [],
+      hobbies: formDataRef.current?.hobbies || [], // Use ref to avoid dependency
       otherInfo: [],
       customSection: [],
       references: []
@@ -198,7 +199,7 @@ const usePreviewHandler = (passedFormData = null) => {
     data.customSection = customSectionData;
 
     return data;
-  }, [formData.hobbies]);
+  }, []); // Empty deps - use ref for hobbies to prevent infinite loop
 
   // Use passed form data if available, but also read from DOM to get latest values
   useEffect(() => {
@@ -258,7 +259,8 @@ const usePreviewHandler = (passedFormData = null) => {
       setFormData(domData);
       formDataRef.current = domData;
     }
-  }, [passedFormData, getFormData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [passedFormData]); // Remove getFormData from deps to prevent infinite loop - it's stable now
 
   // Cleanup object URLs to prevent memory leaks
   useEffect(() => {
@@ -329,7 +331,8 @@ const usePreviewHandler = (passedFormData = null) => {
       setFormData(newData);
       formDataRef.current = newData;
     }
-  }, [getFormData, passedFormData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [passedFormData]); // Remove getFormData from deps to prevent infinite loop - it's stable now
 
   // Function to get profile image URL - memoized to prevent flickering
   const getProfileImageUrl = useMemo(() => {

@@ -68,10 +68,31 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
     }, 5000);
     
     // Ensure formData is stored in localStorage before navigating back
-    // Use formData from props (which comes from App.js state) or fallback to localStorage
-    const dataToStore = formData;
+    // First, check if formData from props has meaningful data
+    const hasPropData = formData && (formData.name || formData.education?.length > 0 || formData.experience?.length > 0);
     
-    if (dataToStore) {
+    // If props don't have data, try to get from localStorage (preview components may have loaded it there)
+    let dataToStore = formData;
+    if (!hasPropData) {
+      const storedData = localStorage.getItem('cvFormData');
+      if (storedData) {
+        try {
+          const parsedData = JSON.parse(storedData);
+          const hasStoredData = parsedData.name || parsedData.education?.length > 0 || parsedData.experience?.length > 0;
+          if (hasStoredData) {
+            console.log('PreviewPage - Using stored data from localStorage (props were empty):', parsedData);
+            dataToStore = parsedData;
+          }
+        } catch (e) {
+          console.error('PreviewPage - Error parsing stored data:', e);
+        }
+      }
+    }
+    
+    // Check if we have meaningful data to store
+    const hasDataToStore = dataToStore && (dataToStore.name || dataToStore.education?.length > 0 || dataToStore.experience?.length > 0);
+    
+    if (hasDataToStore) {
       try {
         // Create a serializable copy (handle profileImage properly)
         const serializableData = {
@@ -103,11 +124,10 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
         }
       }
     } else {
-      // If no formData in props, try to get from localStorage (should already be there)
-      const storedData = localStorage.getItem('cvFormData');
-      if (!storedData) {
-        console.warn('PreviewPage - No formData available to store when going back');
-      }
+      // If no meaningful data, still set the flag but log a warning
+      console.warn('PreviewPage - No meaningful formData available to store when going back');
+      console.warn('PreviewPage - formData from props:', formData);
+      console.warn('PreviewPage - localStorage data:', localStorage.getItem('cvFormData'));
       localStorage.setItem('returningFromPreview', 'true');
     }
     
