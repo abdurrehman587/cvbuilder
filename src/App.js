@@ -135,18 +135,18 @@ function App() {
   // Load saved draft on component mount and when hash/view changes
   // Load formData from localStorage when returning from preview page
   React.useEffect(() => {
-    // Add a small delay to ensure localStorage is fully accessible after page reload
-    const loadData = () => {
+    const loadDataFromStorage = () => {
       // Check if we're returning from preview - check this FIRST before any other logic
       const returningFromPreview = localStorage.getItem('returningFromPreview') === 'true';
-      const cvView = getCVView();
       const goToCVForm = sessionStorage.getItem('goToCVForm') === 'true' || localStorage.getItem('goToCVForm') === 'true';
+      const cvView = getCVView();
       
       console.log('App.js - Data loading check:', { 
         returningFromPreview, 
+        goToCVForm,
         cvView, 
-        goToCVForm, 
         currentHash,
+        hasStoredData: !!localStorage.getItem('cvFormData'),
         timestamp: new Date().toISOString()
       });
       
@@ -154,22 +154,36 @@ function App() {
       // This is the primary condition - don't check other things first
       if (returningFromPreview || goToCVForm) {
         const storedData = localStorage.getItem('cvFormData');
+        console.log('App.js - Flags detected, checking stored data. Stored data exists:', !!storedData);
+        
         if (storedData) {
           try {
             const parsedData = JSON.parse(storedData);
             const hasStoredData = parsedData.name || parsedData.education?.length > 0 || parsedData.experience?.length > 0;
             
+            console.log('App.js - Parsed data:', { 
+              hasName: !!parsedData.name, 
+              educationCount: parsedData.education?.length || 0,
+              experienceCount: parsedData.experience?.length || 0,
+              hasStoredData 
+            });
+            
             if (hasStoredData) {
-              console.log('App.js - Loading formData from localStorage (returning from preview or goToCVForm):', parsedData);
+              console.log('App.js - LOADING formData from localStorage:', parsedData);
               console.log('App.js - Flags that triggered load:', { returningFromPreview, goToCVForm });
+              
+              // Load the data
               setFormData(parsedData);
+              
               // Clear the flags AFTER setting the data
               localStorage.removeItem('returningFromPreview');
               sessionStorage.removeItem('goToCVForm');
               localStorage.removeItem('goToCVForm');
+              
               console.log('App.js - Form data loaded and flags cleared');
+              return true; // Indicate success
             } else {
-              console.log('App.js - Stored data exists but is empty, not loading');
+              console.warn('App.js - Stored data exists but is empty, not loading');
               // Still clear flags even if data is empty
               localStorage.removeItem('returningFromPreview');
               sessionStorage.removeItem('goToCVForm');
@@ -183,7 +197,7 @@ function App() {
             localStorage.removeItem('goToCVForm');
           }
         } else {
-          console.log('App.js - No stored data found in localStorage, but flags were set');
+          console.warn('App.js - No stored data found in localStorage, but flags were set');
           // Clear flags even if no data
           localStorage.removeItem('returningFromPreview');
           sessionStorage.removeItem('goToCVForm');
@@ -216,14 +230,27 @@ function App() {
           }
         }
       }
+      return false;
     };
     
-    // Run immediately, but also add a small delay as fallback for page reloads
-    loadData();
-    const timeoutId = setTimeout(loadData, 100);
+    // Try loading immediately
+    const loaded = loadDataFromStorage();
     
-    return () => clearTimeout(timeoutId);
-  }, [currentHash]); // Run on mount AND when hash changes
+    // If not loaded and flags are set, try again after a short delay (for page reload timing)
+    if (!loaded) {
+      const returningFromPreview = localStorage.getItem('returningFromPreview') === 'true';
+      const goToCVForm = sessionStorage.getItem('goToCVForm') === 'true' || localStorage.getItem('goToCVForm') === 'true';
+      
+      if (returningFromPreview || goToCVForm) {
+        console.log('App.js - Retrying data load after delay...');
+        const timeoutId = setTimeout(() => {
+          loadDataFromStorage();
+        }, 200);
+        
+        return () => clearTimeout(timeoutId);
+      }
+    }
+  }, []); // Run ONLY on mount - page reload will trigger this
 
   // Removed localStorage saving on page unload - form data will reset on page reload
 
