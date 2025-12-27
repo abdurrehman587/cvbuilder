@@ -28,15 +28,17 @@
   aspect-ratio: 210 / 297 !important;
 }
 
-/* Left Column - Purple Background (Personal info, contacts, skills) */
+/* Left Column - Light Modern Design (PDF Mode) - Matching Preview */
 .template2-root .cv-preview.pdf-mode .cv-left-column {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-  color: white !important;
-  padding: 20px 18px !important;
+  background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 25%, #a5b4fc 50%, #c7d2fe 75%, #e0e7ff 100%) !important;
+  color: #475569 !important;
+  padding: 25px 18px !important;
   min-height: auto !important;
   box-sizing: border-box !important;
   overflow-wrap: break-word !important;
   word-wrap: break-word !important;
+  position: relative !important;
+  border-right: 3px solid rgba(99, 102, 241, 0.4) !important;
 }
 
 /* Right Column - White Background (Professional content) */
@@ -47,69 +49,146 @@
   min-height: auto !important;
 }
 
-/* CV Header */
+/* CV Header - PDF Mode - Matching Preview */
 .template2-root .cv-preview.pdf-mode .cv-header {
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
   text-align: center !important;
-  margin-bottom: 40px !important;
-  padding-bottom: 25px !important;
-  border-bottom: 2px solid rgba(255, 255, 255, 0.3) !important;
+  margin: 0 auto 22px auto !important;
+  padding: 18px 12px 20px 12px !important;
+  background: rgba(255, 255, 255, 0.4) !important;
+  border-radius: 12px !important;
+  border: 2px solid rgba(99, 102, 241, 0.3) !important;
+  box-shadow: 
+    0 4px 12px rgba(99, 102, 241, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+  position: relative !important;
+  backdrop-filter: blur(8px) !important;
+  overflow: visible !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
 }
 
-/* Profile Image */
+.template2-root .cv-preview.pdf-mode .cv-header::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 3px !important;
+  background: linear-gradient(90deg, 
+    transparent 0%,
+    rgba(99, 102, 241, 0.6) 20%,
+    rgba(139, 92, 246, 0.6) 50%,
+    rgba(99, 102, 241, 0.6) 80%,
+    transparent 100%
+  ) !important;
+  border-radius: 16px 16px 0 0 !important;
+}
+
+.template2-root .cv-preview.pdf-mode .cv-header::after {
+  content: '' !important;
+  position: absolute !important;
+  bottom: 0 !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: 80px !important;
+  height: 2px !important;
+  background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.5), transparent) !important;
+  border-radius: 2px !important;
+}
+
+/* Profile Image - PDF Mode - Matching Preview */
 .template2-root .cv-preview.pdf-mode .profile-image-container {
-  width: 160px !important;
-  height: 160px !important;
+  width: 110px !important;
+  height: 110px !important;
   border-radius: 50% !important;
-  border: 4px solid rgba(255, 255, 255, 0.3) !important;
-  margin: 0 auto 25px auto !important;
+  overflow: hidden !important;
+  border: 3px solid rgba(99, 102, 241, 0.5) !important;
+  box-shadow: 
+    0 0 0 2px rgba(139, 92, 246, 0.2),
+    0 6px 18px rgba(99, 102, 241, 0.25),
+    inset 0 0 15px rgba(99, 102, 241, 0.1) !important;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.15)) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  position: relative !important;
+  margin: 0 auto 16px auto !important;
 }
 
-/* Header Name */
+/* Header Name - PDF Mode - Matching Preview */
 .template2-root.cv-preview.pdf-mode .header-name,
 .cv-preview.pdf-mode.template2-root .header-name {
-  font-size: 46px !important;
-  font-weight: 700 !important;
-  color: white !important;
+  font-size: 24px !important;
+  font-weight: 800 !important;
+  color: #1e293b !important;
   margin: 0 0 8px 0 !important;
   line-height: 1.2 !important;
   font-family: 'Arial', sans-serif !important;
   text-align: center !important;
   width: 100% !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  letter-spacing: 0.8px !important;
+  text-shadow: 0 2px 4px rgba(99, 102, 241, 0.2) !important;
+  position: relative !important;
 }
 
-/* Header Title */
+/* Header Title - PDF Mode - Matching Preview */
 .template2-root.cv-preview.pdf-mode .header-title,
 .cv-preview.pdf-mode.template2-root .header-title {
-  font-size: 32px !important;
-  font-weight: 500 !important;
-  color: rgba(255, 255, 255, 0.9) !important;
-  margin: 0 0 20px 0 !important;
-  font-style: italic !important;
+  font-size: 12.5px !important;
+  font-weight: 600 !important;
+  color: #475569 !important;
+  margin: 0 0 14px 0 !important;
+  font-style: normal !important;
   font-family: 'Arial', sans-serif !important;
+  padding: 8px 14px !important;
+  background: rgba(255, 255, 255, 0.6) !important;
+  border-radius: 20px !important;
+  backdrop-filter: blur(8px) !important;
+  border: 1.5px solid rgba(99, 102, 241, 0.3) !important;
+  box-shadow: 
+    0 2px 8px rgba(99, 102, 241, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+  letter-spacing: 0.4px !important;
 }
 
-/* Contact Items */
+/* Contact Items - PDF Mode - Matching Preview */
 .template2-root.cv-preview.pdf-mode .contact-item,
 .cv-preview.pdf-mode.template2-root .contact-item {
-  font-size: 22px !important;
-  color: rgba(255, 255, 255, 0.9) !important;
-  padding: 8px 12px !important;
-  background: rgba(255, 255, 255, 0.1) !important;
-  border-radius: 8px !important;
+  font-size: 14px !important;
+  color: #475569 !important;
+  padding: 4px 0 !important;
+  background: transparent !important;
+  border-radius: 0 !important;
   font-family: 'Arial', sans-serif !important;
   display: flex !important;
-  align-items: center !important;
-  gap: 12px !important;
+  align-items: flex-start !important;
+  gap: 8px !important;
   width: 100% !important;
   box-sizing: border-box !important;
+  border: none !important;
+  box-shadow: none !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+  letter-spacing: 0.4px !important;
+  text-align: left !important;
+  justify-content: flex-start !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 .template2-root.cv-preview.pdf-mode .contact-item .contact-icon,
 .cv-preview.pdf-mode.template2-root .contact-item .contact-icon {
   flex-shrink: 0 !important;
+  font-size: 14px !important;
+  width: 18px !important;
+  height: 18px !important;
+  color: rgba(99, 102, 241, 0.8) !important;
+  margin-top: 1px !important;
 }
 
 .template2-root.cv-preview.pdf-mode .contact-item > span:last-child,
@@ -117,10 +196,13 @@
   flex: 1 !important;
   min-width: 0 !important;
   word-wrap: break-word !important;
-  word-break: break-all !important; /* Break long words like email addresses */
+  word-break: break-all !important;
   overflow-wrap: break-word !important;
-  line-height: 1.4 !important;
-  display: block !important; /* Ensure proper wrapping */
+  font-size: 14px !important;
+  line-height: 1.2 !important;
+  letter-spacing: 0.4px !important;
+  display: block !important;
+  text-align: left !important;
 }
 
 .template2-root.cv-preview.pdf-mode .contact-item.contact-address,
@@ -130,21 +212,76 @@
 
 .template2-root.cv-preview.pdf-mode .contact-item.contact-address > span:last-child,
 .cv-preview.pdf-mode.template2-root .contact-item.contact-address > span:last-child {
-  text-align: justify !important;
+  text-align: left !important;
 }
 
-/* Section Headings - Left Column */
+/* Header Contact - PDF Mode - Matching Preview */
+.template2-root.cv-preview.pdf-mode .header-contact,
+.cv-preview.pdf-mode.template2-root .header-contact {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 5px !important;
+  width: 100% !important;
+  margin-top: 8px !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  align-items: flex-start !important;
+  text-align: left !important;
+}
+
+/* Section Headings - Left Column - PDF Mode - Matching Preview */
 .template2-root.cv-preview.pdf-mode .section-heading.left-column,
 .cv-preview.pdf-mode.template2-root .section-heading.left-column {
-  font-size: 24px !important;
-  font-weight: 700 !important;
-  color: white !important;
-  margin: 0 0 15px 0 !important;
-  padding-bottom: 8px !important;
-  border-bottom: 2px solid rgba(255, 255, 255, 0.3) !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  color: #1e293b !important;
+  margin: 0 0 8px 0 !important;
+  padding: 8px 12px !important;
+  background: rgba(255, 255, 255, 0.6) !important;
+  border-radius: 8px !important;
+  border-left: 3px solid rgba(99, 102, 241, 0.7) !important;
   text-transform: uppercase !important;
-  letter-spacing: 1px !important;
+  letter-spacing: 1.2px !important;
   font-family: 'Arial', sans-serif !important;
+  position: relative !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  line-height: 1.2 !important;
+  box-shadow: 
+    0 2px 8px rgba(99, 102, 241, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(8px) !important;
+  overflow: visible !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+}
+
+.template2-root.cv-preview.pdf-mode .section-heading.left-column::before,
+.cv-preview.pdf-mode.template2-root .section-heading.left-column::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 4px !important;
+  height: 100% !important;
+  background: linear-gradient(180deg, rgba(99, 102, 241, 0.9), rgba(139, 92, 246, 0.9)) !important;
+  box-shadow: 0 0 8px rgba(99, 102, 241, 0.4) !important;
+}
+
+.template2-root.cv-preview.pdf-mode .section-heading.left-column::after,
+.cv-preview.pdf-mode.template2-root .section-heading.left-column::after {
+  content: '' !important;
+  position: absolute !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 1px !important;
+  background: linear-gradient(90deg, 
+    rgba(99, 102, 241, 0.5) 0%,
+    rgba(139, 92, 246, 0.5) 50%,
+    transparent 100%
+  ) !important;
 }
 
 /* Section Headings - Right Column */
@@ -161,14 +298,22 @@
   font-family: 'Arial', sans-serif !important;
 }
 
-/* CV Sections - Left Column */
+/* CV Sections - Left Column - PDF Mode - Matching Preview */
 .template2-root.cv-preview.pdf-mode .cv-section.left-column,
 .cv-preview.pdf-mode.template2-root .cv-section.left-column {
-  margin-bottom: 30px !important;
+  margin-bottom: 14px !important;
   padding: 0 !important;
   background: transparent !important;
-  border: none !important;
+  border-radius: 0 !important;
+  border-left: none !important;
   box-shadow: none !important;
+  overflow-wrap: break-word !important;
+  word-wrap: break-word !important;
+}
+
+.template2-root.cv-preview.pdf-mode .cv-section.left-column:last-child,
+.cv-preview.pdf-mode.template2-root .cv-section.left-column:last-child {
+  margin-bottom: 0 !important;
 }
 
 /* CV Sections - Right Column */
@@ -279,24 +424,34 @@
   font-family: 'Arial', sans-serif !important;
 }
 
-/* Skills, Languages, Hobbies - Left Column Pills */
+/* Skills, Languages, Hobbies - Left Column Pills - PDF Mode - Matching Preview */
 .template2-root.cv-preview.pdf-mode .skill-pill,
 .template2-root.cv-preview.pdf-mode .language-pill,
 .template2-root.cv-preview.pdf-mode .hobby-pill,
 .cv-preview.pdf-mode.template2-root .skill-pill,
 .cv-preview.pdf-mode.template2-root .language-pill,
 .cv-preview.pdf-mode.template2-root .hobby-pill {
-  background: rgba(255, 255, 255, 0.1) !important; /* Match contact items background */
-  color: white !important;
-  padding: 10px 15px !important;
-  border-radius: 8px !important;
-  font-size: 20px !important;
-  font-weight: 500 !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  background: transparent !important;
+  color: #475569 !important;
+  padding: 4px 0 !important;
+  border-radius: 0 !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  border: none !important;
   font-family: 'Arial', sans-serif !important;
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  line-height: 1.2 !important;
+  text-align: left !important;
+  letter-spacing: 0.4px !important;
+  transition: none !important;
+  position: relative !important;
+  overflow: visible !important;
 }
 
 .template2-root.cv-preview.pdf-mode .skill-pill *,
@@ -305,7 +460,7 @@
 .cv-preview.pdf-mode.template2-root .skill-pill *,
 .cv-preview.pdf-mode.template2-root .language-pill *,
 .cv-preview.pdf-mode.template2-root .hobby-pill * {
-  color: white !important;
+  color: #475569 !important;
   visibility: visible !important;
   opacity: 1 !important;
 }
@@ -316,66 +471,97 @@
 .cv-preview.pdf-mode.template2-root .skill-name,
 .cv-preview.pdf-mode.template2-root .language-name,
 .cv-preview.pdf-mode.template2-root .hobby-name {
-  color: white !important;
-  font-size: 20px !important;
-  font-weight: 600 !important; /* Increased weight for better visibility */
+  color: #475569 !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
   font-family: 'Arial', sans-serif !important;
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important; /* Stronger shadow for better contrast */
+  letter-spacing: 0.4px !important;
+  position: relative !important;
+  z-index: 1 !important;
 }
 
-/* Other Information - Left Column */
+/* Other Information - Left Column - PDF Mode - Matching Preview */
 .template2-root.cv-preview.pdf-mode .other-info-grid,
 .cv-preview.pdf-mode.template2-root .other-info-grid {
-  display: grid !important;
-  grid-template-columns: 1fr !important;
-  gap: 8px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 5px !important;
 }
 
 .template2-root.cv-preview.pdf-mode .info-item,
 .cv-preview.pdf-mode.template2-root .info-item {
   display: flex !important;
+  flex-direction: row !important;
   align-items: center !important;
-  justify-content: space-between !important;
   gap: 8px !important;
-  padding: 8px 10px !important;
-  background: rgba(255, 255, 255, 0.12) !important;
-  border-radius: 6px !important;
-  border-left: 2px solid rgba(255, 255, 255, 0.3) !important;
+  padding: 4px 0 !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
   font-family: 'Arial', sans-serif !important;
-  color: white !important;
+  color: #475569 !important;
   white-space: normal !important;
-  flex-wrap: wrap !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+  letter-spacing: 0.4px !important;
+  position: relative !important;
+  overflow: visible !important;
+  transition: none !important;
 }
 
 .template2-root.cv-preview.pdf-mode .info-item *,
 .cv-preview.pdf-mode.template2-root .info-item * {
-  color: white !important;
+  color: #475569 !important;
+}
+
+.template2-root.cv-preview.pdf-mode .info-item span,
+.cv-preview.pdf-mode.template2-root .info-item span {
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+  letter-spacing: 0.4px !important;
+  color: #475569 !important;
 }
 
 .template2-root.cv-preview.pdf-mode .info-label,
 .cv-preview.pdf-mode.template2-root .info-label {
-  font-weight: 500 !important;
-  color: white !important;
-  font-size: 20px !important;
+  color: #475569 !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.4px !important;
+  line-height: 1.2 !important;
   text-transform: none !important;
-  letter-spacing: 0.1px !important;
   font-family: 'Arial', sans-serif !important;
-  white-space: normal !important;
+  white-space: nowrap !important;
+  margin-right: 4px !important;
+  flex-shrink: 0 !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
 }
 
 .template2-root.cv-preview.pdf-mode .info-value,
 .cv-preview.pdf-mode.template2-root .info-value {
-  color: white !important;
-  font-size: 20px !important;
-  font-weight: 500 !important;
-  line-height: 1.4 !important;
+  color: #475569 !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.4px !important;
+  line-height: 1.2 !important;
+  text-transform: none !important;
   font-family: 'Arial', sans-serif !important;
   white-space: normal !important;
   word-wrap: break-word !important;
-  text-align: right !important;
+  overflow-wrap: break-word !important;
+  text-align: left !important;
+  flex: 1 !important;
+  min-width: 0 !important;
 }
 
 /* Custom Section */

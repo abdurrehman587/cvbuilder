@@ -136,106 +136,155 @@ function App() {
   // Load formData from localStorage when returning from preview page
   // This must run synchronously during initialization to prevent form from rendering with empty data
   React.useEffect(() => {
-    // Check if we're returning from preview - check this FIRST before any other logic
-    const returningFromPreview = localStorage.getItem('returningFromPreview') === 'true';
-    const goToCVForm = sessionStorage.getItem('goToCVForm') === 'true' || localStorage.getItem('goToCVForm') === 'true';
-    const cvView = getCVView();
-    
-    console.log('App.js - Data loading check (MOUNT):', { 
-      returningFromPreview, 
-      goToCVForm,
-      cvView, 
-      currentHash,
-      hasStoredData: !!localStorage.getItem('cvFormData'),
-      currentFormDataName: formData.name,
-      timestamp: new Date().toISOString()
-    });
-    
-    // If returning from preview OR goToCVForm flag is set, ALWAYS load from localStorage
-    // This is the primary condition - don't check other things first
-    if (returningFromPreview || goToCVForm) {
-      const storedData = localStorage.getItem('cvFormData');
-      console.log('App.js - Flags detected, checking stored data. Stored data exists:', !!storedData);
+    // Function to attempt loading data from localStorage
+    const attemptLoadData = () => {
+      // Check if we're returning from preview - check this FIRST before any other logic
+      const returningFromPreview = localStorage.getItem('returningFromPreview') === 'true';
+      const goToCVForm = sessionStorage.getItem('goToCVForm') === 'true' || localStorage.getItem('goToCVForm') === 'true';
+      const cvView = getCVView();
       
-      if (storedData) {
-        try {
-          const parsedData = JSON.parse(storedData);
-          const hasStoredData = parsedData.name || parsedData.education?.length > 0 || parsedData.experience?.length > 0;
-          
-          console.log('App.js - Parsed data:', { 
-            hasName: !!parsedData.name, 
-            name: parsedData.name,
-            educationCount: parsedData.education?.length || 0,
-            experienceCount: parsedData.experience?.length || 0,
-            hasStoredData 
-          });
-          
-          if (hasStoredData) {
-            console.log('App.js - *** LOADING formData from localStorage ***');
-            console.log('App.js - Flags that triggered load:', { returningFromPreview, goToCVForm });
-            console.log('App.js - Data being loaded:', parsedData);
+      console.log('App.js - Data loading check (MOUNT):', { 
+        returningFromPreview, 
+        goToCVForm,
+        cvView, 
+        currentHash,
+        hasStoredData: !!localStorage.getItem('cvFormData'),
+        currentFormDataName: formData.name,
+        timestamp: new Date().toISOString()
+      });
+      
+      // If returning from preview OR goToCVForm flag is set, ALWAYS load from localStorage
+      // This is the primary condition - don't check other things first
+      if (returningFromPreview || goToCVForm) {
+        const storedData = localStorage.getItem('cvFormData');
+        console.log('App.js - Flags detected, checking stored data. Stored data exists:', !!storedData);
+        
+        if (storedData) {
+          try {
+            const parsedData = JSON.parse(storedData);
+            const hasStoredData = parsedData.name || parsedData.education?.length > 0 || parsedData.experience?.length > 0;
             
-            // Load the data IMMEDIATELY
-            setFormData(parsedData);
+            console.log('App.js - Parsed data:', { 
+              hasName: !!parsedData.name, 
+              name: parsedData.name,
+              educationCount: parsedData.education?.length || 0,
+              experienceCount: parsedData.experience?.length || 0,
+              hasStoredData 
+            });
             
-            // Verify the data was set (check on next tick)
-            setTimeout(() => {
-              console.log('App.js - Verifying formData was set. Current formData.name:', formData.name);
-            }, 100);
-            
-            // Clear the flags AFTER setting the data
+            if (hasStoredData) {
+              console.log('App.js - *** LOADING formData from localStorage ***');
+              console.log('App.js - Flags that triggered load:', { returningFromPreview, goToCVForm });
+              console.log('App.js - Data being loaded:', parsedData);
+              
+              // Load the data IMMEDIATELY
+              setFormData(parsedData);
+              
+              // Verify data was set (check on next tick after state update)
+              setTimeout(() => {
+                // Read from localStorage again to verify
+                const verifyData = localStorage.getItem('cvFormData');
+                if (verifyData) {
+                  try {
+                    const verifyParsed = JSON.parse(verifyData);
+                    console.log('App.js - Verification: Data still in localStorage after setFormData:', {
+                      hasName: !!verifyParsed.name,
+                      name: verifyParsed.name,
+                      educationCount: verifyParsed.education?.length || 0,
+                      experienceCount: verifyParsed.experience?.length || 0
+                    });
+                  } catch (e) {
+                    console.error('App.js - Verification: Error parsing verify data:', e);
+                  }
+                }
+              }, 50);
+              
+              // Clear the flags AFTER setting the data
+              localStorage.removeItem('returningFromPreview');
+              sessionStorage.removeItem('goToCVForm');
+              localStorage.removeItem('goToCVForm');
+              
+              console.log('App.js - Form data loaded and flags cleared');
+              return true; // Successfully loaded
+            } else {
+              console.warn('App.js - Stored data exists but is empty, not loading');
+              // Still clear flags even if data is empty
+              localStorage.removeItem('returningFromPreview');
+              sessionStorage.removeItem('goToCVForm');
+              localStorage.removeItem('goToCVForm');
+              return false;
+            }
+          } catch (e) {
+            console.error('App.js - Error parsing stored form data:', e, e.stack);
+            // Clear flags even on error
             localStorage.removeItem('returningFromPreview');
             sessionStorage.removeItem('goToCVForm');
             localStorage.removeItem('goToCVForm');
-            
-            console.log('App.js - Form data loaded and flags cleared');
-          } else {
-            console.warn('App.js - Stored data exists but is empty, not loading');
-            // Still clear flags even if data is empty
-            localStorage.removeItem('returningFromPreview');
-            sessionStorage.removeItem('goToCVForm');
-            localStorage.removeItem('goToCVForm');
+            return false;
           }
-        } catch (e) {
-          console.error('App.js - Error parsing stored form data:', e, e.stack);
-          // Clear flags even on error
+        } else {
+          console.warn('App.js - No stored data found in localStorage, but flags were set');
+          console.warn('App.js - Available localStorage keys:', Object.keys(localStorage));
+          // Clear flags even if no data
           localStorage.removeItem('returningFromPreview');
           sessionStorage.removeItem('goToCVForm');
           localStorage.removeItem('goToCVForm');
+          return false;
         }
-      } else {
-        console.warn('App.js - No stored data found in localStorage, but flags were set');
-        console.warn('App.js - Available localStorage keys:', Object.keys(localStorage));
-        // Clear flags even if no data
-        localStorage.removeItem('returningFromPreview');
-        sessionStorage.removeItem('goToCVForm');
-        localStorage.removeItem('goToCVForm');
-      }
-    } else if (cvView === 'cv-builder') {
-      // Only if NOT returning from preview, check if we should load stored data
-      const storedData = localStorage.getItem('cvFormData');
-      if (storedData) {
-        try {
-          const parsedData = JSON.parse(storedData);
-          const hasStoredData = parsedData.name || parsedData.education?.length > 0 || parsedData.experience?.length > 0;
-          const hasCurrentData = formData.name || formData.education?.length > 0 || formData.experience?.length > 0;
-          
-          if (hasStoredData && !hasCurrentData) {
-            // If formData is empty, load stored data
-            console.log('App.js - Loading formData from localStorage (form is empty):', parsedData);
-            setFormData(parsedData);
-          } else if (hasStoredData && hasCurrentData) {
-            // If both have data, prefer stored data if it's more complete
-            const storedDataComplete = (parsedData.education?.length || 0) + (parsedData.experience?.length || 0);
-            const currentDataComplete = (formData.education?.length || 0) + (formData.experience?.length || 0);
-            if (storedDataComplete > currentDataComplete) {
-              console.log('App.js - Loading formData from localStorage (stored data is more complete):', parsedData);
+      } else if (cvView === 'cv-builder') {
+        // Only if NOT returning from preview, check if we should load stored data
+        const storedData = localStorage.getItem('cvFormData');
+        if (storedData) {
+          try {
+            const parsedData = JSON.parse(storedData);
+            const hasStoredData = parsedData.name || parsedData.education?.length > 0 || parsedData.experience?.length > 0;
+            const hasCurrentData = formData.name || formData.education?.length > 0 || formData.experience?.length > 0;
+            
+            if (hasStoredData && !hasCurrentData) {
+              // If formData is empty, load stored data
+              console.log('App.js - Loading formData from localStorage (form is empty):', parsedData);
               setFormData(parsedData);
+              return true;
+            } else if (hasStoredData && hasCurrentData) {
+              // If both have data, prefer stored data if it's more complete
+              const storedDataComplete = (parsedData.education?.length || 0) + (parsedData.experience?.length || 0);
+              const currentDataComplete = (formData.education?.length || 0) + (formData.experience?.length || 0);
+              if (storedDataComplete > currentDataComplete) {
+                console.log('App.js - Loading formData from localStorage (stored data is more complete):', parsedData);
+                setFormData(parsedData);
+                return true;
+              }
             }
+          } catch (e) {
+            console.error('App.js - Error parsing stored form data:', e);
           }
-        } catch (e) {
-          console.error('App.js - Error parsing stored form data:', e);
         }
+      }
+      return false;
+    };
+    
+    // Try to load data immediately
+    const loaded = attemptLoadData();
+    
+    // If loading failed but flags are still set, retry after a short delay
+    // This handles race conditions where localStorage might not be ready yet
+    if (!loaded) {
+      const returningFromPreview = localStorage.getItem('returningFromPreview') === 'true';
+      const goToCVForm = sessionStorage.getItem('goToCVForm') === 'true' || localStorage.getItem('goToCVForm') === 'true';
+      
+      if (returningFromPreview || goToCVForm) {
+        console.log('App.js - Initial load failed, retrying after 100ms...');
+        const retryTimeout = setTimeout(() => {
+          const retryLoaded = attemptLoadData();
+          if (!retryLoaded) {
+            console.warn('App.js - Retry also failed, trying one more time after 300ms...');
+            setTimeout(() => {
+              attemptLoadData();
+            }, 300);
+          }
+        }, 100);
+        
+        return () => clearTimeout(retryTimeout);
       }
     }
   }, []); // Run ONLY on mount - page reload will trigger this

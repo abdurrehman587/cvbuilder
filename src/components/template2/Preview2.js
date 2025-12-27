@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
 import usePreviewHandler from './PreviewHandler2';
-import generatePDF from './pdf2';
 import './Preview2.css';
 
 // Function to capture all form data from DOM (similar to PreviewHandler2.getFormData)
@@ -152,6 +151,7 @@ const getFormDataFromDOM = (existingFormData = null) => {
 function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, isPreviewPage, updateFormData }) {
   const [showA4Preview, setShowA4Preview] = useState(false);
   const [a4Scale, setA4Scale] = useState(1);
+  const [previewPageScale, setPreviewPageScale] = useState(1);
   const a4PreviewRef = useRef(null);
   const { formData: hookFormData, formatContactInfo, updatePreviewData } = usePreviewHandler(propFormData);
   
@@ -224,7 +224,7 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, i
     return () => document.removeEventListener('input', onInput, true);
   }, [updatePreviewData]);
 
-  // Calculate A4 preview scale for mobile devices
+  // Calculate A4 preview scale for mobile devices (for modal view)
   useEffect(() => {
     const calculateScale = () => {
       if (!showA4Preview) return;
@@ -265,6 +265,89 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, i
       window.removeEventListener('orientationchange', calculateScale);
     };
   }, [showA4Preview]);
+
+  // Calculate preview page scale for mobile devices (when isPreviewPage is true)
+  useEffect(() => {
+    if (!isPreviewPage) {
+      setPreviewPageScale(1);
+      return;
+    }
+
+    const calculatePreviewPageScale = () => {
+      // A4 dimensions: 800px × 1129px
+      const a4Width = 800;
+      const a4Height = 1129;
+      
+      // Get viewport dimensions
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      
+      // Get header height (sticky header on preview page)
+      const header = document.querySelector('.preview-page-header');
+      const headerHeight = header ? header.offsetHeight : 200; // Default to 200px if not found
+      
+      // Determine device type
+      const isMobile = viewportWidth < 768;
+      const isTablet = viewportWidth >= 768 && viewportWidth <= 1024;
+      
+      // Calculate available space
+      let availableWidth, availableHeight;
+      
+      if (isMobile) {
+        // Mobile: account for header and minimal padding
+        availableWidth = viewportWidth - 10; // 5px padding each side
+        availableHeight = viewportHeight - headerHeight - 10; // Header + 5px padding top/bottom
+      } else if (isTablet) {
+        // Tablet: account for header and padding
+        availableWidth = viewportWidth - 30; // 15px padding each side
+        availableHeight = viewportHeight - headerHeight - 20; // Header + 10px padding top/bottom
+      } else {
+        // Desktop: more padding
+        availableWidth = viewportWidth - 40; // 20px padding each side
+        availableHeight = viewportHeight - headerHeight - 40; // Header + 20px padding top/bottom
+      }
+      
+      // Calculate scale to fit
+      const scaleX = availableWidth / a4Width;
+      const scaleY = availableHeight / a4Height;
+      
+      // Use smaller scale to ensure it fits completely
+      let baseScale = Math.min(scaleX, scaleY);
+      
+      // Add a small safety margin
+      baseScale = baseScale * 0.98;
+      
+      // Ensure minimum scale but allow it to be smaller than 1.0
+      baseScale = Math.max(baseScale, 0.1);
+      baseScale = Math.min(baseScale, 1.0);
+      
+      setPreviewPageScale(baseScale);
+    };
+
+    // Calculate with delays to ensure DOM is ready
+    calculatePreviewPageScale();
+    const timeoutId1 = setTimeout(calculatePreviewPageScale, 100);
+    const timeoutId2 = setTimeout(calculatePreviewPageScale, 300);
+
+    let resizeTimeout;
+    const handleResize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(calculatePreviewPageScale, 150);
+    };
+
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', () => {
+      setTimeout(calculatePreviewPageScale, 400);
+    });
+
+    return () => {
+      clearTimeout(timeoutId1);
+      clearTimeout(timeoutId2);
+      clearTimeout(resizeTimeout);
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', calculatePreviewPageScale);
+    };
+  }, [isPreviewPage]);
   
   // Default sections to show on page load: professional-summary, skills, languages, references
   const displayData = {
@@ -305,11 +388,32 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, i
   };
   
   const profileImageUrl = getLocalProfileImageUrl();
-  const contactInfo = formatContactInfo();
+  
+  // Create local formatContactInfo that uses the actual formData
+  const formatLocalContactInfo = () => {
+    const contact = [];
+    
+    if (formData?.phone) {
+      contact.push({ type: 'phone', value: formData.phone, icon: '📞' });
+    }
+    if (formData?.email) {
+      contact.push({ type: 'email', value: formData.email, icon: '✉️' });
+    }
+    if (formData?.address) {
+      contact.push({ type: 'address', value: formData.address, icon: '📍' });
+    }
+    
+    return contact;
+  };
+  
+  const contactInfo = formatLocalContactInfo();
   
   // Debug: Log contact information
-  console.log('Template1 - Contact Info:', contactInfo);
-  console.log('Template1 - Form Data:', formData);
+  console.log('Template2 - Contact Info:', contactInfo);
+  console.log('Template2 - Form Data:', formData);
+  console.log('Template2 - Phone:', formData?.phone);
+  console.log('Template2 - Email:', formData?.email);
+  console.log('Template2 - Address:', formData?.address);
   console.log('Template1 - Profile Image:', formData.profileImage);
   console.log('Template1 - Profile Image URL:', profileImageUrl);
   console.log('Template1 - Custom Section Data:', displayData.customSection);
@@ -369,7 +473,7 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, i
               )}
 
               {/* Contact Information */}
-              {contactInfo && contactInfo.length > 0 && (
+              {(contactInfo && contactInfo.length > 0) ? (
                 <div className="header-contact">
                   {contactInfo.map((contact, index) => (
                     <div key={index} className="contact-item">
@@ -378,6 +482,30 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, i
                     </div>
                   ))}
                 </div>
+              ) : (
+                // Fallback: Try to display contact info directly from formData
+                (formData?.phone || formData?.email || formData?.address) && (
+                  <div className="header-contact">
+                    {formData.phone && (
+                      <div className="contact-item">
+                        <span className="contact-icon">📞</span>
+                        <span>{formData.phone}</span>
+                      </div>
+                    )}
+                    {formData.email && (
+                      <div className="contact-item">
+                        <span className="contact-icon">✉️</span>
+                        <span>{formData.email}</span>
+                      </div>
+                    )}
+                    {formData.address && (
+                      <div className="contact-item contact-address">
+                        <span className="contact-icon">📍</span>
+                        <span>{formData.address}</span>
+                      </div>
+                    )}
+                  </div>
+                )
               )}
             </div>
           </div>
@@ -578,16 +706,6 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, i
             </div>
           )}
 
-          {/* Download PDF Button - Right Column */}
-          <div className="download-pdf-container">
-            <button 
-              className="download-pdf-button" 
-              onClick={generatePDF}
-              title="Download CV as PDF"
-            >
-              📄 Download PDF
-            </button>
-        </div>
       </div>
     </>
   );
@@ -595,20 +713,24 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, i
   // If this is the preview page, render the preview content directly
   if (isPreviewPage) {
     return (
-      <div 
-        className="template2-root"
-        style={{
-          width: '800px',
-          minWidth: '800px',
-          maxWidth: '800px',
-          minHeight: '1129px',
-          height: 'auto',
-          margin: '0 auto',
-          padding: '0'
-        }}
-      >
-        <div className="cv-preview a4-size-preview pdf-mode">
-          {renderCVContent()}
+      <div className="preview-page-preview-wrapper template2-wrapper">
+        <div 
+          className="template2-root"
+          style={{
+            width: '800px',
+            minWidth: '800px',
+            maxWidth: '800px',
+            minHeight: '1129px',
+            height: 'auto',
+            margin: '0 auto',
+            padding: '0',
+            transform: `scale(${previewPageScale})`,
+            transformOrigin: 'top center',
+          }}
+        >
+          <div className="cv-preview a4-size-preview">
+            {renderCVContent()}
+          </div>
         </div>
       </div>
     );

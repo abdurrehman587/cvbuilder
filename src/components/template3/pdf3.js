@@ -416,14 +416,25 @@ const handleMultiPagePDF = (pdf, canvas, contentWidth, contentHeight, imgHeight)
   console.log(`PDF created successfully with ${totalPages} page(s)`);
 };
 
-const generateFileName = () => {
-  const nameInput = document.querySelector('#name-input');
-  const userName = nameInput ? nameInput.value.trim() : 'CV';
+const generateFileName = (formData = null) => {
+  let userName = '';
+  
+  // First try to get from formData if provided (for preview page)
+  if (formData && formData.name) {
+    userName = formData.name.trim();
+  }
+  
+  // If not found, try to get from DOM input (for form page)
+  if (!userName) {
+    const nameInput = document.querySelector('#name-input');
+    userName = nameInput ? nameInput.value.trim() : '';
+  }
+  
   return userName ? `${userName.replace(/\s+/g, '_')}_CV.pdf` : `CV_${new Date().toISOString().split('T')[0]}.pdf`;
 };
 
 // Main PDF Generation Function
-const generatePDF = async () => {
+const generatePDF = async (formDataForFilename = null) => {
   let cvPreview, downloadButton, originalDisplay, originalWidth, originalMaxWidth, originalMinWidth, template3Root, originalRootWidth, originalRootMaxWidth, originalRootMinWidth;
 
   try {
@@ -473,7 +484,7 @@ const generatePDF = async () => {
     const pdf = createPDF(canvas);
     
     // Download PDF
-    const fileName = generateFileName();
+    const fileName = generateFileName(formDataForFilename);
     const isNative = Capacitor.isNativePlatform();
     
     if (isNative) {

@@ -131,54 +131,200 @@
 /* Mobile adjustments */
 @media screen and (max-width: 768px) {
   .preview-page-header {
-    padding: 12px 15px;
-    gap: 10px;
+    padding: 10px 12px;
+    gap: 8px;
     flex-direction: column;
     align-items: stretch;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
   }
 
   .preview-page-back-button {
     width: 100%;
     justify-content: center;
-    padding: 12px;
+    padding: 10px 16px;
+    font-size: 13px;
+    order: 1;
   }
 
   .preview-page-template-switcher {
     width: 100%;
     flex-direction: column;
     align-items: stretch;
-    gap: 8px;
+    gap: 6px;
+    order: 2;
+  }
+
+  .preview-template-label {
+    font-size: 12px;
+    margin-bottom: 4px;
   }
 
   .preview-template-buttons {
     width: 100%;
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    gap: 6px;
+    gap: 4px;
   }
 
   .preview-template-button {
     width: 100%;
-    padding: 10px 8px;
-    font-size: 12px;
+    padding: 8px 4px;
+    font-size: 11px;
+    min-width: auto;
   }
 
   .preview-page-download-button {
     width: 100%;
     justify-content: center;
-    padding: 12px;
+    padding: 10px 16px;
+    font-size: 13px;
+    order: 3;
   }
 
   .preview-page-content {
-    padding: 10px;
+    padding: 0;
+    overflow-x: auto;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    max-width: 100vw;
+    box-sizing: border-box;
+  }
+
+  /* Template 1 uses its own wrapper for responsive scaling - don't override */
+  .preview-page-content .preview-page-preview-wrapper {
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: auto;
+    overflow-y: auto;
+    padding: 5px 3px;
+    box-sizing: border-box;
+  }
+
+  .preview-page-content .preview-page-preview-wrapper .cv-preview.preview-page-preview {
+    /* Let Template 1's own CSS handle the scaling */
+    width: 800px !important;
+    min-width: 800px !important;
+    max-width: 800px !important;
+    /* Don't override - let Preview1.css handle it */
+  }
+
+  /* Template 2 uses JavaScript-based scaling - don't override */
+  .preview-page-content .template2-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: auto;
+  }
+
+  /* Template 5 specific mobile adjustments */
+  .preview-page-content .template5-root .cv-preview {
+    transform: scale(min(
+      calc((100vw - 20px) / 1200),
+      calc((100vh - 200px) / 1697)
+    )) !important;
+    transform-origin: top center !important;
+  }
+}
+
+/* Small mobile devices */
+@media screen and (max-width: 480px) {
+  .preview-page-header {
+    padding: 8px 10px;
+    gap: 6px;
+  }
+
+  .preview-page-back-button,
+  .preview-page-download-button {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .preview-template-button {
+    padding: 6px 2px;
+    font-size: 10px;
+  }
+
+  .preview-page-content {
+    padding: 0;
+  }
+
+  .preview-page-content .preview-page-preview-wrapper {
+    padding: 3px 1px;
+  }
+
+  .preview-page-content .preview-page-preview-wrapper .cv-preview.preview-page-preview {
+    /* Don't override - let Preview1.css handle it */
+  }
+
+  /* Further scale down on very small screens */
+  .preview-page-content .cv-preview.a4-size-preview {
+    transform: scale(calc((100vw - 10px) / 800)) !important;
+  }
+
+  .preview-page-content .template2-root .cv-preview {
+    transform: scale(min(
+      calc((100vw - 10px) / 800),
+      calc((100vh - 180px) / 1129)
+    )) !important;
+  }
+
+  .preview-page-content .template5-root .cv-preview {
+    transform: scale(min(
+      calc((100vw - 10px) / 1200),
+      calc((100vh - 180px) / 1697)
+    )) !important;
   }
 }
 
 /* Ensure preview content is properly displayed */
+.preview-page-content {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .preview-page-content .cv-preview {
   background: white;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   margin: 0 auto;
+}
+
+/* Tablet adjustments */
+@media screen and (min-width: 769px) and (max-width: 1024px) {
+  .preview-page-header {
+    padding: 12px 18px;
+    gap: 12px;
+  }
+
+  .preview-page-content {
+    padding: 15px;
+  }
+
+  /* Scale previews appropriately on tablet */
+  .preview-page-content .cv-preview.a4-size-preview {
+    transform: scale(min(
+      calc((100vw - 40px) / 800),
+      calc((100vh - 250px) / 1129)
+    )) !important;
+    transform-origin: top center !important;
+  }
+
+  .preview-page-content .template2-root .cv-preview {
+    transform: scale(min(
+      calc((100vw - 40px) / 800),
+      calc((100vh - 250px) / 1129)
+    )) !important;
+  }
+
+  .preview-page-content .template5-root .cv-preview {
+    transform: scale(min(
+      calc((100vw - 40px) / 1200),
+      calc((100vh - 250px) / 1697)
+    )) !important;
+  }
 }
 
 /* Loading Overlay */

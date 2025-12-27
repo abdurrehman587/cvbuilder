@@ -1223,3 +1223,85 @@
     margin-bottom: 0;
   }
 }
+
+/* Responsive styles for preview page display */
+.preview-page-preview-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  overflow-x: auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 10px;
+  box-sizing: border-box;
+  min-height: 100%;
+}
+
+.preview-page-preview-wrapper .cv-preview.preview-page-preview {
+  width: 800px;
+  min-width: 800px;
+  max-width: 800px;
+  min-height: 1129px;
+  height: auto;
+  margin: 0 auto;
+  display: block;
+  box-sizing: border-box;
+  background: #ffffff;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  transform-origin: top center;
+  flex-shrink: 0;
+}
+
+/* Mobile adjustments for preview page */
+@media screen and (max-width: 768px) {
+  .preview-page-preview-wrapper {
+    padding: 5px 2px;
+    justify-content: flex-start;
+    align-items: flex-start;
+    overflow-x: auto;
+    overflow-y: auto;
+    width: 100%;
+    max-width: 100vw;
+    box-sizing: border-box;
+  }
+
+  .preview-page-preview-wrapper .cv-preview.preview-page-preview {
+    width: 800px;
+    min-width: 800px;
+    max-width: 800px;
+    /* Scale to fit width exactly - account for wrapper padding (4px total: 5px top/bottom, 2px left/right) */
+    /* Formula: (viewport width - total horizontal padding) / original width */
+    transform: scale(calc((100vw - 4px) / 800));
+    transform-origin: top left;
+    margin: 0;
+    padding: 15px;
+  }
+}
+
+/* Small mobile devices */
+@media screen and (max-width: 480px) {
+  .preview-page-preview-wrapper {
+    padding: 3px 1px;
+  }
+
+  .preview-page-preview-wrapper .cv-preview.preview-page-preview {
+    /* Account for smaller padding on very small screens - 2px total horizontal padding */
+    transform: scale(calc((100vw - 2px) / 800));
+    padding: 12px;
+  }
+}
+
+/* Very small devices */
+@media screen and (max-width: 360px) {
+  .preview-page-preview-wrapper {
+    padding: 2px 1px;
+  }
+
+  .preview-page-preview-wrapper .cv-preview.preview-page-preview {
+    /* 2px total horizontal padding */
+    transform: scale(calc((100vw - 2px) / 800));
+    padding: 10px;
+  }
+}

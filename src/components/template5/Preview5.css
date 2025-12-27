@@ -1007,3 +1007,29 @@
   }
 }
 
+/* Responsive styles for preview page display */
+@media screen and (max-width: 768px) {
+  .preview-page-content .template5-root .cv-preview,
+  .preview-page-content .cv-preview-visible {
+    width: 1200px !important;
+    min-width: 1200px !important;
+    max-width: 1200px !important;
+    transform: scale(min(
+      calc((100vw - 20px) / 1200),
+      calc((100vh - 200px) / 1697)
+    )) !important;
+    transform-origin: top center !important;
+    margin: 0 auto !important;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .preview-page-content .template5-root .cv-preview,
+  .preview-page-content .cv-preview-visible {
+    transform: scale(min(
+      calc((100vw - 10px) / 1200),
+      calc((100vh - 180px) / 1697)
+    )) !important;
+  }
+}
+

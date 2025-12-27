@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
 import usePreviewHandler from './PreviewHandler3';
-import generatePDF from './pdf3';
 import './Preview3.css';
 
 function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, isPreviewPage }) {
@@ -155,8 +154,31 @@ function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, i
   };
   
   const profileImageUrl = getLocalProfileImageUrl();
-  const contactInfo = formatContactInfo();
-
+  
+  // Create local formatContactInfo that uses the actual formData
+  const formatLocalContactInfo = () => {
+    const contact = [];
+    if (formData.phone) {
+      contact.push({ type: 'phone', value: formData.phone, icon: '📞' });
+    }
+    if (formData.email) {
+      contact.push({ type: 'email', value: formData.email, icon: '✉️' });
+    }
+    if (formData.address) {
+      contact.push({ type: 'address', value: formData.address, icon: '📍' });
+    }
+    return contact;
+  };
+  
+  const contactInfo = formatLocalContactInfo();
+  
+  // Debug: Log contact information
+  console.log('Template3 - Contact Info:', contactInfo);
+  console.log('Template3 - Form Data:', formData);
+  console.log('Template3 - Phone:', formData?.phone);
+  console.log('Template3 - Email:', formData?.email);
+  console.log('Template3 - Address:', formData?.address);
+  
   // Render the CV preview content (reusable for both normal and modal view)
   const renderCVContent = () => (
     <>
@@ -200,15 +222,42 @@ function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, i
                 </div>
 
                 {/* Contact Information */}
-                {contactInfo && contactInfo.length > 0 && (
+                {contactInfo && contactInfo.length > 0 ? (
                   <div className="header-contact">
                     {contactInfo.map((contact, index) => (
-                      <div key={index} className="contact-item">
+                      <div 
+                        key={index} 
+                        className={`contact-item ${contact.type === 'address' ? 'contact-address' : ''}`}
+                      >
                         <span className="contact-icon">{contact.icon}</span>
                         <span>{contact.value}</span>
                       </div>
                     ))}
                   </div>
+                ) : (
+                  // Fallback: Try to display contact info directly from formData if contactInfo is empty
+                  (formData?.phone || formData?.email || formData?.address) && (
+                    <div className="header-contact">
+                      {formData.phone && (
+                        <div className="contact-item">
+                          <span className="contact-icon">📞</span>
+                          <span>{formData.phone}</span>
+                        </div>
+                      )}
+                      {formData.email && (
+                        <div className="contact-item">
+                          <span className="contact-icon">✉️</span>
+                          <span>{formData.email}</span>
+                        </div>
+                      )}
+                      {formData.address && (
+                        <div className="contact-item contact-address">
+                          <span className="contact-icon">📍</span>
+                          <span>{formData.address}</span>
+                        </div>
+                      )}
+                    </div>
+                  )
                 )}
               </div>
             </div>
@@ -418,16 +467,6 @@ function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, i
               </div>
             </div>
 
-            {/* Download PDF Button */}
-            <div className="download-pdf-container">
-              <button 
-                className="download-pdf-button" 
-                onClick={generatePDF}
-                title="Download CV as PDF"
-              >
-                📄 Download PDF
-              </button>
-            </div>
           </div>
     </>
   );
@@ -447,7 +486,7 @@ function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, i
           padding: '0'
         }}
       >
-        <div className="cv-preview a4-size-preview pdf-mode">
+        <div className="cv-preview a4-size-preview">
           {renderCVContent()}
         </div>
       </div>

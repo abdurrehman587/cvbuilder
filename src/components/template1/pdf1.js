@@ -510,14 +510,38 @@ const handleMultiPagePDF = (pdf, canvas, contentWidth, contentHeight, imgHeight,
   }
 };
 
-const generateFileName = () => {
-  const nameInput = document.querySelector('#name-input');
-  const userName = nameInput ? nameInput.value.trim() : 'CV';
+const generateFileName = (formData = null) => {
+  let userName = '';
+  
+  // First try to get from formData if provided (for preview page)
+  if (formData && formData.name) {
+    userName = formData.name.trim();
+  }
+  
+  // If not found, try to get from DOM input (for form page)
+  if (!userName) {
+    const nameInput = document.querySelector('#name-input');
+    userName = nameInput ? nameInput.value.trim() : '';
+  }
+  
+  // If still not found, try localStorage
+  if (!userName) {
+    try {
+      const storedData = localStorage.getItem('cvFormData');
+      if (storedData) {
+        const parsedData = JSON.parse(storedData);
+        userName = parsedData.name ? parsedData.name.trim() : '';
+      }
+    } catch (e) {
+      console.warn('Error reading name from localStorage:', e);
+    }
+  }
+  
   return userName ? `${userName.replace(/\s+/g, '_')}_CV.pdf` : `CV_${new Date().toISOString().split('T')[0]}.pdf`;
 };
 
 // Main PDF Generation Function
-const generatePDF = async () => {
+const generatePDF = async (formData = null) => {
   let cvPreview, downloadButton, originalDisplay, originalWidth, originalMaxWidth, originalMinWidth, originalTransform, originalDisplayStyle, originalVisibility, originalOpacity, originalPosition, originalZIndex, originalTop, originalLeft, modal, modalOverlay, originalModalDisplay, originalModalOverlayDisplay;
 
   try {
@@ -559,7 +583,7 @@ const generatePDF = async () => {
     const pdf = createPDF(canvas);
     
     // Download PDF
-    const fileName = generateFileName();
+    const fileName = generateFileName(formData);
     const isNative = Capacitor.isNativePlatform();
     
     if (isNative) {

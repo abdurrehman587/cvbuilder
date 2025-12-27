@@ -150,7 +150,7 @@ const generateCanvas = async (cvPreview) => {
     foreignObjectRendering: false,
     imageTimeout: PDF_CONFIG.imageTimeout,
     onclone: (clonedDoc) => {
-      // Force apply all PDF styles immediately via injected stylesheet
+      // Force apply all PDF styles immediately via injected stylesheet to match preview
       const style = document.createElement('style');
       style.textContent = `
         .template2-root.pdf-mode .cv-preview.pdf-mode {
@@ -159,22 +159,27 @@ const generateCanvas = async (cvPreview) => {
           gap: 0 !important;
           padding: 0 !important;
           background: white !important;
-          max-width: 1200px !important;
+          width: 800px !important;
+          max-width: 800px !important;
+          min-width: 800px !important;
           margin: 0 auto !important;
           font-family: 'Arial', sans-serif !important;
         }
         .template2-root.pdf-mode .cv-preview.pdf-mode .cv-left-column {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-          background: -webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-          color: white !important;
-          padding: 20px 18px !important;
-          display: block !important;
+          background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 25%, #a5b4fc 50%, #c7d2fe 75%, #e0e7ff 100%) !important;
+          background: -webkit-linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 25%, #a5b4fc 50%, #c7d2fe 75%, #e0e7ff 100%) !important;
+          color: #475569 !important;
+          padding: 25px 18px !important;
+          display: flex !important;
+          flex-direction: column !important;
           box-sizing: border-box !important;
           overflow-wrap: break-word !important;
           word-wrap: break-word !important;
+          border-right: 3px solid rgba(99, 102, 241, 0.4) !important;
+          position: relative !important;
         }
         .template2-root.pdf-mode .cv-preview.pdf-mode .cv-left-column * {
-          color: white !important;
+          color: #475569 !important;
         }
         .template2-root.pdf-mode .cv-preview.pdf-mode .cv-right-column {
           background: white !important;
@@ -189,8 +194,10 @@ const generateCanvas = async (cvPreview) => {
       if (clonedPreview) {
         clonedPreview.style.visibility = 'visible';
         clonedPreview.style.display = 'grid';
-        clonedPreview.style.gridTemplateColumns = '35% 65%';
-        clonedPreview.style.width = 'auto';
+        clonedPreview.style.gridTemplateColumns = '42% 58%';
+        clonedPreview.style.width = '800px';
+        clonedPreview.style.maxWidth = '800px';
+        clonedPreview.style.minWidth = '800px';
         clonedPreview.style.height = 'auto';
       }
     }
@@ -267,14 +274,19 @@ const handleMultiPagePDF = (pdf, canvas, contentWidth, contentHeight, imgHeight)
   }
 };
 
-const generateFileName = () => {
-  const nameInput = document.querySelector('#name-input');
-  const userName = nameInput ? nameInput.value.trim() : 'CV';
+const generateFileName = (formData = {}) => {
+  let userName = '';
+  if (formData && formData.name) {
+    userName = formData.name.trim();
+  } else {
+    const nameInput = document.querySelector('#name-input');
+    userName = nameInput ? nameInput.value.trim() : '';
+  }
   return userName ? `${userName.replace(/\s+/g, '_')}_CV.pdf` : `CV_${new Date().toISOString().split('T')[0]}.pdf`;
 };
 
 // Main PDF Generation Function
-const generatePDF = async () => {
+const generatePDF = async (formDataForFilename = {}) => {
   let cvPreview, downloadButton, originalDisplay, template2Root, originalWidth, originalMaxWidth, originalMinWidth;
 
   try {
@@ -295,8 +307,10 @@ const generatePDF = async () => {
     originalMaxWidth = setup.originalMaxWidth;
     originalMinWidth = setup.originalMinWidth;
     
-    // Wait a bit for layout to settle after setting fixed width
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // Wait for layout to settle after setting fixed width and applying PDF styles
+    // Multiple delays to ensure CSS is fully applied
+    await new Promise(resolve => setTimeout(resolve, 200));
+    await new Promise(resolve => setTimeout(resolve, 200));
     
     // Generate canvas
     const canvas = await generateCanvas(cvPreview);
@@ -305,7 +319,7 @@ const generatePDF = async () => {
     const pdf = createPDF(canvas);
     
     // Download PDF
-    const fileName = generateFileName();
+    const fileName = generateFileName(formDataForFilename);
     const isNative = Capacitor.isNativePlatform();
     
     if (isNative) {

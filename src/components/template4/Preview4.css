@@ -881,3 +881,27 @@
     page-break-inside: avoid;
   }
 }
+
+/* Responsive styles for preview page display */
+@media screen and (max-width: 768px) {
+  .preview-page-content .template4-root.cv-preview {
+    width: 800px !important;
+    min-width: 800px !important;
+    max-width: 800px !important;
+    transform: scale(min(
+      calc((100vw - 20px) / 800),
+      calc((100vh - 200px) / 1129)
+    )) !important;
+    transform-origin: top center !important;
+    margin: 0 auto !important;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .preview-page-content .template4-root.cv-preview {
+    transform: scale(min(
+      calc((100vw - 10px) / 800),
+      calc((100vh - 180px) / 1129)
+    )) !important;
+  }
+}

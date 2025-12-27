@@ -156,6 +156,7 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
   const [showA4Preview, setShowA4Preview] = useState(false);
   const [a4Scale, setA4Scale] = useState(1);
   const [userZoom, setUserZoom] = useState(1);
+  const [previewPageScale, setPreviewPageScale] = useState(1);
   const a4PreviewRef = useRef(null);
   const { formData: hookFormData, formatContactInfo, updatePreviewData } = usePreviewHandler(propFormData);
   
@@ -358,7 +359,7 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
     };
   }, [showA4Preview, formData, userZoom, a4Scale]);
 
-  // Calculate A4 preview scale for all devices
+  // Calculate A4 preview scale for all devices (for modal)
   useEffect(() => {
     if (!showA4Preview) {
       setA4Scale(1);
@@ -438,6 +439,85 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
       window.removeEventListener('resize', handleResize);
     };
   }, [showA4Preview, userZoom]);
+
+  // Calculate scale for preview page (when isPreviewPage is true)
+  useEffect(() => {
+    if (!isPreviewPage) {
+      setPreviewPageScale(1);
+      return;
+    }
+
+    const calculatePreviewPageScale = () => {
+      // A4 dimensions: 800px × 1129px
+      const a4Width = 800;
+      const a4Height = 1129;
+      
+      // Get viewport dimensions
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      
+      // Get header height (sticky header on preview page)
+      const header = document.querySelector('.preview-page-header');
+      const headerHeight = header ? header.offsetHeight : 200; // Default to 200px if not found
+      
+      // Determine device type
+      const isMobile = viewportWidth < 768;
+      const isTablet = viewportWidth >= 768 && viewportWidth <= 1024;
+      
+      // Calculate available space
+      let availableWidth, availableHeight;
+      
+      if (isMobile) {
+        // Mobile: account for header and minimal padding
+        availableWidth = viewportWidth - 10; // 5px padding each side
+        availableHeight = viewportHeight - headerHeight - 10; // Header + 5px padding top/bottom
+      } else if (isTablet) {
+        // Tablet: account for header and padding
+        availableWidth = viewportWidth - 30; // 15px padding each side
+        availableHeight = viewportHeight - headerHeight - 20; // Header + 10px padding top/bottom
+      } else {
+        // Desktop: more padding
+        availableWidth = viewportWidth - 40; // 20px padding each side
+        availableHeight = viewportHeight - headerHeight - 40; // Header + 20px padding top/bottom
+      }
+      
+      // Calculate scale to fit
+      const scaleX = availableWidth / a4Width;
+      const scaleY = availableHeight / a4Height;
+      
+      // Use smaller scale to ensure it fits completely
+      let baseScale = Math.min(scaleX, scaleY);
+      
+      // Ensure minimum scale but allow it to be smaller than 1.0
+      baseScale = Math.max(baseScale, 0.1);
+      
+      setPreviewPageScale(baseScale);
+    };
+
+    // Calculate with delays to ensure DOM is ready
+    calculatePreviewPageScale();
+    const timeoutId1 = setTimeout(calculatePreviewPageScale, 100);
+    const timeoutId2 = setTimeout(calculatePreviewPageScale, 300);
+    
+    // Recalculate on resize
+    let resizeTimeout;
+    const handleResize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(calculatePreviewPageScale, 150);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', () => {
+      setTimeout(calculatePreviewPageScale, 400);
+    });
+    
+    return () => {
+      clearTimeout(timeoutId1);
+      clearTimeout(timeoutId2);
+      clearTimeout(resizeTimeout);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [isPreviewPage]);
   
   // Default sections to show on page load: professional-summary, skills, languages, references
   // Ensure all data is properly extracted from formData
@@ -788,23 +868,27 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
   // If this is the preview page, render the preview content directly
   if (isPreviewPage) {
     return (
-      <div 
-        className="cv-preview a4-size-preview pdf-mode"
-        style={{
-          width: '800px',
-          minWidth: '800px',
-          maxWidth: '800px',
-          minHeight: '1129px',
-          height: 'auto',
-          margin: '0 auto',
-          display: 'block',
-          boxSizing: 'border-box',
-          background: '#ffffff',
-          padding: '20px',
-          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
-        }}
-      >
-        {renderCVContent()}
+      <div className="preview-page-preview-wrapper">
+        <div 
+          className="cv-preview a4-size-preview pdf-mode preview-page-preview"
+          style={{
+            transform: `scale(${previewPageScale})`,
+            transformOrigin: 'top left',
+            width: '800px',
+            minWidth: '800px',
+            maxWidth: '800px',
+            minHeight: '1129px',
+            height: 'auto',
+            margin: 0,
+            display: 'block',
+            boxSizing: 'border-box',
+            background: '#ffffff',
+            padding: '20px',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
+          }}
+        >
+          {renderCVContent()}
+        </div>
       </div>
     );
   }

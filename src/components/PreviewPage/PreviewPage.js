@@ -1,6 +1,10 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { setCVView } from '../../utils/routing';
-import generatePDF from '../template1/pdf1';
+import generatePDF1 from '../template1/pdf1';
+import generatePDF2 from '../template2/pdf2';
+import generatePDF3 from '../template3/pdf3';
+import generatePDF4 from '../template4/pdf4';
+import generatePDF5 from '../template5/pdf5';
 import './PreviewPage.css';
 
 // Import all preview components
@@ -150,9 +154,52 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
   };
 
   const handleDownloadPDF = () => {
+    // Get formData from props or localStorage for filename
+    let dataForFileName = formData;
+    
+    // If formData from props is empty, try localStorage
+    if (!dataForFileName || !dataForFileName.name) {
+      const storedData = localStorage.getItem('cvFormData');
+      if (storedData) {
+        try {
+          dataForFileName = JSON.parse(storedData);
+        } catch (e) {
+          console.error('Error parsing stored data for filename:', e);
+        }
+      }
+    }
+    
+    // Get the correct PDF generator based on selected template
+    let generatePDF;
+    switch (selectedTemplate) {
+      case 'template1':
+        generatePDF = generatePDF1;
+        break;
+      case 'template2':
+        generatePDF = generatePDF2;
+        break;
+      case 'template3':
+        generatePDF = generatePDF3;
+        break;
+      case 'template4':
+        generatePDF = generatePDF4;
+        break;
+      case 'template5':
+        generatePDF = generatePDF5;
+        break;
+      default:
+        generatePDF = generatePDF1;
+    }
+    
     // Call the PDF generation function
     if (generatePDF) {
-      generatePDF();
+      // Template 1, 2, and 3 accept formData parameter for filename
+      if (selectedTemplate === 'template1' || selectedTemplate === 'template2' || selectedTemplate === 'template3') {
+        generatePDF(dataForFileName);
+      } else {
+        // Other templates don't accept formData parameter
+        generatePDF();
+      }
     }
   };
 
