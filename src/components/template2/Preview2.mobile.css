@@ -1,0 +1,44 @@
+﻿/* Template 2 Mobile CSS - Preserve A4 dimensions with scaling */
+
+/* Tablet and small desktop */
+@media screen and (max-width: 768px) {
+  .cv-preview,
+  .template1-root .cv-preview,
+  .template1-container .cv-preview,
+  .preview-page-preview-wrapper .cv-preview {
+    width: 800px !important;
+    height: auto !important;
+    transform: scale(calc((100vw - 16px) / 800)) !important;
+    transform-origin: top left !important;
+    margin: 0 !important;
+  }
+}
+
+/* Mobile devices */
+@media screen and (max-width: 480px) {
+  .cv-preview,
+  .template1-root .cv-preview,
+  .template1-container .cv-preview,
+  .preview-page-preview-wrapper .cv-preview {
+    width: 800px !important;
+    height: auto !important;
+    transform: scale(calc((100vw - 8px) / 800)) !important;
+    transform-origin: top left !important;
+    margin: 0 !important;
+  }
+}
+
+/* Very small mobile devices */
+@media screen and (max-width: 375px) {
+  .cv-preview,
+  .template1-root .cv-preview,
+  .template1-container .cv-preview,
+  .preview-page-preview-wrapper .cv-preview {
+    width: 800px !important;
+    height: auto !important;
+    transform: scale(calc((100vw - 4px) / 800)) !important;
+    transform-origin: top left !important;
+    margin: 0 !important;
+  }
+}
+

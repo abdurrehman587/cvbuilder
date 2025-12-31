@@ -294,13 +294,23 @@ const generateCanvas = async (cvPreview) => {
           europassLogo.style.visibility = 'visible';
           europassLogo.style.display = 'block';
           europassLogo.style.opacity = '1';
+          europassLogo.style.height = '15px';
+          europassLogo.style.maxWidth = '38px';
           // Ensure logo container is visible
           const logoContainer = europassLogo.closest('.europass-logo-container');
           if (logoContainer) {
             logoContainer.style.visibility = 'visible';
             logoContainer.style.display = 'flex';
             logoContainer.style.opacity = '1';
+            logoContainer.style.marginLeft = '-22px';
+            logoContainer.style.maxWidth = '38px';
           }
+        }
+        
+        // Also adjust header-right margins
+        const headerRight = clonedPreview.querySelector('.europass-header-right');
+        if (headerRight) {
+          headerRight.style.marginLeft = '-22px';
         }
       }
     }

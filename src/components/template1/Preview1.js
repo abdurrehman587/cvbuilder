@@ -3,6 +3,8 @@ import usePreviewHandler from './PreviewHandler1';
 import generatePDF from './pdf1';
 import { setCVView } from '../../utils/routing';
 import './Preview1.css';
+import './pdf1.css';
+import './Preview1.mobile.css';
 
 // Function to capture all form data from DOM (similar to PreviewHandler1.getFormData)
 // Takes existingFormData parameter to preserve profileImage from database
@@ -469,8 +471,9 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
       
       if (isMobile) {
         // Mobile: account for header and minimal padding
-        availableWidth = viewportWidth - 10; // 5px padding each side
-        availableHeight = viewportHeight - headerHeight - 10; // Header + 5px padding top/bottom
+        // Use viewport width directly since container has overflow: hidden
+        availableWidth = viewportWidth;
+        availableHeight = viewportHeight - headerHeight; // Header only, no padding needed
       } else if (isTablet) {
         // Tablet: account for header and padding
         availableWidth = viewportWidth - 30; // 15px padding each side
@@ -488,8 +491,12 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
       // Use smaller scale to ensure it fits completely
       let baseScale = Math.min(scaleX, scaleY);
       
+      // Add a small safety margin (2% for tight fit)
+      baseScale = baseScale * 0.98;
+      
       // Ensure minimum scale but allow it to be smaller than 1.0
       baseScale = Math.max(baseScale, 0.1);
+      baseScale = Math.min(baseScale, 1.0);
       
       setPreviewPageScale(baseScale);
     };
@@ -870,7 +877,7 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
     return (
       <div className="preview-page-preview-wrapper">
         <div 
-          className="cv-preview a4-size-preview pdf-mode preview-page-preview"
+          className="template1-preview template1-a4-size-preview template1-pdf-mode preview-page-preview"
           style={{
             transform: `scale(${previewPageScale})`,
             transformOrigin: 'top left',
@@ -998,7 +1005,7 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
 
       {/* A4 Preview Element - Always rendered for PDF generation, hidden when modal is closed */}
       <div 
-        className="cv-preview a4-size-preview pdf-mode"
+        className="template1-preview template1-a4-size-preview template1-pdf-mode"
         style={{
           display: 'none', // Hidden but in DOM for PDF generation
           position: 'fixed',
@@ -1103,18 +1110,19 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
             
             <div className="a4-preview-container" ref={a4PreviewRef}>
               <div 
-                className="cv-preview a4-size-preview pdf-mode"
+                className="template1-preview template1-a4-size-preview template1-pdf-mode"
                 id="a4-preview-content"
                 key={`a4-preview-${formData?.name || 'default'}-${Date.now()}`}
                 style={{
-                  transform: `scale(${a4Scale * userZoom})`,
-                  transformOrigin: 'center center',
+                  transform: `scale(${isPreviewPage ? (previewPageScale * userZoom) : (a4Scale * userZoom)})`,
+                  transformOrigin: isPreviewPage ? 'top center' : 'center center',
                   width: '800px',
                   minWidth: '800px',
                   maxWidth: '800px',
                   minHeight: '1129px',
                   height: 'auto',
                   margin: '0 auto',
+                  marginTop: isPreviewPage ? '0' : 'auto',
                   display: 'block',
                   boxSizing: 'border-box'
                 }}

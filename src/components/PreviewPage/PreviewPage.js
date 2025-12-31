@@ -3,7 +3,6 @@ import { setCVView } from '../../utils/routing';
 import generatePDF1 from '../template1/pdf1';
 import generatePDF2 from '../template2/pdf2';
 import generatePDF3 from '../template3/pdf3';
-import generatePDF4 from '../template4/pdf4';
 import generatePDF5 from '../template5/pdf5';
 import './PreviewPage.css';
 
@@ -11,7 +10,6 @@ import './PreviewPage.css';
 import Preview1 from '../template1/Preview1';
 import Preview2 from '../template2/Preview2';
 import Preview3 from '../template3/Preview3';
-import Preview4 from '../template4/Preview4';
 import Preview5 from '../template5/Preview5';
 
 function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
@@ -52,8 +50,6 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
         return <Preview2 {...previewProps} />;
       case 'template3':
         return <Preview3 {...previewProps} />;
-      case 'template4':
-        return <Preview4 {...previewProps} />;
       case 'template5':
         return <Preview5 {...previewProps} />;
       default:
@@ -181,9 +177,6 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
       case 'template3':
         generatePDF = generatePDF3;
         break;
-      case 'template4':
-        generatePDF = generatePDF4;
-        break;
       case 'template5':
         generatePDF = generatePDF5;
         break;
@@ -260,13 +253,6 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
                 T3
               </button>
               <button
-                className={`preview-template-button ${selectedTemplate === 'template4' ? 'active' : ''}`}
-                onClick={() => onTemplateSwitch('template4')}
-                title="Template 4"
-              >
-                T4
-              </button>
-              <button
                 className={`preview-template-button ${selectedTemplate === 'template5' ? 'active' : ''}`}
                 onClick={() => onTemplateSwitch('template5')}
                 title="Template 5 (Europass)"
@@ -289,7 +275,13 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
 
       {/* Preview Content */}
       <div className="preview-page-content" ref={previewRef}>
-        {renderPreview()}
+        {selectedTemplate === 'template3' ? (
+          <div className="preview-page-preview-wrapper template3-wrapper">
+            {renderPreview()}
+          </div>
+        ) : (
+          renderPreview()
+        )}
       </div>
     </div>
   );

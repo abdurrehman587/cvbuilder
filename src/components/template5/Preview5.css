@@ -100,6 +100,17 @@
   -webkit-overflow-scrolling: touch;
 }
 
+/* Preview page specific - allow full content expansion */
+.template5-root .cv-preview.europass-cv.a4-size-preview {
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+  padding-top: 12px !important;
+  padding-bottom: 12px !important;
+  padding-left: 24px !important; /* 0.25 inches = 24px left margin */
+  padding-right: 24px !important; /* 0.25 inches = 24px right margin */
+}
+
 /* CV Preview Container - Fixed A4 Size that scales like an image/PDF */
 /* This ensures the format NEVER changes - only scales proportionally */
 /* A4 dimensions: 210mm × 297mm at 96 DPI = 794px × 1123px */
@@ -111,20 +122,23 @@
   display: flex;
   flex-direction: column;
   box-sizing: border-box !important;
-  overflow: hidden !important; /* Prevent content overflow */
+  overflow: visible !important; /* Allow content to be visible - no cutting */
   
   /* Fixed A4 base size - NEVER changes */
   /* A4: 210mm × 297mm at 96 DPI = 794px × 1123px */
   width: 794px !important;
-  height: 1123px !important; /* Exact A4 height */
   min-width: 794px !important;
   max-width: 794px !important;
-  min-height: 1123px !important;
-  max-height: 1123px !important;
+  min-height: 1123px !important; /* Minimum A4 height */
+  height: auto !important; /* Allow content to expand beyond A4 if needed */
+  max-height: none !important; /* Remove max-height restriction for preview */
   
   /* Fixed font size and padding - optimized for A4 */
   font-size: 10pt !important; /* Reduced to fit more content */
-  padding: 15px !important; /* Reduced padding */
+  padding-top: 12px !important;
+  padding-bottom: 12px !important;
+  padding-left: 24px !important; /* 0.25 inches = 24px left margin */
+  padding-right: 24px !important; /* 0.25 inches = 24px right margin */
   
   /* Center the preview */
   margin: 0 auto !important;
@@ -140,10 +154,6 @@
   overflow-wrap: normal !important;
   word-break: normal !important;
   white-space: normal !important;
-  
-  /* Allow content to be visible */
-  overflow-x: visible !important;
-  overflow-y: visible !important;
 }
 
 /* Visible preview - scales proportionally like an image */
@@ -769,17 +779,18 @@
 
 /* Responsive scaling - format NEVER changes, only scales proportionally */
 /* Uses viewport units to calculate scale factor */
+/* A4 dimensions: 794px × 1123px */
 @media (max-width: 1240px) {
   .cv-preview-visible {
-    transform: scale(calc((100vw - 40px) / 1200)) !important;
+    transform: scale(calc((100vw - 40px) / 794)) !important;
   }
 }
 
 @media (max-height: 1737px) {
   .cv-preview-visible {
     transform: scale(min(
-      calc((100vw - 40px) / 1200),
-      calc((100vh - 100px) / 1697)
+      calc((100vw - 40px) / 794),
+      calc((100vh - 100px) / 1123)
     )) !important;
   }
 }
@@ -799,14 +810,15 @@
   
   .cv-preview-visible {
     /* Scale to fit mobile viewport - format NEVER changes */
+    /* A4 dimensions: 794px × 1123px */
     transform: scale(min(
-      calc((100vw - 20px) / 1200),
-      calc((100vh - 80px) / 1697)
+      calc((100vw - 20px) / 794),
+      calc((100vh - 80px) / 1123)
     )) !important;
     transform-origin: top center !important;
-    /* Keep fixed dimensions */
-    width: 1200px !important;
-    height: 1697px !important;
+    /* Keep fixed A4 dimensions */
+    width: 794px !important;
+    height: 1123px !important;
   }
   
   /* Ensure header doesn't overflow */
@@ -1011,12 +1023,13 @@
 @media screen and (max-width: 768px) {
   .preview-page-content .template5-root .cv-preview,
   .preview-page-content .cv-preview-visible {
-    width: 1200px !important;
-    min-width: 1200px !important;
-    max-width: 1200px !important;
+    /* A4 dimensions: 794px × 1123px */
+    width: 794px !important;
+    min-width: 794px !important;
+    max-width: 794px !important;
     transform: scale(min(
-      calc((100vw - 20px) / 1200),
-      calc((100vh - 200px) / 1697)
+      calc((100vw - 20px) / 794),
+      calc((100vh - 200px) / 1123)
     )) !important;
     transform-origin: top center !important;
     margin: 0 auto !important;
@@ -1026,9 +1039,10 @@
 @media screen and (max-width: 480px) {
   .preview-page-content .template5-root .cv-preview,
   .preview-page-content .cv-preview-visible {
+    /* A4 dimensions: 794px × 1123px */
     transform: scale(min(
-      calc((100vw - 10px) / 1200),
-      calc((100vh - 180px) / 1697)
+      calc((100vw - 10px) / 794),
+      calc((100vh - 180px) / 1123)
     )) !important;
   }
 }

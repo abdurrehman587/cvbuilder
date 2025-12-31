@@ -1,0 +1,104 @@
+/* Template 3 Mobile CSS - Preserve A4 dimensions with scaling */
+
+/* Mobile wrapper improvements */
+.cv3-preview-page-preview-wrapper,
+.preview-page-preview-wrapper {
+  width: 100% !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important; /* Smooth scrolling on iOS */
+  position: relative !important;
+  min-height: 100vh !important;
+}
+
+/* Ensure preview maintains aspect ratio on mobile */
+.cv3-preview,
+.cv3-a4-size-preview {
+  box-sizing: border-box !important;
+  backface-visibility: hidden !important; /* Improve rendering performance on mobile */
+  -webkit-font-smoothing: antialiased !important;
+}
+
+/* Tablet and small desktop */
+@media screen and (max-width: 768px) {
+  .cv3-preview,
+  .cv3-a4-size-preview,
+  .cv3-preview-page-preview,
+  .cv3-pdf-mode,
+  .cv3-preview.cv3-a4-size-preview,
+  .cv3-preview-page-preview-wrapper .cv3-preview,
+  .preview-page-preview-wrapper .cv3-preview,
+  #a4-preview-content {
+    width: 800px !important;
+    min-width: 800px !important;
+    max-width: 800px !important;
+    height: auto !important;
+    transform: scale(calc((100vw - 16px) / 800)) !important;
+    transform-origin: top center !important; /* Changed to center for better alignment */
+    margin: 0 auto !important; /* Center the preview */
+  }
+  
+  .cv3-preview-page-preview-wrapper {
+    padding: 0 !important;
+    overflow-x: hidden !important;
+    display: flex !important;
+    justify-content: center !important; /* Center the preview */
+    align-items: flex-start !important;
+  }
+}
+
+/* Mobile devices */
+@media screen and (max-width: 480px) {
+  .cv3-preview,
+  .cv3-a4-size-preview,
+  .cv3-preview-page-preview,
+  .cv3-pdf-mode,
+  .cv3-preview.cv3-a4-size-preview,
+  .cv3-preview-page-preview-wrapper .cv3-preview,
+  .preview-page-preview-wrapper .cv3-preview,
+  #a4-preview-content {
+    width: 800px !important;
+    min-width: 800px !important;
+    max-width: 800px !important;
+    height: auto !important;
+    transform: scale(calc((100vw - 8px) / 800)) !important;
+    transform-origin: top center !important; /* Changed to center for better alignment */
+    margin: 0 auto !important; /* Center the preview */
+  }
+  
+  .cv3-preview-page-preview-wrapper {
+    padding: 0 !important;
+    overflow-x: hidden !important;
+    display: flex !important;
+    justify-content: center !important; /* Center the preview */
+    align-items: flex-start !important;
+  }
+}
+
+/* Very small mobile devices */
+@media screen and (max-width: 375px) {
+  .cv3-preview,
+  .cv3-a4-size-preview,
+  .cv3-preview-page-preview,
+  .cv3-pdf-mode,
+  .cv3-preview.cv3-a4-size-preview,
+  .cv3-preview-page-preview-wrapper .cv3-preview,
+  .preview-page-preview-wrapper .cv3-preview,
+  #a4-preview-content {
+    width: 800px !important;
+    min-width: 800px !important;
+    max-width: 800px !important;
+    height: auto !important;
+    transform: scale(calc((100vw - 4px) / 800)) !important;
+    transform-origin: top center !important; /* Changed to center for better alignment */
+    margin: 0 auto !important; /* Center the preview */
+  }
+  
+  .cv3-preview-page-preview-wrapper {
+    padding: 0 !important;
+    overflow-x: hidden !important;
+    display: flex !important;
+    justify-content: center !important; /* Center the preview */
+    align-items: flex-start !important;
+  }
+}

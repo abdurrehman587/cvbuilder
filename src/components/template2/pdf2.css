@@ -1,612 +1,433 @@
-/* PDF Generation Styles for Template 2 */
+﻿/* ================================
+   CV TEMPLATE 2 - TWO COLUMN LAYOUT
+   Left Sidebar + Right Content
+================================ */
 
-/* Ensure template2-root wrapper has A4 width in PDF mode */
-.template2-root.pdf-mode {
-  width: 800px !important;
-  max-width: 800px !important;
-  min-width: 800px !important;
-  margin: 0 auto !important;
+/* ===== MAIN WRAPPER & LAYOUT ===== */
+.template2-cv-content-wrapper {
+  display: grid;
+  grid-template-columns: 35% 65%;
+  gap: 0;
+  width: 100%;
+  min-height: 100vh;
+  background: #ffffff;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Ensure PDF mode maintains template2 layout and styling - A4 Size */
-.template2-root .cv-preview.pdf-mode {
-  padding: 0 !important;
-  min-height: auto;
+/* ===== LEFT SIDEBAR STYLING ===== */
+.template2-cv-left-sidebar {
+  background: linear-gradient(to bottom, #48cae4, #90e0ef, #ade8f4);
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ===== PROFILE IMAGE ===== */
+.template2-profile-image-container {
+  width: 100px;
+  height: 100px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.1);
+  border: 3px solid #ecf0f1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+.template2-profile-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.template2-profile-placeholder {
+  font-size: 32px;
+  font-weight: 700;
+  color: #ecf0f1;
+}
+
+/* ===== NAME & TITLE ===== */
+.template2-header-name {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0;
   line-height: 1.3;
-  font-family: 'Arial', sans-serif !important;
-  background: white !important;
+  text-align: center;
+  word-break: break-word;
+}
+
+.template2-header-title {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 4px 0 0 0;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ===== SIDEBAR SECTIONS ===== */
+.template2-sidebar-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.template2-sidebar-section-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0;
+  padding-bottom: 6px;
+  border-bottom: 2px solid;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ===== CONTACT ITEMS ===== */
+.template2-contact-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.template2-contact-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+/* ===== SKILL TAGS ===== */
+.template2-skills-tag-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.template2-skill-tag {
+  display: inline-block;
+  background: #ffffff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  word-break: break-word;
+}
+
+/* ===== LANGUAGE ITEMS ===== */
+.template2-language-item {
+  font-size: 12px;
+  
+  padding-left: 10px;
+  position: relative;
+}
+
+.template2-language-item::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+}
+
+/* ===== HOBBY ITEMS ===== */
+.template2-hobby-item {
+  font-size: 12px;
+  padding-left: 10px;
+  position: relative;
+}
+
+.template2-hobby-item::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+}
+
+
+/* ===== OTHER INFO ===== */
+.template2-other-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12px;
+}
+
+.template2-other-info-label {
+  font-weight: 600;
+}
+
+.template2-other-info-value {
+  font-size: 12px;
+}
+
+/* ===== RIGHT CONTENT AREA ===== */
+.template2-cv-right-content {
+  background: #ffffff;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+}
+
+/* ===== SECTIONS ===== */
+.template2-cv-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.template2-cv-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.template2-section-heading {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #48cae4;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.template2-section-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ===== PROFESSIONAL SUMMARY ===== */
+.template2-professional-summary-text {
+  font-size: 12px;
+  line-height: 1.6;
   color: #333;
-  display: grid !important;
-  grid-template-columns: 42% 58% !important;
-  gap: 0 !important;
-  /* A4 dimensions: 210mm x 297mm at 96 DPI = 794px x 1123px */
-  /* Using 800px width for better rendering, maintaining A4 aspect ratio */
-  width: 800px !important;
-  max-width: 800px !important;
-  min-width: 800px !important;
-  margin: 0 auto !important;
-  aspect-ratio: 210 / 297 !important;
+  margin: 0;
+  text-align: justify;
 }
 
-/* Left Column - Light Modern Design (PDF Mode) - Matching Preview */
-.template2-root .cv-preview.pdf-mode .cv-left-column {
-  background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 25%, #a5b4fc 50%, #c7d2fe 75%, #e0e7ff 100%) !important;
-  color: #475569 !important;
-  padding: 25px 18px !important;
-  min-height: auto !important;
-  box-sizing: border-box !important;
-  overflow-wrap: break-word !important;
-  word-wrap: break-word !important;
-  position: relative !important;
-  border-right: 3px solid rgba(99, 102, 241, 0.4) !important;
+/* ===== EXPERIENCE ITEMS ===== */
+.template2-experience-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 0;
+  padding-left: 8px;
+  border-left: 2px solid #48cae4;
 }
 
-/* Right Column - White Background (Professional content) */
-.template2-root .cv-preview.pdf-mode .cv-right-column {
-  background: white !important;
-  color: #333 !important;
-  padding: 30px 10px !important;
-  min-height: auto !important;
+.template2-experience-title {
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0;
 }
 
-/* CV Header - PDF Mode - Matching Preview */
-.template2-root .cv-preview.pdf-mode .cv-header {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  text-align: center !important;
-  margin: 0 auto 22px auto !important;
-  padding: 18px 12px 20px 12px !important;
-  background: rgba(255, 255, 255, 0.4) !important;
-  border-radius: 12px !important;
-  border: 2px solid rgba(99, 102, 241, 0.3) !important;
-  box-shadow: 
-    0 4px 12px rgba(99, 102, 241, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
-  position: relative !important;
-  backdrop-filter: blur(8px) !important;
-  overflow: visible !important;
-  width: 100% !important;
-  box-sizing: border-box !important;
+.template2-experience-company {
+  font-size: 12px;
+  font-weight: 600;
+  color: #48cae4;
+  margin: 0;
 }
 
-.template2-root .cv-preview.pdf-mode .cv-header::before {
-  content: '' !important;
-  position: absolute !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  height: 3px !important;
-  background: linear-gradient(90deg, 
-    transparent 0%,
-    rgba(99, 102, 241, 0.6) 20%,
-    rgba(139, 92, 246, 0.6) 50%,
-    rgba(99, 102, 241, 0.6) 80%,
-    transparent 100%
-  ) !important;
-  border-radius: 16px 16px 0 0 !important;
+.template2-experience-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
 }
 
-.template2-root .cv-preview.pdf-mode .cv-header::after {
-  content: '' !important;
-  position: absolute !important;
-  bottom: 0 !important;
-  left: 50% !important;
-  transform: translateX(-50%) !important;
-  width: 80px !important;
-  height: 2px !important;
-  background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.5), transparent) !important;
-  border-radius: 2px !important;
+.template2-experience-duration {
+  font-size: 11px;
+  margin: 0;
+  font-style: italic;
+  white-space: nowrap;
 }
 
-/* Profile Image - PDF Mode - Matching Preview */
-.template2-root .cv-preview.pdf-mode .profile-image-container {
-  width: 110px !important;
-  height: 110px !important;
-  border-radius: 50% !important;
-  overflow: hidden !important;
-  border: 3px solid rgba(99, 102, 241, 0.5) !important;
-  box-shadow: 
-    0 0 0 2px rgba(139, 92, 246, 0.2),
-    0 6px 18px rgba(99, 102, 241, 0.25),
-    inset 0 0 15px rgba(99, 102, 241, 0.1) !important;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.15)) !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  position: relative !important;
-  margin: 0 auto 16px auto !important;
+.template2-experience-details {
+  font-size: 11px;
+  margin-top: 4px;
 }
 
-/* Header Name - PDF Mode - Matching Preview */
-.template2-root.cv-preview.pdf-mode .header-name,
-.cv-preview.pdf-mode.template2-root .header-name {
-  font-size: 24px !important;
-  font-weight: 800 !important;
-  color: #1e293b !important;
-  margin: 0 0 8px 0 !important;
-  line-height: 1.2 !important;
-  font-family: 'Arial', sans-serif !important;
-  text-align: center !important;
-  width: 100% !important;
-  word-wrap: break-word !important;
-  overflow-wrap: break-word !important;
-  letter-spacing: 0.8px !important;
-  text-shadow: 0 2px 4px rgba(99, 102, 241, 0.2) !important;
-  position: relative !important;
+/* ===== EDUCATION ===== */
+.template2-education-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 0;
+  padding-left: 8px;
+  border-left: 2px solid #48cae4;
 }
 
-/* Header Title - PDF Mode - Matching Preview */
-.template2-root.cv-preview.pdf-mode .header-title,
-.cv-preview.pdf-mode.template2-root .header-title {
-  font-size: 12.5px !important;
-  font-weight: 600 !important;
-  color: #475569 !important;
-  margin: 0 0 14px 0 !important;
-  font-style: normal !important;
-  font-family: 'Arial', sans-serif !important;
-  padding: 8px 14px !important;
-  background: rgba(255, 255, 255, 0.6) !important;
-  border-radius: 20px !important;
-  backdrop-filter: blur(8px) !important;
-  border: 1.5px solid rgba(99, 102, 241, 0.3) !important;
-  box-shadow: 
-    0 2px 8px rgba(99, 102, 241, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
-  letter-spacing: 0.4px !important;
+.template2-education-degree {
+  font-size: 13px;
+  color: #48cae4;
+  font-weight: 700;
+  margin: 0;
 }
 
-/* Contact Items - PDF Mode - Matching Preview */
-.template2-root.cv-preview.pdf-mode .contact-item,
-.cv-preview.pdf-mode.template2-root .contact-item {
-  font-size: 14px !important;
-  color: #475569 !important;
-  padding: 4px 0 !important;
-  background: transparent !important;
-  border-radius: 0 !important;
-  font-family: 'Arial', sans-serif !important;
-  display: flex !important;
-  align-items: flex-start !important;
-  gap: 8px !important;
-  width: 100% !important;
-  box-sizing: border-box !important;
-  border: none !important;
-  box-shadow: none !important;
-  font-weight: 600 !important;
-  line-height: 1.2 !important;
-  letter-spacing: 0.4px !important;
-  text-align: left !important;
-  justify-content: flex-start !important;
-  visibility: visible !important;
-  opacity: 1 !important;
+.template2-education-board {
+  font-size: 12px;
+  margin: 0;
 }
 
-.template2-root.cv-preview.pdf-mode .contact-item .contact-icon,
-.cv-preview.pdf-mode.template2-root .contact-item .contact-icon {
-  flex-shrink: 0 !important;
-  font-size: 14px !important;
-  width: 18px !important;
-  height: 18px !important;
-  color: rgba(99, 102, 241, 0.8) !important;
-  margin-top: 1px !important;
+.template2-education-year {
+  font-size: 11px;
+  margin: 0;
 }
 
-.template2-root.cv-preview.pdf-mode .contact-item > span:last-child,
-.cv-preview.pdf-mode.template2-root .contact-item > span:last-child {
-  flex: 1 !important;
-  min-width: 0 !important;
-  word-wrap: break-word !important;
-  word-break: break-all !important;
-  overflow-wrap: break-word !important;
-  font-size: 14px !important;
-  line-height: 1.2 !important;
-  letter-spacing: 0.4px !important;
-  display: block !important;
-  text-align: left !important;
+.template2-education-marks {
+  font-size: 11px;
+  font-weight: 600;
+  margin: 0;
 }
 
-.template2-root.cv-preview.pdf-mode .contact-item.contact-address,
-.cv-preview.pdf-mode.template2-root .contact-item.contact-address {
-  justify-content: flex-start !important;
+.template2-education-single-line {
+  font-size: 12px;
+  margin: 0;
+  padding-left: 8px;
+  border-left: 2px solid #f39c12;
+  padding: 6px 0 6px 8px;
 }
 
-.template2-root.cv-preview.pdf-mode .contact-item.contact-address > span:last-child,
-.cv-preview.pdf-mode.template2-root .contact-item.contact-address > span:last-child {
-  text-align: left !important;
+.template2-education-single-line strong {
+  color: #48cae4;
+  font-weight: 700;
 }
 
-/* Header Contact - PDF Mode - Matching Preview */
-.template2-root.cv-preview.pdf-mode .header-contact,
-.cv-preview.pdf-mode.template2-root .header-contact {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 5px !important;
-  width: 100% !important;
-  margin-top: 8px !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  align-items: flex-start !important;
-  text-align: left !important;
+/* ===== CERTIFICATION ===== */
+.template2-certification-badge {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 0;
+  padding-left: 8px;
+  border-left: 2px solid #48cae4;
+  font-size: 12px;
+  margin: 0;
 }
 
-/* Section Headings - Left Column - PDF Mode - Matching Preview */
-.template2-root.cv-preview.pdf-mode .section-heading.left-column,
-.cv-preview.pdf-mode.template2-root .section-heading.left-column {
-  font-size: 13px !important;
-  font-weight: 800 !important;
-  color: #1e293b !important;
-  margin: 0 0 8px 0 !important;
-  padding: 8px 12px !important;
-  background: rgba(255, 255, 255, 0.6) !important;
-  border-radius: 8px !important;
-  border-left: 3px solid rgba(99, 102, 241, 0.7) !important;
-  text-transform: uppercase !important;
-  letter-spacing: 1.2px !important;
-  font-family: 'Arial', sans-serif !important;
-  position: relative !important;
-  display: block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  line-height: 1.2 !important;
-  box-shadow: 
-    0 2px 8px rgba(99, 102, 241, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.7) !important;
-  backdrop-filter: blur(8px) !important;
-  overflow: visible !important;
-  word-wrap: break-word !important;
-  overflow-wrap: break-word !important;
+/* ===== REFERENCE ITEMS ===== */
+.template2-reference-item {
+  font-size: 12px;
+  color: #333;
+  padding-left: 8px;
+  padding: 6px 0 6px 8px;
+  border-left: 2px solid #48cae4;
 }
 
-.template2-root.cv-preview.pdf-mode .section-heading.left-column::before,
-.cv-preview.pdf-mode.template2-root .section-heading.left-column::before {
-  content: '' !important;
-  position: absolute !important;
-  top: 0 !important;
-  left: 0 !important;
-  width: 4px !important;
-  height: 100% !important;
-  background: linear-gradient(180deg, rgba(99, 102, 241, 0.9), rgba(139, 92, 246, 0.9)) !important;
-  box-shadow: 0 0 8px rgba(99, 102, 241, 0.4) !important;
+.template2-reference-text {
+  margin: 0;
 }
 
-.template2-root.cv-preview.pdf-mode .section-heading.left-column::after,
-.cv-preview.pdf-mode.template2-root .section-heading.left-column::after {
-  content: '' !important;
-  position: absolute !important;
-  bottom: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  height: 1px !important;
-  background: linear-gradient(90deg, 
-    rgba(99, 102, 241, 0.5) 0%,
-    rgba(139, 92, 246, 0.5) 50%,
-    transparent 100%
-  ) !important;
+/* ===== CUSTOM SECTION ===== */
+.template2-custom-section-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 0;
+  padding-left: 8px;
+  border-left: 2px solid #48cae4;
 }
 
-/* Section Headings - Right Column */
-.template2-root.cv-preview.pdf-mode .section-heading.right-column,
-.cv-preview.pdf-mode.template2-root .section-heading.right-column {
-  font-size: 24px !important;
-  font-weight: 700 !important;
-  color: #2c3e50 !important;
-  margin: 0 0 15px 0 !important;
-  padding-bottom: 8px !important;
-  border-bottom: 2px solid #667eea !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.5px !important;
-  font-family: 'Arial', sans-serif !important;
+.template2-custom-section-heading {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0;
 }
 
-/* CV Sections - Left Column - PDF Mode - Matching Preview */
-.template2-root.cv-preview.pdf-mode .cv-section.left-column,
-.cv-preview.pdf-mode.template2-root .cv-section.left-column {
-  margin-bottom: 14px !important;
-  padding: 0 !important;
-  background: transparent !important;
-  border-radius: 0 !important;
-  border-left: none !important;
-  box-shadow: none !important;
-  overflow-wrap: break-word !important;
-  word-wrap: break-word !important;
+.template2-custom-section-detail {
+  font-size: 12px;
+  margin: 0;
 }
 
-.template2-root.cv-preview.pdf-mode .cv-section.left-column:last-child,
-.cv-preview.pdf-mode.template2-root .cv-section.left-column:last-child {
-  margin-bottom: 0 !important;
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 1024px) {
+  .template2-cv-content-wrapper {
+    grid-template-columns: 35% 65%;
+  }
+  
+  .template2-cv-left-sidebar {
+    padding: 20px 12px;
+    gap: 20px;
+  }
+  
+  .template2-cv-right-content {
+    padding: 20px;
+  }
 }
 
-/* CV Sections - Right Column */
-.template2-root.cv-preview.pdf-mode .cv-section.right-column,
-.cv-preview.pdf-mode.template2-root .cv-section.right-column {
-  margin-bottom: 30px !important;
-  padding: 25px !important;
-  background: #f8f9fa !important;
-  border-radius: 12px !important;
-  border-left: 4px solid #667eea !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+@media (max-width: 768px) {
+  .template2-cv-content-wrapper {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+  
+  .template2-cv-left-sidebar {
+    padding: 16px;
+    gap: 16px;
+    order: -1;
+  }
+  
+  .template2-cv-right-content {
+    padding: 16px;
+  }
+  
+  .template2-header-name {
+    font-size: 20px;
+  }
+  
+  .template2-section-heading {
+    font-size: 13px;
+  }
 }
 
-/* Professional Summary */
-.template2-root.cv-preview.pdf-mode .professional-summary-text,
-.cv-preview.pdf-mode.template2-root .professional-summary-text {
-  font-size: 20px !important;
-  color: #555 !important;
-  line-height: 1.7 !important;
-  text-align: justify !important;
-  font-style: italic !important;
-  margin: 0 !important;
-  font-family: 'Arial', sans-serif !important;
+@media (max-width: 480px) {
+  .template2-cv-content-wrapper {
+    grid-template-columns: 1fr;
+  }
+  
+  .template2-cv-left-sidebar {
+    padding: 12px;
+    gap: 12px;
+  }
+  
+  .template2-cv-right-content {
+    padding: 12px;
+  }
+  
+  .template2-profile-image-container {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .template2-header-name {
+    font-size: 18px;
+  }
+  
+  .template2-section-heading {
+    font-size: 12px;
+  }
+  
+  .template2-skill-tag {
+    font-size: 10px;
+    padding: 3px 6px;
+  }
 }
 
-/* Education */
-.template2-root.cv-preview.pdf-mode .education-degree,
-.cv-preview.pdf-mode.template2-root .education-degree {
-  font-size: 20px !important;
-  font-weight: 600 !important;
-  color: #2c3e50 !important;
-  font-family: 'Arial', sans-serif !important;
-}
-
-.template2-root.cv-preview.pdf-mode .education-board,
-.cv-preview.pdf-mode.template2-root .education-board {
-  font-size: 20px !important;
-  font-weight: 500 !important;
-  color: #667eea !important;
-  font-family: 'Arial', sans-serif !important;
-}
-
-.template2-root.cv-preview.pdf-mode .education-year,
-.cv-preview.pdf-mode.template2-root .education-year {
-  font-size: 20px !important;
-  font-weight: 500 !important;
-  color: #555 !important;
-  font-family: 'Arial', sans-serif !important;
-}
-
-.template2-root.cv-preview.pdf-mode .education-marks,
-.cv-preview.pdf-mode.template2-root .education-marks {
-  font-size: 20px !important;
-  color: #888 !important;
-  font-style: italic !important;
-  font-family: 'Arial', sans-serif !important;
-}
-
-/* Experience */
-.template2-root.cv-preview.pdf-mode .experience-job-title,
-.cv-preview.pdf-mode.template2-root .experience-job-title {
-  font-size: 20px !important;
-  font-weight: 600 !important;
-  color: #2c3e50 !important;
-  font-family: 'Arial', sans-serif !important;
-}
-
-.template2-root.cv-preview.pdf-mode .experience-duration,
-.cv-preview.pdf-mode.template2-root .experience-duration {
-  font-size: 20px !important;
-  font-weight: 500 !important;
-  color: #555 !important;
-  font-family: 'Arial', sans-serif !important;
-}
-
-.template2-root.cv-preview.pdf-mode .experience-company,
-.cv-preview.pdf-mode.template2-root .experience-company {
-  font-size: 20px !important;
-  font-weight: 500 !important;
-  color: #667eea !important;
-  font-family: 'Arial', sans-serif !important;
-}
-
-.template2-root.cv-preview.pdf-mode .experience-details,
-.cv-preview.pdf-mode.template2-root .experience-details {
-  font-size: 20px !important;
-  color: #666 !important;
-  line-height: 1.4 !important;
-  font-family: 'Arial', sans-serif !important;
-}
-
-.template2-root.cv-preview.pdf-mode .experience-detail-item,
-.cv-preview.pdf-mode.template2-root .experience-detail-item {
-  font-size: 20px !important;
-  color: #666 !important;
-  line-height: 1.4 !important;
-  font-family: 'Arial', sans-serif !important;
-}
-
-/* Certifications */
-.template2-root.cv-preview.pdf-mode .certification-text,
-.cv-preview.pdf-mode.template2-root .certification-text {
-  font-size: 18px !important;
-  color: #555 !important;
-  line-height: 1.4 !important;
-  font-weight: 500 !important;
-  margin: 0 !important;
-  font-family: 'Arial', sans-serif !important;
-}
-
-/* Skills, Languages, Hobbies - Left Column Pills - PDF Mode - Matching Preview */
-.template2-root.cv-preview.pdf-mode .skill-pill,
-.template2-root.cv-preview.pdf-mode .language-pill,
-.template2-root.cv-preview.pdf-mode .hobby-pill,
-.cv-preview.pdf-mode.template2-root .skill-pill,
-.cv-preview.pdf-mode.template2-root .language-pill,
-.cv-preview.pdf-mode.template2-root .hobby-pill {
-  background: transparent !important;
-  color: #475569 !important;
-  padding: 4px 0 !important;
-  border-radius: 0 !important;
-  font-size: 14px !important;
-  font-weight: 600 !important;
-  border: none !important;
-  font-family: 'Arial', sans-serif !important;
-  display: block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
-  word-wrap: break-word !important;
-  overflow-wrap: break-word !important;
-  line-height: 1.2 !important;
-  text-align: left !important;
-  letter-spacing: 0.4px !important;
-  transition: none !important;
-  position: relative !important;
-  overflow: visible !important;
-}
-
-.template2-root.cv-preview.pdf-mode .skill-pill *,
-.template2-root.cv-preview.pdf-mode .language-pill *,
-.template2-root.cv-preview.pdf-mode .hobby-pill *,
-.cv-preview.pdf-mode.template2-root .skill-pill *,
-.cv-preview.pdf-mode.template2-root .language-pill *,
-.cv-preview.pdf-mode.template2-root .hobby-pill * {
-  color: #475569 !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-}
-
-.template2-root.cv-preview.pdf-mode .skill-name,
-.template2-root.cv-preview.pdf-mode .language-name,
-.template2-root.cv-preview.pdf-mode .hobby-name,
-.cv-preview.pdf-mode.template2-root .skill-name,
-.cv-preview.pdf-mode.template2-root .language-name,
-.cv-preview.pdf-mode.template2-root .hobby-name {
-  color: #475569 !important;
-  font-size: 14px !important;
-  font-weight: 600 !important;
-  font-family: 'Arial', sans-serif !important;
-  display: block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  letter-spacing: 0.4px !important;
-  position: relative !important;
-  z-index: 1 !important;
-}
-
-/* Other Information - Left Column - PDF Mode - Matching Preview */
-.template2-root.cv-preview.pdf-mode .other-info-grid,
-.cv-preview.pdf-mode.template2-root .other-info-grid {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 5px !important;
-}
-
-.template2-root.cv-preview.pdf-mode .info-item,
-.cv-preview.pdf-mode.template2-root .info-item {
-  display: flex !important;
-  flex-direction: row !important;
-  align-items: center !important;
-  gap: 8px !important;
-  padding: 4px 0 !important;
-  background: transparent !important;
-  border: none !important;
-  border-radius: 0 !important;
-  font-family: 'Arial', sans-serif !important;
-  color: #475569 !important;
-  white-space: normal !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
-  font-size: 14px !important;
-  font-weight: 600 !important;
-  line-height: 1.2 !important;
-  letter-spacing: 0.4px !important;
-  position: relative !important;
-  overflow: visible !important;
-  transition: none !important;
-}
-
-.template2-root.cv-preview.pdf-mode .info-item *,
-.cv-preview.pdf-mode.template2-root .info-item * {
-  color: #475569 !important;
-}
-
-.template2-root.cv-preview.pdf-mode .info-item span,
-.cv-preview.pdf-mode.template2-root .info-item span {
-  word-wrap: break-word !important;
-  overflow-wrap: break-word !important;
-  font-size: 14px !important;
-  font-weight: 600 !important;
-  line-height: 1.2 !important;
-  letter-spacing: 0.4px !important;
-  color: #475569 !important;
-}
-
-.template2-root.cv-preview.pdf-mode .info-label,
-.cv-preview.pdf-mode.template2-root .info-label {
-  color: #475569 !important;
-  font-size: 14px !important;
-  font-weight: 600 !important;
-  letter-spacing: 0.4px !important;
-  line-height: 1.2 !important;
-  text-transform: none !important;
-  font-family: 'Arial', sans-serif !important;
-  white-space: nowrap !important;
-  margin-right: 4px !important;
-  flex-shrink: 0 !important;
-  word-wrap: break-word !important;
-  overflow-wrap: break-word !important;
-}
-
-.template2-root.cv-preview.pdf-mode .info-value,
-.cv-preview.pdf-mode.template2-root .info-value {
-  color: #475569 !important;
-  font-size: 14px !important;
-  font-weight: 600 !important;
-  letter-spacing: 0.4px !important;
-  line-height: 1.2 !important;
-  text-transform: none !important;
-  font-family: 'Arial', sans-serif !important;
-  white-space: normal !important;
-  word-wrap: break-word !important;
-  overflow-wrap: break-word !important;
-  text-align: left !important;
-  flex: 1 !important;
-  min-width: 0 !important;
-}
-
-/* Custom Section */
-.template2-root.cv-preview.pdf-mode .custom-section-detail,
-.cv-preview.pdf-mode.template2-root .custom-section-detail {
-  font-size: 18px !important;
-  color: #555 !important;
-  line-height: 1.5 !important;
-  margin: 0 !important;
-  font-family: 'Arial', sans-serif !important;
-}
-
-/* References */
-.template2-root.cv-preview.pdf-mode .reference-text,
-.cv-preview.pdf-mode.template2-root .reference-text {
-  font-size: 20px !important;
-  color: #555 !important;
-  line-height: 1.4 !important;
-  font-style: italic !important;
-  margin: 0 !important;
-  font-family: 'Arial', sans-serif !important;
-}
-
-/* Ensure all text elements use Arial */
-.template2-root.cv-preview.pdf-mode *,
-.cv-preview.pdf-mode.template2-root * {
-  font-family: 'Arial', sans-serif !important;
-}
-
-/* Disable hover effects in PDF */
-.template2-root.cv-preview.pdf-mode .skill-pill:hover,
-.template2-root.cv-preview.pdf-mode .language-pill:hover,
-.template2-root.cv-preview.pdf-mode .hobby-pill:hover,
-.template2-root.cv-preview.pdf-mode .contact-item:hover,
-.template2-root.cv-preview.pdf-mode .experience-item:hover,
-.template2-root.cv-preview.pdf-mode .education-item:hover,
-.template2-root.cv-preview.pdf-mode .info-item:hover,
-.cv-preview.pdf-mode.template2-root .skill-pill:hover,
-.cv-preview.pdf-mode.template2-root .language-pill:hover,
-.cv-preview.pdf-mode.template2-root .hobby-pill:hover,
-.cv-preview.pdf-mode.template2-root .contact-item:hover,
-.cv-preview.pdf-mode.template2-root .experience-item:hover,
-.cv-preview.pdf-mode.template2-root .education-item:hover,
-.cv-preview.pdf-mode.template2-root .info-item:hover {
-  transform: none !important;
-  box-shadow: inherit !important;
-  background: inherit !important;
+/* ===== PRINT STYLES ===== */
+@media print {
+  .template2-cv-content-wrapper {
+    display: grid;
+    grid-template-columns: 35% 65%;
+    gap: 0;
+  }
+  
+  .template2-cv-section {
+    page-break-inside: avoid;
+  }
 }

@@ -3,7 +3,10 @@
 /* Ensure PDF mode preserves preview styles exactly - A4 Size with margins */
 .template5-root.cv-preview.europass-cv.pdf-mode {
   background: #ffffff !important;
-  padding: 6.35mm !important; /* 0.25 inches = 6.35mm on all sides */
+  padding-top: 6.35mm !important; /* 0.25 inches = 6.35mm top */
+  padding-bottom: 6.35mm !important; /* 0.25 inches = 6.35mm bottom */
+  padding-left: 6.35mm !important; /* 0.25 inches = 6.35mm left margin */
+  padding-right: 6.35mm !important; /* 0.25 inches = 6.35mm right margin */
   margin: 0 !important;
   font-family: 'Arial', 'Helvetica', sans-serif !important;
   color: #000000 !important;
@@ -40,9 +43,12 @@
   align-items: center !important;
   width: 100% !important;
   padding: 0 !important;
+  padding-right: 5px !important; /* Add padding to prevent cutoff */
   margin: 0 !important;
   border: none !important;
   border-bottom: none !important;
+  gap: 10px !important; /* Add gap to allow logo to move left */
+  box-sizing: border-box !important;
 }
 
 .cv-preview.pdf-mode .europass-title {
@@ -60,17 +66,21 @@
   flex: 0 0 auto !important;
   display: flex !important;
   align-items: center !important;
-  justify-content: flex-end !important;
+  justify-content: flex-start !important;
   margin: 0 !important;
+  margin-left: -22px !important; /* Move logo left to avoid cutoff */
+  margin-right: 0 !important;
   padding: 0 !important;
   border: none !important;
   border-bottom: none !important;
+  max-width: 38px !important;
+  overflow: visible !important;
 }
 
 .cv-preview.pdf-mode .europass-logo {
   width: auto !important;
-  height: 120px !important;
-  max-width: 300px !important;
+  height: 15px !important; /* Reduced to prevent cutoff in PDF */
+  max-width: 38px !important; /* Reduced to prevent cutoff in PDF */
   object-fit: contain !important;
   display: block !important;
   margin: 0 !important;
@@ -350,8 +360,16 @@
 }
 
 .cv-preview.pdf-mode.compact-mode .europass-logo {
-  height: 100px !important;
-  max-width: 250px !important;
+  height: 16px !important; /* Much smaller for compact mode to prevent cutoff */
+  max-width: 40px !important; /* Much smaller for compact mode to prevent cutoff */
+}
+
+/* Move logo container slightly left in PDF mode to avoid cutoff */
+.cv-preview.pdf-mode .europass-header-right {
+  margin-left: -22px !important; /* Move logo left to avoid cutoff */
+  margin-right: 0 !important;
+  padding-right: 0 !important;
+  padding-left: 0 !important;
 }
 
 /* Compact Section Styling */

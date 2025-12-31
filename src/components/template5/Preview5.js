@@ -39,12 +39,12 @@ function Preview5({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, i
     }
     // Merge with propFormData to ensure we have all fields
     formData = { 
-      ...(propFormData || {}),
+    ...(propFormData || {}),
       ...formData,
       profileImage: propFormData?.profileImage || formData?.profileImage,
       customSection: propFormData?.customSection || formData?.customSection || [],
       otherInfo: propFormData?.otherInfo || formData?.otherInfo || []
-    };
+  };
   }
 
   // State for image rendering
@@ -63,7 +63,7 @@ function Preview5({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, i
   // Only update if not on preview page (where form is not in DOM)
   useEffect(() => {
     if (!isPreviewPage) {
-      updatePreviewData();
+    updatePreviewData();
     }
     // Update drag position when formData changes
     setDragPosition({
@@ -238,16 +238,18 @@ function Preview5({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, i
       <div 
         className="template5-root"
         style={{
-          width: '800px',
-          minWidth: '800px',
-          maxWidth: '800px',
-          minHeight: '1129px',
+          width: '794px',
+          minWidth: '794px',
+          maxWidth: '794px',
+          minHeight: '1123px',
           height: 'auto',
+          maxHeight: 'none',
           margin: '0 auto',
-          padding: '0'
+          padding: '0',
+          overflow: 'visible'
         }}
       >
-        <div className="cv-preview europass-cv a4-size-preview pdf-mode">
+        <div className="cv-preview europass-cv a4-size-preview" style={{ height: 'auto', maxHeight: 'none', overflow: 'visible' }}>
           {/* Europass Header - Redesigned */}
           <div className="europass-header" style={{ border: 'none', borderBottom: 'none', margin: 0, marginBottom: 0, padding: 0, outline: 'none', boxShadow: 'none', width: '100%', overflow: 'visible' }}>
             <div className="europass-header-content" style={{ border: 'none', borderBottom: 'none', margin: 0, padding: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', flexWrap: 'wrap', gap: '15px', overflow: 'visible' }}>
@@ -275,7 +277,7 @@ function Preview5({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, i
                 )}
                 
                 {/* Europass Logo */}
-                <div className="europass-logo-container" style={{ margin: 0, padding: 0, width: '260px', maxWidth: '260px', minWidth: '90px', flexShrink: 1, display: 'flex', visibility: 'visible', opacity: 1, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}>
+                <div className="europass-logo-container" style={{ margin: 0, padding: 0, width: '220px', maxWidth: '220px', minWidth: '90px', flexShrink: 1, display: 'flex', visibility: 'visible', opacity: 1, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}>
                   <img 
                     src="/images/europass-logo.png.png" 
                     alt="Europass" 
@@ -816,12 +818,12 @@ function Preview5({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, i
                   )}
                   
                   {/* Europass Logo */}
-                  <div className="europass-logo-container" style={{ margin: 0, padding: 0, width: '260px', maxWidth: '260px', minWidth: '90px', flexShrink: 1, display: 'flex', visibility: 'visible', opacity: isDragging ? 0.8 : 1, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}>
+                  <div className="europass-logo-container" style={{ margin: 0, padding: 0, width: '220px', maxWidth: '220px', minWidth: '90px', flexShrink: 1, display: 'flex', visibility: 'visible', opacity: isDragging ? 0.8 : 1, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}>
                     <img 
                       src="/images/europass-logo.png.png" 
                       alt="Europass" 
                       className="europass-logo"
-                      style={{ height: '105px', width: '260px', maxWidth: '100%', margin: 0, padding: 0, display: 'block', objectFit: 'contain', visibility: 'visible', opacity: 1, overflow: 'visible' }}
+                      style={{ height: '85px', width: '220px', maxWidth: '100%', margin: 0, padding: 0, display: 'block', objectFit: 'contain', visibility: 'visible', opacity: 1, overflow: 'visible' }}
                       draggable="false"
                       onError={(e) => {
                         if (e.target.src.includes('europass-logo.png.png')) {

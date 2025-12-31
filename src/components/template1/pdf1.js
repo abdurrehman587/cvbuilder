@@ -21,21 +21,21 @@ const PDF_CONFIG = {
 const validateCVPreview = () => {
   // First try to find the hidden A4 preview element (always available for PDF)
   // This is the one that's always rendered but hidden off-screen
-  let cvPreview = document.querySelector('.cv-preview.a4-size-preview.pdf-mode[style*="visibility: hidden"]');
+  let cvPreview = document.querySelector('.template1-preview.template1-a4-size-preview.template1-pdf-mode[style*="visibility: hidden"]');
   
   // If not found, try to find any A4 preview element
   if (!cvPreview) {
-    cvPreview = document.querySelector('.cv-preview.a4-size-preview.pdf-mode');
+    cvPreview = document.querySelector('.template1-preview.template1-a4-size-preview.template1-pdf-mode');
   }
   
   // If still not found, try to find any A4 preview element
   if (!cvPreview) {
-    cvPreview = document.querySelector('.cv-preview.a4-size-preview');
+    cvPreview = document.querySelector('.template1-preview.template1-a4-size-preview');
   }
   
-  // If not found, try to find any cv-preview element
+  // If not found, try to find any template1-preview element
   if (!cvPreview) {
-    cvPreview = document.querySelector('.cv-preview');
+    cvPreview = document.querySelector('.template1-preview');
   }
   
   if (!cvPreview) {

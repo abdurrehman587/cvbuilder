@@ -1,6 +1,9 @@
-import React, { useEffect, useState, useRef } from 'react';
+﻿import React, { useEffect, useState, useRef, useMemo } from 'react';
 import usePreviewHandler from './PreviewHandler2';
+import generatePDF from './pdf2';
+import { setCVView } from '../../utils/routing';
 import './Preview2.css';
+import './Preview2.mobile.css';
 
 // Function to capture all form data from DOM (similar to PreviewHandler2.getFormData)
 // Takes existingFormData parameter to preserve profileImage from database
@@ -100,6 +103,8 @@ const getFormDataFromDOM = (existingFormData = null) => {
   const refInputs = document.querySelectorAll('.references-section input[type="text"]');
   data.references = Array.from(refInputs).map(input => input.value).filter(value => value.trim() !== '');
 
+  // Get hobbies - need to get from formData state if available, otherwise from DOM
+  // For now, we'll get from DOM if available
   const hobbyInputs = document.querySelectorAll('.hobbies-section input[type="text"]');
   data.hobbies = Array.from(hobbyInputs).map(input => input.value).filter(value => value.trim() !== '');
 
@@ -148,9 +153,10 @@ const getFormDataFromDOM = (existingFormData = null) => {
   return data;
 };
 
-function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, isPreviewPage, updateFormData }) {
+function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, selectedTemplate, onTemplateSwitch, isPreviewPage, updateFormData }) {
   const [showA4Preview, setShowA4Preview] = useState(false);
   const [a4Scale, setA4Scale] = useState(1);
+  const [userZoom, setUserZoom] = useState(1);
   const [previewPageScale, setPreviewPageScale] = useState(1);
   const a4PreviewRef = useRef(null);
   const { formData: hookFormData, formatContactInfo, updatePreviewData } = usePreviewHandler(propFormData);
@@ -166,15 +172,15 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, i
     if (storedData) {
       try {
         const parsedData = JSON.parse(storedData);
-        console.log('Preview2 - Using stored data from localStorage:', parsedData);
+        console.log('Preview1 - Using stored data from localStorage:', parsedData);
         // Preserve profileImage from propFormData if it exists and is from database
         if (propFormData?.profileImage && propFormData.profileImage.data) {
           parsedData.profileImage = propFormData.profileImage;
-          console.log('Preview2 - Preserved profileImage from propFormData:', parsedData.profileImage);
+          console.log('Preview1 - Preserved profileImage from propFormData:', parsedData.profileImage);
         }
         formData = parsedData;
       } catch (e) {
-        console.error('Preview2 - Error parsing stored data:', e);
+        console.error('Preview1 - Error parsing stored data:', e);
         formData = propFormData || {};
       }
     } else {
@@ -182,18 +188,15 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, i
     }
   } else {
     // Even if hookFormData has data, preserve profileImage from propFormData if it's from database
-    if (propFormData?.profileImage && propFormData.profileImage.data) {
+    if (propFormData?.profileImage && propFormData.profileImage.data && (!formData.profileImage || !formData.profileImage.data)) {
       formData = { ...formData, profileImage: propFormData.profileImage };
+      console.log('Preview1 - Preserved profileImage from propFormData in hookFormData:', formData.profileImage);
     }
-    // Merge with propFormData to ensure we have all fields
-    formData = { 
-      ...(propFormData || {}),
-      ...formData,
-      profileImage: propFormData?.profileImage || formData?.profileImage,
-      customSection: propFormData?.customSection || formData?.customSection || [],
-      otherInfo: propFormData?.otherInfo || formData?.otherInfo || []
-    };
   }
+  
+  console.log('Preview1 - Final formData:', formData);
+  console.log('Preview1 - formData.education:', formData.education);
+  console.log('Preview1 - formData.experience:', formData.experience);
 
   // Refresh preview data from form inputs whenever app form data changes
   // Only update if not on preview page (where form is not in DOM)
@@ -203,8 +206,23 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, i
     }
   }, [propFormData, updatePreviewData, isPreviewPage]);
 
+  // Reset zoom and ensure consistent formatting when CV name changes (switching between CVs)
+  // This ensures consistent formatting when switching between different CVs
+  useEffect(() => {
+    setUserZoom(1);
+    // Force a re-render of the preview to ensure all styles are applied consistently
+    if (showA4Preview) {
+      // Close and reopen to ensure fresh render with new data
+      setShowA4Preview(false);
+      setTimeout(() => {
+        setShowA4Preview(true);
+      }, 50);
+    }
+  }, [propFormData?.name]); // Only trigger when CV name changes (switching CVs)
+
 
   // Ensure dynamic inputs update preview on typing
+  // Listen to DOM events to catch real-time updates (form might still be in DOM)
   useEffect(() => {
     const onInput = (e) => {
       if (e && e.target && e.target.classList && (
@@ -215,58 +233,215 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, i
         e.target.classList.contains('marital-status-input') ||
         e.target.classList.contains('religion-input') ||
         e.target.classList.contains('custom-label-input-field') ||
-        e.target.classList.contains('custom-value-input-field')
+        e.target.classList.contains('custom-value-input-field') ||
+        e.target.classList.contains('degree-input') ||
+        e.target.classList.contains('board-input') ||
+        e.target.classList.contains('year-input') ||
+        e.target.classList.contains('marks-input') ||
+        e.target.classList.contains('job-title-input') ||
+        e.target.classList.contains('company-input') ||
+        e.target.classList.contains('duration-input') ||
+        e.target.classList.contains('job-details-textarea') ||
+        e.target.id === 'name-input' ||
+        e.target.id === 'position-input' ||
+        e.target.id === 'phone-input' ||
+        e.target.id === 'email-input' ||
+        e.target.id === 'address-input' ||
+        e.target.id === 'professional-summary-textarea'
       )) {
         updatePreviewData();
       }
     };
     document.addEventListener('input', onInput, true);
-    return () => document.removeEventListener('input', onInput, true);
+    document.addEventListener('change', onInput, true);
+    return () => {
+      document.removeEventListener('input', onInput, true);
+      document.removeEventListener('change', onInput, true);
+    };
   }, [updatePreviewData]);
 
-  // Calculate A4 preview scale for mobile devices (for modal view)
+  // Add page break indicators and prevent section cutoff
   useEffect(() => {
-    const calculateScale = () => {
-      if (!showA4Preview) return;
+    if (!showA4Preview) return;
+    
+    const updatePageBreaks = () => {
+      const previewElement = document.getElementById('a4-preview-content');
+      if (!previewElement) return;
       
-      const isMobile = window.innerWidth <= 768;
-      if (!isMobile) {
-        setA4Scale(1);
-        return;
+      // Remove existing page break indicators
+      const existingBreaks = previewElement.querySelectorAll('.page-break-indicator');
+      existingBreaks.forEach(breakEl => breakEl.remove());
+      
+      // Remove any existing page break spacers
+      const existingSpacers = previewElement.querySelectorAll('.page-break-spacer');
+      existingSpacers.forEach(spacer => spacer.remove());
+      
+      // Reset all sections to their natural position
+      const sections = previewElement.querySelectorAll('.cv-section');
+      sections.forEach(section => {
+        section.style.marginTop = '';
+        section.style.pageBreakBefore = '';
+        section.style.breakBefore = '';
+      });
+      
+      const pageHeight = 1129; // A4 page height in pixels
+      const padding = 20; // Top and bottom padding
+      const usablePageHeight = pageHeight - (padding * 2);
+      
+      // Check each section to see if it would be cut off
+      sections.forEach((section, index) => {
+        // Get the section's position relative to the preview container
+        const sectionTop = section.offsetTop;
+        const sectionHeight = section.offsetHeight;
+        
+        // Calculate which page this section starts on (accounting for padding)
+        const positionOnPage = (sectionTop - padding) % pageHeight;
+        const currentPage = Math.floor((sectionTop - padding) / pageHeight);
+        
+        // Check if section would be cut off (starts too close to page end)
+        // Leave at least 10% of page height as buffer
+        const minSpaceRequired = usablePageHeight * 0.1;
+        const spaceRemaining = pageHeight - positionOnPage - padding;
+        const wouldBeCutOff = sectionHeight > spaceRemaining && spaceRemaining < (usablePageHeight - minSpaceRequired);
+        
+        if (wouldBeCutOff && index > 0) {
+          // Move section to next page
+          const nextPageStart = (currentPage + 1) * pageHeight + padding;
+          const marginNeeded = nextPageStart - sectionTop;
+          
+          // Only add margin if it's positive (section is before the next page start)
+          if (marginNeeded > 0) {
+            section.style.marginTop = `${marginNeeded}px`;
+            section.style.pageBreakBefore = 'always';
+            section.style.breakBefore = 'page';
+            section.classList.add('moved-to-next-page');
+          }
+        } else {
+          // Reset if section doesn't need to be moved
+          section.style.marginTop = '';
+          section.style.pageBreakBefore = '';
+          section.style.breakBefore = '';
+          section.classList.remove('moved-to-next-page');
+        }
+      });
+      
+      // Calculate number of pages needed after adjustments
+      const contentHeight = previewElement.scrollHeight;
+      const numberOfPages = Math.ceil(contentHeight / pageHeight);
+      
+      // Add page break indicators for each page after the first
+      for (let i = 2; i <= numberOfPages; i++) {
+        const breakLine = document.createElement('div');
+        breakLine.className = 'page-break-indicator';
+        breakLine.style.cssText = `
+          position: absolute;
+          left: -20px;
+          right: -20px;
+          top: ${(i - 1) * pageHeight}px;
+          height: 3px;
+          background: linear-gradient(to right, transparent 0%, #6b7280 10%, #6b7280 90%, transparent 100%);
+          pointer-events: none;
+          z-index: 10;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+        `;
+        previewElement.appendChild(breakLine);
       }
+    };
+    
+    // Update page breaks after a short delay to ensure content is rendered
+    const timeoutId = setTimeout(updatePageBreaks, 200);
+    
+    // Also update on window resize and when zoom changes
+    window.addEventListener('resize', updatePageBreaks);
+    
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('resize', updatePageBreaks);
+    };
+  }, [showA4Preview, formData, userZoom, a4Scale]);
 
-      // A4 dimensions: 800px × 1129px
+  // Calculate A4 preview scale for all devices (for modal)
+  useEffect(() => {
+    if (!showA4Preview) {
+      setA4Scale(1);
+      setUserZoom(1);
+      return;
+    }
+
+    const calculateScale = () => {
+      // A4 dimensions: 800px Ã— 1129px
       const a4Width = 800;
       const a4Height = 1129;
       
-      // Available space (accounting for close button ~45px and padding)
-      const availableWidth = window.innerWidth - 10; // 5px padding on each side
-      const availableHeight = window.innerHeight - 45; // 45px for close button
+      // Get viewport dimensions
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
       
-      // Calculate scale to fit both dimensions
+      // Determine device type
+      const isMobile = viewportWidth < 768;
+      const isTablet = viewportWidth >= 768 && viewportWidth <= 1024;
+      
+      // Simple, reliable calculation based on viewport
+      // Account for close button and padding
+      let availableWidth, availableHeight;
+      
+      if (isMobile) {
+        // Mobile: modal padding is 5px, close button 50px, download button ~50px
+        availableWidth = viewportWidth - 10; // 5px each side
+        availableHeight = viewportHeight - 120; // 50px close + 5px top + 5px bottom + 50px button + 10px spacing
+      } else if (isTablet) {
+        // Tablet: modal padding is 15px sides, 50px top (close), 15px bottom
+        // Add extra height buffer for download button (60px) to prevent bottom cutoff
+        availableWidth = viewportWidth - 30; // 15px each side
+        availableHeight = viewportHeight - 140; // 50px close + 15px top + 15px bottom + 60px button space
+      } else {
+        // Desktop: modal padding is 20px
+        availableWidth = viewportWidth - 80;
+        availableHeight = viewportHeight - 120;
+      }
+      
+      // Calculate scale to fit
       const scaleX = availableWidth / a4Width;
       const scaleY = availableHeight / a4Height;
       
-      // Use the smaller scale to ensure it fits both dimensions
-      const scale = Math.min(scaleX, scaleY);
+      // Use smaller scale with 8% safety margin
+      let baseScale = Math.min(scaleX, scaleY) * 0.92;
       
-      // Set a minimum scale to prevent it from being too small
-      setA4Scale(Math.max(scale, 0.2));
+      // Ensure minimum scale
+      baseScale = Math.max(baseScale, 0.15);
+      baseScale = Math.min(baseScale, 1.0);
+      
+      // Apply user zoom to the base scale
+      const finalScale = baseScale * userZoom;
+      setA4Scale(finalScale);
     };
 
+    // Calculate with delays to ensure DOM is ready
     calculateScale();
+    const timeoutId1 = setTimeout(calculateScale, 100);
+    const timeoutId2 = setTimeout(calculateScale, 300);
     
-    // Recalculate on resize (orientation change, etc.)
-    window.addEventListener('resize', calculateScale);
-    window.addEventListener('orientationchange', calculateScale);
+    // Recalculate on resize
+    let resizeTimeout;
+    const handleResize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(calculateScale, 150);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', () => {
+      setTimeout(calculateScale, 400);
+    });
     
     return () => {
-      window.removeEventListener('resize', calculateScale);
-      window.removeEventListener('orientationchange', calculateScale);
+      clearTimeout(timeoutId1);
+      clearTimeout(timeoutId2);
+      clearTimeout(resizeTimeout);
+      window.removeEventListener('resize', handleResize);
     };
-  }, [showA4Preview]);
+  }, [showA4Preview, userZoom]);
 
-  // Calculate preview page scale for mobile devices (when isPreviewPage is true)
+  // Calculate scale for preview page (when isPreviewPage is true)
   useEffect(() => {
     if (!isPreviewPage) {
       setPreviewPageScale(1);
@@ -274,7 +449,7 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, i
     }
 
     const calculatePreviewPageScale = () => {
-      // A4 dimensions: 800px × 1129px
+      // A4 dimensions: 800px Ã— 1129px
       const a4Width = 800;
       const a4Height = 1129;
       
@@ -295,8 +470,9 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, i
       
       if (isMobile) {
         // Mobile: account for header and minimal padding
-        availableWidth = viewportWidth - 10; // 5px padding each side
-        availableHeight = viewportHeight - headerHeight - 10; // Header + 5px padding top/bottom
+        // Use viewport width directly since container has overflow: hidden
+        availableWidth = viewportWidth;
+        availableHeight = viewportHeight - headerHeight; // Header only, no padding needed
       } else if (isTablet) {
         // Tablet: account for header and padding
         availableWidth = viewportWidth - 30; // 15px padding each side
@@ -314,7 +490,7 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, i
       // Use smaller scale to ensure it fits completely
       let baseScale = Math.min(scaleX, scaleY);
       
-      // Add a small safety margin
+      // Add a small safety margin (2% for tight fit)
       baseScale = baseScale * 0.98;
       
       // Ensure minimum scale but allow it to be smaller than 1.0
@@ -328,49 +504,59 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, i
     calculatePreviewPageScale();
     const timeoutId1 = setTimeout(calculatePreviewPageScale, 100);
     const timeoutId2 = setTimeout(calculatePreviewPageScale, 300);
-
+    
+    // Recalculate on resize
     let resizeTimeout;
     const handleResize = () => {
       clearTimeout(resizeTimeout);
       resizeTimeout = setTimeout(calculatePreviewPageScale, 150);
     };
-
+    
     window.addEventListener('resize', handleResize);
     window.addEventListener('orientationchange', () => {
       setTimeout(calculatePreviewPageScale, 400);
     });
-
+    
     return () => {
       clearTimeout(timeoutId1);
       clearTimeout(timeoutId2);
       clearTimeout(resizeTimeout);
       window.removeEventListener('resize', handleResize);
-      window.removeEventListener('orientationchange', calculatePreviewPageScale);
     };
   }, [isPreviewPage]);
   
   // Default sections to show on page load: professional-summary, skills, languages, references
+  // Ensure all data is properly extracted from formData
+  // Debug: Log formData to see what we're getting
+  console.log('Preview1 - Full formData:', formData);
+  console.log('Preview1 - propFormData:', propFormData);
+  console.log('Preview1 - hookFormData:', hookFormData);
+  
   const displayData = {
-    name: formData.name || '',
-    position: formData.position || '',
-    phone: formData.phone || '',
-    email: formData.email || '',
-    address: formData.address || '',
-    professionalSummary: formData.professionalSummary || 'To work with a organization that offers a creative, dynamic and professional environment, where my education, knowledge, skills and proven abilities can be fully utilized and which also offers learning opportunities for my career development in the long run.',
-    education: formData.education && formData.education.length > 0 ? formData.education : [],
-    experience: formData.experience && formData.experience.length > 0 ? formData.experience : [],
-    skills: Array.isArray(formData.skills) ? formData.skills.filter(skill => skill && skill.trim() !== '') : [],
-    certifications: formData.certifications && formData.certifications.length > 0 ? formData.certifications.filter(cert => cert && cert.trim() !== '') : [],
-    languages: formData.languages && formData.languages.length > 0 ? formData.languages.filter(lang => lang && lang.trim() !== '') : ['English', 'Urdu', 'Punjabi'],
-    hobbies: formData.hobbies && formData.hobbies.length > 0 ? formData.hobbies.filter(hobby => hobby && hobby.trim() !== '') : [],
-    otherInfo: formData.otherInfo && formData.otherInfo.length > 0 ? formData.otherInfo.filter(info => info.value && info.value.trim() !== '') : [],
-    customSection: formData.customSection && formData.customSection.length > 0 ? formData.customSection : [],
-    references: formData.references && formData.references.length > 0 ? formData.references.filter(ref => ref && ref.trim() !== '') : []
+    name: formData?.name || '',
+    position: formData?.position || '',
+    phone: formData?.phone || '',
+    email: formData?.email || '',
+    address: formData?.address || '',
+    professionalSummary: formData?.professionalSummary || 'To work with a organization that offers a creative, dynamic and professional environment, where my education, knowledge, skills and proven abilities can be fully utilized and which also offers learning opportunities for my career development in the long run.',
+    education: Array.isArray(formData?.education) && formData.education.length > 0 ? formData.education : [],
+    experience: Array.isArray(formData?.experience) && formData.experience.length > 0 ? formData.experience : [],
+    skills: Array.isArray(formData?.skills) ? formData.skills.filter(skill => skill && skill.trim() !== '') : [],
+    certifications: Array.isArray(formData?.certifications) && formData.certifications.length > 0 ? formData.certifications.filter(cert => cert && cert.trim() !== '') : [],
+    languages: Array.isArray(formData?.languages) && formData.languages.length > 0 ? formData.languages.filter(lang => lang && lang.trim() !== '') : [],
+    hobbies: Array.isArray(formData?.hobbies) && formData.hobbies.length > 0 ? formData.hobbies.filter(hobby => hobby && hobby.trim() !== '') : [],
+    otherInfo: Array.isArray(formData?.otherInfo) && formData.otherInfo.length > 0 ? formData.otherInfo.filter(info => info && info.value && info.value.trim() !== '') : [],
+    customSection: Array.isArray(formData?.customSection) && formData.customSection.length > 0 ? formData.customSection : [],
+    references: Array.isArray(formData?.references) && formData.references.length > 0 ? formData.references.filter(ref => ref && ref.trim() !== '') : []
   };
   
+  console.log('Preview1 - displayData:', displayData);
+  
   // Create local getProfileImageUrl function that uses the merged formData
-  const getLocalProfileImageUrl = () => {
-    if (formData.profileImage) {
+  // Use useMemo to recalculate when formData or propFormData changes
+  const profileImageUrl = useMemo(() => {
+    // First check formData (which includes merged data from hook, localStorage, and props)
+    if (formData?.profileImage) {
       // If it's a File object, create object URL
       if (formData.profileImage instanceof File) {
         return URL.createObjectURL(formData.profileImage);
@@ -384,36 +570,25 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, i
         return formData.profileImage;
       }
     }
+    // Also check propFormData as fallback
+    if (propFormData?.profileImage) {
+      if (propFormData.profileImage instanceof File) {
+        return URL.createObjectURL(propFormData.profileImage);
+      }
+      if (propFormData.profileImage.data) {
+        return propFormData.profileImage.data;
+      }
+      if (typeof propFormData.profileImage === 'string') {
+        return propFormData.profileImage;
+      }
+    }
     return null;
-  };
-  
-  const profileImageUrl = getLocalProfileImageUrl();
-  
-  // Create local formatContactInfo that uses the actual formData
-  const formatLocalContactInfo = () => {
-    const contact = [];
-    
-    if (formData?.phone) {
-      contact.push({ type: 'phone', value: formData.phone, icon: '📞' });
-    }
-    if (formData?.email) {
-      contact.push({ type: 'email', value: formData.email, icon: '✉️' });
-    }
-    if (formData?.address) {
-      contact.push({ type: 'address', value: formData.address, icon: '📍' });
-    }
-    
-    return contact;
-  };
-  
-  const contactInfo = formatLocalContactInfo();
+  }, [formData?.profileImage, propFormData?.profileImage]);
+  const contactInfo = formatContactInfo();
   
   // Debug: Log contact information
-  console.log('Template2 - Contact Info:', contactInfo);
-  console.log('Template2 - Form Data:', formData);
-  console.log('Template2 - Phone:', formData?.phone);
-  console.log('Template2 - Email:', formData?.email);
-  console.log('Template2 - Address:', formData?.address);
+  console.log('Template1 - Contact Info:', contactInfo);
+  console.log('Template1 - Form Data:', formData);
   console.log('Template1 - Profile Image:', formData.profileImage);
   console.log('Template1 - Profile Image URL:', profileImageUrl);
   console.log('Template1 - Custom Section Data:', displayData.customSection);
@@ -437,346 +612,349 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, i
 
   // Render the CV preview content (reusable for both normal and modal view)
   const renderCVContent = () => (
-    <>
-          {/* Two Column Layout */}
-          {/* Left Column - Purple Background */}
-          <div className="cv-left-column">
-          {/* CV Header - Left Column */}
-          <div className="cv-header">
-            {/* Profile Image Container */}
-            <div className="profile-image-container">
-              {profileImageUrl ? (
-                <img 
-                  src={profileImageUrl} 
-                  alt="Profile" 
-                  className="profile-image"
-                />
-              ) : (
-                <div className="profile-placeholder">
-                  CV
-                </div>
-              )}
-            </div>
+    <div className="template2-cv-content-wrapper">
+      {/* ===== LEFT SIDEBAR ===== */}
+      <div className="template2-cv-left-sidebar">
+        {/* Profile Image */}
+        <div className="template2-profile-image-container">
+          {profileImageUrl ? (
+            <img src={profileImageUrl} alt="Profile" className="template2-profile-image" />
+          ) : (
+            <div className="template2-profile-placeholder">CV</div>
+          )}
+        </div>
 
-            {/* Header Content */}
-            <div className="header-content">
-              {/* Name */}
-              <h1 className="header-name">
-                {displayData.name}
-              </h1>
+        {/* Name & Title */}
+        <h1 className="template2-header-name">{displayData.name}</h1>
+        {displayData.position && <h2 className="template2-header-title">{displayData.position}</h2>}
 
-              {/* Position/Title */}
-              {displayData.position && (
-                <h2 className="header-title">
-                  {displayData.position}
-                </h2>
-              )}
-
-              {/* Contact Information */}
-              {(contactInfo && contactInfo.length > 0) ? (
-                <div className="header-contact">
-                  {contactInfo.map((contact, index) => (
-                    <div key={index} className="contact-item">
-                      <span className="contact-icon">{contact.icon}</span>
-                      <span>{contact.value}</span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                // Fallback: Try to display contact info directly from formData
-                (formData?.phone || formData?.email || formData?.address) && (
-                  <div className="header-contact">
-                    {formData.phone && (
-                      <div className="contact-item">
-                        <span className="contact-icon">📞</span>
-                        <span>{formData.phone}</span>
-                      </div>
-                    )}
-                    {formData.email && (
-                      <div className="contact-item">
-                        <span className="contact-icon">✉️</span>
-                        <span>{formData.email}</span>
-                      </div>
-                    )}
-                    {formData.address && (
-                      <div className="contact-item contact-address">
-                        <span className="contact-icon">📍</span>
-                        <span>{formData.address}</span>
-                      </div>
-                    )}
-                  </div>
-                )
-              )}
-            </div>
-          </div>
-
-          {/* Skills Section - Left Column */}
-          {displayData.skills && displayData.skills.length > 0 && (
-            <div className="cv-section left-column">
-              <h3 className="section-heading left-column">Skills</h3>
-              <div className="section-content">
-                <div className="skills-container">
-                  {displayData.skills.map((skill, index) => (
-                    <div key={index} className="skill-pill">
-                      <span className="skill-name">{skill}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+        {/* Contact Information */}
+        <div className="template2-sidebar-section">
+          <h4 className="template2-sidebar-section-title">Contact</h4>
+          {displayData.phone && (
+            <div className="template2-contact-item">
+              <span className="template2-contact-icon">📞</span>
+              <span>{displayData.phone}</span>
             </div>
           )}
-
-          {/* Other Information Section - Left Column */}
-          {displayData.otherInfo && displayData.otherInfo.length > 0 && (
-            <div className="cv-section left-column">
-              <h3 className="section-heading left-column">Other Information</h3>
-              <div className="section-content">
-                <div
-                  className="other-info-grid"
-                  style={{ gridTemplateColumns: '1fr', gridAutoFlow: 'row' }}
-                >
-                  {displayData.otherInfo.map((info, index) => (
-                    <div key={index} className="info-item">
-                      <span className="info-label">{info.label}:</span>
-                      <span className="info-value">{info.value}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+          {displayData.email && (
+            <div className="template2-contact-item">
+              <span className="template2-contact-icon">✉️</span>
+              <span>{displayData.email}</span>
             </div>
           )}
-
-          {/* Languages Section - Left Column */}
-          {displayData.languages && displayData.languages.length > 0 && (
-            <div className="cv-section left-column">
-              <h3 className="section-heading left-column">Languages</h3>
-              <div className="section-content">
-                <div className="languages-container">
-                  {displayData.languages.map((language, index) => (
-                    <div key={index} className="language-pill">
-                      <span className="language-name">{language}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Hobbies Section - Left Column */}
-          {displayData.hobbies && displayData.hobbies.length > 0 && (
-            <div className="cv-section left-column">
-              <h3 className="section-heading left-column">Hobbies</h3>
-              <div className="section-content">
-                <div className="hobbies-container">
-                  {displayData.hobbies.map((hobby, index) => (
-                    <div key={index} className="hobby-pill">
-                      <span className="hobby-name">{hobby}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+          {displayData.address && (
+            <div className="template2-contact-item">
+              <span className="template2-contact-icon">📍</span>
+              <span>{displayData.address}</span>
             </div>
           )}
         </div>
 
-        {/* Right Column - White Background */}
-        <div className="cv-right-column">
-          {/* Professional Summary Section - Right Column */}
-          <div className="cv-section right-column">
-            <h3 className="section-heading right-column">Professional Summary</h3>
-            <div className="section-content">
-              <p className="professional-summary-text">
-                {displayData.professionalSummary}
-              </p>
+        {/* Skills */}
+        {displayData.skills && displayData.skills.length > 0 && (
+          <div className="template2-sidebar-section">
+            <h4 className="template2-sidebar-section-title">Skills</h4>
+            <div className="template2-skills-tag-container">
+              {displayData.skills.map((skill, index) => (
+                <span key={index} className="template2-skill-tag">{skill}</span>
+              ))}
             </div>
           </div>
+        )}
 
-          {/* Education Section - Right Column */}
-          {displayData.education && displayData.education.length > 0 && (
-            <div className="cv-section right-column">
-              <h3 className="section-heading right-column">Education</h3>
-              <div className="section-content">
-                {displayData.education.map((edu, index) => (
-                  <div key={index} className="education-item">
-                    <div className="education-single-line">
-                      <span className="education-degree">{edu.degree}</span>
-                      {edu.board && <span className="education-board"> • {edu.board}</span>}
-                      {edu.year && <span className="education-year"> • {edu.year}</span>}
-                      {edu.marks && <span className="education-marks"> • {edu.marks}</span>}
-                    </div>
-                  </div>
-                ))}
+        {/* Languages */}
+        {displayData.languages && displayData.languages.length > 0 && (
+          <div className="template2-sidebar-section">
+            <h4 className="template2-sidebar-section-title">Languages</h4>
+            {displayData.languages.map((language, index) => (
+              <div key={index} className="template2-language-item">{language}</div>
+            ))}
+          </div>
+        )}
+
+        {/* Hobbies */}
+        {displayData.hobbies && displayData.hobbies.length > 0 && (
+          <div className="template2-sidebar-section">
+            <h4 className="template2-sidebar-section-title">Hobbies</h4>
+            {displayData.hobbies.map((hobby, index) => (
+              <div key={index} className="template2-hobby-item">{hobby}</div>
+            ))}
+          </div>
+        )}
+
+                {/* Other Information */}
+        {displayData.otherInfo && displayData.otherInfo.length > 0 && (
+          <div className="template2-sidebar-section">
+            <h4 className="template2-sidebar-section-title">Other Information</h4>
+            {displayData.otherInfo.map((info, index) => (
+              <div key={index} className="template2-other-info-item">
+                <span className="template2-other-info-label">{info.label}</span>
+                <span className="template2-other-info-value">{info.value}</span>
               </div>
-            </div>
-          )}
-
-          {/* Experience Section - Right Column */}
-          {displayData.experience && displayData.experience.length > 0 && (
-            <div className="cv-section right-column">
-              <h3 className="section-heading right-column">Experience</h3>
-              <div className="section-content">
-                {displayData.experience.map((exp, index) => (
-                  <div key={index} className="experience-item">
-                    <div className="experience-header">
-                      <span className="experience-job-title">{exp.jobTitle || 'No job title'}</span>
-                      {exp.duration && <span className="experience-duration">{exp.duration}</span>}
-                    </div>
-                    {exp.company && (
-                      <div className="experience-company-line">
-                        <span className="experience-company">{exp.company}</span>
-                      </div>
-                    )}
-                    {exp.jobDetails && (
-                      <div className="experience-details">
-                        <ul className="experience-details-list">
-                          {exp.jobDetails.split('\n').map((detail, detailIndex) => (
-                            detail.trim() && (
-                              <li key={detailIndex} className="experience-detail-item">
-                                {detail.trim()}
-                              </li>
-                            )
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Certifications Section - Right Column */}
-          {displayData.certifications && displayData.certifications.length > 0 && (
-            <div className="cv-section right-column">
-              <h3 className="section-heading right-column">Certifications</h3>
-              <div className="section-content">
-                <div className="certifications-content">
-                  {displayData.certifications.map((cert, index) => (
-                    <div key={index} className="certification-item">
-                      <p className="certification-text">{cert}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Custom Section - Right Column */}
-          {displayData.customSection && displayData.customSection.length > 0 && displayData.customSection.map((custom, sectionIndex) => {
-            // Handle both old format (with 'detail') and new format (with 'details' array)
-            const details = custom.details || (custom.detail ? [custom.detail] : []);
-            const heading = custom.heading || '';
-            
-            // Skip sections without heading or details
-            if (!heading && details.length === 0) return null;
-            
-            return (
-              <div key={sectionIndex} className="cv-section right-column">
-                <h3 className="section-heading right-column">
-                  {heading || 'Custom Section'}
-                </h3>
-                <div className="section-content">
-                  <div className="custom-section-content">
-                    {details.map((detail, detailIndex) => (
-                      detail && (
-                        <div key={detailIndex} className="custom-section-item">
-                          <p className="custom-section-detail">{detail}</p>
-                        </div>
-                      )
-                    ))}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-
-          {/* References Section - Right Column */}
-          {displayData.references && displayData.references.length > 0 && (
-            <div className="cv-section right-column">
-              <h3 className="section-heading right-column">References</h3>
-              <div className="section-content">
-                <div className="references-content">
-                  {displayData.references.map((reference, index) => (
-                    <div key={index} className="reference-item">
-                      <p className="reference-text">{reference}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
+            ))}
+          </div>
+        )}
       </div>
-    </>
+
+      {/* ===== RIGHT CONTENT ===== */}
+      <div className="template2-cv-right-content">
+        {/* Professional Summary */}
+        {displayData.professionalSummary && (
+          <div className="template2-cv-section">
+            <h3 className="template2-section-heading">Professional Summary</h3>
+            <div className="template2-section-content">
+              <p className="template2-professional-summary-text">{displayData.professionalSummary}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Experience */}
+        {displayData.experience && displayData.experience.length > 0 && (
+          <div className="template2-cv-section">
+            <h3 className="template2-section-heading">Experience</h3>
+            <div className="template2-section-content">
+              {displayData.experience.map((exp, index) => (
+                <div key={index} className="template2-experience-item">
+                  <div className="template2-experience-header">
+                    <div className="template2-experience-title">{exp.jobTitle || 'Position'}</div>
+                    {exp.duration && <div className="template2-experience-duration">{exp.duration}</div>}
+                  </div>
+                  {exp.company && <div className="template2-experience-company">{exp.company}</div>}
+                  {exp.jobDetails && (
+                    <div className="template2-experience-details">
+                      {exp.jobDetails.split('\n').map((detail, i) => detail.trim() && (
+                        <div key={i} style={{marginBottom: '3px'}}>• {detail.trim()}</div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Education */}
+        {displayData.education && displayData.education.length > 0 && (
+          <div className="template2-cv-section">
+            <h3 className="template2-section-heading">Education</h3>
+            <div className="template2-section-content">
+              {displayData.education.map((edu, index) => (
+                <div key={index} className="template2-education-item">
+                  <div className="template2-education-single-line">
+                    <strong>{edu.degree}</strong>
+                    {edu.board && <span> • {edu.board}</span>}
+                    {edu.year && <span> • {edu.year}</span>}
+                    {edu.marks && <span> • {edu.marks}</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Certifications */}
+        {displayData.certifications && displayData.certifications.length > 0 && (
+          <div className="template2-cv-section">
+            <h3 className="template2-section-heading">Certifications</h3>
+            <div className="template2-section-content">
+              {displayData.certifications.map((cert, index) => (
+                <div key={index} className="template2-certification-badge">{cert}</div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Custom Sections */}
+        {displayData.customSection && displayData.customSection.length > 0 && displayData.customSection.map((custom, sectionIndex) => {
+          const details = custom.details || (custom.detail ? [custom.detail] : []);
+          const heading = custom.heading || '';
+          if (!heading && details.length === 0) return null;
+          
+          return (
+            <div key={sectionIndex} className="template2-cv-section">
+              <h3 className="template2-section-heading">{heading || 'Custom Section'}</h3>
+              <div className="template2-section-content">
+                {details.map((detail, detailIndex) => detail && (
+                  <div key={detailIndex} className="template2-custom-section-item">
+                    <p className="template2-custom-section-detail">{detail}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+
+        {/* References */}
+        {displayData.references && displayData.references.length > 0 && (
+          <div className="template2-cv-section">
+            <h3 className="template2-section-heading">References</h3>
+            <div className="template2-section-content">
+              {displayData.references.map((reference, index) => (
+                <div key={index} style={{fontSize: '10pt', marginBottom: '5px'}}>{reference}</div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 
   // If this is the preview page, render the preview content directly
   if (isPreviewPage) {
     return (
-      <div className="preview-page-preview-wrapper template2-wrapper">
+      <div className="preview-page-preview-wrapper">
         <div 
-          className="template2-root"
+          className="cv-preview a4-size-preview pdf-mode preview-page-preview"
           style={{
+            transform: `scale(${previewPageScale})`,
+            transformOrigin: 'top left',
             width: '800px',
             minWidth: '800px',
             maxWidth: '800px',
             minHeight: '1129px',
             height: 'auto',
-            margin: '0 auto',
-            padding: '0',
-            transform: `scale(${previewPageScale})`,
-            transformOrigin: 'top center',
+            margin: 0,
+            display: 'block',
+            boxSizing: 'border-box',
+            background: '#ffffff',
+            padding: '20px',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
           }}
         >
-          <div className="cv-preview a4-size-preview">
-            {renderCVContent()}
-          </div>
+          {renderCVContent()}
         </div>
       </div>
     );
   }
 
   return (
-    <div className="right-container template2-container">
-      {/* Preview Button - Show on all devices */}
-      <div className="preview-controls">
+    <>
+      {/* Action Buttons - Below Form */}
+      <div className="cv-action-buttons">
         <button 
           className="preview-a4-button"
-          onClick={() => {
-            // Capture all form data from DOM, including profile image
-            const existingData = propFormData || formData;
-            const capturedData = getFormDataFromDOM(existingData);
-            console.log('Preview2 - Captured form data from DOM:', capturedData);
-            console.log('Preview2 - Profile image captured:', capturedData.profileImage);
+          onClick={async () => {
+            console.log('Preview button clicked - capturing form data and syncing to App.js');
             
-            // Sync captured data to App.js state if updateFormData is available
+            // Capture all form data from DOM, preserving profileImage from existing formData if it's from database
+            const existingData = propFormData || hookFormData || formData;
+            const capturedData = getFormDataFromDOM(existingData);
+            console.log('Captured form data from DOM:', capturedData);
+            
+            // Merge captured data with propFormData to ensure we have all data (especially from database)
+            // Prefer propFormData for fields that might not be in DOM (like profileImage from database)
+            const mergedData = {
+              ...capturedData,
+              ...propFormData, // Override with propFormData to preserve database-loaded data
+              // But keep captured data for fields that were updated in form
+              profileImage: propFormData?.profileImage || capturedData.profileImage,
+              // Ensure arrays are preserved from propFormData if they exist
+              education: propFormData?.education && propFormData.education.length > 0 
+                ? propFormData.education 
+                : capturedData.education,
+              experience: propFormData?.experience && propFormData.experience.length > 0 
+                ? propFormData.experience 
+                : capturedData.experience,
+              skills: propFormData?.skills && propFormData.skills.length > 0 
+                ? propFormData.skills 
+                : capturedData.skills,
+              certifications: propFormData?.certifications && propFormData.certifications.length > 0 
+                ? propFormData.certifications 
+                : capturedData.certifications,
+              languages: propFormData?.languages && propFormData.languages.length > 0 
+                ? propFormData.languages 
+                : capturedData.languages,
+              hobbies: propFormData?.hobbies && propFormData.hobbies.length > 0 
+                ? propFormData.hobbies 
+                : capturedData.hobbies,
+              otherInfo: propFormData?.otherInfo && propFormData.otherInfo.length > 0 
+                ? propFormData.otherInfo 
+                : capturedData.otherInfo,
+              customSection: propFormData?.customSection && propFormData.customSection.length > 0 
+                ? propFormData.customSection 
+                : capturedData.customSection,
+              references: propFormData?.references && propFormData.references.length > 0 
+                ? propFormData.references 
+                : capturedData.references
+            };
+            
+            console.log('Merged form data (DOM + propFormData):', mergedData);
+            
+            // Sync to App.js state if updateFormData is available
             if (updateFormData) {
-              updateFormData(capturedData);
-              console.log('Preview2 - Synced data to App.js state');
+              updateFormData(mergedData);
+              console.log('Synced merged form data to App.js state');
             }
             
-            // Store in localStorage for persistence
+            // Always store in localStorage before navigating to preview
+            // This ensures data is available when returning from preview
             try {
-              // Create a serializable copy (File objects can't be serialized)
+              // Create a serializable copy (handle profileImage properly)
               const serializableData = {
-                ...capturedData,
-                profileImage: capturedData.profileImage instanceof File 
-                  ? null // Can't serialize File objects, but we'll preserve it in state
-                  : capturedData.profileImage
+                ...mergedData,
+                profileImage: mergedData.profileImage 
+                  ? (mergedData.profileImage.data 
+                      ? { data: mergedData.profileImage.data } 
+                      : mergedData.profileImage instanceof File 
+                        ? null // Can't serialize File objects
+                        : mergedData.profileImage)
+                  : null
               };
               localStorage.setItem('cvFormData', JSON.stringify(serializableData));
-              console.log('Preview2 - Stored data in localStorage');
+              console.log('Stored form data in localStorage before navigating to preview');
             } catch (e) {
-              console.error('Preview2 - Error storing data in localStorage:', e);
+              console.error('Error storing form data in localStorage:', e);
             }
             
-            // Show A4 preview
-            setShowA4Preview(true);
+            // Small delay to ensure data is synced, then navigate to preview page
+            setTimeout(() => {
+              setCVView('preview');
+              // Ensure selectedApp is set to cv-builder
+              localStorage.setItem('selectedApp', 'cv-builder');
+              // Another small delay to ensure localStorage is written before reload
+              setTimeout(() => {
+                window.location.reload();
+              }, 50);
+            }, 100);
           }}
           title="View A4 Preview"
         >
-          📄 View A4 Preview
+          ðŸ“„ View A4 Preview
         </button>
+          <button 
+          className="download-pdf-button-main"
+            onClick={generatePDF}
+            title="Download CV as PDF"
+          >
+          ðŸ“¥ Download PDF
+          </button>
+      </div>
+
+      {/* A4 Preview Element - Always rendered for PDF generation, hidden when modal is closed */}
+      <div 
+        className="cv-preview a4-size-preview pdf-mode"
+        style={{
+          display: 'none', // Hidden but in DOM for PDF generation
+          position: 'fixed',
+          left: '-9999px',
+          top: '-9999px',
+          visibility: 'hidden',
+          transform: 'scale(1)',
+          transformOrigin: 'center center',
+          width: '800px',
+          minWidth: '800px',
+          maxWidth: '800px',
+          minHeight: '1129px',
+          height: 'auto',
+          margin: '0 auto',
+          boxSizing: 'border-box',
+          zIndex: -1,
+          background: '#ffffff',
+          padding: '20px'
+        }}
+      >
+        {renderCVContent()}
       </div>
 
       {/* A4 Preview Modal */}
@@ -785,34 +963,108 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, i
           <div className="a4-preview-modal-content" onClick={(e) => e.stopPropagation()}>
             <button 
               className="a4-preview-close-button"
-              onClick={() => setShowA4Preview(false)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowA4Preview(false);
+              }}
               aria-label="Close Preview"
+              title="Close Preview"
             >
-              ×
+              Ã—
             </button>
-            <div className="a4-preview-container" ref={a4PreviewRef}>
-              <div className="template2-root">
-                <div 
-                  className="cv-preview a4-size-preview"
-                  style={{
-                    transform: `scale(${a4Scale})`,
-                    transformOrigin: 'center center',
-                    width: '800px',
-                    minWidth: '800px',
-                    maxWidth: '800px',
-                    minHeight: '1129px',
-                    height: 'auto'
+            
+            {/* Template Switcher */}
+            {onTemplateSwitch && (
+              <div className="a4-preview-template-switcher">
+                <label className="template-switcher-label">Template:</label>
+                <select 
+                  className="template-switcher-select"
+                  value={selectedTemplate || 'template1'}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    if (onTemplateSwitch) {
+                      onTemplateSwitch(e.target.value);
+                    }
                   }}
+                  onClick={(e) => e.stopPropagation()}
+                  title="Switch Template"
                 >
-                  {renderCVContent()}
-                </div>
+                  <option value="template2">Template 2</option>
+                  <option value="template2">Template 2</option>
+                  <option value="template3">Template 3</option>
+                  <option value="template4">Template 4</option>
+                  <option value="template5">Template 5 (Europass)</option>
+                </select>
               </div>
-          </div>
+            )}
+            
+            {/* Zoom Controls */}
+            <div className="a4-preview-zoom-controls">
+              <button 
+                className="zoom-button zoom-out"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setUserZoom(prev => Math.max(0.5, prev - 0.1));
+                }}
+                title="Zoom Out"
+                aria-label="Zoom Out"
+              >
+                âˆ’
+              </button>
+              <span className="zoom-level">{Math.round(userZoom * 100)}%</span>
+              <button 
+                className="zoom-button zoom-in"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setUserZoom(prev => Math.min(2.0, prev + 0.1));
+                }}
+                title="Zoom In"
+                aria-label="Zoom In"
+              >
+                +
+              </button>
+              <button 
+                className="zoom-button zoom-reset"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setUserZoom(1);
+                }}
+                title="Reset Zoom"
+                aria-label="Reset Zoom"
+              >
+                â†»
+              </button>
+            </div>
+            
+            <div className="a4-preview-container" ref={a4PreviewRef}>
+              <div 
+                className="cv-preview a4-size-preview pdf-mode"
+                id="a4-preview-content"
+                key={`a4-preview-${formData?.name || 'default'}-${Date.now()}`}
+                style={{
+                  transform: `scale(${isPreviewPage ? (previewPageScale * userZoom) : (a4Scale * userZoom)})`,
+                  transformOrigin: isPreviewPage ? 'top center' : 'center center',
+                  width: '800px',
+                  minWidth: '800px',
+                  maxWidth: '800px',
+                  minHeight: '1129px',
+                  height: 'auto',
+                  margin: '0 auto',
+                  marginTop: isPreviewPage ? '0' : 'auto',
+                  display: 'block',
+                  boxSizing: 'border-box'
+                }}
+                data-page-height="1129"
+              >
+                {renderCVContent()}
+              </div>
         </div>
-        </div>
-      )}
+      </div>
     </div>
+      )}
+    </>
   );
 }
 
 export default Preview2;
+

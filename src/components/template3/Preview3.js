@@ -1,10 +1,164 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import usePreviewHandler from './PreviewHandler3';
+import generatePDF from './pdf3';
+import { setCVView } from '../../utils/routing';
 import './Preview3.css';
+import './pdf3.css';
+import './Preview3.mobile.css';
 
-function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, isPreviewPage }) {
+// Function to capture all form data from DOM (similar to PreviewHandler1.getFormData)
+// Takes existingFormData parameter to preserve profileImage from database
+const getFormDataFromDOM = (existingFormData = null) => {
+  // Get profileImage - prefer existing one (from database) if available, otherwise get from file input
+  let profileImage = null;
+  if (existingFormData?.profileImage) {
+    // If existing profileImage is from database (has .data property), preserve it
+    if (existingFormData.profileImage.data) {
+      profileImage = existingFormData.profileImage;
+    } else if (existingFormData.profileImage instanceof File) {
+      profileImage = existingFormData.profileImage;
+    }
+  }
+  // If no existing profileImage or it's not from database, try to get from file input
+  if (!profileImage) {
+    profileImage = document.getElementById('file-input')?.files?.[0] || null;
+  }
+  
+  const data = {
+    name: document.getElementById('name-input')?.value || '',
+    position: document.getElementById('position-input')?.value || '',
+    phone: document.getElementById('phone-input')?.value || '',
+    email: document.getElementById('email-input')?.value || '',
+    address: document.getElementById('address-input')?.value || '',
+    profileImage: profileImage,
+    professionalSummary: document.getElementById('professional-summary-textarea')?.value || '',
+    education: [],
+    experience: [],
+    skills: [],
+    certifications: [],
+    languages: [],
+    hobbies: [],
+    otherInfo: [],
+    customSection: [],
+    references: []
+  };
+
+  // Get education data
+  const mainDegree = document.getElementById('degree-input')?.value || '';
+  const mainBoard = document.getElementById('board-input')?.value || '';
+  const mainYear = document.getElementById('year-input')?.value || '';
+  const mainMarks = document.getElementById('marks-input')?.value || '';
+  
+  let educationData = [];
+  if (mainDegree.trim() || mainBoard.trim() || mainYear.trim() || mainMarks.trim()) {
+    educationData.push({ degree: mainDegree, board: mainBoard, year: mainYear, marks: mainMarks });
+  }
+  
+  const educationGroups = document.querySelectorAll('.education-group');
+  educationData = educationData.concat(Array.from(educationGroups).map(group => {
+    const degree = group.querySelector('.degree-input')?.value || '';
+    const board = group.querySelector('.board-input')?.value || '';
+    const year = group.querySelector('.year-input')?.value || '';
+    const marks = group.querySelector('.marks-input')?.value || '';
+    if (degree.trim() || board.trim() || year.trim() || marks.trim()) {
+      return { degree, board, year, marks };
+    }
+    return null;
+  }).filter(edu => edu !== null));
+  data.education = educationData;
+
+  // Get experience data
+  const mainJobTitle = document.getElementById('job-title-input')?.value || '';
+  const mainCompany = document.getElementById('company-input')?.value || '';
+  const mainDuration = document.getElementById('duration-input')?.value || '';
+  const mainJobDetails = document.getElementById('job-details-textarea')?.value || '';
+  
+  let experienceData = [];
+  if (mainJobTitle.trim() || mainCompany.trim() || mainDuration.trim() || mainJobDetails.trim()) {
+    experienceData.push({ jobTitle: mainJobTitle, company: mainCompany, duration: mainDuration, jobDetails: mainJobDetails });
+  }
+  
+  const experienceGroups = document.querySelectorAll('.experience-group');
+  experienceData = experienceData.concat(Array.from(experienceGroups).map(group => {
+    const jobTitle = group.querySelector('.job-title-input')?.value || '';
+    const company = group.querySelector('.company-input')?.value || '';
+    const duration = group.querySelector('.duration-input')?.value || '';
+    const jobDetails = group.querySelector('.job-details-textarea')?.value || '';
+    if (jobTitle.trim() || company.trim() || duration.trim() || jobDetails.trim()) {
+      return { jobTitle, company, duration, jobDetails };
+    }
+    return null;
+  }).filter(exp => exp !== null));
+  data.experience = experienceData;
+
+  // Get skills, certifications, languages, references
+  const skillInputs = document.querySelectorAll('.skills-section input[type="text"]');
+  data.skills = Array.from(skillInputs).map(input => input.value).filter(value => value.trim() !== '');
+
+  const certInputs = document.querySelectorAll('.certifications-section input[type="text"]');
+  data.certifications = Array.from(certInputs).map(input => input.value).filter(value => value.trim() !== '');
+
+  const langInputs = document.querySelectorAll('.languages-section input[type="text"]');
+  data.languages = Array.from(langInputs).map(input => input.value).filter(value => value.trim() !== '');
+
+  const refInputs = document.querySelectorAll('.references-section input[type="text"]');
+  data.references = Array.from(refInputs).map(input => input.value).filter(value => value.trim() !== '');
+
+  // Get hobbies - need to get from formData state if available, otherwise from DOM
+  // For now, we'll get from DOM if available
+  const hobbyInputs = document.querySelectorAll('.hobbies-section input[type="text"]');
+  data.hobbies = Array.from(hobbyInputs).map(input => input.value).filter(value => value.trim() !== '');
+
+  // Get other information
+  const otherInfoData = [];
+  const fatherName = document.getElementById('father-name-input-always')?.value || '';
+  const husbandName = document.getElementById('husband-name-input-always')?.value || '';
+  const cnic = document.getElementById('cnic-input-always')?.value || '';
+  const dob = document.getElementById('dob-input-always')?.value || '';
+  const maritalStatus = document.getElementById('marital-status-input-always')?.value || '';
+  const religion = document.getElementById('religion-input-always')?.value || '';
+  
+  if (fatherName.trim()) otherInfoData.push({ label: "Father's Name", value: fatherName });
+  if (husbandName.trim()) otherInfoData.push({ label: "Husband's Name", value: husbandName });
+  if (cnic.trim()) otherInfoData.push({ label: "CNIC", value: cnic });
+  if (dob.trim()) otherInfoData.push({ label: "Date of Birth", value: dob });
+  if (maritalStatus.trim()) otherInfoData.push({ label: "Marital Status", value: maritalStatus });
+  if (religion.trim()) otherInfoData.push({ label: "Religion", value: religion });
+  
+  const customInfoGroups = document.querySelectorAll('.custom-info-wrapper');
+  customInfoGroups.forEach(group => {
+    const labelInput = group.querySelector('.custom-label-input-field');
+    const valueInput = group.querySelector('.custom-value-input-field');
+    if (labelInput?.value.trim() && valueInput?.value.trim()) {
+      otherInfoData.push({ label: labelInput.value, value: valueInput.value });
+    }
+  });
+  data.otherInfo = otherInfoData;
+
+  // Get custom section
+  const customSectionHeading = document.getElementById('custom-section-heading-input')?.value || '';
+  const customSectionDetail = document.getElementById('custom-section-detail-input')?.value || '';
+  let customSectionData = [];
+  if (customSectionHeading.trim() || customSectionDetail.trim()) {
+    customSectionData.push({ heading: customSectionHeading, detail: customSectionDetail });
+  }
+  const customDetailInputs = document.querySelectorAll('.custom-detail-input');
+  customDetailInputs.forEach(input => {
+    const detail = input.value.trim();
+    if (detail) {
+      customSectionData.push({ heading: '', detail: detail });
+    }
+  });
+  data.customSection = customSectionData;
+
+  return data;
+};
+
+function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, selectedTemplate, onTemplateSwitch, isPreviewPage, updateFormData }) {
   const [showA4Preview, setShowA4Preview] = useState(false);
   const [a4Scale, setA4Scale] = useState(1);
+  const [userZoom, setUserZoom] = useState(1);
+  const [previewPageScale, setPreviewPageScale] = useState(1);
   const a4PreviewRef = useRef(null);
   const { formData: hookFormData, formatContactInfo, updatePreviewData } = usePreviewHandler(propFormData);
   
@@ -35,18 +189,15 @@ function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, i
     }
   } else {
     // Even if hookFormData has data, preserve profileImage from propFormData if it's from database
-    if (propFormData?.profileImage && propFormData.profileImage.data) {
+    if (propFormData?.profileImage && propFormData.profileImage.data && (!formData.profileImage || !formData.profileImage.data)) {
       formData = { ...formData, profileImage: propFormData.profileImage };
+      console.log('Preview3 - Preserved profileImage from propFormData in hookFormData:', formData.profileImage);
     }
-    // Merge with propFormData to ensure we have all fields
-    formData = { 
-      ...(propFormData || {}),
-      ...formData,
-      profileImage: propFormData?.profileImage || formData?.profileImage,
-      customSection: propFormData?.customSection || formData?.customSection || [],
-      otherInfo: propFormData?.otherInfo || formData?.otherInfo || []
-    };
   }
+  
+  console.log('Preview3 - Final formData:', formData);
+  console.log('Preview3 - formData.education:', formData.education);
+  console.log('Preview3 - formData.experience:', formData.experience);
 
   // Refresh preview data from form inputs whenever app form data changes
   // Only update if not on preview page (where form is not in DOM)
@@ -56,8 +207,23 @@ function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, i
     }
   }, [propFormData, updatePreviewData, isPreviewPage]);
 
+  // Reset zoom and ensure consistent formatting when CV name changes (switching between CVs)
+  // This ensures consistent formatting when switching between different CVs
+  useEffect(() => {
+    setUserZoom(1);
+    // Force a re-render of the preview to ensure all styles are applied consistently
+    if (showA4Preview) {
+      // Close and reopen to ensure fresh render with new data
+      setShowA4Preview(false);
+      setTimeout(() => {
+        setShowA4Preview(true);
+      }, 50);
+    }
+  }, [propFormData?.name]); // Only trigger when CV name changes (switching CVs)
+
 
   // Ensure dynamic inputs update preview on typing
+  // Listen to DOM events to catch real-time updates (form might still be in DOM)
   useEffect(() => {
     const onInput = (e) => {
       if (e && e.target && e.target.classList && (
@@ -68,79 +234,330 @@ function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, i
         e.target.classList.contains('marital-status-input') ||
         e.target.classList.contains('religion-input') ||
         e.target.classList.contains('custom-label-input-field') ||
-        e.target.classList.contains('custom-value-input-field')
+        e.target.classList.contains('custom-value-input-field') ||
+        e.target.classList.contains('degree-input') ||
+        e.target.classList.contains('board-input') ||
+        e.target.classList.contains('year-input') ||
+        e.target.classList.contains('marks-input') ||
+        e.target.classList.contains('job-title-input') ||
+        e.target.classList.contains('company-input') ||
+        e.target.classList.contains('duration-input') ||
+        e.target.classList.contains('job-details-textarea') ||
+        e.target.id === 'name-input' ||
+        e.target.id === 'position-input' ||
+        e.target.id === 'phone-input' ||
+        e.target.id === 'email-input' ||
+        e.target.id === 'address-input' ||
+        e.target.id === 'professional-summary-textarea'
       )) {
         updatePreviewData();
       }
     };
     document.addEventListener('input', onInput, true);
-    return () => document.removeEventListener('input', onInput, true);
+    document.addEventListener('change', onInput, true);
+    return () => {
+      document.removeEventListener('input', onInput, true);
+      document.removeEventListener('change', onInput, true);
+    };
   }, [updatePreviewData]);
 
-  // Calculate A4 preview scale for mobile devices
+  // Add page break indicators and prevent section cutoff
   useEffect(() => {
-    const calculateScale = () => {
-      if (!showA4Preview) return;
+    if (!showA4Preview) return;
+    
+    const updatePageBreaks = () => {
+      const previewElement = document.getElementById('a4-preview-content');
+      if (!previewElement) return;
       
-      const isMobile = window.innerWidth <= 768;
-      if (!isMobile) {
-        setA4Scale(1);
-        return;
+      // Remove existing page break indicators
+      const existingBreaks = previewElement.querySelectorAll('.page-break-indicator');
+      existingBreaks.forEach(breakEl => breakEl.remove());
+      
+      // Remove any existing page break spacers
+      const existingSpacers = previewElement.querySelectorAll('.page-break-spacer');
+      existingSpacers.forEach(spacer => spacer.remove());
+      
+      // Reset all sections to their natural position
+      const sections = previewElement.querySelectorAll('.cv-section');
+      sections.forEach(section => {
+        section.style.marginTop = '';
+        section.style.pageBreakBefore = '';
+        section.style.breakBefore = '';
+      });
+      
+      const pageHeight = 1129; // A4 page height in pixels
+      const padding = 20; // Top and bottom padding
+      const usablePageHeight = pageHeight - (padding * 2);
+      
+      // Check each section to see if it would be cut off
+      sections.forEach((section, index) => {
+        // Get the section's position relative to the preview container
+        const sectionTop = section.offsetTop;
+        const sectionHeight = section.offsetHeight;
+        
+        // Calculate which page this section starts on (accounting for padding)
+        const positionOnPage = (sectionTop - padding) % pageHeight;
+        const currentPage = Math.floor((sectionTop - padding) / pageHeight);
+        
+        // Check if section would be cut off (starts too close to page end)
+        // Leave at least 10% of page height as buffer
+        const minSpaceRequired = usablePageHeight * 0.1;
+        const spaceRemaining = pageHeight - positionOnPage - padding;
+        const wouldBeCutOff = sectionHeight > spaceRemaining && spaceRemaining < (usablePageHeight - minSpaceRequired);
+        
+        if (wouldBeCutOff && index > 0) {
+          // Move section to next page
+          const nextPageStart = (currentPage + 1) * pageHeight + padding;
+          const marginNeeded = nextPageStart - sectionTop;
+          
+          // Only add margin if it's positive (section is before the next page start)
+          if (marginNeeded > 0) {
+            section.style.marginTop = `${marginNeeded}px`;
+            section.style.pageBreakBefore = 'always';
+            section.style.breakBefore = 'page';
+            section.classList.add('moved-to-next-page');
+          }
+        } else {
+          // Reset if section doesn't need to be moved
+          section.style.marginTop = '';
+          section.style.pageBreakBefore = '';
+          section.style.breakBefore = '';
+          section.classList.remove('moved-to-next-page');
+        }
+      });
+      
+      // Calculate number of pages needed after adjustments
+      const contentHeight = previewElement.scrollHeight;
+      const numberOfPages = Math.ceil(contentHeight / pageHeight);
+      
+      // Add page break indicators for each page after the first
+      for (let i = 2; i <= numberOfPages; i++) {
+        const breakLine = document.createElement('div');
+        breakLine.className = 'page-break-indicator';
+        breakLine.style.cssText = `
+          position: absolute;
+          left: -20px;
+          right: -20px;
+          top: ${(i - 1) * pageHeight}px;
+          height: 3px;
+          background: linear-gradient(to right, transparent 0%, #6b7280 10%, #6b7280 90%, transparent 100%);
+          pointer-events: none;
+          z-index: 10;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+        `;
+        previewElement.appendChild(breakLine);
       }
+    };
+    
+    // Update page breaks after a short delay to ensure content is rendered
+    const timeoutId = setTimeout(updatePageBreaks, 200);
+    
+    // Also update on window resize and when zoom changes
+    window.addEventListener('resize', updatePageBreaks);
+    
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('resize', updatePageBreaks);
+    };
+  }, [showA4Preview, formData, userZoom, a4Scale]);
 
+  // Calculate A4 preview scale for all devices (for modal)
+  useEffect(() => {
+    if (!showA4Preview) {
+      setA4Scale(1);
+      setUserZoom(1);
+      return;
+    }
+
+    const calculateScale = () => {
       // A4 dimensions: 800px × 1129px
       const a4Width = 800;
       const a4Height = 1129;
       
-      // Available space (accounting for close button ~45px and padding)
-      const availableWidth = window.innerWidth - 10; // 5px padding on each side
-      const availableHeight = window.innerHeight - 45; // 45px for close button
+      // Get viewport dimensions
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
       
-      // Calculate scale to fit both dimensions
+      // Determine device type
+      const isMobile = viewportWidth < 768;
+      const isTablet = viewportWidth >= 768 && viewportWidth <= 1024;
+      
+      // Simple, reliable calculation based on viewport
+      // Account for close button and padding
+      let availableWidth, availableHeight;
+      
+      if (isMobile) {
+        // Mobile: modal padding is 5px, close button 50px, download button ~50px
+        availableWidth = viewportWidth - 10; // 5px each side
+        availableHeight = viewportHeight - 120; // 50px close + 5px top + 5px bottom + 50px button + 10px spacing
+      } else if (isTablet) {
+        // Tablet: modal padding is 15px sides, 50px top (close), 15px bottom
+        // Add extra height buffer for download button (60px) to prevent bottom cutoff
+        availableWidth = viewportWidth - 30; // 15px each side
+        availableHeight = viewportHeight - 140; // 50px close + 15px top + 15px bottom + 60px button space
+      } else {
+        // Desktop: modal padding is 20px
+        availableWidth = viewportWidth - 80;
+        availableHeight = viewportHeight - 120;
+      }
+      
+      // Calculate scale to fit
       const scaleX = availableWidth / a4Width;
       const scaleY = availableHeight / a4Height;
       
-      // Use the smaller scale to ensure it fits both dimensions
-      const scale = Math.min(scaleX, scaleY);
+      // Use smaller scale with 8% safety margin
+      let baseScale = Math.min(scaleX, scaleY) * 0.92;
       
-      // Set a minimum scale to prevent it from being too small
-      setA4Scale(Math.max(scale, 0.2));
+      // Ensure minimum scale
+      baseScale = Math.max(baseScale, 0.15);
+      baseScale = Math.min(baseScale, 1.0);
+      
+      // Apply user zoom to the base scale
+      const finalScale = baseScale * userZoom;
+      setA4Scale(finalScale);
     };
 
+    // Calculate with delays to ensure DOM is ready
     calculateScale();
+    const timeoutId1 = setTimeout(calculateScale, 100);
+    const timeoutId2 = setTimeout(calculateScale, 300);
     
-    // Recalculate on resize (orientation change, etc.)
-    window.addEventListener('resize', calculateScale);
-    window.addEventListener('orientationchange', calculateScale);
+    // Recalculate on resize
+    let resizeTimeout;
+    const handleResize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(calculateScale, 150);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', () => {
+      setTimeout(calculateScale, 400);
+    });
     
     return () => {
-      window.removeEventListener('resize', calculateScale);
-      window.removeEventListener('orientationchange', calculateScale);
+      clearTimeout(timeoutId1);
+      clearTimeout(timeoutId2);
+      clearTimeout(resizeTimeout);
+      window.removeEventListener('resize', handleResize);
     };
-  }, [showA4Preview]);
+  }, [showA4Preview, userZoom]);
+
+  // Calculate scale for preview page (when isPreviewPage is true)
+  useEffect(() => {
+    if (!isPreviewPage) {
+      setPreviewPageScale(1);
+      return;
+    }
+
+    const calculatePreviewPageScale = () => {
+      // A4 dimensions: 800px × 1129px
+      const a4Width = 800;
+      const a4Height = 1129;
+      
+      // Get viewport dimensions
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      
+      // Get header height (sticky header on preview page)
+      const header = document.querySelector('.preview-page-header');
+      const headerHeight = header ? header.offsetHeight : 200; // Default to 200px if not found
+      
+      // Determine device type
+      const isMobile = viewportWidth < 768;
+      const isTablet = viewportWidth >= 768 && viewportWidth <= 1024;
+      
+      // Calculate available space
+      let availableWidth, availableHeight;
+      
+      if (isMobile) {
+        // Mobile: account for header and minimal padding
+        // Use viewport width directly since container has overflow: hidden
+        availableWidth = viewportWidth;
+        availableHeight = viewportHeight - headerHeight; // Header only, no padding needed
+      } else if (isTablet) {
+        // Tablet: account for header and padding
+        availableWidth = viewportWidth - 30; // 15px padding each side
+        availableHeight = viewportHeight - headerHeight - 20; // Header + 10px padding top/bottom
+      } else {
+        // Desktop: more padding
+        availableWidth = viewportWidth - 40; // 20px padding each side
+        availableHeight = viewportHeight - headerHeight - 40; // Header + 20px padding top/bottom
+      }
+      
+      // Calculate scale to fit
+      const scaleX = availableWidth / a4Width;
+      const scaleY = availableHeight / a4Height;
+      
+      // Use smaller scale to ensure it fits completely
+      let baseScale = Math.min(scaleX, scaleY);
+      
+      // Add a small safety margin (2% for tight fit)
+      baseScale = baseScale * 0.98;
+      
+      // Ensure minimum scale but allow it to be smaller than 1.0
+      baseScale = Math.max(baseScale, 0.1);
+      baseScale = Math.min(baseScale, 1.0);
+      
+      setPreviewPageScale(baseScale);
+    };
+
+    // Calculate with delays to ensure DOM is ready
+    calculatePreviewPageScale();
+    const timeoutId1 = setTimeout(calculatePreviewPageScale, 100);
+    const timeoutId2 = setTimeout(calculatePreviewPageScale, 300);
+    
+    // Recalculate on resize
+    let resizeTimeout;
+    const handleResize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(calculatePreviewPageScale, 150);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', () => {
+      setTimeout(calculatePreviewPageScale, 400);
+    });
+    
+    return () => {
+      clearTimeout(timeoutId1);
+      clearTimeout(timeoutId2);
+      clearTimeout(resizeTimeout);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [isPreviewPage]);
   
   // Default sections to show on page load: professional-summary, skills, languages, references
+  // Ensure all data is properly extracted from formData
+  // Debug: Log formData to see what we're getting
+  console.log('Preview3 - Full formData:', formData);
+  console.log('Preview3 - propFormData:', propFormData);
+  console.log('Preview3 - hookFormData:', hookFormData);
+  
   const displayData = {
-    name: formData.name || '',
-    position: formData.position || '',
-    phone: formData.phone || '',
-    email: formData.email || '',
-    address: formData.address || '',
-    professionalSummary: formData.professionalSummary || 'To work with a organization that offers a creative, dynamic and professional environment, where my education, knowledge, skills and proven abilities can be fully utilized and which also offers learning opportunities for my career development in the long run.',
-    education: formData.education && formData.education.length > 0 ? formData.education : [],
-    experience: formData.experience && formData.experience.length > 0 ? formData.experience : [],
-    skills: Array.isArray(formData.skills) ? formData.skills.filter(skill => skill && skill.trim() !== '') : [],
-    certifications: formData.certifications && formData.certifications.length > 0 ? formData.certifications.filter(cert => cert && cert.trim() !== '') : [],
-    languages: formData.languages && formData.languages.length > 0 ? formData.languages.filter(lang => lang && lang.trim() !== '') : ['English', 'Urdu', 'Punjabi'],
-    hobbies: formData.hobbies && formData.hobbies.length > 0 ? formData.hobbies.filter(hobby => hobby && hobby.trim() !== '') : [],
-    otherInfo: formData.otherInfo && formData.otherInfo.length > 0 ? formData.otherInfo.filter(info => info.value && info.value.trim() !== '') : [],
-    customSection: formData.customSection && formData.customSection.length > 0 ? formData.customSection : [],
-    references: formData.references && formData.references.length > 0 ? formData.references.filter(ref => ref && ref.trim() !== '') : []
+    name: formData?.name || '',
+    position: formData?.position || '',
+    phone: formData?.phone || '',
+    email: formData?.email || '',
+    address: formData?.address || '',
+    professionalSummary: formData?.professionalSummary || 'To work with a organization that offers a creative, dynamic and professional environment, where my education, knowledge, skills and proven abilities can be fully utilized and which also offers learning opportunities for my career development in the long run.',
+    education: Array.isArray(formData?.education) && formData.education.length > 0 ? formData.education : [],
+    experience: Array.isArray(formData?.experience) && formData.experience.length > 0 ? formData.experience : [],
+    skills: Array.isArray(formData?.skills) ? formData.skills.filter(skill => skill && skill.trim() !== '') : [],
+    certifications: Array.isArray(formData?.certifications) && formData.certifications.length > 0 ? formData.certifications.filter(cert => cert && cert.trim() !== '') : [],
+    languages: Array.isArray(formData?.languages) && formData.languages.length > 0 ? formData.languages.filter(lang => lang && lang.trim() !== '') : [],
+    hobbies: Array.isArray(formData?.hobbies) && formData.hobbies.length > 0 ? formData.hobbies.filter(hobby => hobby && hobby.trim() !== '') : [],
+    otherInfo: Array.isArray(formData?.otherInfo) && formData.otherInfo.length > 0 ? formData.otherInfo.filter(info => info && info.value && info.value.trim() !== '') : [],
+    customSection: Array.isArray(formData?.customSection) && formData.customSection.length > 0 ? formData.customSection : [],
+    references: Array.isArray(formData?.references) && formData.references.length > 0 ? formData.references.filter(ref => ref && ref.trim() !== '') : []
   };
   
+  console.log('Preview3 - displayData:', displayData);
+  
   // Create local getProfileImageUrl function that uses the merged formData
-  const getLocalProfileImageUrl = () => {
-    if (formData.profileImage) {
+  // Use useMemo to recalculate when formData or propFormData changes
+  const profileImageUrl = useMemo(() => {
+    // First check formData (which includes merged data from hook, localStorage, and props)
+    if (formData?.profileImage) {
       // If it's a File object, create object URL
       if (formData.profileImage instanceof File) {
         return URL.createObjectURL(formData.profileImage);
@@ -149,344 +566,334 @@ function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, i
       if (formData.profileImage.data) {
         return formData.profileImage.data;
       }
+      // If it's a string (direct base64 URL), use it directly
+      if (typeof formData.profileImage === 'string') {
+        return formData.profileImage;
+      }
+    }
+    // Also check propFormData as fallback
+    if (propFormData?.profileImage) {
+      if (propFormData.profileImage instanceof File) {
+        return URL.createObjectURL(propFormData.profileImage);
+      }
+      if (propFormData.profileImage.data) {
+        return propFormData.profileImage.data;
+      }
+      if (typeof propFormData.profileImage === 'string') {
+        return propFormData.profileImage;
+      }
     }
     return null;
-  };
-  
-  const profileImageUrl = getLocalProfileImageUrl();
-  
-  // Create local formatContactInfo that uses the actual formData
-  const formatLocalContactInfo = () => {
-    const contact = [];
-    if (formData.phone) {
-      contact.push({ type: 'phone', value: formData.phone, icon: '📞' });
-    }
-    if (formData.email) {
-      contact.push({ type: 'email', value: formData.email, icon: '✉️' });
-    }
-    if (formData.address) {
-      contact.push({ type: 'address', value: formData.address, icon: '📍' });
-    }
-    return contact;
-  };
-  
-  const contactInfo = formatLocalContactInfo();
+  }, [formData?.profileImage, propFormData?.profileImage]);
+  const contactInfo = formatContactInfo();
   
   // Debug: Log contact information
-  console.log('Template3 - Contact Info:', contactInfo);
-  console.log('Template3 - Form Data:', formData);
-  console.log('Template3 - Phone:', formData?.phone);
-  console.log('Template3 - Email:', formData?.email);
-  console.log('Template3 - Address:', formData?.address);
-  
+  console.log('Template1 - Contact Info:', contactInfo);
+  console.log('Template1 - Form Data:', formData);
+  console.log('Template1 - Profile Image:', formData.profileImage);
+  console.log('Template1 - Profile Image URL:', profileImageUrl);
+  console.log('Template1 - Custom Section Data:', displayData.customSection);
+  console.log('Template1 - Custom Section Data Details:', displayData.customSection.map((item, index) => ({
+    index,
+    heading: item.heading,
+    detail: item.detail,
+    hasHeading: !!item.heading,
+    hasDetail: !!item.detail
+  })));
+  console.log('Template1 - Full Custom Section Array:', JSON.stringify(displayData.customSection, null, 2));
+  console.log('Template1 - Individual Items:');
+  displayData.customSection.forEach((item, index) => {
+    console.log(`Item ${index}:`, {
+      heading: item.heading,
+      detail: item.detail,
+      headingLength: item.heading?.length || 0,
+      detailLength: item.detail?.length || 0
+    });
+  });
+
   // Render the CV preview content (reusable for both normal and modal view)
   const renderCVContent = () => (
     <>
-          {/* Header with Graphics */}
-          <div className="cv-header">
-            <div className="header-graphics">
-              <div className="graphic-circle graphic-circle-1"></div>
-              <div className="graphic-circle graphic-circle-2"></div>
-              <div className="graphic-circle graphic-circle-3"></div>
-              <div className="graphic-wave graphic-wave-1"></div>
-              <div className="graphic-wave graphic-wave-2"></div>
+        {/* CV Header */}
+        <div className="cv3-header">
+          {/* Header Top Section with Profile on Left */}
+          <div className="cv3-header-top">
+            {/* Profile Image Container */}
+            <div className="cv3-profile-image-container">
+              {profileImageUrl ? (
+                <img 
+                  src={profileImageUrl} 
+                  alt="Profile" 
+                  className="cv3-profile-image"
+                />
+              ) : (
+                <div className="cv3-profile-placeholder">
+                  CV
+                </div>
+              )}
             </div>
-            <div className="header-content-wrapper">
-              {/* Profile Image Container - Left Side */}
-              <div className="profile-image-container">
-                {profileImageUrl ? (
-                  <img 
-                    src={profileImageUrl} 
-                    alt="Profile" 
-                    className="profile-image"
-                  />
-                ) : (
-                  <div className="profile-placeholder">
-                    CV
-                  </div>
-                )}
-              </div>
 
-              {/* Right Side Content */}
-              <div className="header-right-content">
-                {/* Name and Title */}
-                <div className="header-text-content">
-                  <h1 className="header-name">
-                    {displayData.name}
-                  </h1>
-                  {displayData.position && (
-                    <h2 className="header-title">
-                      {displayData.position}
-                    </h2>
+            {/* Header Content */}
+            <div className="cv3-header-content">
+              {/* Name */}
+              <h1 className="cv3-header-name">
+                {displayData.name}
+              </h1>
+
+              {/* Position/Title */}
+              {displayData.position && (
+                <h2 className="cv3-header-title">
+                  {displayData.position}
+                </h2>
+              )}
+
+              {/* Phone */}
+              {displayData.phone && (
+                <div className="cv3-contact-item">
+                  <span className="cv3-contact-icon">📞</span>
+                  <span>{displayData.phone}</span>
+                </div>
+              )}
+
+              {/* Email */}
+              {displayData.email && (
+                <div className="cv3-contact-item">
+                  <span className="cv3-contact-icon">✉️</span>
+                  <span>{displayData.email}</span>
+                </div>
+              )}
+
+              {/* Address */}
+              {displayData.address && (
+                <div className="cv3-contact-item">
+                  <span className="cv3-contact-icon">📍</span>
+                  <span>{displayData.address}</span>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {/* Header Bottom Accent Bar */}
+          <div className="cv3-header-bottom"></div>
+        </div>
+
+        {/* Professional Summary Section */}
+        <div className="cv3-section">
+          <h3 className="cv3-section-heading">Professional Summary</h3>
+          <div className="cv3-section-content">
+            <p className="cv3-professional-summary-text">
+              {displayData.professionalSummary}
+            </p>
+          </div>
+        </div>
+
+        {/* Education Section */}
+        {displayData.education && displayData.education.length > 0 && (
+          <div className="cv3-section">
+            <h3 className="cv3-section-heading">Education</h3>
+            <div className="cv3-section-content">
+              {displayData.education.map((edu, index) => (
+                <div key={index} className="cv3-education-item">
+                  <div className="cv3-education-single-line">
+                    <span className="cv3-education-degree">{edu.degree}</span>
+                    {edu.board && <span className="cv3-education-board"> • {edu.board}</span>}
+                    {edu.year && <span className="cv3-education-year"> • {edu.year}</span>}
+                    {edu.marks && <span className="cv3-education-marks"> • {edu.marks}</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Experience Section */}
+        {displayData.experience && displayData.experience.length > 0 && (
+          <div className="cv3-section">
+            <h3 className="cv3-section-heading">Experience</h3>
+            <div className="cv3-section-content">
+              {displayData.experience.map((exp, index) => (
+                <div key={index} className="cv3-experience-item">
+                  <div className="cv3-experience-header">
+                    <span className="cv3-experience-job-title">{exp.jobTitle || 'No job title'}</span>
+                    {exp.duration && <span className="cv3-experience-duration">{exp.duration}</span>}
+                  </div>
+                  {exp.company && (
+                    <div className="cv3-experience-company-line">
+                      <span className="cv3-experience-company">{exp.company}</span>
+                    </div>
+                  )}
+                  {exp.jobDetails && (
+                    <div className="cv3-experience-details">
+                      <ul className="cv3-experience-details-list">
+                        {exp.jobDetails.split('\n').map((detail, detailIndex) => (
+                          detail.trim() && (
+                            <li key={detailIndex} className="cv3-experience-detail-item">
+                              {detail.trim()}
+                            </li>
+                          )
+                        ))}
+                      </ul>
+                    </div>
                   )}
                 </div>
+              ))}
+            </div>
+          </div>
+        )}
 
-                {/* Contact Information */}
-                {contactInfo && contactInfo.length > 0 ? (
-                  <div className="header-contact">
-                    {contactInfo.map((contact, index) => (
-                      <div 
-                        key={index} 
-                        className={`contact-item ${contact.type === 'address' ? 'contact-address' : ''}`}
-                      >
-                        <span className="contact-icon">{contact.icon}</span>
-                        <span>{contact.value}</span>
-                      </div>
-                    ))}
+        {/* Certifications Section */}
+        {displayData.certifications && displayData.certifications.length > 0 && (
+          <div className="cv3-section">
+            <h3 className="cv3-section-heading">Certifications</h3>
+            <div className="cv3-section-content">
+              <div className="cv3-certifications-content">
+                {displayData.certifications.map((cert, index) => (
+                  <div key={index} className="cv3-certification-item">
+                    <p className="cv3-certification-text">{cert}</p>
                   </div>
-                ) : (
-                  // Fallback: Try to display contact info directly from formData if contactInfo is empty
-                  (formData?.phone || formData?.email || formData?.address) && (
-                    <div className="header-contact">
-                      {formData.phone && (
-                        <div className="contact-item">
-                          <span className="contact-icon">📞</span>
-                          <span>{formData.phone}</span>
-                        </div>
-                      )}
-                      {formData.email && (
-                        <div className="contact-item">
-                          <span className="contact-icon">✉️</span>
-                          <span>{formData.email}</span>
-                        </div>
-                      )}
-                      {formData.address && (
-                        <div className="contact-item contact-address">
-                          <span className="contact-icon">📍</span>
-                          <span>{formData.address}</span>
-                        </div>
-                      )}
-                    </div>
-                  )
-                )}
+                ))}
               </div>
             </div>
           </div>
+        )}
 
-          {/* Main Content Area */}
-          <div className="cv-main-content">
-            {/* Professional Summary Section */}
-            <div className="cv-section-card">
-              <h3 className="section-heading">Professional Summary</h3>
-              <div className="section-content">
-                <p className="professional-summary-text">
-                  {displayData.professionalSummary}
-                </p>
+        {/* Skills Section */}
+        {displayData.skills && displayData.skills.length > 0 && (
+          <div className="cv3-section">
+            <h3 className="cv3-section-heading">Skills</h3>
+            <div className="cv3-section-content">
+              <div className="cv3-skills-container">
+                {displayData.skills.map((skill, index) => (
+                  <div key={index} className="cv3-skill-pill">
+                    <span className="cv3-skill-name">{skill}</span>
+                  </div>
+                ))}
               </div>
             </div>
-
-            {/* Education Section */}
-            {displayData.education && displayData.education.length > 0 && (
-              <div className="cv-section-card">
-                <h3 className="section-heading">Education</h3>
-                <div className="section-content">
-                  {displayData.education.map((edu, index) => (
-                    <div key={index} className="education-item">
-                      <div className="education-single-line">
-                        <span className="education-degree">{edu.degree}</span>
-                        {edu.board && <span className="education-board"> • {edu.board}</span>}
-                        {edu.year && <span className="education-year"> • {edu.year}</span>}
-                        {edu.marks && <span className="education-marks"> • {edu.marks}</span>}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Experience Section */}
-            {displayData.experience && displayData.experience.length > 0 && (
-              <div className="cv-section-card">
-                <h3 className="section-heading">Experience</h3>
-                <div className="section-content">
-                  {displayData.experience.map((exp, index) => (
-                    <div key={index} className="experience-item">
-                      <div className="experience-header">
-                        <span className="experience-job-title">{exp.jobTitle || 'No job title'}</span>
-                        {exp.duration && <span className="experience-duration">{exp.duration}</span>}
-                      </div>
-                      {exp.company && (
-                        <div className="experience-company-line">
-                          <span className="experience-company">{exp.company}</span>
-                        </div>
-                      )}
-                      {exp.jobDetails && (
-                        <div className="experience-details">
-                          <ul className="experience-details-list">
-                            {exp.jobDetails.split('\n').map((detail, detailIndex) => (
-                              detail.trim() && (
-                                <li key={detailIndex} className="experience-detail-item">
-                                  {detail.trim()}
-                                </li>
-                              )
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Certifications Section */}
-            {displayData.certifications && displayData.certifications.length > 0 && (
-              <div className="cv-section-card">
-                <h3 className="section-heading">Certifications</h3>
-                <div className="section-content">
-                  <div className="certifications-content">
-                    {displayData.certifications.map((cert, index) => (
-                      <div key={index} className="certification-item">
-                        <p className="certification-text">{cert}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Skills Section */}
-            {displayData.skills && displayData.skills.length > 0 && (
-              <div className="cv-section-card">
-                <h3 className="section-heading">Skills</h3>
-                <div className="section-content">
-                  <div className="skills-container">
-                    {displayData.skills.map((skill, index) => (
-                      <div key={index} className="skill-pill">
-                        <span className="skill-name">{skill}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Other Information Section */}
-            {displayData.otherInfo && displayData.otherInfo.length > 0 && (
-              <div className="cv-section-card">
-                <h3 className="section-heading">Other Information</h3>
-                <div className="section-content">
-                  <div className="other-info-grid">
-                    {displayData.otherInfo.map((info, index) => (
-                      <div key={index} className="info-item">
-                        <span className="info-label">{info.label}:</span>
-                        <span className="info-value">{info.value}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Languages Section */}
-            {displayData.languages && displayData.languages.length > 0 && (
-              <div className="cv-section-card">
-                <h3 className="section-heading">Languages</h3>
-                <div className="section-content">
-                  <div className="languages-container">
-                    {displayData.languages.map((language, index) => (
-                      <div key={index} className="language-pill">
-                        <span className="language-name">{language}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Hobbies Section */}
-            {displayData.hobbies && displayData.hobbies.length > 0 && (
-              <div className="cv-section-card">
-                <h3 className="section-heading">Hobbies</h3>
-                <div className="section-content">
-                  <div className="hobbies-container">
-                    {displayData.hobbies.map((hobby, index) => (
-                      <div key={index} className="hobby-pill">
-                        <span className="hobby-name">{hobby}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Custom Section */}
-            {displayData.customSection && displayData.customSection.length > 0 && displayData.customSection.map((custom, sectionIndex) => {
-              // Handle both old format (with 'detail') and new format (with 'details' array)
-              const details = custom.details || (custom.detail ? [custom.detail] : []);
-              const heading = custom.heading || '';
-              
-              // Skip sections without heading or details
-              if (!heading && details.length === 0) return null;
-              
-              return (
-                <div key={sectionIndex} className="cv-section-card">
-                  <h3 className="section-heading">
-                    {heading || 'Custom Section'}
-                  </h3>
-                  <div className="section-content">
-                    <div className="custom-section-content">
-                      {details.map((detail, detailIndex) => (
-                        detail && (
-                          <div key={detailIndex} className="custom-section-item">
-                            <p className="custom-section-detail">{detail}</p>
-                          </div>
-                        )
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-
-            {/* References Section */}
-            {displayData.references && displayData.references.length > 0 && (
-              <div className="cv-section-card">
-                <h3 className="section-heading">References</h3>
-                <div className="section-content">
-                  <div className="references-content">
-                    {displayData.references.map((reference, index) => (
-                      <div key={index} className="reference-item">
-                        <p className="reference-text">{reference}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Footer with Graphics */}
-            <div className="cv-footer">
-              <div className="footer-graphics">
-                <div className="footer-graphic-circle footer-graphic-circle-1"></div>
-                <div className="footer-graphic-circle footer-graphic-circle-2"></div>
-                <div className="footer-graphic-circle footer-graphic-circle-3"></div>
-                <div className="footer-wave footer-wave-1"></div>
-                <div className="footer-wave footer-wave-2"></div>
-                <div className="footer-pattern"></div>
-              </div>
-            </div>
-
           </div>
+        )}
+
+        {/* Other Information Section */}
+        {displayData.otherInfo && displayData.otherInfo.length > 0 && (
+          <div className="cv3-section">
+            <h3 className="cv3-section-heading">Other Information</h3>
+            <div className="cv3-section-content">
+              <div
+                className="cv3-other-info-grid"
+                style={{ gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gridAutoFlow: 'row' }}
+              >
+                {displayData.otherInfo.map((info, index) => (
+                  <div key={index} className="cv3-info-item">
+                    <span className="cv3-info-label">{info.label}:</span>
+                    <span className="cv3-info-value">{info.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Languages Section */}
+        {displayData.languages && displayData.languages.length > 0 && (
+          <div className="cv3-section">
+            <h3 className="cv3-section-heading">Languages</h3>
+            <div className="cv3-section-content">
+              <div className="cv3-languages-container">
+                {displayData.languages.map((language, index) => (
+                  <div key={index} className="cv3-language-pill">
+                    <span className="cv3-language-name">{language}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Hobbies Section */}
+        {displayData.hobbies && displayData.hobbies.length > 0 && (
+          <div className="cv3-section">
+            <h3 className="cv3-section-heading">Hobbies</h3>
+            <div className="cv3-section-content">
+              <div className="cv3-hobbies-container">
+                {displayData.hobbies.map((hobby, index) => (
+                  <div key={index} className="cv3-hobby-pill">
+                    <span className="cv3-hobby-name">{hobby}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Custom Section */}
+        {displayData.customSection && displayData.customSection.length > 0 && displayData.customSection.map((custom, sectionIndex) => {
+          // Handle both old format (with 'detail') and new format (with 'details' array)
+          const details = custom.details || (custom.detail ? [custom.detail] : []);
+          const heading = custom.heading || '';
+          
+          // Skip sections without heading or details
+          if (!heading && details.length === 0) return null;
+          
+          return (
+            <div key={sectionIndex} className="cv3-section">
+              <h3 className="cv3-section-heading">
+                {heading || 'Custom Section'}
+              </h3>
+              <div className="cv3-section-content">
+                <div className="cv3-custom-section-content">
+                  {details.map((detail, detailIndex) => (
+                    detail && (
+                      <div key={detailIndex} className="cv3-custom-section-item">
+                        <p className="cv3-custom-section-detail">{detail}</p>
+                      </div>
+                    )
+                  ))}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+
+        {/* References Section */}
+        {displayData.references && displayData.references.length > 0 && (
+          <div className="cv3-section">
+            <h3 className="cv3-section-heading">References</h3>
+            <div className="cv3-section-content">
+              <div className="cv3-references-content">
+                {displayData.references.map((reference, index) => (
+                  <div key={index} className="cv3-reference-item">
+                    <p className="cv3-reference-text">{reference}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
     </>
   );
 
   // If this is the preview page, render the preview content directly
   if (isPreviewPage) {
     return (
-      <div 
-        className="template3-root"
-        style={{
-          width: '800px',
-          minWidth: '800px',
-          maxWidth: '800px',
-          minHeight: '1129px',
-          height: 'auto',
-          margin: '0 auto',
-          padding: '0'
-        }}
-      >
-        <div className="cv-preview a4-size-preview">
+      <div className="cv3-preview-page-preview-wrapper">
+        <div 
+          className="cv3-preview cv3-a4-size-preview cv3-pdf-mode cv3-preview-page-preview"
+          style={{
+            transform: `scale(${previewPageScale})`,
+            transformOrigin: 'top left',
+            width: '800px',
+            minWidth: '800px',
+            maxWidth: '800px',
+            minHeight: '1129px',
+            height: 'auto',
+            margin: 0,
+            display: 'block',
+            boxSizing: 'border-box',
+            background: '#ffffff',
+            padding: '20px',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
+          }}
+        >
           {renderCVContent()}
         </div>
       </div>
@@ -494,53 +901,241 @@ function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, i
   }
 
   return (
-    <div className="right-container template3-container">
-      {/* Preview Button - Show on all devices */}
-      <div className="preview-controls">
+    <>
+      {/* Action Buttons - Below Form */}
+      <div className="cv3-action-buttons">
         <button 
           className="preview-a4-button"
-          onClick={() => setShowA4Preview(true)}
+          onClick={async () => {
+            console.log('Preview button clicked - capturing form data and syncing to App.js');
+            
+            // Capture all form data from DOM, preserving profileImage from existing formData if it's from database
+            const existingData = propFormData || hookFormData || formData;
+            const capturedData = getFormDataFromDOM(existingData);
+            console.log('Captured form data from DOM:', capturedData);
+            
+            // Merge captured data with propFormData to ensure we have all data (especially from database)
+            // Prefer propFormData for fields that might not be in DOM (like profileImage from database)
+            const mergedData = {
+              ...capturedData,
+              ...propFormData, // Override with propFormData to preserve database-loaded data
+              // But keep captured data for fields that were updated in form
+              profileImage: propFormData?.profileImage || capturedData.profileImage,
+              // Ensure arrays are preserved from propFormData if they exist
+              education: propFormData?.education && propFormData.education.length > 0 
+                ? propFormData.education 
+                : capturedData.education,
+              experience: propFormData?.experience && propFormData.experience.length > 0 
+                ? propFormData.experience 
+                : capturedData.experience,
+              skills: propFormData?.skills && propFormData.skills.length > 0 
+                ? propFormData.skills 
+                : capturedData.skills,
+              certifications: propFormData?.certifications && propFormData.certifications.length > 0 
+                ? propFormData.certifications 
+                : capturedData.certifications,
+              languages: propFormData?.languages && propFormData.languages.length > 0 
+                ? propFormData.languages 
+                : capturedData.languages,
+              hobbies: propFormData?.hobbies && propFormData.hobbies.length > 0 
+                ? propFormData.hobbies 
+                : capturedData.hobbies,
+              otherInfo: propFormData?.otherInfo && propFormData.otherInfo.length > 0 
+                ? propFormData.otherInfo 
+                : capturedData.otherInfo,
+              customSection: propFormData?.customSection && propFormData.customSection.length > 0 
+                ? propFormData.customSection 
+                : capturedData.customSection,
+              references: propFormData?.references && propFormData.references.length > 0 
+                ? propFormData.references 
+                : capturedData.references
+            };
+            
+            console.log('Merged form data (DOM + propFormData):', mergedData);
+            
+            // Sync to App.js state if updateFormData is available
+            if (updateFormData) {
+              updateFormData(mergedData);
+              console.log('Synced merged form data to App.js state');
+            }
+            
+            // Always store in localStorage before navigating to preview
+            // This ensures data is available when returning from preview
+            try {
+              // Create a serializable copy (handle profileImage properly)
+              const serializableData = {
+                ...mergedData,
+                profileImage: mergedData.profileImage 
+                  ? (mergedData.profileImage.data 
+                      ? { data: mergedData.profileImage.data } 
+                      : mergedData.profileImage instanceof File 
+                        ? null // Can't serialize File objects
+                        : mergedData.profileImage)
+                  : null
+              };
+              localStorage.setItem('cvFormData', JSON.stringify(serializableData));
+              console.log('Stored form data in localStorage before navigating to preview');
+            } catch (e) {
+              console.error('Error storing form data in localStorage:', e);
+            }
+            
+            // Small delay to ensure data is synced, then navigate to preview page
+            setTimeout(() => {
+              setCVView('preview');
+              // Ensure selectedApp is set to cv-builder
+              localStorage.setItem('selectedApp', 'cv-builder');
+              // Another small delay to ensure localStorage is written before reload
+              setTimeout(() => {
+                window.location.reload();
+              }, 50);
+            }, 100);
+          }}
           title="View A4 Preview"
         >
           📄 View A4 Preview
         </button>
+          <button 
+          className="cv3-download-pdf-button-main"
+            onClick={generatePDF}
+            title="Download CV as PDF"
+          >
+          📥 Download PDF
+          </button>
+      </div>
+
+      {/* A4 Preview Element - Always rendered for PDF generation, hidden when modal is closed */}
+      <div 
+        className="cv3-preview cv3-a4-size-preview cv3-pdf-mode"
+        style={{
+          display: 'none', // Hidden but in DOM for PDF generation
+          position: 'fixed',
+          left: '-9999px',
+          top: '-9999px',
+          visibility: 'hidden',
+          transform: 'scale(1)',
+          transformOrigin: 'center center',
+          width: '800px',
+          minWidth: '800px',
+          maxWidth: '800px',
+          minHeight: '1129px',
+          height: 'auto',
+          margin: '0 auto',
+          boxSizing: 'border-box',
+          zIndex: -1,
+          background: '#ffffff',
+          padding: '20px'
+        }}
+      >
+        {renderCVContent()}
       </div>
 
       {/* A4 Preview Modal */}
       {showA4Preview && (
-        <div className="a4-preview-modal-overlay" onClick={() => setShowA4Preview(false)}>
-          <div className="a4-preview-modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="cv3-a4-preview-modal-overlay" onClick={() => setShowA4Preview(false)}>
+          <div className="cv3-a4-preview-modal-content" onClick={(e) => e.stopPropagation()}>
             <button 
-              className="a4-preview-close-button"
-              onClick={() => setShowA4Preview(false)}
+              className="cv3-a4-preview-close-button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowA4Preview(false);
+              }}
               aria-label="Close Preview"
+              title="Close Preview"
             >
               ×
             </button>
-            <div className="a4-preview-container" ref={a4PreviewRef}>
-              <div className="template3-root">
-                <div 
-                  className="cv-preview a4-size-preview"
-                  style={{
-                    transform: `scale(${a4Scale})`,
-                    transformOrigin: 'center center',
-                    width: '800px',
-                    minWidth: '800px',
-                    maxWidth: '800px',
-                    minHeight: '1129px',
-                    height: 'auto'
+            
+            {/* Template Switcher */}
+            {onTemplateSwitch && (
+              <div className="cv3-a4-preview-template-switcher">
+                <label className="cv3-template-switcher-label">Template:</label>
+                <select 
+                  className="cv3-template-switcher-select"
+                  value={selectedTemplate || 'template1'}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    if (onTemplateSwitch) {
+                      onTemplateSwitch(e.target.value);
+                    }
                   }}
+                  onClick={(e) => e.stopPropagation()}
+                  title="Switch Template"
                 >
-                  {renderCVContent()}
-                </div>
+                  <option value="template1">Template 1</option>
+                  <option value="template2">Template 2</option>
+                  <option value="template3">Template 3</option>
+                  <option value="template4">Template 4</option>
+                  <option value="template5">Template 5 (Europass)</option>
+                </select>
               </div>
+            )}
+            
+            {/* Zoom Controls */}
+            <div className="cv3-a4-preview-zoom-controls">
+              <button 
+                className="cv3-zoom-button cv3-zoom-out"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setUserZoom(prev => Math.max(0.5, prev - 0.1));
+                }}
+                title="Zoom Out"
+                aria-label="Zoom Out"
+              >
+                −
+              </button>
+              <span className="cv3-zoom-level">{Math.round(userZoom * 100)}%</span>
+              <button 
+                className="cv3-zoom-button cv3-zoom-in"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setUserZoom(prev => Math.min(2.0, prev + 0.1));
+                }}
+                title="Zoom In"
+                aria-label="Zoom In"
+              >
+                +
+              </button>
+              <button 
+                className="cv3-zoom-button cv3-zoom-reset"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setUserZoom(1);
+                }}
+                title="Reset Zoom"
+                aria-label="Reset Zoom"
+              >
+                ↻
+              </button>
             </div>
-          </div>
+            
+            <div className="cv3-a4-preview-container" ref={a4PreviewRef}>
+              <div 
+                className="cv3-preview cv3-a4-size-preview cv3-pdf-mode"
+                id="a4-preview-content"
+                key={`a4-preview-${formData?.name || 'default'}-${Date.now()}`}
+                style={{
+                  transform: `scale(${isPreviewPage ? (previewPageScale * userZoom) : (a4Scale * userZoom)})`,
+                  transformOrigin: isPreviewPage ? 'top center' : 'center center',
+                  width: '800px',
+                  minWidth: '800px',
+                  maxWidth: '800px',
+                  minHeight: '1129px',
+                  height: 'auto',
+                  margin: '0 auto',
+                  marginTop: isPreviewPage ? '0' : 'auto',
+                  display: 'block',
+                  boxSizing: 'border-box'
+                }}
+                data-page-height="1129"
+              >
+                {renderCVContent()}
+              </div>
         </div>
-      )}
+      </div>
     </div>
+      )}
+    </>
   );
 }
 
 export default Preview3;
-

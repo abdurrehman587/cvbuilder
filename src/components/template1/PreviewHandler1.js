@@ -227,16 +227,20 @@ const usePreviewHandler = (passedFormData = null) => {
       
       // Check if DOM has meaningful data (form is still in DOM)
       const domHasData = domData.name || domData.position || domData.phone || 
+                        domData.professionalSummary ||
                         (domData.education && domData.education.length > 0) ||
                         (domData.experience && domData.experience.length > 0);
       
       // Merge strategy: 
       // - Always start with dataToUse (from App.js state or localStorage) as it's the source of truth
       // - If DOM has data, merge DOM data to fill in any gaps
+      // - Always merge professionalSummary from DOM if available (form input takes priority)
       // - This ensures we have all data whether form is in DOM or not
       const mergedData = {
         ...dataToUse, // Start with dataToUse (source of truth)
         ...(domHasData ? domData : {}), // Only merge DOM data if it has meaningful content
+        // Always prefer DOM professionalSummary if it exists (form input is most current)
+        professionalSummary: domData.professionalSummary || dataToUse.professionalSummary,
         // Ensure these fields prefer dataToUse
         profileImage: dataToUse.profileImage || domData.profileImage,
         customSection: dataToUse.customSection && dataToUse.customSection.length > 0 
@@ -279,6 +283,7 @@ const usePreviewHandler = (passedFormData = null) => {
     
     // Check if DOM has meaningful data
     const domHasData = newData.name || newData.position || newData.phone || 
+                      newData.professionalSummary ||
                       (newData.education && newData.education.length > 0) ||
                       (newData.experience && newData.experience.length > 0);
     
@@ -300,8 +305,8 @@ const usePreviewHandler = (passedFormData = null) => {
     // Only update if DOM has data or if we don't have any data yet
     // Use formDataRef to get current state value (not stale closure)
     const currentFormData = formDataRef.current;
-    const hasExistingData = currentFormData.name || currentFormData.education?.length > 0 || currentFormData.experience?.length > 0;
-    const hasDataToUse = dataToUse && (dataToUse.name || dataToUse.education?.length > 0 || dataToUse.experience?.length > 0);
+    const hasExistingData = currentFormData.name || currentFormData.professionalSummary || currentFormData.education?.length > 0 || currentFormData.experience?.length > 0;
+    const hasDataToUse = dataToUse && (dataToUse.name || dataToUse.professionalSummary || dataToUse.education?.length > 0 || dataToUse.experience?.length > 0);
     
     if (!domHasData && (hasDataToUse || hasExistingData)) {
       console.log('updatePreviewData - DOM is empty but we have data, skipping update to prevent overwrite');
@@ -315,6 +320,8 @@ const usePreviewHandler = (passedFormData = null) => {
       const mergedData = {
         ...newData, // Start with DOM data
         ...dataToUse, // Override with dataToUse (from app state or localStorage)
+        // Always prefer DOM professionalSummary if it exists (form input is most current)
+        professionalSummary: newData.professionalSummary || dataToUse.professionalSummary,
         // But ensure these specific fields prefer dataToUse if they exist
         profileImage: dataToUse.profileImage || newData.profileImage,
         customSection: dataToUse.customSection && dataToUse.customSection.length > 0 

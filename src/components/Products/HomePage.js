@@ -1153,39 +1153,7 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
                       </div>
                     </div>
                       </div>
-
-                  <div className="template-card-fresh" onClick={() => handleTemplateClick(3)}>
-                    <div className="template-card-image-wrapper">
-                          <img 
-                            src="/images/templates/Template3.jpg" 
-                            alt="Template 3 - Gradient Design"
-                        className="template-card-image"
-                            onError={(e) => {
-                              e.target.style.display = 'none';
-                              if (e.target.nextSibling) {
-                                e.target.nextSibling.style.display = 'flex';
-                              }
-                            }}
-                          />
-                      <div className="template-card-placeholder" style={{ display: 'none' }}>
-                            <div className="template-preview-box template-3">
-                              <div className="template-preview-gradient"></div>
-                              <div className="template-preview-content"></div>
-                            </div>
-                            <p>Template 3 Preview</p>
-                          </div>
-                      <div className="template-card-overlay">
-                        <span className="template-card-badge">Template 3</span>
-                        </div>
-                      </div>
-                    <div className="template-card-body">
-                      <div className="template-card-action">
-                        <span>Select Template</span>
-                        <span className="template-card-arrow">→</span>
-                    </div>
-                  </div>
-                    </div>
-                    </div>
+                </div>
 
                 <div className="features-section-fresh">
                   <div className="section-header-fresh">

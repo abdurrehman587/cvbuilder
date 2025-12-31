@@ -5,12 +5,8 @@ import Login from './components/Login/Login';
 import CVDashboard from './components/Dashboard/CVDashboard';
 import Form1 from './components/template1/Form1';
 import Preview1 from './components/template1/Preview1';
-import Form2 from './components/template2/Form2';
 import Preview2 from './components/template2/Preview2';
-import Form3 from './components/template3/Form3';
 import Preview3 from './components/template3/Preview3';
-import Form4 from './components/template4/Form4';
-import Preview4 from './components/template4/Preview4';
 import Form5 from './components/template5/Form5';
 import Preview5 from './components/template5/Preview5';
 import useAutoSave from './components/Supabase/useAutoSave';
@@ -1249,7 +1245,7 @@ function App() {
     // Update React state
     startTransition(() => {
       setSelectedApp('cv-builder');
-      setCurrentView('dashboard');
+    setCurrentView('dashboard');
     });
     
     // Force a page reload to ensure routing state is properly applied
@@ -1403,7 +1399,7 @@ function App() {
       </>
     );
   }
-  
+
   if (isAuthenticated && !isLoading) {
     
     // Get current route from routing utility (reads from localStorage)
@@ -1486,7 +1482,7 @@ function App() {
         <Header 
           isAuthenticated={isAuthenticated} 
               currentProduct="products"
-              showProductsOnHeader={true}
+          showProductsOnHeader={true}
               onLogout={isAuthenticated ? handleLogout : undefined}
             />
             <ProductsPage />
@@ -1524,7 +1520,7 @@ function App() {
             case 'template2':
               return (
                 <>
-                  <Form2 
+                  <Form1 
                     key={formResetKey}
                     formData={formData}
                     updateFormData={updateFormData}
@@ -1541,7 +1537,7 @@ function App() {
             case 'template3':
               return (
                 <>
-                  <Form3 
+                  <Form1 
                     key={formResetKey}
                     formData={formData}
                     updateFormData={updateFormData}
@@ -1551,22 +1547,7 @@ function App() {
                     formData={formData}
                     autoSaveStatus={hookAutoSaveStatus}
                     hasUnsavedChanges={hookHasUnsavedChanges}
-                  />
-                </>
-              );
-            case 'template4':
-              return (
-                <>
-                  <Form4 
-                    key={formResetKey}
-                    formData={formData}
-                    updateFormData={updateFormData}
-                    markAsChanged={hookMarkAsChanged}
-                  />
-                  <Preview4 
-                    formData={formData}
-                    autoSaveStatus={hookAutoSaveStatus}
-                    hasUnsavedChanges={hookHasUnsavedChanges}
+                    isPreviewPage={false}
                   />
                 </>
               );
@@ -1797,7 +1778,7 @@ function App() {
           case 'template2':
             return (
               <>
-                <Form2 
+                <Form1 
                   key={formResetKey}
                   formData={formData}
                   updateFormData={updateFormData}
@@ -1813,32 +1794,11 @@ function App() {
           case 'template3':
             return (
               <>
-                <Form3 
-                  key={formResetKey}
-                  formData={formData}
-                  updateFormData={updateFormData}
-                  markAsChanged={hookMarkAsChanged}
-                />
                 <Preview3 
                   formData={formData}
                   autoSaveStatus={hookAutoSaveStatus}
                   hasUnsavedChanges={hookHasUnsavedChanges}
-                />
-              </>
-            );
-          case 'template4':
-            return (
-              <>
-                <Form4 
-                  key={formResetKey}
-                  formData={formData}
-                  updateFormData={updateFormData}
-                  markAsChanged={hookMarkAsChanged}
-                />
-                <Preview4 
-                  formData={formData}
-                  autoSaveStatus={hookAutoSaveStatus}
-                  hasUnsavedChanges={hookHasUnsavedChanges}
+                  isPreviewPage={false}
                 />
               </>
             );
@@ -1954,22 +1914,14 @@ function App() {
           case 'template2':
             return (
               <>
-                <Form2 formData={formData} updateFormData={updateFormData} />
+                <Form1 formData={formData} updateFormData={updateFormData} />
                 <Preview2 formData={formData} updateFormData={updateFormData} />
               </>
             );
           case 'template3':
             return (
               <>
-                <Form3 formData={formData} updateFormData={updateFormData} />
-                <Preview3 formData={formData} />
-              </>
-            );
-          case 'template4':
-            return (
-              <>
-                <Form4 formData={formData} updateFormData={updateFormData} />
-                <Preview4 formData={formData} />
+                <Preview3 formData={formData} isPreviewPage={false} />
               </>
             );
           case 'template5':
@@ -2078,7 +2030,7 @@ function App() {
         case 'template2':
           return (
             <>
-              <Form2 
+              <Form1 
                 key={formResetKey}
                 formData={formData}
                 updateFormData={updateFormData}
@@ -2095,7 +2047,7 @@ function App() {
         case 'template3':
           return (
             <>
-              <Form3 
+              <Form1 
                 key={formResetKey}
                 formData={formData}
                 updateFormData={updateFormData}
@@ -2105,22 +2057,7 @@ function App() {
                 formData={formData}
                 autoSaveStatus={hookAutoSaveStatus}
                 hasUnsavedChanges={hookHasUnsavedChanges}
-              />
-            </>
-          );
-        case 'template4':
-          return (
-            <>
-              <Form4 
-                key={formResetKey}
-                formData={formData}
-                updateFormData={updateFormData}
-                markAsChanged={hookMarkAsChanged}
-              />
-              <Preview4 
-                formData={formData}
-                autoSaveStatus={hookAutoSaveStatus}
-                hasUnsavedChanges={hookHasUnsavedChanges}
+                isPreviewPage={false}
               />
             </>
           );

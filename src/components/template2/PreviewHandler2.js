@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+﻿import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 
 const usePreviewHandler = (passedFormData = null) => {
   const [formData, setFormData] = useState({
@@ -19,24 +19,16 @@ const usePreviewHandler = (passedFormData = null) => {
     customSection: [],
     references: []
   });
-
-  // Use passed form data if available
+  
+  // Use ref to track current formData to avoid stale closure issues
+  const formDataRef = useRef(formData);
   useEffect(() => {
-    if (passedFormData) {
-      setFormData(passedFormData);
-    }
-  }, [passedFormData]);
+    formDataRef.current = formData;
+  }, [formData]);
 
-  // Cleanup object URLs to prevent memory leaks
-  useEffect(() => {
-    return () => {
-      if (formData.profileImage && formData.profileImage instanceof File) {
-        URL.revokeObjectURL(URL.createObjectURL(formData.profileImage));
-      }
-    };
-  }, [formData.profileImage]);
-
-  // Function to get form data from Form2 inputs
+  // Function to get form data from Form1 inputs
+  // This reads from DOM, so it works even when form is not visible (like on preview page)
+  // Use ref for hobbies to prevent infinite loop - hobbies are read from current formDataRef
   const getFormData = useCallback(() => {
     const data = {
       name: document.getElementById('name-input')?.value || '',
@@ -51,7 +43,7 @@ const usePreviewHandler = (passedFormData = null) => {
       skills: [],
       certifications: [],
       languages: [],
-      hobbies: [],
+      hobbies: formDataRef.current?.hobbies || [], // Use ref to avoid dependency
       otherInfo: [],
       customSection: [],
       references: []
@@ -207,13 +199,147 @@ const usePreviewHandler = (passedFormData = null) => {
     data.customSection = customSectionData;
 
     return data;
-  }, [formData.hobbies]);
+  }, []); // Empty deps - use ref for hobbies to prevent infinite loop
+
+  // Use passed form data if available, but also read from DOM to get latest values
+  useEffect(() => {
+    // First, check localStorage for form data (in case it was stored before navigation)
+    const storedData = localStorage.getItem('cvFormData');
+    let dataToUse = passedFormData;
+    
+    if (storedData && (!passedFormData || !passedFormData.name)) {
+      try {
+        const parsedData = JSON.parse(storedData);
+        console.log('PreviewHandler2 - Loaded form data from localStorage:', parsedData);
+        dataToUse = parsedData;
+      } catch (e) {
+        console.error('PreviewHandler2 - Error parsing stored form data:', e);
+      }
+    }
+    
+    if (dataToUse) {
+      // Always use dataToUse as primary source (from App.js state or localStorage)
+      // This ensures we have all data even when form is not in DOM (preview page)
+      const domData = getFormData();
+      console.log('PreviewHandler2 - passedFormData:', passedFormData);
+      console.log('PreviewHandler2 - dataToUse:', dataToUse);
+      console.log('PreviewHandler2 - domData:', domData);
+      
+      // Check if DOM has meaningful data (form is still in DOM)
+      const domHasData = domData.name || domData.position || domData.phone || 
+                        domData.professionalSummary ||
+                        (domData.education && domData.education.length > 0) ||
+                        (domData.experience && domData.experience.length > 0);
+      
+      // Merge strategy: 
+      // - Always start with dataToUse (from App.js state or localStorage) as it's the source of truth
+      // - If DOM has data, merge DOM data to fill in any gaps
+      // - Always merge professionalSummary from DOM if available (form input takes priority)
+      // - This ensures we have all data whether form is in DOM or not
+      const mergedData = {
+        ...dataToUse, // Start with dataToUse (source of truth)
+        ...(domHasData ? domData : {}), // Only merge DOM data if it has meaningful content
+        // Always prefer DOM professionalSummary if it exists (form input is most current)
+        professionalSummary: domData.professionalSummary || dataToUse.professionalSummary,
+        // Ensure these fields prefer dataToUse
+        profileImage: dataToUse.profileImage || domData.profileImage,
+        customSection: dataToUse.customSection && dataToUse.customSection.length > 0 
+          ? dataToUse.customSection 
+          : (domData.customSection || []),
+        otherInfo: dataToUse.otherInfo && dataToUse.otherInfo.length > 0
+          ? dataToUse.otherInfo
+          : (domData.otherInfo || [])
+      };
+      
+      console.log('PreviewHandler2 - mergedData:', mergedData);
+      console.log('PreviewHandler2 - mergedData.education:', mergedData.education);
+      console.log('PreviewHandler2 - mergedData.experience:', mergedData.experience);
+      setFormData(mergedData);
+      // Update ref immediately so updatePreviewData can check it
+      formDataRef.current = mergedData;
+    } else {
+      // If no passedFormData or stored data, just read from DOM
+      const domData = getFormData();
+      setFormData(domData);
+      formDataRef.current = domData;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [passedFormData]); // Remove getFormData from deps to prevent infinite loop - it's stable now
+
+  // Cleanup object URLs to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (formData.profileImage && formData.profileImage instanceof File) {
+        URL.revokeObjectURL(URL.createObjectURL(formData.profileImage));
+      }
+    };
+  }, [formData.profileImage]);
 
   // Function to update preview data - memoized to prevent infinite re-renders
+  // This reads from DOM and updates state, but also merges with passedFormData if available
   const updatePreviewData = useCallback(() => {
     const newData = getFormData();
-    setFormData(newData);
-  }, [getFormData]);
+    console.log('updatePreviewData - newData from DOM:', newData);
+    
+    // Check if DOM has meaningful data
+    const domHasData = newData.name || newData.position || newData.phone || 
+                      newData.professionalSummary ||
+                      (newData.education && newData.education.length > 0) ||
+                      (newData.experience && newData.experience.length > 0);
+    
+    // Check localStorage for stored data (in case form is not in DOM)
+    const storedData = localStorage.getItem('cvFormData');
+    let dataToUse = passedFormData;
+    
+    if (storedData && (!passedFormData || !passedFormData.name)) {
+      try {
+        const parsedData = JSON.parse(storedData);
+        console.log('updatePreviewData - Loaded from localStorage:', parsedData);
+        dataToUse = parsedData;
+      } catch (e) {
+        console.error('updatePreviewData - Error parsing stored data:', e);
+      }
+    }
+    
+    // If DOM is empty (form not in DOM, like on preview page), don't overwrite with empty data
+    // Only update if DOM has data or if we don't have any data yet
+    // Use formDataRef to get current state value (not stale closure)
+    const currentFormData = formDataRef.current;
+    const hasExistingData = currentFormData.name || currentFormData.professionalSummary || currentFormData.education?.length > 0 || currentFormData.experience?.length > 0;
+    const hasDataToUse = dataToUse && (dataToUse.name || dataToUse.professionalSummary || dataToUse.education?.length > 0 || dataToUse.experience?.length > 0);
+    
+    if (!domHasData && (hasDataToUse || hasExistingData)) {
+      console.log('updatePreviewData - DOM is empty but we have data, skipping update to prevent overwrite');
+      console.log('updatePreviewData - currentFormData:', currentFormData);
+      console.log('updatePreviewData - hasDataToUse:', hasDataToUse, 'hasExistingData:', hasExistingData);
+      return; // Don't overwrite existing data with empty DOM data
+    }
+    
+    // If we have dataToUse, merge it with DOM data
+    if (dataToUse) {
+      const mergedData = {
+        ...newData, // Start with DOM data
+        ...dataToUse, // Override with dataToUse (from app state or localStorage)
+        // Always prefer DOM professionalSummary if it exists (form input is most current)
+        professionalSummary: newData.professionalSummary || dataToUse.professionalSummary,
+        // But ensure these specific fields prefer dataToUse if they exist
+        profileImage: dataToUse.profileImage || newData.profileImage,
+        customSection: dataToUse.customSection && dataToUse.customSection.length > 0 
+          ? dataToUse.customSection 
+          : (newData.customSection || []),
+        otherInfo: dataToUse.otherInfo && dataToUse.otherInfo.length > 0
+          ? dataToUse.otherInfo
+          : (newData.otherInfo || [])
+      };
+      console.log('updatePreviewData - mergedData:', mergedData);
+      setFormData(mergedData);
+      formDataRef.current = mergedData;
+    } else {
+      setFormData(newData);
+      formDataRef.current = newData;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [passedFormData]); // Remove getFormData from deps to prevent infinite loop - it's stable now
 
   // Function to get profile image URL - memoized to prevent flickering
   const getProfileImageUrl = useMemo(() => {
@@ -235,13 +361,13 @@ const usePreviewHandler = (passedFormData = null) => {
     const contact = [];
     
     if (formData.phone) {
-      contact.push({ type: 'phone', value: formData.phone, icon: '📞' });
+      contact.push({ type: 'phone', value: formData.phone, icon: 'ðŸ“ž' });
     }
     if (formData.email) {
-      contact.push({ type: 'email', value: formData.email, icon: '✉️' });
+      contact.push({ type: 'email', value: formData.email, icon: 'âœ‰ï¸' });
     }
     if (formData.address) {
-      contact.push({ type: 'address', value: formData.address, icon: '📍' });
+      contact.push({ type: 'address', value: formData.address, icon: 'ðŸ“' });
     }
     
     return contact;
@@ -259,3 +385,4 @@ const usePreviewHandler = (passedFormData = null) => {
 };
 
 export default usePreviewHandler;
+

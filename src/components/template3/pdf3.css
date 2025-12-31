@@ -1,604 +1,360 @@
-/* PDF Generation Styles for Template 3 - Unique Modern Design */
-
-.template3-root.pdf-mode {
-  width: 800px !important;
-  max-width: 800px !important;
-  min-width: 800px !important;
-  height: auto !important;
-  max-height: none !important;
-  min-height: auto !important;
-  margin: 0 auto !important;
-  overflow: visible !important;
+/* ===== ROOT & PAGE CONTAINER ===== */
+.cv3-root {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: transparent;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
 }
 
-.template3-root .cv-preview.pdf-mode {
-  display: flex !important;
-  flex-direction: column !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  min-height: auto !important;
-  height: auto !important;
-  max-height: none !important;
-  line-height: 1.5 !important;
-  font-family: 'Arial', sans-serif !important;
-  background: white !important;
-  color: #1a1a1a !important;
-  page-break-inside: avoid !important;
-  break-inside: avoid !important;
-  width: 800px !important;
-  max-width: 800px !important;
-  min-width: 800px !important;
-  font-size: 0.875rem !important;
-  overflow: visible !important;
+.cv3-page {
+  width: 210mm;
+  min-height: 297mm;
+  background: #ffffff;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
-.template3-root .cv-preview.pdf-mode * {
-  font-family: 'Arial', sans-serif !important;
+/* ===== HEADER SECTION ===== */
+.cv3-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 0 !important; /* Edge to edge - no padding */
+  margin: 0 !important; /* Edge to edge - no margins */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 30px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-/* New Header Design for PDF */
-.template3-root .cv-preview.pdf-mode .cv-header {
-  position: relative !important;
-  background: linear-gradient(135deg, #ff6b35 0%, #ff8c42 50%, #ffa726 100%) !important;
-  padding: 0 !important;
-  color: white !important;
-  overflow: visible !important;
-  z-index: 1 !important;
-  margin: 0 !important;
-  width: 100% !important;
-  box-sizing: border-box !important;
-  min-height: auto !important;
-  box-shadow: 0 4px 20px rgba(255, 107, 53, 0.3) !important;
+.cv3-header-left {
+  flex: 1;
 }
 
-.template3-root .cv-preview.pdf-mode .cv-header::before {
-  content: '' !important;
-  position: absolute !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  height: 4px !important;
-  background: rgba(255, 255, 255, 0.3) !important;
-  z-index: 3 !important;
+.cv3-header-left h1 {
+  margin: 0 0 8px 10px;
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: white;
 }
 
-.template3-root .cv-preview.pdf-mode .header-graphics {
-  position: absolute !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  overflow: visible !important;
-  z-index: 0 !important;
-  pointer-events: none !important;
-  width: 100% !important;
-  height: 100% !important;
-  visibility: visible !important;
-  opacity: 0.15 !important;
-  background-image: 
-    linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.05) 50%, transparent 70%),
-    linear-gradient(-45deg, transparent 30%, rgba(255, 255, 255, 0.05) 50%, transparent 70%) !important;
-  background-size: 20px 20px !important;
+.cv3-header-left h2 {
+  margin: 0 0 15px 0;
+  font-size: 18px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.9);
+  letter-spacing: 0.3px;
 }
 
-.template3-root .cv-preview.pdf-mode .header-content-wrapper {
-  position: relative !important;
-  z-index: 2 !important;
-  display: grid !important;
-  grid-template-columns: 120px 1fr !important;
-  gap: 18px !important;
-  padding: 18px 25px !important;
-  width: 100% !important;
-  box-sizing: border-box !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  align-items: center !important;
-  min-height: 120px !important;
+.cv3-contact {
+  font-size: 13px;
+  line-height: 1.8;
+  color: rgba(255, 255, 255, 0.95);
 }
 
-.template3-root .cv-preview.pdf-mode .profile-image-container {
-  width: 120px !important;
-  height: 120px !important;
-  border-radius: 12px !important;
-  overflow: hidden !important;
-  border: 3px solid rgba(255, 255, 255, 0.9) !important;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35) !important;
-  background: rgba(255, 255, 255, 0.25) !important;
-  flex-shrink: 0 !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  display: flex !important;
-  align-self: center !important;
-  margin-top: 4px !important;
+.cv3-contact span {
+  margin-right: 20px;
+  display: inline-block;
 }
 
-.template3-root .cv-preview.pdf-mode .header-right-content {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 12px !important;
-  width: 100% !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  justify-content: flex-start !important;
-  align-items: flex-start !important;
+.cv3-header-right {
+  flex-shrink: 0;
 }
 
-.template3-root .cv-preview.pdf-mode .profile-placeholder {
-  font-size: 36px !important;
-  border-radius: 12px !important;
+.cv3-header-right img {
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 5px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
-.template3-root .cv-preview.pdf-mode .header-text-content {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 2px !important;
-  width: 100% !important;
-  align-items: flex-start !important;
-  padding-bottom: 6px !important;
-  border-bottom: 2px solid rgba(255, 255, 255, 0.25) !important;
+.cv3-avatar {
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: 5px solid rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  font-weight: 700;
+  color: white;
+  text-transform: uppercase;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
-.template3-root .cv-preview.pdf-mode .header-name {
-  font-size: 2.1rem !important;
-  font-weight: 800 !important;
-  color: white !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  line-height: 1.1 !important;
-  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3) !important;
-  letter-spacing: 0.5px !important;
-  text-align: left !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  display: block !important;
+/* ===== BODY SECTIONS ===== */
+.cv3-body {
+  padding: 15px 30px;
 }
 
-.template3-root .cv-preview.pdf-mode .header-title {
-  font-size: 1.05rem !important;
-  font-weight: 500 !important;
-  color: rgba(255, 255, 255, 0.9) !important;
-  margin: 0 !important;
-  line-height: 1.2 !important;
-  font-style: normal !important;
-  text-align: left !important;
+.cv3-section {
+  margin-bottom: 15px;
 }
 
-.template3-root .cv-preview.pdf-mode .header-contact {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 4px !important;
-  width: 100% !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  align-items: flex-start !important;
-  justify-content: flex-start !important;
+.cv3-section:last-child {
+  margin-bottom: 0;
 }
 
-.template3-root .cv-preview.pdf-mode .contact-item {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: flex-start !important;
-  gap: 8px !important;
-  font-size: 0.8rem !important;
-  font-weight: 500 !important;
-  color: rgba(255, 255, 255, 0.95) !important;
-  line-height: 1.3 !important;
-  padding: 4px 0 !important;
-  background: transparent !important;
-  border-radius: 0 !important;
-  border: none !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
-  box-shadow: none !important;
-  white-space: nowrap !important;
-  width: 100% !important;
-  text-align: left !important;
-  margin: 0 !important;
+.cv3-section h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #667eea;
+  margin: 0 0 15px 0;
+  padding-bottom: 8px;
+  border-bottom: 3px solid #667eea;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.template3-root .cv-preview.pdf-mode .contact-item > span {
-  text-align: left !important;
-  display: inline-block !important;
+.cv3-section h3 svg {
+  width: 22px;
+  height: 22px;
+  fill: #667eea;
+  flex-shrink: 0;
 }
 
-.template3-root .cv-preview.pdf-mode .contact-item:last-child {
-  border-bottom: none !important;
+.cv3-section p {
+  font-size: 12px;
+  line-height: 1.30;
+  text-align: justify;
+  color: #000;
 }
 
-.template3-root .cv-preview.pdf-mode .contact-item.contact-address {
-  width: auto !important;
-  max-width: 100% !important;
-  display: flex !important;
-  flex-direction: row !important;
-  justify-content: flex-start !important;
-  align-items: center !important;
-  text-align: left !important;
-  margin-left: 0 !important;
-  margin-right: auto !important;
-  align-self: flex-start !important;
+/* ===== EXPERIENCE & EDUCATION ITEMS ===== */
+.cv3-item {
+  margin-bottom: 20px;
+  padding-left: 20px;
+  border-left: 3px solid #764ba2;
+  position: relative;
 }
 
-.template3-root .cv-preview.pdf-mode .contact-item.contact-address > span {
-  text-align: left !important;
-  display: inline-block !important;
-  flex-shrink: 0 !important;
+.cv3-item:last-child {
+  margin-bottom: 0;
 }
 
-.template3-root .cv-preview.pdf-mode .contact-item.contact-address > span:not(.contact-icon) {
-  text-align: left !important;
-  display: inline-block !important;
-  margin-left: 0 !important;
-  flex-shrink: 1 !important;
+.cv3-item::before {
+  content: '';
+  position: absolute;
+  left: -10px;
+  top: 2px;
+  width: 12px;
+  height: 12px;
+  background: #764ba2;
+  border-radius: 50%;
+  border: 3px solid white;
 }
 
-.template3-root .cv-preview.pdf-mode .contact-icon {
-  font-size: 1.1rem !important;
-  flex-shrink: 0 !important;
-  opacity: 0.9 !important;
-  width: 20px !important;
-  text-align: center !important;
-  display: inline-block !important;
+.cv3-item strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 4px;
 }
 
-/* Main Content Area for PDF */
-.template3-root .cv-preview.pdf-mode .cv-main-content {
-  flex: 1 !important;
-  padding: 20px 25px !important;
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 8px !important;
-  background: white !important;
-  margin: 0 !important;
-  height: auto !important;
-  max-height: none !important;
-  min-height: auto !important;
-  overflow: visible !important;
+.cv3-item span {
+  display: block;
+  font-size: 12px;
+  margin-bottom: 8px;
+  font-style: italic;
+  color: #000;
 }
 
-/* Section Cards for PDF */
-.template3-root .cv-preview.pdf-mode .cv-section-card {
-  background: #ffffff !important;
-  border-radius: 8px !important;
-  padding: 10px 15px !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
-  border-top: 3px solid #ff6b35 !important;
-  page-break-inside: avoid !important;
-  break-inside: avoid !important;
-  margin-bottom: 0 !important;
+.cv3-item ul {
+  margin: 8px 0 0 0;
+  padding-left: 20px;
+  list-style-type: disc;
 }
 
-.template3-root .cv-preview.pdf-mode .cv-section-card::before {
-  content: '' !important;
-  position: absolute !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  height: 4px !important;
-  background: linear-gradient(90deg, #ff6b35 0%, #ff8c42 50%, #ffa726 100%) !important;
+.cv3-item ul li {
+  font-size: 12px;
+  line-height: 1.6;
+  margin-bottom: 4px;
 }
 
-.template3-root .cv-preview.pdf-mode .section-heading {
-  font-size: 0.95rem !important;
-  font-weight: 800 !important;
-  color: #ff6b35 !important;
-  margin: 0 0 8px 0 !important;
-  padding-bottom: 5px !important;
-  border-bottom: 2px solid #ffe8d6 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.8px !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: 6px !important;
+.cv3-item ul li:last-child {
+  margin-bottom: 0;
 }
 
-.template3-root .cv-preview.pdf-mode .section-heading::before {
-  content: '' !important;
-  width: 6px !important;
-  height: 6px !important;
-  background: #ff6b35 !important;
-  border-radius: 50% !important;
-  display: inline-block !important;
+/* ===== TAGS (Skills, Languages, Hobbies) ===== */
+.cv3-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
-.template3-root .cv-preview.pdf-mode .section-heading::after {
-  content: '' !important;
-  position: absolute !important;
-  bottom: -3px !important;
-  left: 0 !important;
-  width: 60px !important;
-  height: 2px !important;
-  background: linear-gradient(90deg, #ff6b35 0%, #ffa726 100%) !important;
-  border-radius: 2px !important;
+.cv3-tags span {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  box-shadow: 0 2px 5px rgba(102, 126, 234, 0.3);
+  transition: transform 0.2s ease;
 }
 
-.template3-root .cv-preview.pdf-mode .section-content {
-  line-height: 1.4 !important;
-  gap: 6px !important;
+.cv3-tags span:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(102, 126, 234, 0.4);
 }
 
-.template3-root .cv-preview.pdf-mode .section-content:has(.experience-item) {
-  display: grid !important;
-  grid-template-columns: 1fr !important;
-  grid-auto-rows: 1fr !important;
-  align-items: stretch !important;
-  gap: 6px !important;
+/* ===== CERTIFICATIONS & REFERENCES LISTS ===== */
+.cv3-section ul {
+  margin: 0;
+  padding-left: 0;
+  list-style-type: none;
 }
 
-.template3-root .cv-preview.pdf-mode .professional-summary-text {
-  font-size: 0.83rem !important;
-  color: #4a5568 !important;
-  margin: 0 !important;
-  line-height: 1.4 !important;
-  text-align: justify !important;
-  font-style: italic !important;
-  padding: 8px 10px !important;
-  background: linear-gradient(135deg, #fff8f0 0%, #ffe8d6 100%) !important;
-  border-radius: 6px !important;
-  border-left: 3px solid #ff6b35 !important;
+.cv3-section ul li {
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 12px;
+  position: relative;
+  padding-left: 20px;
+  border-left: 3px solid #764ba2;
 }
 
-.template3-root .cv-preview.pdf-mode .education-item {
-  margin-bottom: 0 !important;
-  padding: 6px 10px !important;
-  background: linear-gradient(135deg, #fff8f0 0%, #ffe8d6 100%) !important;
-  border-radius: 6px !important;
-  border-left: 3px solid #ff6b35 !important;
-  page-break-inside: avoid !important;
-  break-inside: avoid !important;
-  box-shadow: 0 2px 8px rgba(255, 107, 53, 0.1) !important;
+.cv3-section ul li:last-child {
+  margin-bottom: 0;
 }
 
-.template3-root .cv-preview.pdf-mode .education-item::before {
-  font-size: 16px !important;
-  left: -12px !important;
-  padding: 4px !important;
-  border: 2px solid #ff6b35 !important;
+.cv3-section ul li::before {
+  content: '';
+  position: absolute;
+  left: -10px;
+  top: 5px;
+  width: 12px;
+  height: 12px;
+  background: #764ba2;
+  border-radius: 50%;
+  border: 3px solid white;
 }
 
-.template3-root .cv-preview.pdf-mode .education-single-line {
-  padding-left: 10px !important;
-  gap: 5px !important;
-  line-height: 1.3 !important;
+/* ===== OTHER INFORMATION GRID ===== */
+.cv3-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
 }
 
-.template3-root .cv-preview.pdf-mode .education-degree {
-  font-size: 1rem !important;
-  font-weight: 700 !important;
-  color: #1a1a1a !important;
+.cv3-info-grid>div {
+  font-size: 12px;
+  color: #000;
+  padding: 10px 15px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border-left: 3px solid #667eea;
 }
 
-.template3-root .cv-preview.pdf-mode .education-board {
-  font-size: 0.95rem !important;
-  font-weight: 600 !important;
-  color: #ff6b35 !important;
+.cv3-info-grid>div strong {
+  font-weight: 600;
+  margin-right: 5px;
 }
 
-.template3-root .cv-preview.pdf-mode .education-year {
-  font-size: 0.95rem !important;
-  font-weight: 500 !important;
-  color: #64748b !important;
+/* ===== CUSTOM SECTIONS ===== */
+.cv3-section > p {
+  margin: 0 0 8px 0;
 }
 
-.template3-root .cv-preview.pdf-mode .education-marks {
-  font-size: 0.9rem !important;
-  color: #94a3b8 !important;
-  font-style: italic !important;
+.cv3-section > p:last-child {
+  margin-bottom: 0;
 }
 
-.template3-root .cv-preview.pdf-mode .experience-item {
-  margin-bottom: 0 !important;
-  padding: 6px 10px !important;
-  background: linear-gradient(135deg, #fff8f0 0%, #ffe8d6 100%) !important;
-  border-radius: 6px !important;
-  border-left: 3px solid #ff8c42 !important;
-  page-break-inside: avoid !important;
-  break-inside: avoid !important;
-  display: flex !important;
-  flex-direction: column !important;
-  height: 100% !important;
-  box-sizing: border-box !important;
-  box-shadow: 0 2px 8px rgba(255, 140, 66, 0.1) !important;
+/* ===== RESPONSIVE DESIGN ===== */
+@media screen and (max-width: 768px) {
+  .cv3-root {
+    padding: 10px;
+  }
+
+  .cv3-page {
+    width: 100%;
+    min-height: auto;
+    box-shadow: none;
+  }
+
+  .cv3-header {
+    flex-direction: column;
+    text-align: center;
+    padding: 30px 20px;
+  }
+
+  .cv3-header-left h1 {
+    font-size: 28px;
+  }
+
+  .cv3-header-left h2 {
+    font-size: 16px;
+  }
+
+  .cv3-contact span {
+    display: block;
+    margin: 5px 0;
+  }
+
+  .cv3-header-right img,
+  .cv3-avatar {
+    width: 100px;
+    height: 100px;
+  }
+
+  .cv3-body {
+    padding: 25px 20px;
+  }
+
+  .cv3-section h3 {
+    font-size: 16px;
+  }
+
+  .cv3-info-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
-.template3-root .cv-preview.pdf-mode .experience-item::before {
-  font-size: 20px !important;
-  left: -15px !important;
-  padding: 6px !important;
-  border: 2px solid #ff8c42 !important;
-}
+/* ===== PRINT STYLES ===== */
+@media print {
+  .cv3-root {
+    padding: 0;
+    background: white;
+  }
 
-.template3-root .cv-preview.pdf-mode .experience-header {
-  padding-left: 10px !important;
-  padding-right: 4px !important;
-  margin-bottom: 3px !important;
-  line-height: 1.2 !important;
-  gap: 6px !important;
-}
+  .cv3-page {
+    width: 100%;
+    min-height: auto;
+    box-shadow: none;
+    page-break-after: always;
+  }
 
-.template3-root .cv-preview.pdf-mode .experience-job-title {
-  font-size: 0.85rem !important;
-  font-weight: 700 !important;
-  color: #1a1a1a !important;
-  margin-right: 6px !important;
-}
+  .cv3-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
 
-.template3-root .cv-preview.pdf-mode .experience-duration {
-  font-size: 0.65rem !important;
-  font-weight: 700 !important;
-  color: white !important;
-  background: linear-gradient(135deg, #ff6b35 0%, #ffa726 100%) !important;
-  padding: 2px 6px !important;
-  border-radius: 10px !important;
-  box-shadow: 0 3px 8px rgba(255, 107, 53, 0.35) !important;
-}
+  .cv3-tags span {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
 
-.template3-root .cv-preview.pdf-mode .experience-company-line {
-  padding-left: 10px !important;
-  margin-bottom: 3px !important;
-}
+  .cv3-section {
+    page-break-inside: avoid;
+  }
 
-.template3-root .cv-preview.pdf-mode .experience-company {
-  font-size: 0.8rem !important;
-  font-weight: 600 !important;
-  color: #ff8c42 !important;
-}
-
-.template3-root .cv-preview.pdf-mode .experience-details {
-  font-size: 0.78rem !important;
-  color: #4a5568 !important;
-  line-height: 1.4 !important;
-  margin-left: 10px !important;
-  padding-left: 6px !important;
-  border-left: 2px solid #ffd4c4 !important;
-  text-align: justify !important;
-}
-
-.template3-root .cv-preview.pdf-mode .experience-detail-item {
-  font-size: 0.78rem !important;
-  color: #4a5568 !important;
-  line-height: 1.4 !important;
-  text-align: justify !important;
-  padding: 0 0 2px 12px !important;
-}
-
-.template3-root .cv-preview.pdf-mode .experience-detail-item:before {
-  font-size: 18px !important;
-  color: #ff6b35 !important;
-}
-
-.template3-root .cv-preview.pdf-mode .certification-item {
-  background: linear-gradient(135deg, #fff8f0 0%, #ffe8d6 100%) !important;
-  padding: 6px 10px !important;
-  border-radius: 6px !important;
-  border-left: 3px solid #ffa726 !important;
-}
-
-.template3-root .cv-preview.pdf-mode .certification-item::before {
-  font-size: 16px !important;
-  left: -12px !important;
-  padding: 4px !important;
-  border: 2px solid #ffa726 !important;
-}
-
-.template3-root .cv-preview.pdf-mode .certification-text {
-  font-size: 0.8rem !important;
-  color: #4a5568 !important;
-  line-height: 1.4 !important;
-  font-weight: 500 !important;
-  padding-left: 8px !important;
-}
-
-.template3-root .cv-preview.pdf-mode .skill-pill,
-.template3-root .cv-preview.pdf-mode .language-pill,
-.template3-root .cv-preview.pdf-mode .hobby-pill {
-  padding: 4px 10px !important;
-  border-radius: 20px !important;
-  font-size: 0.78rem !important;
-  margin: 2px 4px 2px 0 !important;
-  display: inline-block !important;
-  background: linear-gradient(135deg, #ff6b35 0%, #ff8c42 50%, #ffa726 100%) !important;
-  color: white !important;
-  font-family: 'Arial', sans-serif !important;
-  line-height: 1.4 !important;
-  font-weight: 600 !important;
-  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.35) !important;
-}
-
-.template3-root .cv-preview.pdf-mode .skill-name,
-.template3-root .cv-preview.pdf-mode .language-name,
-.template3-root .cv-preview.pdf-mode .hobby-name {
-  color: white !important;
-  font-size: 0.9rem !important;
-  font-weight: 600 !important;
-}
-
-.template3-root .cv-preview.pdf-mode .other-info-grid {
-  display: grid !important;
-  grid-template-columns: repeat(2, 1fr) !important;
-  gap: 5px !important;
-}
-
-.template3-root .cv-preview.pdf-mode .info-item {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  padding: 5px 10px !important;
-  background: linear-gradient(135deg, #fff8f0 0%, #ffe8d6 100%) !important;
-  border-radius: 6px !important;
-  border-left: 3px solid #ff6b35 !important;
-  page-break-inside: avoid !important;
-  break-inside: avoid !important;
-  box-shadow: 0 2px 8px rgba(255, 107, 53, 0.1) !important;
-}
-
-.template3-root .cv-preview.pdf-mode .info-label {
-  font-size: 0.95rem !important;
-  font-weight: 700 !important;
-  color: #ff6b35 !important;
-  margin-right: 12px !important;
-}
-
-.template3-root .cv-preview.pdf-mode .info-value {
-  font-size: 0.95rem !important;
-  color: #1a1a1a !important;
-  font-weight: 500 !important;
-}
-
-.template3-root .cv-preview.pdf-mode .custom-section-subheading {
-  font-size: 0.9rem !important;
-  font-weight: 700 !important;
-  color: #1a1a1a !important;
-  margin-bottom: 4px !important;
-}
-
-.template3-root .cv-preview.pdf-mode .custom-section-detail {
-  font-size: 0.95rem !important;
-  color: #4a5568 !important;
-  line-height: 1.7 !important;
-}
-
-.template3-root .cv-preview.pdf-mode .reference-text {
-  font-size: 0.95rem !important;
-  color: #4a5568 !important;
-  line-height: 1.7 !important;
-  font-style: italic !important;
-}
-
-/* Footer for PDF */
-.template3-root .cv-preview.pdf-mode .cv-footer {
-  position: relative !important;
-  background: linear-gradient(180deg, #ff6b35 0%, #ff8c42 40%, #ffa726 100%) !important;
-  padding: 15px 20px !important;
-  color: white !important;
-  overflow: hidden !important;
-  z-index: 1 !important;
-  margin: 0 0 0 0 !important;
-  box-shadow: 0 -4px 20px rgba(255, 107, 53, 0.3) !important;
-}
-
-.template3-root .cv-preview.pdf-mode .footer-graphics {
-  position: absolute !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  overflow: hidden !important;
-  z-index: 0 !important;
-  pointer-events: none !important;
-  opacity: 0.2 !important;
-  background-image: 
-    radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%) !important;
-}
-
-/* Ensure all text elements have consistent base font size */
-.template3-root .cv-preview.pdf-mode * {
-  font-family: 'Arial', sans-serif !important;
-}
-
-.template3-root .cv-preview.pdf-mode p,
-.template3-root .cv-preview.pdf-mode div,
-.template3-root .cv-preview.pdf-mode span,
-.template3-root .cv-preview.pdf-mode li {
-  font-size: 0.83rem !important;
-  line-height: 1.5 !important;
+  .cv3-item {
+    page-break-inside: avoid;
+  }
 }
