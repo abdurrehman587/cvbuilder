@@ -121,24 +121,37 @@ function Form({ formData, updateFormData, markAsChanged }) {
     };
 
     // Normalize existing languages if they're strings (for backward compatibility)
+    // Remove empty languages and ensure levels are empty if not provided
     // No default languages - user must add them manually
     useEffect(() => {
         const currentLanguages = formData.languages || [];
         
-        // Check if languages need normalization (contain strings)
-        const needsNormalization = Array.isArray(currentLanguages) && 
-            currentLanguages.some(lang => typeof lang === 'string');
+        // Check if languages need normalization (contain strings or empty entries)
+        const needsNormalization = Array.isArray(currentLanguages) && (
+            currentLanguages.some(lang => typeof lang === 'string') ||
+            currentLanguages.some(lang => {
+                const name = typeof lang === 'string' ? lang : (lang?.name || '');
+                return name.trim() === '';
+            })
+        );
         
         if (needsNormalization) {
-            console.log('[Form1] Languages contain strings, normalizing to objects...');
-            const normalizedLanguages = normalizeLanguages(currentLanguages);
+            console.log('[Form1] Languages need normalization, processing...');
+            // Normalize and filter out empty languages
+            const normalizedLanguages = normalizeLanguages(currentLanguages)
+                .filter(lang => lang.name && lang.name.trim() !== '')
+                .map(lang => ({
+                    name: lang.name.trim(),
+                    level: lang.level ? lang.level.trim() : '' // Ensure empty string if no level
+                }));
+            
             const newFormData = {
                 ...formData,
                 languages: normalizedLanguages
             };
             updateFormData(newFormData);
             markAsChanged();
-            console.log('[Form1] Languages normalized');
+            console.log('[Form1] Languages normalized and empty entries removed');
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -938,17 +951,26 @@ function Form({ formData, updateFormData, markAsChanged }) {
                         })));
                     }
                     console.log('[Form1] About to map over languagesArray...');
-                    const mappedResult = languagesArray.map((language, index) => {
+                    // Filter out empty languages and only show languages with names, but keep original indices
+                    const languagesWithIndices = languagesArray
+                        .map((language, originalIndex) => ({ language, originalIndex }))
+                        .filter(({ language }) => {
+                            const languageName = typeof language === 'string' ? language : (language?.name || '');
+                            return languageName.trim() !== '';
+                        });
+                    console.log('[Form1] Filtered languages (with names only):', languagesWithIndices);
+                    
+                    const mappedResult = languagesWithIndices.map(({ language, originalIndex }, displayIndex) => {
                         // Handle both string and object formats
                         const languageName = typeof language === 'string' ? language : (language.name || '');
                         const languageLevel = typeof language === 'string' ? '' : (language.level || '');
-                        console.log(`[Form1] Rendering language ${index}:`, { languageName, languageLevel, language });
+                        console.log(`[Form1] Rendering language ${displayIndex} (original index: ${originalIndex}):`, { languageName, languageLevel, language });
                         
                         return (
-                            <div key={index} className="language-input-container input-group">
+                            <div key={originalIndex} className="language-input-container input-group">
                             <div className="language-input-wrapper">
                                 <input
-                                    id={`language-input-${index}`}
+                                    id={`language-input-${originalIndex}`}
                                     className="language-input styled-input"
                                     type="text"
                                     name="language"
@@ -957,21 +979,21 @@ function Form({ formData, updateFormData, markAsChanged }) {
                                     onChange={(e) => {
                                         console.log('[Form1] Language name input changed');
                                         console.log('[Form1] Input value:', e.target.value);
-                                        console.log('[Form1] Index:', index);
+                                        console.log('[Form1] Original Index:', originalIndex);
                                         console.log('[Form1] Current formData.languages:', formData.languages);
                                         const newLanguages = [...(formData.languages || [])];
                                         // Ensure we're working with object format
-                                        const currentLang = typeof newLanguages[index] === 'string' 
-                                            ? { name: newLanguages[index], level: '' }
-                                            : (newLanguages[index] || { name: '', level: '' });
-                                        newLanguages[index] = { ...currentLang, name: e.target.value };
+                                        const currentLang = typeof newLanguages[originalIndex] === 'string' 
+                                            ? { name: newLanguages[originalIndex], level: '' }
+                                            : (newLanguages[originalIndex] || { name: '', level: '' });
+                                        newLanguages[originalIndex] = { ...currentLang, name: e.target.value };
                                         console.log('[Form1] Updated newLanguages:', newLanguages);
                                         console.log('[Form1] Calling handleInputChange("languages", ...)');
                                         handleInputChange('languages', newLanguages);
                                     }}
                                 />
                                 <input
-                                    id={`language-level-input-${index}`}
+                                    id={`language-level-input-${originalIndex}`}
                                     className="language-level-input styled-input"
                                     type="text"
                                     name="language-level"
@@ -980,10 +1002,10 @@ function Form({ formData, updateFormData, markAsChanged }) {
                                     onChange={(e) => {
                                         const newLanguages = [...(formData.languages || [])];
                                         // Ensure we're working with object format
-                                        const currentLang = typeof newLanguages[index] === 'string' 
-                                            ? { name: newLanguages[index], level: '' }
-                                            : (newLanguages[index] || { name: '', level: '' });
-                                        newLanguages[index] = { ...currentLang, level: e.target.value };
+                                        const currentLang = typeof newLanguages[originalIndex] === 'string' 
+                                            ? { name: newLanguages[originalIndex], level: '' }
+                                            : (newLanguages[originalIndex] || { name: '', level: '' });
+                                        newLanguages[originalIndex] = { ...currentLang, level: e.target.value };
                                         handleInputChange('languages', newLanguages);
                                     }}
                                     style={{ width: '150px', flexShrink: 0 }}
@@ -993,7 +1015,7 @@ function Form({ formData, updateFormData, markAsChanged }) {
                                     className="remove-language-button"
                                     onClick={() => {
                                         const newLanguages = [...(formData.languages || [])];
-                                        newLanguages.splice(index, 1);
+                                        newLanguages.splice(originalIndex, 1);
                                         handleInputChange('languages', newLanguages);
                                     }}
                                 >

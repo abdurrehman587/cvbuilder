@@ -77,15 +77,6 @@ const useAutoSave = (formData, saveInterval = 10000) => {
         return;
       }
 
-      // Format CV data for database
-      console.log('Profile image before formatting:', formData.profileImage);
-      const cvData = await dbHelpers.formatCVData(formData);
-      cvData.user_id = user.id;
-      cvData.template_id = 'template1'; // Default template
-      
-      console.log('Formatted CV data:', cvData);
-      console.log('Profile image in formatted data:', cvData.cv_data.profileImage);
-
       // Check if user is admin for update operations
       const { data: userData } = await supabase
         .from('users')
@@ -96,13 +87,37 @@ const useAutoSave = (formData, saveInterval = 10000) => {
       const isAdmin = userData?.is_admin || false;
       console.log('🔐 Admin status for CV update:', isAdmin);
 
+      // Format CV data for database
+      console.log('Profile image before formatting:', formData.profileImage);
+      const cvData = await dbHelpers.formatCVData(formData);
+      cvData.template_id = 'template1'; // Default template
+      
       let savedCV;
       if (currentCVId) {
         console.log('🔄 Updating existing CV:', currentCVId);
+        // Fetch the original CV to preserve its user_id
+        const originalCV = await cvService.getCV(currentCVId, user.id, isAdmin);
+        if (originalCV) {
+          // Preserve the original user_id when updating (important for admins editing user CVs)
+          cvData.user_id = originalCV.user_id;
+          console.log('📋 Preserving original user_id:', originalCV.user_id);
+        } else {
+          // Fallback: use current user's ID if CV not found
+          cvData.user_id = user.id;
+          console.log('⚠️ Original CV not found, using current user_id:', user.id);
+        }
+        
+        console.log('Formatted CV data for update:', cvData);
+        console.log('Profile image in formatted data:', cvData.cv_data.profileImage);
+        
         // Update existing CV
         savedCV = await cvService.updateCV(currentCVId, cvData, user.id, isAdmin);
         console.log('✅ CV updated successfully:', savedCV);
       } else {
+        // For new CVs, set user_id to current user's ID
+        cvData.user_id = user.id;
+        console.log('Formatted CV data for new CV:', cvData);
+        console.log('Profile image in formatted data:', cvData.cv_data.profileImage);
         // Check if a CV with the same name already exists to prevent duplicates
         console.log('🔍 No currentCVId set, searching for existing CV with name:', cvData.name);
         const existingCV = await cvService.findCVByName(user.id, cvData.name, isAdmin);
