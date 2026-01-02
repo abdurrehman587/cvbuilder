@@ -16,6 +16,8 @@ body {
   scroll-behavior: smooth !important;
   -webkit-overflow-scrolling: touch !important;
   overscroll-behavior: none !important;
+  /* Smooth scrolling for anchor links */
+  scroll-padding-top: 70px;
 }
 
 /* Ensure body scrollbar is visible - this is the ONLY scrollbar we want */
@@ -45,6 +47,8 @@ html {
   height: auto !important;
   scroll-behavior: smooth !important;
   -webkit-overflow-scrolling: touch !important;
+  /* Smooth scrolling for anchor links */
+  scroll-padding-top: 70px;
 }
 
 

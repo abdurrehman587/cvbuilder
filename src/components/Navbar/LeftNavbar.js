@@ -10,17 +10,27 @@ const LeftNavbar = ({ isAuthenticated, onLogout }) => {
     const updateActiveSection = () => {
       const hash = window.location.hash;
       
+      // Check if we're on homepage (no hash or empty hash, and no selectedApp)
+      const selectedApp = localStorage.getItem('selectedApp');
+      if (!hash || hash === '#' || hash === '') {
+        if (!selectedApp || selectedApp === '') {
+          setActiveSection('home');
+          return;
+        }
+      }
+      
       if (hash === '#products' || hash.startsWith('#product/') || hash === '#cart' || hash === '#checkout' || hash.startsWith('#order-details') || hash === '#admin') {
         setActiveSection('marketplace');
       } else {
         // Check localStorage for selected app
-        const selectedApp = localStorage.getItem('selectedApp') || 'cv-builder';
         if (selectedApp === 'id-card-print') {
           setActiveSection('id-card-printer');
         } else if (selectedApp === 'cv-builder') {
           setActiveSection('cv-builder');
-        } else {
+        } else if (selectedApp === 'marketplace') {
           setActiveSection('marketplace');
+        } else {
+          setActiveSection('home');
         }
       }
     };
@@ -46,6 +56,38 @@ const LeftNavbar = ({ isAuthenticated, onLogout }) => {
       window.removeEventListener('navigateToIDCardPrinter', handleNavigate);
     };
   }, []);
+
+  const navigateToHomePage = () => {
+    // Preserve authentication state first
+    const wasAuthenticated = isAuthenticated || localStorage.getItem('cvBuilderAuth') === 'true';
+    
+    if (wasAuthenticated) {
+      // Preserve authentication state
+      localStorage.setItem('cvBuilderAuth', 'true');
+    }
+    
+    // Set navigation flag to prevent logout
+    sessionStorage.setItem('isNavigating', 'true');
+    sessionStorage.setItem('navigationTimestamp', Date.now().toString());
+    
+    // Set a flag to indicate homepage navigation intent
+    sessionStorage.setItem('navigateToHomePage', 'true');
+    
+    // Clear navigation flags but preserve auth
+    localStorage.removeItem('selectedApp');
+    localStorage.removeItem('showProductsPage');
+    localStorage.removeItem('navigateToCVBuilder');
+    localStorage.removeItem('navigateToIDCardPrint');
+    sessionStorage.removeItem('showProductsPage');
+    sessionStorage.removeItem('navigateToCVBuilder');
+    sessionStorage.removeItem('navigateToIDCardPrint');
+    
+    // Navigate to homepage without reload - use hash and custom event
+    window.location.hash = '';
+    window.history.replaceState(null, '', '/');
+    // Trigger navigation event for App.js to handle
+    window.dispatchEvent(new CustomEvent('navigateToHomePage'));
+  };
 
   const navigateToMarketplace = () => {
     // Facebook-style: Instant navigation using localStorage
@@ -99,10 +141,19 @@ const LeftNavbar = ({ isAuthenticated, onLogout }) => {
   };
 
   const handleSignIn = () => {
-    // Navigate to products page and show login form
+    // Navigate to products page (Marketplace) and show login form
     localStorage.setItem('showProductsPage', 'true');
     sessionStorage.setItem('showProductsPage', 'true');
+    localStorage.setItem('selectedApp', 'marketplace');
+    // Clear any navigation flags that might interfere
+    sessionStorage.removeItem('navigateToCVBuilder');
+    sessionStorage.removeItem('navigateToIDCardPrint');
+    localStorage.removeItem('navigateToCVBuilder');
+    localStorage.removeItem('navigateToIDCardPrint');
+    
+    // Navigate to products page
     window.location.href = '/#products';
+    
     // Show login form after navigation
     setTimeout(() => {
       if (window.showLoginForm) {
@@ -157,6 +208,15 @@ const LeftNavbar = ({ isAuthenticated, onLogout }) => {
             </li>
             <li>
               <button
+                className={`left-navbar-item ${activeSection === 'home' ? 'active' : ''}`}
+                onClick={navigateToHomePage}
+              >
+                <span className="nav-icon">🏠</span>
+                <span className="nav-text">Home</span>
+              </button>
+            </li>
+            <li>
+              <button
                 className={`left-navbar-item ${activeSection === 'marketplace' ? 'active' : ''}`}
                 onClick={navigateToMarketplace}
               >
@@ -188,6 +248,13 @@ const LeftNavbar = ({ isAuthenticated, onLogout }) => {
 
       {/* Mobile Bottom Navigation Bar */}
       <nav className="bottom-navbar">
+        <button
+          className={`bottom-nav-item ${activeSection === 'home' ? 'active' : ''}`}
+          onClick={navigateToHomePage}
+        >
+          <span className="bottom-nav-icon">🏠</span>
+          <span className="bottom-nav-text">Home</span>
+        </button>
         <button
           className={`bottom-nav-item ${activeSection === 'marketplace' ? 'active' : ''}`}
           onClick={navigateToMarketplace}

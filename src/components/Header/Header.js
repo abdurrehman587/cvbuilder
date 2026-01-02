@@ -208,6 +208,38 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
     }
   };
 
+  const navigateToHomePage = () => {
+    // Preserve authentication state first
+    const wasAuthenticated = isAuthenticated || localStorage.getItem('cvBuilderAuth') === 'true';
+    
+    if (wasAuthenticated) {
+      // Preserve authentication state
+      localStorage.setItem('cvBuilderAuth', 'true');
+    }
+    
+    // Set navigation flag to prevent logout
+    sessionStorage.setItem('isNavigating', 'true');
+    sessionStorage.setItem('navigationTimestamp', Date.now().toString());
+    
+    // Set a flag to indicate homepage navigation intent
+    sessionStorage.setItem('navigateToHomePage', 'true');
+    
+    // Clear navigation flags but preserve auth
+    localStorage.removeItem('selectedApp');
+    localStorage.removeItem('showProductsPage');
+    localStorage.removeItem('navigateToCVBuilder');
+    localStorage.removeItem('navigateToIDCardPrint');
+    sessionStorage.removeItem('showProductsPage');
+    sessionStorage.removeItem('navigateToCVBuilder');
+    sessionStorage.removeItem('navigateToIDCardPrint');
+    
+    // Navigate to homepage without reload - use hash and custom event
+    window.location.hash = '';
+    window.history.replaceState(null, '', '/');
+    // Trigger navigation event for App.js to handle
+    window.dispatchEvent(new CustomEvent('navigateToHomePage'));
+  };
+
   const navigateToIDCardDashboard = () => {
     if (!isAuthenticated) {
       // User is not signed in: Show login form
@@ -303,7 +335,9 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
               src="/images/glory-logo.png" 
               alt="Glory Logo" 
               className="glory-logo"
-              onClick={goToProducts}
+              onClick={navigateToHomePage}
+              style={{ cursor: 'pointer' }}
+              title="Go to Homepage"
               onError={(e) => {
                 // Fallback if logo doesn't exist - hide it
                 e.target.style.display = 'none';

@@ -6,11 +6,12 @@
 
 /**
  * Get the current app section from localStorage
- * Returns: 'marketplace', 'cv-builder', or 'id-card-print'
- * CRITICAL: Default to 'cv-builder' NOT 'marketplace' to prevent homepage redirects
+ * Returns: 'marketplace', 'cv-builder', 'id-card-print', or null (for homepage)
+ * CRITICAL: Return null (not 'cv-builder') when empty to allow homepage to show
  */
 export const getCurrentApp = () => {
-  return localStorage.getItem('selectedApp') || 'cv-builder';
+  const app = localStorage.getItem('selectedApp');
+  return app || null; // Return null instead of defaulting to 'cv-builder'
 };
 
 /**

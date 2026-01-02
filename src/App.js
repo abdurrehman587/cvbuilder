@@ -12,7 +12,8 @@ import useAutoSave from './components/Supabase/useAutoSave';
 import { authService, supabase } from './components/Supabase/supabase';
 import IDCardPrintPage from './components/IDCardPrint/IDCardPrintPage';
 import IDCardDashboard from './components/IDCardDashboard/IDCardDashboard';
-import ProductsPage from './components/Products/HomePage';
+import ProductsPage from './components/Products/Marketplace';
+import HomePage from './components/HomePage/HomePage';
 import Header from './components/Header/Header';
 import MarketplaceAdmin from './components/MarketplaceAdmin/MarketplaceAdmin';
 import AdminDashboard from './components/Admin/AdminDashboard';
@@ -41,17 +42,17 @@ function App() {
   });
   // Initialize selectedApp from localStorage, but don't write to localStorage during init
   // Writing during init can cause React error #301
-  // CRITICAL: Default to 'cv-builder' NOT 'marketplace' to prevent homepage redirects
+  // CRITICAL: Default to empty string to allow homepage to show
   const [selectedApp, setSelectedApp] = useState(() => {
     // Read from localStorage - preserve user's current section
     const savedApp = localStorage.getItem('selectedApp');
     if (savedApp) {
       return savedApp; // Preserve user's section
     }
-    // First visit - default to cv-builder (NOT marketplace) to prevent redirects
+    // First visit - return empty string to allow homepage to show
     // It will be written when user navigates or in event handlers
-    return 'cv-builder';
-  }); // 'marketplace', 'cv-builder', or 'id-card-print'
+    return '';
+  }); // 'marketplace', 'cv-builder', 'id-card-print', or '' for homepage
   // Normalize languages: convert strings to objects
   const normalizeLanguages = (languages) => {
     if (!Array.isArray(languages)) return [];
@@ -158,8 +159,31 @@ function App() {
     // Listen for hash changes
     window.addEventListener('hashchange', handleHashChange);
     
+    // Listen for homepage navigation event
+    const handleHomePageNavigation = () => {
+      // Preserve authentication state
+      const wasAuthenticated = localStorage.getItem('cvBuilderAuth') === 'true';
+      if (wasAuthenticated) {
+        localStorage.setItem('cvBuilderAuth', 'true');
+      }
+      // Clear selectedApp to show homepage
+      localStorage.removeItem('selectedApp');
+      // Clear cvView to reset CV Builder state
+      localStorage.removeItem('cvView');
+      // Force re-render by updating hash state
+      setCurrentHash('');
+      // Force a re-render by updating selectedApp state and resetting currentView
+      startTransition(() => {
+        setSelectedApp('');
+        setCurrentView('dashboard'); // Reset currentView to prevent CV Builder from showing
+      });
+    };
+    
+    window.addEventListener('navigateToHomePage', handleHomePageNavigation);
+    
     return () => {
       window.removeEventListener('hashchange', handleHashChange);
+      window.removeEventListener('navigateToHomePage', handleHomePageNavigation);
     };
   }, []);
 
@@ -653,9 +677,10 @@ function App() {
                   localStorage.removeItem('navigateToCVBuilder');
                   sessionStorage.removeItem('navigateToIDCardPrint');
                   localStorage.removeItem('navigateToIDCardPrint');
-                  localStorage.setItem('selectedApp', 'marketplace');
+                  // Clear selectedApp to show homepage
+                  localStorage.removeItem('selectedApp');
                   startTransition(() => {
-                    setSelectedApp('marketplace');
+                    setSelectedApp('');
                   });
                 }
                 setIsLoading(false);
@@ -1126,18 +1151,18 @@ function App() {
               // Clear Google sign-in flag
               sessionStorage.removeItem('googleSignInStarted');
               
-              // For Google OAuth login, redirect to homepage (products page)
+              // For Google OAuth login, redirect to homepage
               // Clear any navigation flags to ensure user lands on homepage
               sessionStorage.removeItem('navigateToCVBuilder');
               localStorage.removeItem('navigateToCVBuilder');
               sessionStorage.removeItem('navigateToIDCardPrint');
               localStorage.removeItem('navigateToIDCardPrint');
               
-              // Set homepage flags
-            localStorage.setItem('selectedApp', 'marketplace');
-            startTransition(() => {
-              setSelectedApp('marketplace');
-            });
+              // Clear selectedApp to show homepage (not marketplace)
+              localStorage.removeItem('selectedApp');
+              startTransition(() => {
+                setSelectedApp('');
+              });
             }
             
             // Trigger auth event for other components
@@ -1217,9 +1242,11 @@ function App() {
       sessionStorage.removeItem('navigateToIDCardPrint');
       localStorage.removeItem('navigateToIDCardPrint');
       
-        // Set to marketplace
-      localStorage.setItem('selectedApp', 'marketplace');
-      setSelectedApp('marketplace');
+      // Clear selectedApp to show homepage (not marketplace)
+      localStorage.removeItem('selectedApp');
+      startTransition(() => {
+        setSelectedApp('');
+      });
       
       console.log('handleAuth: User logged in from homepage, keeping them on homepage');
       return; // Exit early to prevent any redirects
@@ -1232,9 +1259,8 @@ function App() {
     }
     
     // If not on products page, check for navigation flags
-    // Get selected app from localStorage
-    const app = localStorage.getItem('selectedApp') || 'cv-builder';
-    setSelectedApp(app);
+    // Default to homepage (empty selectedApp) instead of cv-builder
+    const savedApp = localStorage.getItem('selectedApp');
     
     // Check if user wants to navigate to ID Card Print dashboard after login (check FIRST)
     const navigateToIDCardPrint = sessionStorage.getItem('navigateToIDCardPrint') === 'true' || 
@@ -1276,12 +1302,19 @@ function App() {
       } else if (currentView === 'cv-builder') {
         // If user was on form/preview page, redirect to dashboard after login
         setCurrentView('dashboard');
+        // Keep selectedApp as cv-builder if it was already set
+        if (savedApp === 'cv-builder') {
+          startTransition(() => {
+            setSelectedApp('cv-builder');
+          });
+        }
       } else {
         // Default: redirect to homepage if no specific navigation intent
-        localStorage.setItem('selectedApp', 'marketplace');
-          startTransition(() => {
-        setSelectedApp('marketplace');
-          });
+        // Clear selectedApp to show homepage
+        localStorage.removeItem('selectedApp');
+        startTransition(() => {
+          setSelectedApp('');
+        });
         console.log('handleAuth: No specific navigation intent, redirecting to homepage');
       }
     }
@@ -1502,8 +1535,21 @@ function App() {
     // DEBUG: Log initial routing state
     console.log('App.js routing - Initial route.app:', route.app, 'localStorage selectedApp:', localStorage.getItem('selectedApp'), 'explicitlyClickedMarketplace:', explicitlyClickedMarketplaceRef.current, 'lastKnownApp:', lastKnownAppRef.current);
     
+    // PRIORITY: Check for homepage navigation flag BEFORE any default logic
+    const navigateToHomePageFlag = sessionStorage.getItem('navigateToHomePage') === 'true';
+    if (navigateToHomePageFlag) {
+      // User wants homepage - clear the flag and force homepage
+      sessionStorage.removeItem('navigateToHomePage');
+      // Clear lastKnownAppRef to prevent restoring CV Builder
+      lastKnownAppRef.current = null;
+      // Don't set routingApp - let it stay null so homepage shows
+      routingApp = null;
+      // Clear selectedApp to ensure homepage shows
+      localStorage.removeItem('selectedApp');
+    }
+    
     // CRITICAL: If routingApp is 'marketplace', check if user explicitly clicked it
-    // If not, override with lastKnownAppRef or default to cv-builder
+    // If not, override with lastKnownAppRef or show homepage (not cv-builder)
     if (routingApp === 'marketplace') {
       // Only allow marketplace if user explicitly clicked it AND was on it
       if (!explicitlyClickedMarketplaceRef.current || (lastKnownAppRef.current && lastKnownAppRef.current !== 'marketplace')) {
@@ -1513,19 +1559,22 @@ function App() {
           setCurrentApp(routingApp);
           explicitlyClickedMarketplaceRef.current = false;
         } else {
-          routingApp = 'cv-builder'; // Default to cv-builder
-          setCurrentApp('cv-builder');
+          // No last known app - show homepage (not cv-builder)
+          routingApp = null;
+          localStorage.removeItem('selectedApp');
           explicitlyClickedMarketplaceRef.current = false;
         }
       }
-    } else if (!routingApp) {
-      // routingApp is null/empty - use last known app or default to cv-builder
+    } else if (!routingApp && !navigateToHomePageFlag) {
+      // routingApp is null/empty - use last known app or show homepage
+      // BUT: Don't default if user wants homepage (flag was already checked above)
       if (lastKnownAppRef.current && lastKnownAppRef.current !== 'marketplace') {
         routingApp = lastKnownAppRef.current;
         setCurrentApp(routingApp);
       } else {
-        routingApp = 'cv-builder'; // Default to cv-builder if no last known app
-        setCurrentApp('cv-builder');
+        // No last known app - show homepage (not cv-builder)
+        routingApp = null;
+        localStorage.removeItem('selectedApp');
       }
     }
     
@@ -1546,7 +1595,25 @@ function App() {
     const idCardView = route.idCardView || 'dashboard';
     
     // ============================================
-    // MARKETPLACE SECTION - CHECK FIRST to prevent override
+    // HOMEPAGE SECTION - CHECK FIRST when routingApp is null
+    // ============================================
+    if (!routingApp || routingApp === null) {
+      console.log('App.js routing - Rendering HOMEPAGE (routingApp is null)');
+      return wrapWithNavbar(
+        <>
+          <Header 
+            isAuthenticated={isAuthenticated} 
+            currentProduct="home"
+            showProductsOnHeader={false}
+            onLogout={isAuthenticated ? handleLogout : undefined}
+          />
+          <HomePage />
+        </>
+      );
+    }
+    
+    // ============================================
+    // MARKETPLACE SECTION - CHECK SECOND to prevent override
     // ============================================
     if (routingApp === 'marketplace') {
       console.log('App.js routing - Rendering MARKETPLACE');
@@ -2246,9 +2313,15 @@ function App() {
                                  localStorage.getItem('navigateToCVBuilder') === 'true' ||
                                  localStorage.getItem('navigateToIDCardPrint') === 'true';
     
+    // Check if user wants to see products page (marketplace) - either via hash or flag
+    const wantsProductsPage = window.location.hash === '#products' ||
+                              localStorage.getItem('showProductsPage') === 'true' ||
+                              sessionStorage.getItem('showProductsPage') === 'true' ||
+                              localStorage.getItem('selectedApp') === 'marketplace';
+    
     // Only clear navigation flags if there's no navigation intent (direct visit to homepage)
     // BUT: Don't clear selectedApp for unauthenticated users - preserve it for when they log in
-    if (!hasNavigationIntent) {
+    if (!hasNavigationIntent && !wantsProductsPage) {
       // Don't clear selectedApp - preserve user's intended destination
       // This ensures they go to the right place after logging in
       
@@ -2277,43 +2350,109 @@ function App() {
     }
     
     // Only show login directly if there's explicit navigation intent (meaning they're trying to access a dashboard directly)
-    if (hasNavigationIntent) {
+    if (hasNavigationIntent && !wantsProductsPage) {
       return wrapWithNavbar(
         <Login onAuth={handleAuth} />
       );
     }
     
-    // Show homepage (ProductsPage) for all unauthenticated users
-    // If there are navigation flags, the login form will be shown automatically by ProductsPage
+    // Show ProductsPage (Marketplace) if user wants to see it or has navigation intent
+    if (wantsProductsPage || hasNavigationIntent) {
+      return wrapWithNavbar(
+        <>
+          <Header 
+            isAuthenticated={false} 
+            currentProduct="products"
+            showProductsOnHeader={true}
+          />
+          <ProductsPage showLoginOnMount={hasNavigationIntent || wantsProductsPage} />
+        </>
+      );
+    }
+    
+    // Show HomePage for unauthenticated users without navigation intent or products page request
     return wrapWithNavbar(
       <>
         <Header 
           isAuthenticated={false} 
-          currentProduct="products"
-          showProductsOnHeader={true}
+          currentProduct="home"
+          showProductsOnHeader={false}
         />
-        <ProductsPage showLoginOnMount={hasNavigationIntent} />
+        <HomePage />
       </>
     );
   }
   
-  // FINAL FALLBACK: For authenticated users, check localStorage one more time
-  // This ensures we never show homepage if user is on a dashboard
-  const finalSelectedApp = localStorage.getItem('selectedApp');
-  
+  // Handle authenticated users - check if they want to see homepage
   if (isAuthenticated && !isLoading) {
+    const finalSelectedApp = localStorage.getItem('selectedApp');
+    const navigateToHomePageFlag = sessionStorage.getItem('navigateToHomePage') === 'true';
+    
+    // Check if user explicitly wants to see homepage (navigation flag takes priority)
+    // If navigateToHomePage flag is set, always show homepage regardless of selectedApp
+    if (navigateToHomePageFlag) {
+      // User explicitly navigated to homepage - show it
+      // Clear navigation flags after using them
+      sessionStorage.removeItem('isNavigating');
+      sessionStorage.removeItem('navigateToHomePage');
+      return wrapWithNavbar(
+        <>
+          <Header 
+            isAuthenticated={true} 
+            currentProduct="home"
+            showProductsOnHeader={false}
+            onLogout={handleLogout}
+          />
+          <HomePage />
+        </>
+      );
+    }
+    
+    // If finalSelectedApp is null/empty AND selectedApp state is empty string, show homepage
+    // This handles the case when user clicks Home button and selectedApp is cleared
+    if ((!finalSelectedApp || finalSelectedApp === '') && (selectedApp === '' || !selectedApp)) {
+      // User navigated to homepage - show it
+      return wrapWithNavbar(
+        <>
+          <Header 
+            isAuthenticated={true} 
+            currentProduct="home"
+            showProductsOnHeader={false}
+            onLogout={handleLogout}
+          />
+          <HomePage />
+        </>
+      );
+    }
+    
     // If finalSelectedApp is null/empty, try to preserve current state
-    let appToShow = finalSelectedApp;
+    // Only use selectedApp if it has a value (not empty string - empty string means homepage)
+    let appToShow = finalSelectedApp || (selectedApp && selectedApp !== '' ? selectedApp : null);
+    
+    // If no app is selected, check if we should show homepage or preserve current view
+    // BUT: Don't check currentView if user explicitly navigated to homepage (flag was already handled in routing logic above)
     if (!appToShow) {
-      // No selectedApp - infer from current state
+      // Check if we should show homepage or default to cv-builder based on context
+      // If user was on a dashboard, preserve that state (unless they explicitly navigated to homepage)
+      // The navigateToHomePage flag was already checked in the routing logic above, so if we reach here,
+      // it means the flag was not set, so we can check currentView
       if (currentView === 'cv-builder') {
         appToShow = 'cv-builder';
       } else if (idCardView === 'print') {
         appToShow = 'id-card-print';
       } else {
-        // CRITICAL: Don't default to marketplace - show CV Builder instead
-        // This prevents redirect to homepage when switching tabs
-        appToShow = 'cv-builder';
+        // No context and no selectedApp - show homepage instead of defaulting to cv-builder
+        return wrapWithNavbar(
+          <>
+            <Header 
+              isAuthenticated={true} 
+              currentProduct="home"
+              showProductsOnHeader={false}
+              onLogout={handleLogout}
+            />
+            <HomePage />
+          </>
+        );
       }
     }
     
