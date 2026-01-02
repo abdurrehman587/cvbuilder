@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import './CVDashboard.css';
 import SearchCV from './SearchCV';
 import { setCurrentApp, setCVView } from '../../utils/routing';
+import { authService, cvCreditsService, supabase } from '../Supabase/supabase';
 
 /**
  * Fresh CV Dashboard - Rebuilt from scratch
@@ -10,6 +11,8 @@ import { setCurrentApp, setCVView } from '../../utils/routing';
  */
 const CVDashboard = ({ onTemplateSelect, onLogout, onEditCV, onCreateNewCV }) => {
   const [currentView, setCurrentView] = React.useState('dashboard');
+  const [cvCredits, setCvCredits] = useState(null);
+  const [userType, setUserType] = useState(null);
 
   // Fresh handler for creating new CV
   const handleMakeNewCV = React.useCallback(() => {
@@ -54,6 +57,85 @@ const CVDashboard = ({ onTemplateSelect, onLogout, onEditCV, onCreateNewCV }) =>
     }
   }, [onEditCV]);
 
+  // Load CV credits for shopkeepers
+  useEffect(() => {
+    const loadCredits = async () => {
+      try {
+        const user = await authService.getCurrentUser();
+        if (!user) {
+          console.log('CVDashboard: No user found');
+          setCvCredits(null);
+          setUserType(null);
+          return;
+        }
+
+        console.log('CVDashboard: User found:', user.email);
+        console.log('CVDashboard: User metadata:', user.user_metadata);
+        
+        // Get user type - first try metadata, then check database via RPC
+        let type = user.user_metadata?.user_type || 'regular';
+        console.log('CVDashboard: User type from metadata:', type);
+        
+        // Always check database via RPC to ensure we have the correct user type
+        // This is more reliable than just checking metadata
+        try {
+          const { data: rpcData, error: rpcError } = await supabase
+            .rpc('get_users_with_type');
+          
+          if (!rpcError && rpcData) {
+            const dbUser = rpcData.find(u => u.email === user.email);
+            if (dbUser) {
+              type = dbUser.user_type || type;
+              console.log('CVDashboard: User type from database:', type);
+            }
+          }
+        } catch (dbErr) {
+          console.error('CVDashboard: Error checking database for user type:', dbErr);
+          // Fall back to metadata type
+        }
+        
+        setUserType(type);
+        console.log('CVDashboard: Final user type:', type, 'for user:', user.email);
+
+        if (type === 'shopkeeper') {
+          console.log('CVDashboard: Loading credits for shopkeeper...');
+          const credits = await cvCreditsService.getCredits(user.id);
+          console.log('CVDashboard: Credits loaded:', credits);
+          setCvCredits(credits);
+        } else {
+          console.log('CVDashboard: Not a shopkeeper, skipping credits');
+          setCvCredits(null);
+        }
+      } catch (err) {
+        console.error('CVDashboard: Error loading CV credits:', err);
+        setCvCredits(null);
+      }
+    };
+
+    loadCredits();
+    
+    // Refresh credits periodically (every 30 seconds)
+    const interval = setInterval(loadCredits, 30000);
+    
+    // Also listen for credit updates
+    const handleCreditUpdate = () => {
+      console.log('CVDashboard: Credit update event received');
+      loadCredits();
+    };
+    window.addEventListener('cvCreditsUpdated', handleCreditUpdate);
+    
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('cvCreditsUpdated', handleCreditUpdate);
+    };
+  }, []);
+
+  // Debug logging
+  React.useEffect(() => {
+    console.log('CVDashboard: Render state - userType:', userType, 'cvCredits:', cvCredits);
+    console.log('CVDashboard: Should show credits?', userType === 'shopkeeper' && cvCredits !== null);
+  }, [userType, cvCredits]);
+
   // Show search view if active
   if (currentView === 'search-cv') {
     return (
@@ -72,6 +154,45 @@ const CVDashboard = ({ onTemplateSelect, onLogout, onEditCV, onCreateNewCV }) =>
           <h1>My CV Dashboard</h1>
           <p className="welcome-message">Welcome! Let's create your professional CV</p>
           <p className="sub-message">Your CVs are automatically saved and secure</p>
+          
+          {/* CV Credits Display for Shopkeepers */}
+          {userType === 'shopkeeper' && cvCredits !== null && (
+            <div 
+              className="cv-credits-badge"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '12px 20px',
+                marginTop: '1rem',
+                backgroundColor: cvCredits > 0 ? 'rgba(40, 167, 69, 0.15)' : 'rgba(220, 53, 69, 0.15)',
+                borderRadius: '12px',
+                border: `2px solid ${cvCredits > 0 ? '#28a745' : '#dc3545'}`,
+                backdropFilter: 'blur(10px)',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
+              }}
+              title="CV Download Credits Remaining"
+            >
+              <span style={{ 
+                fontSize: '16px', 
+                fontWeight: '700', 
+                color: cvCredits > 0 ? '#28a745' : '#dc3545',
+                textShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+              }}>
+                📥 CV Download Credits: {cvCredits}
+              </span>
+              {cvCredits === 0 && (
+                <span style={{ 
+                  fontSize: '12px', 
+                  color: '#dc3545',
+                  fontStyle: 'italic',
+                  marginLeft: '8px'
+                }}>
+                  (Contact admin to add more)
+                </span>
+              )}
+            </div>
+          )}
         </div>
       </div>
       
