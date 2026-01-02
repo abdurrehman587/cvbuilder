@@ -142,7 +142,7 @@ const AdminDashboard = () => {
               </div>
               <div className="admin-card" onClick={() => handleSectionChange('cv-management')}>
                 <h3>CV Management</h3>
-                <p>Manage users, CVs, and create CVs for customers</p>
+                <p>Manage users and CVs</p>
                 <button>Go to CV Management</button>
               </div>
             </div>

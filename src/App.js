@@ -977,13 +977,16 @@ function App() {
         // Priority 1: Check localStorage
         let appToPreserve = localStorage.getItem('selectedApp');
         
-        // CRITICAL: If appToPreserve is 'marketplace', ALWAYS check if user was actually on it
-        // Only preserve marketplace if BOTH:
-        // 1. User explicitly clicked marketplace (explicitlyClickedMarketplaceRef is true)
-        // 2. lastKnownAppRef has marketplace (user was on it)
+        // CRITICAL: If appToPreserve is 'marketplace', check if user was actually on it
+        // Preserve marketplace if ref has it (user was on it when tab lost focus)
         if (appToPreserve === 'marketplace') {
-          // If user did NOT explicitly click marketplace OR ref doesn't have marketplace, restore actual section
-          if (!explicitlyClickedMarketplaceRef.current || (lastKnownAppRef.current && lastKnownAppRef.current !== 'marketplace')) {
+          // Check if user was actually on marketplace
+          if (lastKnownAppRef.current === 'marketplace') {
+            // User was on marketplace - preserve it
+            // Update localStorage to ensure marketplace is preserved
+            setCurrentApp('marketplace');
+            // Keep explicitlyClickedMarketplaceRef.current as is (don't clear it)
+          } else {
             // User was NOT on marketplace - restore their actual section
             if (lastKnownAppRef.current && lastKnownAppRef.current !== 'marketplace') {
               appToPreserve = lastKnownAppRef.current;
@@ -994,53 +997,75 @@ function App() {
               } else if (idCardView === 'print') {
                 appToPreserve = 'id-card-print';
               } else {
-                appToPreserve = 'cv-builder'; // Default to cv-builder
+                // No evidence of any app - preserve homepage instead of defaulting to cv-builder
+                appToPreserve = null;
               }
             }
             setCurrentApp(appToPreserve);
             explicitlyClickedMarketplaceRef.current = false; // Clear flag
           }
         } else if (!appToPreserve) {
-          // Priority 2: If localStorage is empty, use last known app from ref
-          if (lastKnownAppRef.current && lastKnownAppRef.current !== 'marketplace') {
+          // Priority 2: If localStorage is empty, check if user is on homepage
+          // Only restore from lastKnownAppRef if it has a valid value
+          if (lastKnownAppRef.current === 'marketplace') {
+            // User was on marketplace - restore it
+            appToPreserve = 'marketplace';
+            setCurrentApp('marketplace');
+            // Keep explicitlyClickedMarketplaceRef.current as is if it was set
+          } else if (lastKnownAppRef.current && lastKnownAppRef.current !== 'marketplace') {
             appToPreserve = lastKnownAppRef.current;
             setCurrentApp(appToPreserve);
           } else {
-            // Priority 3: Infer from React state
+            // Priority 3: Infer from React state only if there's evidence of active use
+            // If no evidence, preserve null to keep homepage
             if (currentView === 'cv-builder') {
               appToPreserve = 'cv-builder';
+              setCurrentApp(appToPreserve);
             } else if (idCardView === 'print') {
               appToPreserve = 'id-card-print';
-            } else {
-              appToPreserve = 'cv-builder'; // Default to cv-builder
+              setCurrentApp(appToPreserve);
             }
-            setCurrentApp(appToPreserve);
+            // If no evidence of active use, keep appToPreserve as null/empty to preserve homepage
+            // DO NOT default to 'cv-builder' when on homepage
           }
         }
         
-        // Update ref to track this as last known app (NEVER save marketplace unless explicitly clicked)
+        // Update ref to track this as last known app
+        // Only update ref if appToPreserve has a valid value (not null/empty)
         if (appToPreserve && appToPreserve !== 'marketplace') {
           lastKnownAppRef.current = appToPreserve;
-        } else if (appToPreserve === 'marketplace' && explicitlyClickedMarketplaceRef.current && lastKnownAppRef.current === 'marketplace') {
-          // Only track marketplace if user explicitly clicked it AND was already on it
-          lastKnownAppRef.current = 'marketplace';
+        } else if (appToPreserve === 'marketplace') {
+          // Track marketplace if user was on it (ref already has it) or explicitly clicked it
+          if (lastKnownAppRef.current === 'marketplace' || explicitlyClickedMarketplaceRef.current) {
+            lastKnownAppRef.current = 'marketplace';
+          }
+        } else if (!appToPreserve) {
+          // If appToPreserve is null/empty (homepage), clear the ref to prevent restoring a previous app
+          lastKnownAppRef.current = null;
         }
         
-        // Sync React state
+        // Sync React state - only update if appToPreserve has a value, otherwise preserve null/empty for homepage
         startTransition(() => {
-          setSelectedApp(appToPreserve);
+          setSelectedApp(appToPreserve || '');
         });
       } else if (document.hidden && isAuthenticated) {
-        // Tab lost focus - save current app to ref (NEVER save marketplace)
+        // Tab lost focus - save current app to ref
         const currentApp = getCurrentApp();
-        if (currentApp && currentApp !== 'marketplace') {
+        if (currentApp === 'marketplace') {
+          // User is on marketplace - always save it to ref to preserve state
+          lastKnownAppRef.current = 'marketplace';
+          // Keep explicitlyClickedMarketplaceRef.current as is (don't clear it)
+        } else if (currentApp && currentApp !== 'marketplace') {
           lastKnownAppRef.current = currentApp;
           explicitlyClickedMarketplaceRef.current = false; // Clear flag on tab switch
         } else if (selectedApp && selectedApp !== 'marketplace') {
           lastKnownAppRef.current = selectedApp;
           explicitlyClickedMarketplaceRef.current = false;
+        } else if (!currentApp && !selectedApp) {
+          // User is on homepage - clear ref to prevent restoring a previous app
+          lastKnownAppRef.current = null;
+          explicitlyClickedMarketplaceRef.current = false;
         }
-        // NEVER save marketplace to ref - this completely prevents it from being restored
       }
     };
     
@@ -1115,6 +1140,36 @@ function App() {
         if (ignoreInitialSessionRef.current && event === 'INITIAL_SESSION') {
           console.log('Still ignoring INITIAL_SESSION');
           return;
+        }
+        
+        // Handle user type for Google OAuth sign-in (before state updates)
+        if (event === 'SIGNED_IN' && session?.user) {
+          const isOAuthCallback = window.location.hash.includes('access_token') || 
+                                  window.location.hash.includes('code') ||
+                                  window.location.search.includes('code') ||
+                                  sessionStorage.getItem('googleSignInStarted') === 'true';
+          
+          if (isOAuthCallback) {
+            const pendingUserType = sessionStorage.getItem('pendingUserType');
+            if (pendingUserType) {
+              // Check if user already has user_type in metadata
+              const currentUserType = session.user.user_metadata?.user_type;
+              if (!currentUserType || currentUserType !== pendingUserType) {
+                // Update user metadata with the selected user type
+                try {
+                  await authService.updateUserMetadata({
+                    user_type: pendingUserType,
+                    ...session.user.user_metadata // Preserve existing metadata
+                  });
+                  console.log('User type updated to:', pendingUserType);
+                } catch (err) {
+                  console.error('Error updating user type:', err);
+                }
+              }
+              // Clear pending user type
+              sessionStorage.removeItem('pendingUserType');
+            }
+          }
         }
         
         // Use startTransition to mark all state updates as non-urgent
@@ -1548,12 +1603,12 @@ function App() {
       localStorage.removeItem('selectedApp');
     }
     
-    // CRITICAL: If routingApp is 'marketplace', check if user explicitly clicked it
-    // If not, override with lastKnownAppRef or show homepage (not cv-builder)
+    // CRITICAL: If routingApp is 'marketplace', check if user was actually on it
+    // Preserve marketplace if user was on it (ref has marketplace) OR explicitly clicked it
     if (routingApp === 'marketplace') {
-      // Only allow marketplace if user explicitly clicked it AND was on it
-      if (!explicitlyClickedMarketplaceRef.current || (lastKnownAppRef.current && lastKnownAppRef.current !== 'marketplace')) {
-        // User did NOT explicitly click marketplace - restore their actual section
+      // Only redirect away if user was NOT on marketplace (ref doesn't have it) AND didn't explicitly click it
+      if (lastKnownAppRef.current !== 'marketplace' && !explicitlyClickedMarketplaceRef.current) {
+        // User was NOT on marketplace - restore their actual section
         if (lastKnownAppRef.current && lastKnownAppRef.current !== 'marketplace') {
           routingApp = lastKnownAppRef.current;
           setCurrentApp(routingApp);
@@ -1568,7 +1623,12 @@ function App() {
     } else if (!routingApp && !navigateToHomePageFlag) {
       // routingApp is null/empty - use last known app or show homepage
       // BUT: Don't default if user wants homepage (flag was already checked above)
-      if (lastKnownAppRef.current && lastKnownAppRef.current !== 'marketplace') {
+      if (lastKnownAppRef.current === 'marketplace') {
+        // User was on marketplace - restore it
+        routingApp = 'marketplace';
+        setCurrentApp('marketplace');
+        // Keep explicitlyClickedMarketplaceRef.current as is if it was set
+      } else if (lastKnownAppRef.current && lastKnownAppRef.current !== 'marketplace') {
         routingApp = lastKnownAppRef.current;
         setCurrentApp(routingApp);
       } else {
@@ -1578,12 +1638,14 @@ function App() {
       }
     }
     
-    // Update ref to track current app (NEVER save marketplace unless explicitly clicked)
+    // Update ref to track current app
     if (routingApp && routingApp !== 'marketplace') {
       lastKnownAppRef.current = routingApp;
-    } else if (routingApp === 'marketplace' && explicitlyClickedMarketplaceRef.current) {
-      // Only track marketplace if user explicitly clicked it
-      lastKnownAppRef.current = 'marketplace';
+    } else if (routingApp === 'marketplace') {
+      // Track marketplace if user explicitly clicked it OR if ref already has it (preserved from tab switch)
+      if (explicitlyClickedMarketplaceRef.current || lastKnownAppRef.current === 'marketplace') {
+        lastKnownAppRef.current = 'marketplace';
+      }
     }
     
     // DEBUG: Log final routing decision

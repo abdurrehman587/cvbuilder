@@ -173,6 +173,11 @@
   color: white;
 }
 
+.admin-badge.shopkeeper {
+  background: #ffc107;
+  color: #333;
+}
+
 /* Buttons */
 .toggle-admin-button, .delete-button {
   padding: 0.25rem 0.5rem;

@@ -4,6 +4,7 @@ import './index.css';
 import App from './App';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
+// Use startTransition for initial render to prevent blocking main thread
 root.render(
   <React.StrictMode>
     <App />

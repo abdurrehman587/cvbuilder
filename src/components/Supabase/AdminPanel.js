@@ -1,19 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { supabase, useAuth } from './index'
-import AdminBulkCV from './AdminBulkCV'
+import { supabase, useAuth, cvCreditsService } from './index'
 import './AdminPanel.css'
 
 const AdminPanel = ({ initialView = 'marketplace' }) => {
   const { user, signOut } = useAuth()
   const [isAdmin, setIsAdmin] = useState(false)
   const [allUsers, setAllUsers] = useState([])
-  const [allCVs, setAllCVs] = useState([])
   const [loading, setLoading] = useState(false)
   const [currentView, setCurrentView] = useState(initialView)
   const [stats, setStats] = useState({
-    totalUsers: 0,
-    totalCVs: 0,
-    recentCVs: 0
+    totalUsers: 0
   })
 
   // Check if current user is admin
@@ -46,34 +42,84 @@ const AdminPanel = ({ initialView = 'marketplace' }) => {
     try {
       setLoading(true)
 
-      // Load all users
+      // Load users from public.users
       const { data: users, error: usersError } = await supabase
         .from('users')
         .select('*')
-        .order('created_at', { ascending: false })
 
       if (usersError) throw usersError
 
-      // Load all CVs
-      const { data: cvs, error: cvsError } = await supabase
-        .from('cvs')
-        .select('*, users(email, full_name)')
-        .order('created_at', { ascending: false })
+      // Try to get user_type from auth.users metadata using RPC function
+      // If RPC function exists, it will return users with user_type
+      let usersWithType = []
+      
+      try {
+        const { data: rpcData, error: rpcError } = await supabase
+          .rpc('get_users_with_type')
+        
+        if (rpcError) {
+          console.error('RPC function error:', rpcError)
+          // If RPC fails, use fallback
+          usersWithType = (users || []).map((user) => ({
+            ...user,
+            user_type: null
+          }))
+        } else if (rpcData && rpcData.length > 0) {
+          console.log('RPC function returned data:', rpcData)
+          usersWithType = rpcData
+        } else {
+          console.warn('RPC function returned empty data')
+          // RPC function returned no data, use fallback
+          usersWithType = (users || []).map((user) => ({
+            ...user,
+            user_type: null
+          }))
+        }
+      } catch (rpcErr) {
+        console.error('RPC function exception:', rpcErr)
+        // RPC function doesn't exist, use users from public.users
+        // user_type will be null, but we can still sort by is_admin
+        usersWithType = (users || []).map((user) => ({
+          ...user,
+          user_type: null
+        }))
+      }
+      
+      console.log('Users with type:', usersWithType)
 
-      if (cvsError) throw cvsError
+      // Sort users: Admin first, then shopkeepers, then regular users
+      const sortedUsers = usersWithType.sort((a, b) => {
+        // First priority: Admin users (is_admin = true)
+        if (a.is_admin && !b.is_admin) return -1
+        if (!a.is_admin && b.is_admin) return 1
+        
+        // If both are admin, ensure admin@cvbuilder.com is first
+        if (a.is_admin && b.is_admin) {
+          if (a.email === 'admin@cvbuilder.com') return -1
+          if (b.email === 'admin@cvbuilder.com') return 1
+          return a.email.localeCompare(b.email)
+        }
+        
+        // For non-admin users: shopkeepers before regular users
+        if (!a.is_admin && !b.is_admin) {
+          const aType = a.user_type || 'regular'
+          const bType = b.user_type || 'regular'
+          
+          if (aType === 'shopkeeper' && bType === 'regular') return -1
+          if (aType === 'regular' && bType === 'shopkeeper') return 1
+          
+          // If same type, sort by email
+          return a.email.localeCompare(b.email)
+        }
+        
+        return 0
+      })
 
       // Calculate stats
-      const totalUsers = users?.length || 0
-      const totalCVs = cvs?.length || 0
-      const recentCVs = cvs?.filter(cv => {
-        const createdDate = new Date(cv.created_at)
-        const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-        return createdDate > weekAgo
-      }).length || 0
+      const totalUsers = sortedUsers.length
 
-      setAllUsers(users || [])
-      setAllCVs(cvs || [])
-      setStats({ totalUsers, totalCVs, recentCVs })
+      setAllUsers(sortedUsers)
+      setStats({ totalUsers })
     } catch (err) {
       console.error('Error loading admin data:', err)
     } finally {
@@ -89,53 +135,78 @@ const AdminPanel = ({ initialView = 'marketplace' }) => {
 
   // Delete user
   const deleteUser = async (userId) => {
-    if (!window.confirm('Are you sure you want to delete this user?')) return
+    if (!window.confirm('Are you sure you want to delete this user? This will also delete their auth account.')) return
 
     try {
-      const { error } = await supabase
+      // Delete from public.users first (to avoid foreign key constraint)
+      const { error: publicDeleteError } = await supabase
         .from('users')
         .delete()
         .eq('id', userId)
 
-      if (error) throw error
-      loadAdminData() // Refresh data
+      if (publicDeleteError) {
+        console.error('Error deleting from public.users:', publicDeleteError)
+        throw publicDeleteError
+      }
+
+      // Then try to delete from auth.users using RPC function
+      try {
+        const { error: authDeleteError } = await supabase
+          .rpc('delete_auth_user', { user_id: userId })
+        
+        if (authDeleteError) {
+          console.warn('Could not delete from auth.users:', authDeleteError)
+          // User is already deleted from public.users, so continue
+        }
+      } catch (rpcErr) {
+        console.warn('RPC function for deleting auth user not available:', rpcErr)
+        // User is already deleted from public.users, so continue
+      }
+
+      // Refresh data
+      loadAdminData()
+      alert('User deleted successfully')
     } catch (err) {
       console.error('Error deleting user:', err)
-      alert('Error deleting user')
+      alert('Error deleting user: ' + (err.message || 'Unknown error'))
+    }
+  }
+  
+  // Update user type
+  const updateUserType = async (userEmail, newUserType) => {
+    try {
+      const { error } = await supabase
+        .rpc('update_user_type', { 
+          user_email: userEmail,
+          new_user_type: newUserType 
+        })
+
+      if (error) throw error
+      
+      // Refresh data
+      loadAdminData()
+      alert(`User type updated to ${newUserType === 'shopkeeper' ? 'Shopkeeper' : 'Regular User'}`)
+    } catch (err) {
+      console.error('Error updating user type:', err)
+      alert('Error updating user type: ' + (err.message || 'Unknown error'))
     }
   }
 
-  // Delete CV
-  const deleteCV = async (cvId) => {
-    if (!window.confirm('Are you sure you want to delete this CV?')) return
-
-    try {
-      const { error } = await supabase
-        .from('cvs')
-        .delete()
-        .eq('id', cvId)
-
-      if (error) throw error
-      loadAdminData() // Refresh data
-    } catch (err) {
-      console.error('Error deleting CV:', err)
-      alert('Error deleting CV')
+  // Add CV credits to a shopkeeper
+  const addCreditsToShopkeeper = async (userId, creditsToAdd) => {
+    const credits = parseInt(creditsToAdd)
+    if (isNaN(credits) || credits <= 0) {
+      alert('Please enter a valid number of credits (greater than 0)')
+      return
     }
-  }
 
-  // Toggle user admin status
-  const toggleAdminStatus = async (userId, currentStatus) => {
     try {
-      const { error } = await supabase
-        .from('users')
-        .update({ is_admin: !currentStatus })
-        .eq('id', userId)
-
-      if (error) throw error
+      const newCredits = await cvCreditsService.addCredits(userId, credits)
       loadAdminData() // Refresh data
+      alert(`Successfully added ${credits} CV credits. New total: ${newCredits} credits`)
     } catch (err) {
-      console.error('Error updating admin status:', err)
-      alert('Error updating admin status')
+      console.error('Error adding CV credits:', err)
+      alert('Error adding CV credits: ' + (err.message || 'Unknown error'))
     }
   }
 
@@ -163,11 +234,6 @@ const AdminPanel = ({ initialView = 'marketplace' }) => {
       </div>
     )
   }
-
-  if (currentView === 'create-cv') {
-    return <AdminBulkCV />
-  }
-
 
   const handleBackToAdmin = () => {
     window.location.hash = '#admin';
@@ -209,12 +275,6 @@ const AdminPanel = ({ initialView = 'marketplace' }) => {
           >
             Dashboard
           </button>
-          <button 
-            onClick={() => setCurrentView('create-cv')} 
-            className="create-cv-button"
-          >
-            Create CV for Customer
-          </button>
           <button onClick={loadAdminData} className="refresh-button" disabled={loading}>
             {loading ? 'Loading...' : 'Refresh'}
           </button>
@@ -230,14 +290,6 @@ const AdminPanel = ({ initialView = 'marketplace' }) => {
           <h3>Total Users</h3>
           <p className="stat-number">{stats.totalUsers}</p>
         </div>
-        <div className="stat-card">
-          <h3>Total CVs</h3>
-          <p className="stat-number">{stats.totalCVs}</p>
-        </div>
-        <div className="stat-card">
-          <h3>Recent CVs (7 days)</h3>
-          <p className="stat-number">{stats.recentCVs}</p>
-        </div>
       </div>
 
       {/* Users Management */}
@@ -249,76 +301,131 @@ const AdminPanel = ({ initialView = 'marketplace' }) => {
               <tr>
                 <th>Email</th>
                 <th>Full Name</th>
-                <th>Admin</th>
+                <th>User Type</th>
+                <th>CV Credits</th>
                 <th>Created</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {allUsers.map((user) => (
-                <tr key={user.id}>
-                  <td>{user.email}</td>
-                  <td>{user.full_name || 'N/A'}</td>
-                  <td>
-                    <span className={`admin-badge ${user.is_admin ? 'admin' : 'user'}`}>
-                      {user.is_admin ? 'Admin' : 'User'}
-                    </span>
-                  </td>
-                  <td>{new Date(user.created_at).toLocaleDateString()}</td>
-                  <td>
-                    <button
-                      onClick={() => toggleAdminStatus(user.id, user.is_admin)}
-                      className="toggle-admin-button"
-                    >
-                      {user.is_admin ? 'Remove Admin' : 'Make Admin'}
-                    </button>
-                    <button
-                      onClick={() => deleteUser(user.id)}
-                      className="delete-button"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* CVs Management */}
-      <div className="admin-section">
-        <h2>CVs Management</h2>
-        <div className="admin-table">
-          <table>
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Title</th>
-                <th>User</th>
-                <th>Template</th>
-                <th>Created</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {allCVs.map((cv) => (
-                <tr key={cv.id}>
-                  <td>{cv.name}</td>
-                  <td>{cv.title || 'N/A'}</td>
-                  <td>{cv.users?.email || 'N/A'}</td>
-                  <td>{cv.template_id}</td>
-                  <td>{new Date(cv.created_at).toLocaleDateString()}</td>
-                  <td>
-                    <button
-                      onClick={() => deleteCV(cv.id)}
-                      className="delete-button"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {allUsers.map((user) => {
+                // Determine user type display
+                let userTypeDisplay = 'Regular User'
+                let badgeClass = 'user'
+                
+                // Debug logging
+                if (user.email === 'glorycomposing@gmail.com') {
+                  console.log('Debug user data:', {
+                    email: user.email,
+                    is_admin: user.is_admin,
+                    user_type: user.user_type,
+                    fullUser: user
+                  })
+                }
+                
+                if (user.is_admin) {
+                  userTypeDisplay = 'Admin'
+                  badgeClass = 'admin'
+                } else if (user.user_type === 'shopkeeper' || user.user_type === 'Shopkeeper') {
+                  userTypeDisplay = 'Shopkeeper'
+                  badgeClass = 'shopkeeper'
+                } else {
+                  userTypeDisplay = 'Regular User'
+                  badgeClass = 'user'
+                }
+                
+                return (
+                  <tr key={user.id}>
+                    <td>{user.email}</td>
+                    <td>{user.full_name || 'N/A'}</td>
+                    <td>
+                      <span className={`admin-badge ${badgeClass}`}>
+                        {userTypeDisplay}
+                      </span>
+                    </td>
+                    <td>
+                      {user.user_type === 'shopkeeper' ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ fontWeight: '600', color: (user.cv_credits || 0) > 0 ? '#28a745' : '#dc3545' }}>
+                            {user.cv_credits || 0}
+                          </span>
+                          <input
+                            type="number"
+                            min="1"
+                            placeholder="Qty"
+                            data-user-id={user.id}
+                            style={{
+                              width: '50px',
+                              padding: '4px 6px',
+                              border: '1px solid #ddd',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                const credits = e.target.value
+                                if (credits) {
+                                  addCreditsToShopkeeper(user.id, credits)
+                                  e.target.value = ''
+                                }
+                              }
+                            }}
+                          />
+                          <button
+                            onClick={(e) => {
+                              const input = e.target.parentElement.querySelector('input[data-user-id]')
+                              const credits = input?.value || prompt('Enter number of CV credits to add:')
+                              if (credits) {
+                                addCreditsToShopkeeper(user.id, credits)
+                                if (input) input.value = ''
+                              }
+                            }}
+                            className="toggle-admin-button"
+                            style={{ 
+                              padding: '4px 8px',
+                              fontSize: '11px'
+                            }}
+                            title="Add CV Credits"
+                          >
+                            Add
+                          </button>
+                        </div>
+                      ) : (
+                        <span style={{ color: '#999' }}>N/A</span>
+                      )}
+                    </td>
+                    <td>{new Date(user.created_at).toLocaleDateString()}</td>
+                    <td>
+                      {!user.is_admin && user.user_type !== 'shopkeeper' && (
+                        <button
+                          onClick={() => updateUserType(user.email, 'shopkeeper')}
+                          className="toggle-admin-button"
+                          style={{ marginRight: '0.5rem' }}
+                          title="Update to Shopkeeper"
+                        >
+                          Set Shopkeeper
+                        </button>
+                      )}
+                      {!user.is_admin && user.user_type === 'shopkeeper' && (
+                        <button
+                          onClick={() => updateUserType(user.email, 'regular')}
+                          className="toggle-admin-button"
+                          style={{ marginRight: '0.5rem', backgroundColor: '#6c757d' }}
+                          title="Update to Regular User"
+                        >
+                          Set Regular
+                        </button>
+                      )}
+                      <button
+                        onClick={() => deleteUser(user.id)}
+                        className="delete-button"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>

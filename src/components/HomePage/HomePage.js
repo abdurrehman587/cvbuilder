@@ -13,6 +13,8 @@ const HomePage = ({ onProductSelect }) => {
             // Navigate to marketplace
             localStorage.setItem('selectedApp', 'marketplace');
             sessionStorage.setItem('showProductsPage', 'true');
+            // Dispatch event to set explicitlyClickedMarketplaceRef in App.js
+            window.dispatchEvent(new CustomEvent('navigateToSection', { detail: 'marketplace' }));
             window.location.href = '/#products';
           } else if (productId === 'cv-builder') {
             // Navigate to CV Builder dashboard
@@ -32,8 +34,11 @@ const HomePage = ({ onProductSelect }) => {
           // User is not authenticated - show login form
           if (productId === 'marketplace') {
             // For marketplace, navigate to products page
+            localStorage.setItem('selectedApp', 'marketplace');
             localStorage.setItem('showProductsPage', 'true');
             sessionStorage.setItem('showProductsPage', 'true');
+            // Dispatch event to set explicitlyClickedMarketplaceRef in App.js
+            window.dispatchEvent(new CustomEvent('navigateToSection', { detail: 'marketplace' }));
             window.location.href = '/#products';
           } else if (productId === 'cv-builder') {
             sessionStorage.setItem('navigateToCVBuilder', 'true');

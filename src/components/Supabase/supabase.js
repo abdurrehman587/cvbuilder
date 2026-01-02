@@ -271,9 +271,76 @@ export const authService = {
     return data
   },
 
+  // Update user metadata
+  async updateUserMetadata(metadata) {
+    const { data, error } = await supabase.auth.updateUser({
+      data: metadata
+    })
+    
+    if (error) throw error
+    return data
+  },
+
   // Listen to auth state changes
   onAuthStateChange(callback) {
     return supabase.auth.onAuthStateChange(callback)
+  }
+}
+
+// CV Credits Service for Shopkeepers
+export const cvCreditsService = {
+  // Get current CV credits for a user
+  async getCredits(userId) {
+    const { data, error } = await supabase
+      .rpc('get_cv_credits', { user_id: userId })
+    
+    if (error) throw error
+    return data || 0
+  },
+
+  // Decrement CV credits (returns new credit count, or -1 if not shopkeeper, or 0 if no credits)
+  async decrementCredits(userId) {
+    const { data, error } = await supabase
+      .rpc('decrement_cv_credits', { user_id: userId })
+    
+    if (error) throw error
+    return data
+  },
+
+  // Add CV credits to a shopkeeper (admin only)
+  async addCredits(userId, creditsToAdd) {
+    const { data, error } = await supabase
+      .rpc('add_cv_credits', { 
+        user_id: userId,
+        credits_to_add: creditsToAdd 
+      })
+    
+    if (error) throw error
+    return data
+  },
+
+  // Check if user can download CV (has credits or is not shopkeeper)
+  async canDownloadCV(userId) {
+    try {
+      // Get current user to check user type
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return false
+
+      // Get user type from metadata
+      const userType = user.user_metadata?.user_type || 'regular'
+      
+      // If not shopkeeper, allow download
+      if (userType !== 'shopkeeper') {
+        return true
+      }
+
+      // If shopkeeper, check credits
+      const credits = await this.getCredits(userId)
+      return credits > 0
+    } catch (err) {
+      console.error('Error checking download permission:', err)
+      return false
+    }
   }
 }
 

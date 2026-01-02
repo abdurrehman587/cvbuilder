@@ -1363,6 +1363,76 @@
   color: #94a3b8;
 }
 
+/* Option Selector for User Type */
+.option-selector {
+  display: flex;
+  gap: 8px;
+  margin-top: 0.5rem;
+}
+
+.option-button {
+  flex: 1;
+  padding: 10px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  background: white;
+  color: #666;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.option-button:hover {
+  border-color: #667eea;
+  color: #667eea;
+  background: #f8f9fa;
+}
+
+.option-button.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+/* User Type Modal */
+.user-type-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  padding: 20px;
+}
+
+.user-type-modal-content {
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.user-type-modal-content h2 {
+  color: #2c3e50;
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 10px 0;
+}
+
+.user-type-modal-content p {
+  color: #666;
+  font-size: 13px;
+  margin: 0 0 20px 0;
+}
+
 .error-message-inline {
   background: #fee;
   color: #c33;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './Header.css';
-import { authService, supabase } from '../Supabase/supabase';
+import { authService, supabase, cvCreditsService } from '../Supabase/supabase';
 import { getCartItemCount } from '../../utils/cart';
 import OrderNotification from '../OrderNotification/OrderNotification';
 
@@ -10,6 +10,8 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
   const [cartItemCount, setCartItemCount] = useState(0);
   const [showInstallButton, setShowInstallButton] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
+  const [cvCredits, setCvCredits] = useState(null);
+  const [userType, setUserType] = useState(null);
 
   // Check if PWA is already installed and handle install button visibility
   useEffect(() => {
@@ -374,6 +376,29 @@ Cart
                 )}
               </button>
             )}
+            
+            {/* CV Credits Display for Shopkeepers */}
+            {isAuthenticated && userType === 'shopkeeper' && cvCredits !== null && (
+              <div 
+                className="cv-credits-display"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '8px 12px',
+                  backgroundColor: cvCredits > 0 ? 'rgba(40, 167, 69, 0.1)' : 'rgba(220, 53, 69, 0.1)',
+                  borderRadius: '8px',
+                  border: `1px solid ${cvCredits > 0 ? '#28a745' : '#dc3545'}`,
+                  marginRight: '10px'
+                }}
+                title="CV Download Credits"
+              >
+                <span style={{ fontSize: '14px', fontWeight: '600', color: cvCredits > 0 ? '#28a745' : '#dc3545' }}>
+                  CV Credits: {cvCredits}
+                </span>
+              </div>
+            )}
+            
             {isAuthenticated && isAdmin && !window.location.hash.startsWith('#admin') && (
               <button 
                 type="button"

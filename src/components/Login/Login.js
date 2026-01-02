@@ -7,11 +7,14 @@ function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [userType, setUserType] = useState('regular'); // 'regular' or 'shopkeeper'
   const [error, setError] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
   const [isGoogleSigningIn, setIsGoogleSigningIn] = useState(false);
+  const [showUserTypeModal, setShowUserTypeModal] = useState(false);
+  const [pendingGoogleSignIn, setPendingGoogleSignIn] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -47,9 +50,14 @@ function Login() {
           setError('Password must be at least 6 characters');
           return;
         }
+        if (!userType || (userType !== 'regular' && userType !== 'shopkeeper')) {
+          setError('Please select whether you are a Regular User or Shopkeeper');
+          return;
+        }
         
         const { data, error } = await authService.signUp(email, password, {
-          full_name: email.split('@')[0] // Use email prefix as name
+          full_name: email.split('@')[0], // Use email prefix as name
+          user_type: userType // 'regular' or 'shopkeeper'
         });
         
         if (error) {
@@ -74,6 +82,7 @@ function Login() {
     setEmail('');
     setPassword('');
     setConfirmPassword('');
+    setUserType('regular'); // Reset to default
     setShowForgotPassword(false);
     setResetEmailSent(false);
   };
@@ -105,17 +114,30 @@ function Login() {
 
   const handleGoogleSignIn = async () => {
     setError('');
+    // Show user type selection modal first
+    setShowUserTypeModal(true);
+    setPendingGoogleSignIn(true);
+  };
+
+  const handleUserTypeSelectedForGoogle = async (selectedType) => {
+    setUserType(selectedType);
+    setShowUserTypeModal(false);
     setIsGoogleSigningIn(true);
+    
+    // Store user type in sessionStorage for after OAuth callback
+    sessionStorage.setItem('pendingUserType', selectedType);
     
     // Listen for callback to hide loading
     const handleCallback = () => {
       setIsGoogleSigningIn(false);
+      setPendingGoogleSignIn(false);
       window.removeEventListener('googleSignInCallbackReceived', handleCallback);
       window.removeEventListener('googleSignInError', handleError);
     };
     
     const handleError = (event) => {
       setIsGoogleSigningIn(false);
+      setPendingGoogleSignIn(false);
       setError('Google sign-in failed. Please try again.');
       window.removeEventListener('googleSignInCallbackReceived', handleCallback);
       window.removeEventListener('googleSignInError', handleError);
@@ -125,12 +147,13 @@ function Login() {
     window.addEventListener('googleSignInError', handleError);
     
     try {
-      console.log('Attempting Google sign-in...');
+      console.log('Attempting Google sign-in with user type:', selectedType);
       const { error } = await authService.signInWithGoogle();
       
       if (error) {
         console.error('Google sign-in error:', error);
         setIsGoogleSigningIn(false);
+        setPendingGoogleSignIn(false);
         setError('Google sign-in failed: ' + error.message);
         window.removeEventListener('googleSignInCallbackReceived', handleCallback);
         window.removeEventListener('googleSignInError', handleError);
@@ -143,6 +166,7 @@ function Login() {
     } catch (err) {
       console.error('Google authentication error:', err);
       setIsGoogleSigningIn(false);
+      setPendingGoogleSignIn(false);
       setError('Google authentication failed: ' + err.message);
       window.removeEventListener('googleSignInCallbackReceived', handleCallback);
       window.removeEventListener('googleSignInError', handleError);
@@ -254,17 +278,39 @@ function Login() {
           </div>
 
           {!isLogin && (
-            <div className="form-group">
-              <label htmlFor="confirmPassword">Confirm Password</label>
-              <input
-                type="password"
-                id="confirmPassword"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Confirm your password"
-                required
-              />
-            </div>
+            <>
+              <div className="form-group">
+                <label htmlFor="confirmPassword">Confirm Password</label>
+                <input
+                  type="password"
+                  id="confirmPassword"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm your password"
+                  required
+                />
+              </div>
+              
+              <div className="form-group">
+                <label>I am a <span style={{ color: '#c33' }}>*</span></label>
+                <div className="option-selector">
+                  <button
+                    type="button"
+                    className={`option-button ${userType === 'regular' ? 'active' : ''}`}
+                    onClick={() => setUserType('regular')}
+                  >
+                    Regular User
+                  </button>
+                  <button
+                    type="button"
+                    className={`option-button ${userType === 'shopkeeper' ? 'active' : ''}`}
+                    onClick={() => setUserType('shopkeeper')}
+                  >
+                    Shopkeeper
+                  </button>
+                </div>
+              </div>
+            </>
           )}
 
             {error && <div className="error-message">{error}</div>}
@@ -285,8 +331,8 @@ function Login() {
               type="button" 
               onClick={handleGoogleSignIn} 
               className="google-button"
-              disabled={isGoogleSigningIn}
-              style={{ opacity: isGoogleSigningIn ? 0.7 : 1, cursor: isGoogleSigningIn ? 'wait' : 'pointer' }}
+              disabled={isGoogleSigningIn || pendingGoogleSignIn}
+              style={{ opacity: (isGoogleSigningIn || pendingGoogleSignIn) ? 0.7 : 1, cursor: (isGoogleSigningIn || pendingGoogleSignIn) ? 'wait' : 'pointer' }}
             >
               <svg className="google-icon" viewBox="0 0 24 24" width="20" height="20">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -322,6 +368,56 @@ function Login() {
         )}
 
       </div>
+
+      {/* User Type Selection Modal for Google Sign-In */}
+      {showUserTypeModal && (
+        <div className="user-type-modal-overlay" onClick={() => {
+          setShowUserTypeModal(false);
+          setPendingGoogleSignIn(false);
+        }}>
+          <div className="user-type-modal-content" onClick={(e) => e.stopPropagation()}>
+            <h2>Select Your Account Type</h2>
+            <p>Please select whether you are a Regular User or Shopkeeper before continuing with Google</p>
+            <div className="option-selector" style={{ marginTop: '20px', marginBottom: '20px' }}>
+              <button
+                type="button"
+                className={`option-button ${userType === 'regular' ? 'active' : ''}`}
+                onClick={() => setUserType('regular')}
+              >
+                Regular User
+              </button>
+              <button
+                type="button"
+                className={`option-button ${userType === 'shopkeeper' ? 'active' : ''}`}
+                onClick={() => setUserType('shopkeeper')}
+              >
+                Shopkeeper
+              </button>
+            </div>
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                className="toggle-button"
+                onClick={() => {
+                  setShowUserTypeModal(false);
+                  setPendingGoogleSignIn(false);
+                }}
+                style={{ padding: '10px 20px', border: '1px solid #e0e0e0', borderRadius: '8px' }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="login-button"
+                onClick={() => handleUserTypeSelectedForGoogle(userType)}
+                style={{ padding: '10px 20px' }}
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

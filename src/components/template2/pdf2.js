@@ -2,6 +2,7 @@
 import html2canvas from 'html2canvas';
 import { Capacitor } from '@capacitor/core';
 import FileDownload from '../../utils/fileDownload';
+import { supabase, cvCreditsService, authService } from '../Supabase/supabase';
 
 // PDF Generation Configuration
 const PDF_CONFIG = {
@@ -546,6 +547,27 @@ const generatePDF = async (formData = null) => {
   try {
     console.log('Starting PDF generation...');
     
+    // Check CV credits for shopkeepers before allowing download
+    try {
+      const user = await authService.getCurrentUser();
+      if (user) {
+        const userType = user.user_metadata?.user_type || 'regular';
+        
+        if (userType === 'shopkeeper') {
+          const canDownload = await cvCreditsService.canDownloadCV(user.id);
+          if (!canDownload) {
+            const credits = await cvCreditsService.getCredits(user.id);
+            alert(`You have no CV download credits remaining (${credits} credits). Please contact admin to add more credits.`);
+            updateButtonState('📄 Download PDF', false);
+            return;
+          }
+        }
+      }
+    } catch (creditError) {
+      console.error('Error checking CV credits:', creditError);
+      // Continue with download if credit check fails (for backward compatibility)
+    }
+    
     // Validate CV preview
     cvPreview = validateCVPreview();
     
@@ -632,6 +654,30 @@ const generatePDF = async (formData = null) => {
     } else {
       // On web, use normal download
       pdf.save(fileName);
+    }
+    
+    // Decrement credits for shopkeepers after successful download
+    try {
+      const user = await authService.getCurrentUser();
+      if (user) {
+        const userType = user.user_metadata?.user_type || 'regular';
+        if (userType === 'shopkeeper') {
+          const newCredits = await cvCreditsService.decrementCredits(user.id);
+          if (newCredits >= 0) {
+            console.log(`CV credits decremented. Remaining credits: ${newCredits}`);
+            // Dispatch event to update credits display in Header
+            window.dispatchEvent(new CustomEvent('cvCreditsUpdated'));
+            if (newCredits === 0) {
+              alert(`PDF downloaded successfully! You have no credits remaining. Please contact admin to add more credits.`);
+            } else {
+              console.log(`Remaining CV credits: ${newCredits}`);
+            }
+          }
+        }
+      }
+    } catch (creditError) {
+      console.error('Error decrementing CV credits:', creditError);
+      // Don't block the download if credit decrement fails
     }
     
     console.log('PDF download completed');
