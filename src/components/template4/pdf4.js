@@ -20,21 +20,21 @@ const PDF_CONFIG = {
 const validateCVPreview = () => {
   // First try to find the hidden A4 preview element (always available for PDF)
   // This is the one that's always rendered but hidden off-screen
-  let cvPreview = document.querySelector('.template1-preview.template1-a4-size-preview.template1-pdf-mode[style*="visibility: hidden"]');
+  let cvPreview = document.querySelector('.template4-preview.template4-a4-size-preview.template4-pdf-mode[style*="visibility: hidden"]');
   
   // If not found, try to find any A4 preview element
   if (!cvPreview) {
-    cvPreview = document.querySelector('.template1-preview.template1-a4-size-preview.template1-pdf-mode');
+    cvPreview = document.querySelector('.template4-preview.template4-a4-size-preview.template4-pdf-mode');
   }
   
   // If still not found, try to find any A4 preview element
   if (!cvPreview) {
-    cvPreview = document.querySelector('.template1-preview.template1-a4-size-preview');
+    cvPreview = document.querySelector('.template4-preview.template4-a4-size-preview');
   }
   
-  // If not found, try to find any template1-preview element
+  // If not found, try to find any template4-preview element
   if (!cvPreview) {
-    cvPreview = document.querySelector('.template1-preview');
+    cvPreview = document.querySelector('.template4-preview');
   }
   
   if (!cvPreview) {
@@ -341,10 +341,10 @@ const generateCanvas = async (cvPreview) => {
     foreignObjectRendering: false,
     imageTimeout: PDF_CONFIG.imageTimeout,
     onclone: (clonedDoc) => {
-      // Try to find A4 preview first, then fallback to any cv-preview
-      let clonedPreview = clonedDoc.querySelector('.cv-preview.a4-size-preview');
+      // Try to find A4 preview first, then fallback to any template4-preview
+      let clonedPreview = clonedDoc.querySelector('.template4-preview.template4-a4-size-preview');
       if (!clonedPreview) {
-        clonedPreview = clonedDoc.querySelector('.cv-preview');
+        clonedPreview = clonedDoc.querySelector('.template4-preview');
       }
       
       if (clonedPreview) {
@@ -649,3 +649,4 @@ const generatePDF = async (formData = null) => {
 };
 
 export default generatePDF;
+

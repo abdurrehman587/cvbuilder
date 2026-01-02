@@ -11,6 +11,7 @@ const SearchCV = ({ onBack, onEditCV }) => {
   const [useClientSearch, setUseClientSearch] = useState(true);
   const [loadingCV, setLoadingCV] = useState(null);
   const [userInfo, setUserInfo] = useState({});
+  const [displayLimit, setDisplayLimit] = useState(50);
   const { cvs, searchCVs, fetchCompleteCV, loading, isAdmin } = useCVs();
   
   // Debug: Log admin status
@@ -171,6 +172,24 @@ const SearchCV = ({ onBack, onEditCV }) => {
     });
   }, [searchResults]);
 
+  // Reset display limit when search term changes
+  useEffect(() => {
+    setDisplayLimit(50);
+  }, [searchTerm]);
+
+  // Get displayed results (limited to displayLimit)
+  const displayedResults = useMemo(() => {
+    return memoizedSearchResults.slice(0, displayLimit);
+  }, [memoizedSearchResults, displayLimit]);
+
+  // Check if there are more results to load
+  const hasMoreResults = memoizedSearchResults.length > displayLimit;
+
+  // Load more results
+  const handleLoadMore = () => {
+    setDisplayLimit(prev => prev + 50);
+  };
+
   const handleCVClick = async (cv) => {
     if (onEditCV) {
       try {
@@ -296,20 +315,9 @@ const SearchCV = ({ onBack, onEditCV }) => {
         <div className="search-results">
           <div className="search-results-header">
             <h3>Search Results ({memoizedSearchResults.length})</h3>
-            {cvs.length >= 100 && (
-              <div className="search-performance-info">
-                <button 
-                  className="toggle-search-mode"
-                  onClick={() => setUseClientSearch(!useClientSearch)}
-                  title="Toggle between client and server search"
-                >
-                  {useClientSearch ? 'Switch to Server Search' : 'Switch to Client Search'}
-                </button>
-              </div>
-            )}
           </div>
           <div className="results-list">
-            {memoizedSearchResults.map((cv) => {
+            {displayedResults.map((cv) => {
               // Fetch user info for admin if needed
               if (isAdmin && cv.user_id && !userInfo[cv.user_id]) {
                 fetchUserInfo(cv.user_id);
@@ -349,6 +357,16 @@ const SearchCV = ({ onBack, onEditCV }) => {
               );
             })}
           </div>
+          {hasMoreResults && (
+            <div className="load-more-container">
+              <button 
+                className="load-more-button"
+                onClick={handleLoadMore}
+              >
+                Load More ({memoizedSearchResults.length - displayLimit} remaining)
+              </button>
+            </div>
+          )}
         </div>
       )}
 

@@ -340,6 +340,101 @@ html {
   border-color: rgba(255, 255, 255, 0.5);
 }
 
+/* CV Action Buttons Container */
+.cv-action-buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 15px 20px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  gap: 15px;
+}
+
+/* View A4 Preview Button - Beautiful Styling */
+.preview-a4-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 14px 32px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+  letter-spacing: 0.3px;
+  text-transform: none;
+  min-width: 200px;
+}
+
+.preview-a4-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s ease;
+}
+
+.preview-a4-button:hover::before {
+  left: 100%;
+}
+
+.preview-a4-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+}
+
+.preview-a4-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 10px rgba(102, 126, 234, 0.4);
+}
+
+.preview-a4-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
+}
+
+/* Responsive adjustments for preview button */
+@media (max-width: 768px) {
+  .cv-action-buttons {
+    padding: 10px 15px;
+    margin-top: 8px;
+    margin-bottom: 10px;
+  }
+  
+  .preview-a4-button {
+    padding: 12px 24px;
+    font-size: 14px;
+    min-width: 180px;
+  }
+}
+
+@media (max-width: 480px) {
+  .cv-action-buttons {
+    padding: 8px 10px;
+    margin-top: 5px;
+    margin-bottom: 8px;
+  }
+  
+  .preview-a4-button {
+    padding: 10px 20px;
+    font-size: 13px;
+    min-width: 160px;
+    width: 100%;
+  }
+}
+
 .container {
   display: flex;
   flex-direction: column;

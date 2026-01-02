@@ -1,529 +1,328 @@
-/* ================================
-   CV HEADER
-================================ */
+/* ==================================================
+   TEMPLATE 1 - ROOT & GLOBAL
+================================================== */
 
-.cv-header {
-  width: 100%;
-  background: #ffffff;
+.template1-root {
+  --template1-accent: #e67e22;
+  --template1-accent-soft: #fdebd0;
+  --template1-dark: #1f2937;
+  --template1-muted: #6b7280;
+  --template1-line: #e5e7eb;
+  
+  box-sizing: border-box;
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  color: var(--template1-dark);
+}
+
+/* ==================================================
+   HEADER
+================================================== */
+
+.template1-root .template1-cv-header {
+  background: linear-gradient(135deg, #fff 60%, var(--template1-accent-soft));
+  border-radius: 10px;
+  padding: 14px;
   margin-bottom: 18px;
-  border-bottom: 3px solid #d4a373; /* orange accent */
 }
 
-.cv-header-top {
+.template1-root .template1-cv-header-top {
   display: flex;
+  gap: 16px;
   align-items: center;
-  gap: 18px;
-  padding: 12px 16px;
 }
 
-/* ================================
+
+/* ==================================================
    PROFILE IMAGE
-================================ */
+================================================== */
 
-.profile-image-container {
-  width: 90px;
-  height: 90px;
-  flex-shrink: 0;
-  border-radius: 8px;
+.template1-root .template1-profile-image-container {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
   overflow: hidden;
-  background: #f3f4f6;
-  border: 2px solid #d4a373;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  border: 3px solid var(--template1-accent);
+  background: #fff;
+  flex-shrink: 0;
 }
 
-.profile-image {
+.template1-root .template1-profile-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.profile-placeholder {
-  font-size: 24px;
+.template1-root .template1-profile-placeholder {
+  font-size: 28px;
   font-weight: 700;
-  color: #9ca3af;
+  color: var(--template1-muted);
 }
 
-/* ================================
+/* ==================================================
    HEADER CONTENT
-================================ */
+================================================== */
 
-.header-content {
-  flex: 1;
+.template1-root .template1-header-content {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
-/* Name */
-.header-name {
-  font-size: 30px;
-  font-weight: 700;
-  color: #111827;
+.template1-root .template1-header-name {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
   margin: 0;
-  line-height: 1.2;
-  text-align: left;
 }
 
-/* Position / Title */
-.header-title {
-  font-size: 15px;
+.template1-root .template1-header-title {
+  font-size: 14px;
   font-weight: 600;
-  color: #d4a373;
-  margin: 0 0 6px 0;
+  color: var(--template1-accent);
+  text-transform: uppercase;
 }
 
-/* ================================
+/* ==================================================
    CONTACT INFO
-================================ */
+================================================== */
 
-.contact-item {
+.template1-root .template1-contact-item {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--template1-muted);
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.template1-root .template1-contact-icon {
+  font-size: 16px;
+  color: var(--template1-accent);
+}
+
+/* ==================================================
+   SECTION WRAPPER
+================================================== */
+
+.template1-root .template1-cv-section {
+  margin-bottom: 18px;
+}
+
+.template1-root .template1-section-content {
+  display: block;
+  width: 100%;
+}
+
+/* ==================================================
+   SECTION HEADING (UNIQUE STYLE)
+================================================== */
+
+.template1-root .template1-section-heading {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 14px;
-  font-weight: 600;
-    line-height: 1.2;
+  gap: 8px;
 }
 
-.contact-icon {
-  font-size: 18px;
+.template1-root .template1-section-heading::after {
+  content: "";
+  flex: 1;
+  height: 2px;
+  background: linear-gradient(to right, var(--template1-accent), transparent);
 }
 
-/* ================================
-   BOTTOM ACCENT BAR
-================================ */
-
-.cv-header-bottom {
-  width: 100%;
-  height: 6px;
-  background: linear-gradient(
-    to right,
-    #d4a373 0%,
-    #fbbf24 50%,
-    #bd9a0f 100%
-  );
-}
-
-/* ================================
+/* ==================================================
    PROFESSIONAL SUMMARY
-================================ */
+================================================== */
 
-.cv-section {
-  width: 100%;
-  margin-bottom: 16px;
-}
-
-.section-heading {
-  font-size: 16px;
-  font-weight: 700;
-  color: #a7713c;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin: 0 0 5px 0;
-  padding-bottom: 4px;
-  border-bottom: 2px solid #d4a373; /* orange underline */
-}
-
-.section-content {
-  padding-top: 2px;
-}
-
-/* Professional Summary Text */
-
-.professional-summary-text {
-  font-size: 14px;
-  line-height: 1.6;
-  margin: 0;
+.template1-root .template1-professional-summary-text {
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: #374151;
   text-align: justify;
-  word-break: break-word;
 }
 
-/* ================================
-   EDUCATION SECTION
-================================ */
+/* ==================================================
+   EDUCATION
+================================================== */
 
-.education-item {
+.template1-root .template1-education-item {
   margin-bottom: 6px;
 }
 
-.education-single-line {
+.template1-root .template1-education-single-line {
   font-size: 13.5px;
-  color: #374151;
-  line-height: 1.5;
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
 }
 
-/* Degree */
-.education-degree {
-  font-size: 16px;
-  font-weight: 600;
-  color: #a7713c;
+.template1-root .template1-education-degree {
+  font-weight: 700;
+  color: var(--template1-accent);
 }
 
-/* Board / Institute */
-.education-board {
+.template1-root .template1-education-board,
+.template1-root .template1-education-year,
+.template1-root .template1-education-marks {
+  color: var(--template1-muted);
   font-weight: 500;
 }
 
-/* Year */
-.education-year {
-  font-weight: 500;
-}
+/* ==================================================
+   EXPERIENCE
+================================================== */
 
-/* Marks / Grade */
-.education-marks {
-  font-weight: 500;
-}
-
-
-/* ================================
-   EXPERIENCE SECTION
-================================ */
-
-.experience-item {
+.template1-root .template1-experience-item {
+  padding-left: 10px;
+  border-left: 3px solid var(--template1-accent-soft);
   margin-bottom: 10px;
 }
 
-/* Job title + duration row */
-.experience-header {
+.template1-root .template1-experience-header {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
   gap: 10px;
-  margin-bottom: 2px;
 }
 
-/* Job Title */
-.experience-job-title {
+.template1-root .template1-experience-job-title {
   font-size: 14px;
   font-weight: 700;
 }
 
-/* Duration */
-.experience-duration {
-  font-size: 12.5px;
+.template1-root .template1-experience-duration {
+  font-size: 12px;
   font-weight: 600;
-  color: #a7713c; 
-  white-space: nowrap;
+  color: var(--template1-accent);
 }
 
-/* Company line */
-.experience-company-line {
-  margin-bottom: 4px;
-}
 
-.experience-company {
+.template1-root .template1-experience-company {
   font-size: 13px;
   font-weight: 600;
+  color: var(--template1-muted);
 }
-
-/* ================================
-   JOB DETAILS (BULLETS)
-================================ */
-
-.experience-details {
-  margin-top: 2px;
-}
-
-.experience-details-list {
-  margin: 0;
-  padding-left: 18px;
-}
-
-.experience-detail-item {
-  font-size: 13px;
-  line-height: 1.5;
-  margin-bottom: 3px;
-}
-
-/* Clean bullet style for PDF */
-.experience-detail-item::marker {
-  color: #a7713c;
-}
-
-
-/* ================================
-   SKILLS SECTION
-================================ */
-
-.skills-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-/* Skill Pill */
-.skill-pill {
-  padding: 4px 10px;
-  background: #fff7ed;          
-  border: 1px solid #a7713c;  
-  border-radius: 14px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Skill Text */
-.skill-name {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: #92400e;                /* darker orange/brown */
-  white-space: nowrap;
-}
-
-/* ================================
-   LANGUAGES SECTION
-================================ */
-
-.languages-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-/* Language Pill */
-.language-pill {
-  padding: 4px 12px;
-  background: #fff7ed;          
-  border: 1px solid #a7713c;  
-  border-radius: 14px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Language Text */
-.language-name {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: #78350f;               /* dark brown/orange */
-  white-space: nowrap;
-}
-
-
-/* ================================
-   HOBBIES SECTION
-================================ */
-
-.hobbies-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-/* Hobby Pill */
-.hobby-pill {
-  padding: 4px 12px;
-  background: #fff7ed;          
-  border: 1px solid #a7713c;  
-  border-radius: 14px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Hobby Text */
-.hobby-name {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: #7c2d12;               /* deep warm tone */
-  white-space: nowrap;
-}
-
-
-/* ================================
-   CERTIFICATIONS SECTION
-================================ */
-
-.certifications-content {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.certification-item {
-  padding-left: 14px;
-  position: relative;
-}
-
-/* Custom bullet */
-.certification-item::before {
-  content: "•";
-  position: absolute;
-  left: 0;
-  top: 0;
-  color: #a7713c;        /* orange accent */
-  font-size: 16px;
-  line-height: 1;
-}
-
-.certification-text {
-  font-size: 13px;
-  line-height: 1.5;
-  margin: 0;
-}
-
-
-
-/* ================================
-   OTHER INFORMATION SECTION
-================================ */
-
-.other-info-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 6px 16px;
-}
-
-.info-item {
-  display: flex;
-  gap: 4px;
-  font-size: 13px;
-  line-height: 1.4;
-}
-
-.info-label {
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.info-value {
-  font-weight: 500;
-  word-break: break-word;
-}
-
-
-
-/* ================================
-   REFERENCES SECTION
-================================ */
-
-.references-content {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.reference-item {
-  padding-left: 14px;
-  position: relative;
-}
-
-.reference-item::before {
-  content: "•";
-  position: absolute;
-  left: 0;
-  top: 0;
-  color: #a7713c;
-  font-size: 16px;
-  line-height: 1;
-}
-
-.reference-text {
-  font-size: 13px;
-  line-height: 1.5;
-  margin: 0;
-}
-
-
-
-/* ================================
-   CUSTOM SECTION
-================================ */
-
-.custom-section-content {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.custom-section-item {
-  padding-left: 14px;
-  position: relative;
-}
-
-.custom-section-item::before {
-  content: "•";
-  position: absolute;
-  left: 0;
-  top: 0;
-  color: #a7713c;
-  font-size: 16px;
-  line-height: 1;
-}
-
-.custom-section-detail {
-  font-size: 13px;
-  line-height: 1.5;
-  margin: 0;
-}
-
 
 /* ==================================================
-   ENHANCEMENT LAYER (ADD-ON ONLY)
-   Does NOT override your base layout
+   EXPERIENCE BULLETS
 ================================================== */
 
-/* Section heading refinement */
-.section-heading {
+
+.template1-root .template1-experience-details-list {
+  padding-left: 16px;
+  margin: 4px 0 0 0;
+}
+
+.template1-root .template1-experience-detail-item {
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.template1-root .template1-experience-detail-item::marker {
+  color: var(--template1-accent);
+}
+
+/* ==================================================
+   SKILLS / LANGUAGES / HOBBIES (TAG STYLE)
+================================================== */
+
+.template1-root .template1-skills-container,
+.template1-root .template1-languages-container,
+.template1-root .template1-hobbies-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.template1-root .template1-skill-pill,
+.template1-root .template1-language-pill,
+.template1-root .template1-hobby-pill {
+  background: var(--template1-accent-soft);
+  border-radius: 6px;
+  padding: 5px 10px;
+}
+
+.template1-root .template1-skill-name,
+.template1-root .template1-language-name,
+.template1-root .template1-hobby-name {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--template1-accent);
+}
+
+.template1-root .template1-language-level {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--template1-muted);
+}
+
+/* ==================================================
+   CERTIFICATIONS / REFERENCES / CUSTOM
+================================================== */
+
+.template1-root .template1-certifications-content,
+.template1-root .template1-references-content,
+.template1-root .template1-custom-section-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.template1-root .template1-certification-item,
+.template1-root .template1-reference-item,
+.template1-root .template1-custom-section-item {
   position: relative;
-  padding-left: 10px;
+  padding-left: 16px;
 }
 
-.section-heading::before {
-  content: "";
+.template1-root .template1-certification-item::before,
+.template1-root .template1-reference-item::before,
+.template1-root .template1-custom-section-item::before {
+  content: "▸";
   position: absolute;
+  margin-top: 12px;
   left: 0;
-  top: 48%;
-  width: 4px;
-  height: 14px;
-  background: linear-gradient(
-    to bottom,
-    #d4a373,
-    #fbbf24
-  );
-  transform: translateY(-50%);
-  border-radius: 2px;
+  color: var(--template1-accent);
+  font-weight: 900;
 }
 
-/* Header subtle shadow for premium feel */
-.cv-header {
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+.template1-root .template1-certification-text,
+.template1-root .template1-reference-text,
+.template1-root .template1-custom-section-detail {
+  font-size: 13px;
+  line-height: 1.6;
 }
 
-/* Profile image glow */
-.profile-image-container {
-  box-shadow: 0 0 0 2px rgba(212, 163, 115, 0.25);
-}
+/* ==================================================
+   OTHER INFORMATION GRID
+================================================== */
 
-/* Experience item highlight */
-.experience-item {
-  padding-left: 6px;
-  border-left: 2px solid rgba(212, 163, 115, 0.4);
+.template1-root .template1-other-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px 14px;
 }
 
 
-/* Education & certification bullets alignment polish */
-.education-single-line,
-.certification-text,
-.reference-text,
-.custom-section-detail {
-  letter-spacing: 0.2px;
+.template1-root .template1-info-label {
+  font-weight: 700;
 }
 
-/* Other information grid balance */
-.other-info-grid {
-  padding-top: 4px;
+.template1-root .template1-info-value {
+  font-weight: 500;
+  color: var(--template1-muted);
 }
 
+/* ==================================================
+   PRINT OPTIMIZATION
+================================================== */
 
-/* Print-safe spacing */
 @media print {
-  .cv-section {
+  .template1-root .template1-cv-section {
     page-break-inside: avoid;
   }
 }

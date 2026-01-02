@@ -42,7 +42,7 @@ const usePreviewHandler = (passedFormData = null) => {
       experience: [],
       skills: [],
       certifications: [],
-      languages: [],
+      languages: formDataRef.current?.languages || [], // Use ref to avoid dependency
       hobbies: formDataRef.current?.hobbies || [], // Use ref to avoid dependency
       otherInfo: [],
       customSection: [],
@@ -127,9 +127,18 @@ const usePreviewHandler = (passedFormData = null) => {
     const certInputs = document.querySelectorAll('.certifications-section input[type="text"]');
     data.certifications = Array.from(certInputs).map(input => input.value).filter(value => value.trim() !== '');
 
-    // Get languages data
-    const langInputs = document.querySelectorAll('.languages-section input[type="text"]');
-    data.languages = Array.from(langInputs).map(input => input.value).filter(value => value.trim() !== '');
+    // Get languages data - now includes level
+    const langInputs = document.querySelectorAll('.languages-section .language-input');
+    const langLevelInputs = document.querySelectorAll('.languages-section .language-level-input');
+    data.languages = Array.from(langInputs).map((input, index) => {
+      const name = input.value.trim();
+      const levelInput = langLevelInputs[index];
+      const level = levelInput ? levelInput.value.trim() : '';
+      if (name) {
+        return { name, level };
+      }
+      return null;
+    }).filter(lang => lang !== null);
 
     // Get hobbies data - now managed through React state
     // Since hobbies are now managed in React state, we need to get them from the current formData state
@@ -236,13 +245,14 @@ const usePreviewHandler = (passedFormData = null) => {
       // - If DOM has data, merge DOM data to fill in any gaps
       // - Always merge professionalSummary from DOM if available (form input takes priority)
       // - This ensures we have all data whether form is in DOM or not
+      // - For profileImage: prefer DOM file input (if file is selected), then dataToUse (from database), then null
       const mergedData = {
         ...dataToUse, // Start with dataToUse (source of truth)
         ...(domHasData ? domData : {}), // Only merge DOM data if it has meaningful content
         // Always prefer DOM professionalSummary if it exists (form input is most current)
         professionalSummary: domData.professionalSummary || dataToUse.professionalSummary,
-        // Ensure these fields prefer dataToUse
-        profileImage: dataToUse.profileImage || domData.profileImage,
+        // Profile image: prefer DOM file input if available (newly selected), then dataToUse (from database/base64), then null
+        profileImage: domData.profileImage || dataToUse.profileImage,
         customSection: dataToUse.customSection && dataToUse.customSection.length > 0 
           ? dataToUse.customSection 
           : (domData.customSection || []),
@@ -322,8 +332,8 @@ const usePreviewHandler = (passedFormData = null) => {
         ...dataToUse, // Override with dataToUse (from app state or localStorage)
         // Always prefer DOM professionalSummary if it exists (form input is most current)
         professionalSummary: newData.professionalSummary || dataToUse.professionalSummary,
-        // But ensure these specific fields prefer dataToUse if they exist
-        profileImage: dataToUse.profileImage || newData.profileImage,
+        // Profile image: prefer DOM file input if available (newly selected), then dataToUse (from database/base64)
+        profileImage: newData.profileImage || dataToUse.profileImage,
         customSection: dataToUse.customSection && dataToUse.customSection.length > 0 
           ? dataToUse.customSection 
           : (newData.customSection || []),

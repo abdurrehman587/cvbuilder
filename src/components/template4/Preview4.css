@@ -1,0 +1,685 @@
+/* ==================================================
+   EUROPASS CV - Template 4
+   Official Europass CV Format
+================================================== */
+
+.template4-root {
+  --europass-blue: #003399;
+  --europass-blue-light: #0066cc;
+  --europass-blue-soft: #e6f0ff;
+  --europass-gray: #4a4a4a;
+  --europass-gray-light: #6b7280;
+  --europass-border: #d1d5db;
+  --europass-bg: #ffffff;
+  font-family: "Arial", "Helvetica", sans-serif;
+  color: var(--europass-gray);
+}
+
+.template4-root * {
+  box-sizing: border-box;
+}
+
+/* ==================================================
+   EUROPASS HEADER / BRANDING
+================================================== */
+
+.template4-europass-header {
+  background: transparent;
+  color: var(--europass-gray);
+  padding: 24px 0 8px 0;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  min-height: 100px;
+}
+
+.template4-europass-title {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin: 0;
+  text-transform: uppercase;
+  flex: 1;
+  color: var(--europass-blue);
+  display: flex;
+  align-items: center;
+  line-height: 1.2;
+}
+
+.template4-header-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 20px;
+  flex-shrink: 0;
+}
+
+.template4-header-profile-image-container {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid var(--europass-blue);
+  background: white;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.template4-header-profile-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.template4-header-profile-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--europass-gray-light);
+  background: #f3f4f6;
+}
+
+.template4-europass-logo-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  height: 90px;
+}
+
+.template4-europass-logo-image {
+  height: 45px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
+/* Fallback CSS logo if image fails to load */
+.template4-europass-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.template4-logo-square {
+  width: 24px;
+  height: 24px;
+  background: #003399;
+  border: 2px solid white;
+  position: relative;
+}
+
+.template4-logo-square::after {
+  content: "★";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #FFD700;
+  font-size: 14px;
+}
+
+.template4-logo-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #6B46C1;
+  text-transform: lowercase;
+  letter-spacing: 0.5px;
+}
+
+/* ==================================================
+   PERSONAL INFORMATION SECTION
+================================================== */
+
+.template4-personal-info-section {
+  background: transparent;
+  padding: 0 0 8px 0;
+  margin-bottom: 8px;
+  margin-top: 0;
+}
+
+.template4-personal-info-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.template4-contact-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: center;
+}
+
+.template4-contact-item-inline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--europass-gray);
+}
+
+.template4-contact-item-inline .template4-personal-info-value {
+  font-size: 14px;
+}
+
+/* Profile image removed from personal info section - now in header */
+.template4-profile-image-container {
+  display: none;
+}
+
+.template4-profile-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.template4-profile-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--europass-gray-light);
+  background: #f3f4f6;
+}
+
+.template4-personal-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.template4-personal-info-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--europass-gray);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.template4-personal-info-value {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--europass-gray);
+  line-height: 1.5;
+}
+
+.template4-personal-info-name {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--europass-blue);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.template4-personal-info-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--europass-gray);
+  margin: 0;
+}
+
+/* ==================================================
+   CV SECTIONS
+================================================== */
+
+.template4-cv-section {
+  margin-bottom: 12px;
+  page-break-inside: avoid;
+}
+
+.template4-cv-section .template4-section-content {
+  display: block;
+  width: 100%;
+}
+
+.template4-root .template4-section-heading,
+.template4-section-heading {
+  background: transparent !important;
+  color: var(--europass-blue) !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  padding: 0 !important;
+  margin: 0 0 12px 0 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.8px !important;
+  border-bottom: 2px solid var(--europass-blue) !important;
+  border-left: none !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  position: relative !important;
+  z-index: 1 !important;
+  height: auto !important;
+  min-height: auto !important;
+  overflow: visible !important;
+  padding-bottom: 6px !important;
+}
+
+.template4-root h3.template4-section-heading,
+.template4-cv-section h3.template4-section-heading,
+h3.template4-section-heading {
+  background: transparent !important;
+  color: var(--europass-blue) !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  height: auto !important;
+  min-height: auto !important;
+  overflow: visible !important;
+}
+
+/* ==================================================
+   WORK EXPERIENCE
+================================================== */
+
+.template4-experience-item {
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--europass-border);
+  display: flex;
+  align-items: flex-start;
+  gap: 40px;
+}
+
+.template4-experience-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.template4-experience-date {
+  min-width: 120px;
+  max-width: 120px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--europass-gray);
+  flex-shrink: 0;
+  text-align: left;
+  padding-top: 2px;
+  line-height: 1.4;
+}
+
+.template4-experience-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.template4-experience-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 4px;
+}
+
+.template4-experience-job-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--europass-blue);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.template4-experience-company {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--europass-gray);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.template4-experience-details-list {
+  margin: 4px 0 0 0;
+  padding-left: 20px;
+  list-style: disc;
+}
+
+.template4-experience-detail-item {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--europass-gray);
+  margin-bottom: 2px;
+  padding-left: 4px;
+}
+
+/* ==================================================
+   EDUCATION AND TRAINING
+================================================== */
+
+.template4-education-item {
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--europass-border);
+  display: flex;
+  align-items: flex-start;
+  gap: 40px;
+}
+
+.template4-education-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.template4-education-date {
+  min-width: 120px;
+  max-width: 120px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--europass-gray);
+  flex-shrink: 0;
+  text-align: left;
+  padding-top: 2px;
+  line-height: 1.4;
+}
+
+.template4-education-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.template4-education-single-line {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--europass-gray);
+}
+
+.template4-education-degree {
+  font-weight: 700;
+  color: var(--europass-blue);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.template4-education-board,
+.template4-education-year,
+.template4-education-marks {
+  color: var(--europass-gray);
+  font-weight: 400;
+  font-size: 14px;
+}
+
+/* ==================================================
+   PERSONAL SKILLS
+================================================== */
+
+.template4-skills-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  row-gap: 6px;
+}
+
+.template4-skill-item {
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--europass-gray);
+  display: inline-block;
+}
+
+.template4-skill-name {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--europass-gray);
+}
+
+/* Keep pill style for backward compatibility */
+.template4-skills-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.template4-skill-pill {
+  background: var(--europass-blue-soft);
+  border: 1px solid var(--europass-blue);
+  border-radius: 4px;
+  padding: 6px 12px;
+}
+
+/* ==================================================
+   LANGUAGES
+================================================== */
+
+.template4-languages-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.template4-language-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 14px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--europass-border);
+}
+
+.template4-language-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.template4-language-name {
+  font-weight: 700;
+  color: var(--europass-blue);
+  min-width: 120px;
+}
+
+.template4-language-level {
+  color: var(--europass-gray);
+  font-weight: 400;
+}
+
+/* ==================================================
+   CERTIFICATIONS
+================================================== */
+
+.template4-certifications-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.template4-certification-item {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--europass-gray);
+  padding-left: 18px;
+  position: relative;
+}
+
+.template4-certification-item::before {
+  content: "•";
+ margin-top: -1px;
+ position: absolute;
+  left: 0;
+  color: var(--europass-blue);
+  font-weight: 900;
+  font-size: 18px;
+}
+
+.template4-certification-text {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--europass-gray);
+  margin: 0;
+}
+
+/* ==================================================
+   REFERENCES
+================================================== */
+
+.template4-references-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.template4-reference-item {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--europass-gray);
+  padding-left: 18px;
+  position: relative;
+}
+
+.template4-reference-item::before {
+  content: "•";
+  margin-top: 11px;
+  position: absolute;
+  left: 0;
+  color: var(--europass-blue);
+  font-weight: 900;
+  font-size: 18px;
+}
+
+/* ==================================================
+   ADDITIONAL INFORMATION
+================================================== */
+
+.template4-other-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px 24px;
+}
+
+.template4-info-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--europass-gray);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.template4-info-value {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--europass-gray);
+  line-height: 1.5;
+}
+
+/* ==================================================
+   PROFESSIONAL SUMMARY
+================================================== */
+
+.template4-professional-summary-text {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--europass-gray);
+  text-align: justify;
+  margin: 0;
+}
+
+/* ==================================================
+   CUSTOM SECTIONS
+================================================== */
+
+.template4-custom-section-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.template4-custom-section-item {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--europass-gray);
+}
+
+.template4-custom-section-heading {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--europass-blue);
+  margin: 0 0 4px 0;
+}
+
+.template4-custom-section-detail {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--europass-gray);
+  margin: 0;
+}
+
+/* ==================================================
+   CONTACT INFO (in Personal Info Section)
+================================================== */
+
+.template4-contact-item {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--europass-gray);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.template4-contact-item .template4-personal-info-value {
+  font-size: 14px;
+}
+
+.template4-contact-icon {
+  font-size: 16px;
+  color: var(--europass-blue);
+  flex-shrink: 0;
+}
+
+/* ==================================================
+   HOBBIES
+================================================== */
+
+.template4-hobbies-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.template4-hobby-pill {
+  background: var(--europass-blue-soft);
+  border: 1px solid var(--europass-blue);
+  border-radius: 4px;
+  padding: 6px 12px;
+}
+
+.template4-hobby-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--europass-blue);
+}
+
+/* ==================================================
+   PRINT OPTIMIZATION
+================================================== */
+
+@media print {
+  .template4-cv-section {
+    page-break-inside: avoid;
+  }
+  
+  .template4-europass-header {
+    background: var(--europass-blue) !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  .template4-section-heading {
+    background: var(--europass-blue) !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

@@ -2,7 +2,6 @@
 import html2canvas from 'html2canvas';
 import { Capacitor } from '@capacitor/core';
 import FileDownload from '../../utils/fileDownload';
-import './pdf2.css';
 
 // PDF Generation Configuration
 const PDF_CONFIG = {

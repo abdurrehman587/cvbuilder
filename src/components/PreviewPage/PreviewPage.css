@@ -364,10 +364,10 @@
   /* Template 5 specific mobile adjustments */
   .preview-page-content .template5-root .cv-preview {
     transform: scale(min(
-      calc((100vw - 20px) / 1200),
-      calc((100vh - 200px) / 1697)
+      calc((100vw - 20px) / 794),
+      calc((100vh - 200px) / 1123)
     )) !important;
-    transform-origin: top center !important;
+    transform-origin: top left !important;
   }
 }
 
@@ -470,9 +470,10 @@
 
   .preview-page-content .template5-root .cv-preview {
     transform: scale(min(
-      calc((100vw - 10px) / 1200),
-      calc((100vh - 180px) / 1697)
+      calc((100vw - 10px) / 794),
+      calc((100vh - 180px) / 1123)
     )) !important;
+    transform-origin: top left !important;
   }
 }
 

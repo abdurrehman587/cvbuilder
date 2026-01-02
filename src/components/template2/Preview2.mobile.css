@@ -3,8 +3,8 @@
 /* Tablet and small desktop */
 @media screen and (max-width: 768px) {
   .cv-preview,
-  .template1-root .cv-preview,
-  .template1-container .cv-preview,
+  .template2-root .cv-preview,
+  .template2-container .cv-preview,
   .preview-page-preview-wrapper .cv-preview {
     width: 800px !important;
     height: auto !important;
@@ -17,8 +17,8 @@
 /* Mobile devices */
 @media screen and (max-width: 480px) {
   .cv-preview,
-  .template1-root .cv-preview,
-  .template1-container .cv-preview,
+  .template2-root .cv-preview,
+  .template2-container .cv-preview,
   .preview-page-preview-wrapper .cv-preview {
     width: 800px !important;
     height: auto !important;
@@ -31,8 +31,8 @@
 /* Very small mobile devices */
 @media screen and (max-width: 375px) {
   .cv-preview,
-  .template1-root .cv-preview,
-  .template1-container .cv-preview,
+  .template2-root .cv-preview,
+  .template2-container .cv-preview,
   .preview-page-preview-wrapper .cv-preview {
     width: 800px !important;
     height: auto !important;
@@ -41,4 +41,3 @@
     margin: 0 !important;
   }
 }
-

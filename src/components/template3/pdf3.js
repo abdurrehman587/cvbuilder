@@ -2,7 +2,6 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { Capacitor } from '@capacitor/core';
 import FileDownload from '../../utils/fileDownload';
-import './pdf3.css';
 
 // PDF Generation Configuration
 const PDF_CONFIG = {
@@ -20,26 +19,22 @@ const PDF_CONFIG = {
 // Helper Functions
 const validateCVPreview = () => {
   // First try to find the hidden A4 preview element (always available for PDF)
-  let cvPreview = document.querySelector('.cv-preview.a4-size-preview.pdf-mode[style*="visibility: hidden"]');
+  // This is the one that's always rendered but hidden off-screen
+  let cvPreview = document.querySelector('.template3-preview.template3-a4-size-preview.template3-pdf-mode[style*="visibility: hidden"]');
   
   // If not found, try to find any A4 preview element
   if (!cvPreview) {
-    cvPreview = document.querySelector('.cv-preview.a4-size-preview.pdf-mode');
+    cvPreview = document.querySelector('.template3-preview.template3-a4-size-preview.template3-pdf-mode');
   }
   
   // If still not found, try to find any A4 preview element
   if (!cvPreview) {
-    cvPreview = document.querySelector('.cv-preview.a4-size-preview');
+    cvPreview = document.querySelector('.template3-preview.template3-a4-size-preview');
   }
   
-  // If not found, try to find any cv-preview element
+  // If not found, try to find any template3-preview element
   if (!cvPreview) {
-    cvPreview = document.querySelector('.cv-preview');
-  }
-  
-  // Try to find cv3-root as fallback
-  if (!cvPreview) {
-    cvPreview = document.querySelector('.cv3-root');
+    cvPreview = document.querySelector('.template3-preview');
   }
   
   if (!cvPreview) {
@@ -56,10 +51,10 @@ const validateCVPreview = () => {
 
 const applyPageBreaks = (cvPreview) => {
   const pageHeight = 1129; // A4 page height in pixels
-  const padding = 15; // Top and bottom padding (matching compact design)
+  const padding = 20; // Top and bottom padding
   const usablePageHeight = pageHeight - (padding * 2);
   
-  // Get all sections - template 3 uses .cv3-section
+  // Get all sections
   const sections = cvPreview.querySelectorAll('.cv3-section');
   
   // Reset all sections first
@@ -104,7 +99,7 @@ const setupPDFMode = (cvPreview) => {
   // Apply page breaks to prevent section cutoff
   applyPageBreaks(cvPreview);
   
-  // Hide download button if exists
+  // Hide download button
   const downloadButton = cvPreview.querySelector('.download-pdf-container');
   const originalDisplay = downloadButton ? downloadButton.style.display : '';
   if (downloadButton) {
@@ -218,6 +213,10 @@ const cleanupPDFMode = (cvPreview, downloadButton, originalDisplay, originalWidt
   cvPreview.style.zIndex = originalZIndex || '';
   cvPreview.style.top = originalTop || '';
   cvPreview.style.left = originalLeft || '';
+  
+  // Note: We keep pdf-mode class as it might be needed for the preview
+  // Only remove it if it wasn't there originally
+  // (This is handled by the component's state)
 };
 
 const updateButtonState = (text, disabled = false) => {
@@ -342,10 +341,10 @@ const generateCanvas = async (cvPreview) => {
     foreignObjectRendering: false,
     imageTimeout: PDF_CONFIG.imageTimeout,
     onclone: (clonedDoc) => {
-      // Try to find A4 preview first, then fallback to cv3-root
-      let clonedPreview = clonedDoc.querySelector('.cv-preview.a4-size-preview');
+      // Try to find A4 preview first, then fallback to any template3-preview
+      let clonedPreview = clonedDoc.querySelector('.template3-preview.template3-a4-size-preview');
       if (!clonedPreview) {
-        clonedPreview = clonedDoc.querySelector('.cv3-root');
+        clonedPreview = clonedDoc.querySelector('.template3-preview');
       }
       
       if (clonedPreview) {
@@ -385,17 +384,24 @@ const generateCanvas = async (cvPreview) => {
         }
         
         // Ensure profile images are visible in cloned document
-        const profileImages = clonedPreview.querySelectorAll('img');
+        const profileImages = clonedPreview.querySelectorAll('.cv3-profile-image');
         profileImages.forEach((img) => {
           img.style.visibility = 'visible';
           img.style.display = 'block';
           img.style.opacity = '1';
+          // Ensure image container is visible
+          const container = img.closest('.cv3-profile-image-container');
+          if (container) {
+            container.style.visibility = 'visible';
+            container.style.display = 'flex';
+            container.style.opacity = '1';
+          }
         });
         
         // Apply page breaks to cloned document to prevent section cutoff
         // Use the same logic as the original preview
         const pageHeight = 1129;
-        const padding = 15;
+        const padding = 20;
         const usablePageHeight = pageHeight - (padding * 2);
         const clonedSections = clonedPreview.querySelectorAll('.cv3-section');
         
@@ -538,7 +544,7 @@ const generatePDF = async (formData = null) => {
   let cvPreview, downloadButton, originalDisplay, originalWidth, originalMaxWidth, originalMinWidth, originalTransform, originalDisplayStyle, originalVisibility, originalOpacity, originalPosition, originalZIndex, originalTop, originalLeft, modal, modalOverlay, originalModalDisplay, originalModalOverlayDisplay;
 
   try {
-    console.log('Starting PDF generation for Template 3...');
+    console.log('Starting PDF generation...');
     
     // Validate CV preview
     cvPreview = validateCVPreview();

@@ -3,10 +3,9 @@ import usePreviewHandler from './PreviewHandler3';
 import generatePDF from './pdf3';
 import { setCVView } from '../../utils/routing';
 import './Preview3.css';
-import './pdf3.css';
 import './Preview3.mobile.css';
 
-// Function to capture all form data from DOM (similar to PreviewHandler1.getFormData)
+// Function to capture all form data from DOM (similar to PreviewHandler3.getFormData)
 // Takes existingFormData parameter to preserve profileImage from database
 const getFormDataFromDOM = (existingFormData = null) => {
   // Get profileImage - prefer existing one (from database) if available, otherwise get from file input
@@ -98,8 +97,18 @@ const getFormDataFromDOM = (existingFormData = null) => {
   const certInputs = document.querySelectorAll('.certifications-section input[type="text"]');
   data.certifications = Array.from(certInputs).map(input => input.value).filter(value => value.trim() !== '');
 
-  const langInputs = document.querySelectorAll('.languages-section input[type="text"]');
-  data.languages = Array.from(langInputs).map(input => input.value).filter(value => value.trim() !== '');
+  // Get languages data
+  const langInputs = document.querySelectorAll('.languages-section .language-input');
+  const langLevelInputs = document.querySelectorAll('.languages-section .language-level-input');
+  data.languages = Array.from(langInputs).map((input, index) => {
+    const name = input.value.trim();
+    const levelInput = langLevelInputs[index];
+    const level = levelInput ? levelInput.value.trim() : '';
+    if (name) {
+      return { name, level };
+    }
+    return null;
+  }).filter(lang => lang !== null);
 
   const refInputs = document.querySelectorAll('.references-section input[type="text"]');
   data.references = Array.from(refInputs).map(input => input.value).filter(value => value.trim() !== '');
@@ -178,6 +187,15 @@ function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
         if (propFormData?.profileImage && propFormData.profileImage.data) {
           parsedData.profileImage = propFormData.profileImage;
           console.log('Preview3 - Preserved profileImage from propFormData:', parsedData.profileImage);
+        } else {
+          // If no profileImage in stored data or propFormData, try to get from file input (if form is in DOM)
+          if (!parsedData.profileImage && !isPreviewPage) {
+            const fileInput = document.getElementById('file-input');
+            if (fileInput?.files?.[0]) {
+              parsedData.profileImage = fileInput.files[0];
+              console.log('Preview3 - Restored profileImage from file input:', parsedData.profileImage);
+            }
+          }
         }
         formData = parsedData;
       } catch (e) {
@@ -192,6 +210,13 @@ function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
     if (propFormData?.profileImage && propFormData.profileImage.data && (!formData.profileImage || !formData.profileImage.data)) {
       formData = { ...formData, profileImage: propFormData.profileImage };
       console.log('Preview3 - Preserved profileImage from propFormData in hookFormData:', formData.profileImage);
+    } else if (!formData.profileImage && !isPreviewPage) {
+      // If no profileImage, try to get from file input (if form is in DOM)
+      const fileInput = document.getElementById('file-input');
+      if (fileInput?.files?.[0]) {
+        formData = { ...formData, profileImage: fileInput.files[0] };
+        console.log('Preview3 - Restored profileImage from file input in hookFormData:', formData.profileImage);
+      }
     }
   }
   
@@ -221,6 +246,28 @@ function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
     }
   }, [propFormData?.name]); // Only trigger when CV name changes (switching CVs)
 
+
+  // Listen for file input changes to update profile image immediately
+  useEffect(() => {
+    if (isPreviewPage) return; // Don't add listeners on preview page
+    
+    const fileInput = document.getElementById('file-input');
+    if (!fileInput) return;
+
+    const handleFileChange = (e) => {
+      const file = e.target?.files?.[0];
+      if (file) {
+        console.log('Template3 - File selected, updating preview:', file);
+        // Update preview data to include the new file
+        updatePreviewData();
+      }
+    };
+
+    fileInput.addEventListener('change', handleFileChange);
+    return () => {
+      fileInput.removeEventListener('change', handleFileChange);
+    };
+  }, [isPreviewPage, updatePreviewData]);
 
   // Ensure dynamic inputs update preview on typing
   // Listen to DOM events to catch real-time updates (form might still be in DOM)
@@ -278,7 +325,7 @@ function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
       existingSpacers.forEach(spacer => spacer.remove());
       
       // Reset all sections to their natural position
-      const sections = previewElement.querySelectorAll('.cv-section');
+      const sections = previewElement.querySelectorAll('.cv3-section');
       sections.forEach(section => {
         section.style.marginTop = '';
         section.style.pageBreakBefore = '';
@@ -544,7 +591,14 @@ function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
     experience: Array.isArray(formData?.experience) && formData.experience.length > 0 ? formData.experience : [],
     skills: Array.isArray(formData?.skills) ? formData.skills.filter(skill => skill && skill.trim() !== '') : [],
     certifications: Array.isArray(formData?.certifications) && formData.certifications.length > 0 ? formData.certifications.filter(cert => cert && cert.trim() !== '') : [],
-    languages: Array.isArray(formData?.languages) && formData.languages.length > 0 ? formData.languages.filter(lang => lang && lang.trim() !== '') : [],
+    languages: Array.isArray(formData?.languages) && formData.languages.length > 0 ? formData.languages.filter(lang => {
+      if (!lang) return false;
+      if (typeof lang === 'string') {
+        return lang.trim() !== '';
+      }
+      // Handle object format { name, level }
+      return lang.name && lang.name.trim() !== '';
+    }) : [],
     hobbies: Array.isArray(formData?.hobbies) && formData.hobbies.length > 0 ? formData.hobbies.filter(hobby => hobby && hobby.trim() !== '') : [],
     otherInfo: Array.isArray(formData?.otherInfo) && formData.otherInfo.length > 0 ? formData.otherInfo.filter(info => info && info.value && info.value.trim() !== '') : [],
     customSection: Array.isArray(formData?.customSection) && formData.customSection.length > 0 ? formData.customSection : [],
@@ -555,12 +609,26 @@ function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
   
   // Create local getProfileImageUrl function that uses the merged formData
   // Use useMemo to recalculate when formData or propFormData changes
+  // Store previous URL for cleanup
+  const profileImageUrlRef = useRef(null);
   const profileImageUrl = useMemo(() => {
+    // Cleanup previous object URL if it exists
+    if (profileImageUrlRef.current) {
+      try {
+        URL.revokeObjectURL(profileImageUrlRef.current);
+      } catch (e) {
+        // Ignore errors during cleanup
+      }
+      profileImageUrlRef.current = null;
+    }
+
     // First check formData (which includes merged data from hook, localStorage, and props)
     if (formData?.profileImage) {
       // If it's a File object, create object URL
       if (formData.profileImage instanceof File) {
-        return URL.createObjectURL(formData.profileImage);
+        const url = URL.createObjectURL(formData.profileImage);
+        profileImageUrlRef.current = url;
+        return url;
       }
       // If it's base64 data from database, use it directly
       if (formData.profileImage.data) {
@@ -574,7 +642,9 @@ function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
     // Also check propFormData as fallback
     if (propFormData?.profileImage) {
       if (propFormData.profileImage instanceof File) {
-        return URL.createObjectURL(propFormData.profileImage);
+        const url = URL.createObjectURL(propFormData.profileImage);
+        profileImageUrlRef.current = url;
+        return url;
       }
       if (propFormData.profileImage.data) {
         return propFormData.profileImage.data;
@@ -585,23 +655,36 @@ function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
     }
     return null;
   }, [formData?.profileImage, propFormData?.profileImage]);
+
+  // Cleanup object URL on unmount
+  useEffect(() => {
+    return () => {
+      if (profileImageUrlRef.current) {
+        try {
+          URL.revokeObjectURL(profileImageUrlRef.current);
+        } catch (e) {
+          // Ignore errors during cleanup
+        }
+      }
+    };
+  }, []);
   const contactInfo = formatContactInfo();
   
   // Debug: Log contact information
-  console.log('Template1 - Contact Info:', contactInfo);
-  console.log('Template1 - Form Data:', formData);
-  console.log('Template1 - Profile Image:', formData.profileImage);
-  console.log('Template1 - Profile Image URL:', profileImageUrl);
-  console.log('Template1 - Custom Section Data:', displayData.customSection);
-  console.log('Template1 - Custom Section Data Details:', displayData.customSection.map((item, index) => ({
+  console.log('Template3 - Contact Info:', contactInfo);
+  console.log('Template3 - Form Data:', formData);
+  console.log('Template3 - Profile Image:', formData.profileImage);
+  console.log('Template3 - Profile Image URL:', profileImageUrl);
+  console.log('Template3 - Custom Section Data:', displayData.customSection);
+  console.log('Template3 - Custom Section Data Details:', displayData.customSection.map((item, index) => ({
     index,
     heading: item.heading,
     detail: item.detail,
     hasHeading: !!item.heading,
     hasDetail: !!item.detail
   })));
-  console.log('Template1 - Full Custom Section Array:', JSON.stringify(displayData.customSection, null, 2));
-  console.log('Template1 - Individual Items:');
+  console.log('Template3 - Full Custom Section Array:', JSON.stringify(displayData.customSection, null, 2));
+  console.log('Template3 - Individual Items:');
   displayData.customSection.forEach((item, index) => {
     console.log(`Item ${index}:`, {
       heading: item.heading,
@@ -793,21 +876,6 @@ function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
           </div>
         )}
 
-        {/* Languages Section */}
-        {displayData.languages && displayData.languages.length > 0 && (
-          <div className="cv3-section">
-            <h3 className="cv3-section-heading">Languages</h3>
-            <div className="cv3-section-content">
-              <div className="cv3-languages-container">
-                {displayData.languages.map((language, index) => (
-                  <div key={index} className="cv3-language-pill">
-                    <span className="cv3-language-name">{language}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Hobbies Section */}
         {displayData.hobbies && displayData.hobbies.length > 0 && (
@@ -820,6 +888,29 @@ function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
                     <span className="cv3-hobby-name">{hobby}</span>
                   </div>
                 ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Languages Section */}
+        {displayData.languages && displayData.languages.length > 0 && (
+          <div className="cv3-section">
+            <h3 className="cv3-section-heading">Languages</h3>
+            <div className="cv3-section-content">
+              <div className="cv3-languages-container">
+                {displayData.languages.map((language, index) => {
+                  const languageName = typeof language === 'string' ? language : (language.name || language);
+                  const languageLevel = typeof language === 'string' ? '' : (language.level || '');
+                  return (
+                    <div key={index} className="cv3-language-pill">
+                      <span className="cv3-language-name">{languageName}</span>
+                      {languageLevel && (
+                        <span className="cv3-language-level"> - {languageLevel}</span>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -875,9 +966,9 @@ function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
   // If this is the preview page, render the preview content directly
   if (isPreviewPage) {
     return (
-      <div className="cv3-preview-page-preview-wrapper">
+      <div className="preview-page-preview-wrapper">
         <div 
-          className="cv3-preview cv3-a4-size-preview cv3-pdf-mode cv3-preview-page-preview"
+          className="template3-preview template3-a4-size-preview template3-pdf-mode preview-page-preview"
           style={{
             transform: `scale(${previewPageScale})`,
             transformOrigin: 'top left',
@@ -903,7 +994,7 @@ function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
   return (
     <>
       {/* Action Buttons - Below Form */}
-      <div className="cv3-action-buttons">
+      <div className="cv-action-buttons">
         <button 
           className="preview-a4-button"
           onClick={async () => {
@@ -961,41 +1052,74 @@ function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
             
             // Always store in localStorage before navigating to preview
             // This ensures data is available when returning from preview
-            try {
-              // Create a serializable copy (handle profileImage properly)
-              const serializableData = {
-                ...mergedData,
-                profileImage: mergedData.profileImage 
-                  ? (mergedData.profileImage.data 
-                      ? { data: mergedData.profileImage.data } 
-                      : mergedData.profileImage instanceof File 
-                        ? null // Can't serialize File objects
-                        : mergedData.profileImage)
-                  : null
-              };
-              localStorage.setItem('cvFormData', JSON.stringify(serializableData));
-              console.log('Stored form data in localStorage before navigating to preview');
-            } catch (e) {
-              console.error('Error storing form data in localStorage:', e);
-            }
+            // Convert File to base64 if needed
+            const storeDataWithImage = async () => {
+              try {
+                let profileImageData = null;
+                
+                if (mergedData.profileImage) {
+                  if (mergedData.profileImage.data) {
+                    // Already base64 from database
+                    profileImageData = { data: mergedData.profileImage.data };
+                  } else if (mergedData.profileImage instanceof File) {
+                    // Convert File to base64
+                    try {
+                      const base64 = await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(reader.result);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(mergedData.profileImage);
+                      });
+                      profileImageData = { data: base64 };
+                      console.log('Converted profile image to base64');
+                    } catch (err) {
+                      console.error('Error converting profile image to base64:', err);
+                      profileImageData = null;
+                    }
+                  } else {
+                    profileImageData = mergedData.profileImage;
+                  }
+                }
+                
+                // Create a serializable copy
+                const serializableData = {
+                  ...mergedData,
+                  profileImage: profileImageData
+                };
+                localStorage.setItem('cvFormData', JSON.stringify(serializableData));
+                console.log('Stored form data in localStorage before navigating to preview');
+              } catch (e) {
+                console.error('Error storing form data in localStorage:', e);
+                // Fallback: store without image
+                try {
+                  const { profileImage, ...dataWithoutImage } = mergedData;
+                  localStorage.setItem('cvFormData', JSON.stringify(dataWithoutImage));
+                } catch (e2) {
+                  console.error('Error storing form data even without image:', e2);
+                }
+              }
+            };
             
-            // Small delay to ensure data is synced, then navigate to preview page
-            setTimeout(() => {
-              setCVView('preview');
-              // Ensure selectedApp is set to cv-builder
-              localStorage.setItem('selectedApp', 'cv-builder');
-              // Another small delay to ensure localStorage is written before reload
+            // Convert and store, then navigate
+            storeDataWithImage().then(() => {
+              // Small delay to ensure data is synced, then navigate to preview page
               setTimeout(() => {
-                window.location.reload();
-              }, 50);
-            }, 100);
+                setCVView('preview');
+                // Ensure selectedApp is set to cv-builder
+                localStorage.setItem('selectedApp', 'cv-builder');
+                // Another small delay to ensure localStorage is written before reload
+                setTimeout(() => {
+                  window.location.reload();
+                }, 50);
+              }, 100);
+            });
           }}
           title="View A4 Preview"
         >
           📄 View A4 Preview
         </button>
           <button 
-          className="cv3-download-pdf-button-main"
+          className="download-pdf-button-main"
             onClick={generatePDF}
             title="Download CV as PDF"
           >
@@ -1005,7 +1129,7 @@ function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
 
       {/* A4 Preview Element - Always rendered for PDF generation, hidden when modal is closed */}
       <div 
-        className="cv3-preview cv3-a4-size-preview cv3-pdf-mode"
+        className="template3-preview template3-a4-size-preview template3-pdf-mode"
         style={{
           display: 'none', // Hidden but in DOM for PDF generation
           position: 'fixed',
@@ -1031,10 +1155,10 @@ function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
 
       {/* A4 Preview Modal */}
       {showA4Preview && (
-        <div className="cv3-a4-preview-modal-overlay" onClick={() => setShowA4Preview(false)}>
-          <div className="cv3-a4-preview-modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="a4-preview-modal-overlay" onClick={() => setShowA4Preview(false)}>
+          <div className="a4-preview-modal-content" onClick={(e) => e.stopPropagation()}>
             <button 
-              className="cv3-a4-preview-close-button"
+              className="a4-preview-close-button"
               onClick={(e) => {
                 e.stopPropagation();
                 setShowA4Preview(false);
@@ -1047,11 +1171,11 @@ function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
             
             {/* Template Switcher */}
             {onTemplateSwitch && (
-              <div className="cv3-a4-preview-template-switcher">
-                <label className="cv3-template-switcher-label">Template:</label>
+              <div className="a4-preview-template-switcher">
+                <label className="template-switcher-label">Template:</label>
                 <select 
-                  className="cv3-template-switcher-select"
-                  value={selectedTemplate || 'template1'}
+                  className="template-switcher-select"
+                  value={selectedTemplate || 'template3'}
                   onChange={(e) => {
                     e.stopPropagation();
                     if (onTemplateSwitch) {
@@ -1065,15 +1189,14 @@ function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
                   <option value="template2">Template 2</option>
                   <option value="template3">Template 3</option>
                   <option value="template4">Template 4</option>
-                  <option value="template5">Template 5 (Europass)</option>
                 </select>
               </div>
             )}
             
             {/* Zoom Controls */}
-            <div className="cv3-a4-preview-zoom-controls">
+            <div className="a4-preview-zoom-controls">
               <button 
-                className="cv3-zoom-button cv3-zoom-out"
+                className="zoom-button zoom-out"
                 onClick={(e) => {
                   e.stopPropagation();
                   setUserZoom(prev => Math.max(0.5, prev - 0.1));
@@ -1083,9 +1206,9 @@ function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
               >
                 −
               </button>
-              <span className="cv3-zoom-level">{Math.round(userZoom * 100)}%</span>
+              <span className="zoom-level">{Math.round(userZoom * 100)}%</span>
               <button 
-                className="cv3-zoom-button cv3-zoom-in"
+                className="zoom-button zoom-in"
                 onClick={(e) => {
                   e.stopPropagation();
                   setUserZoom(prev => Math.min(2.0, prev + 0.1));
@@ -1096,7 +1219,7 @@ function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
                 +
               </button>
               <button 
-                className="cv3-zoom-button cv3-zoom-reset"
+                className="zoom-button zoom-reset"
                 onClick={(e) => {
                   e.stopPropagation();
                   setUserZoom(1);
@@ -1108,9 +1231,9 @@ function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
               </button>
             </div>
             
-            <div className="cv3-a4-preview-container" ref={a4PreviewRef}>
+            <div className="a4-preview-container" ref={a4PreviewRef}>
               <div 
-                className="cv3-preview cv3-a4-size-preview cv3-pdf-mode"
+                className="template3-preview template3-a4-size-preview template3-pdf-mode"
                 id="a4-preview-content"
                 key={`a4-preview-${formData?.name || 'default'}-${Date.now()}`}
                 style={{
@@ -1130,9 +1253,9 @@ function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
               >
                 {renderCVContent()}
               </div>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
       )}
     </>
   );

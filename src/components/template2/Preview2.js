@@ -97,8 +97,18 @@ const getFormDataFromDOM = (existingFormData = null) => {
   const certInputs = document.querySelectorAll('.certifications-section input[type="text"]');
   data.certifications = Array.from(certInputs).map(input => input.value).filter(value => value.trim() !== '');
 
-  const langInputs = document.querySelectorAll('.languages-section input[type="text"]');
-  data.languages = Array.from(langInputs).map(input => input.value).filter(value => value.trim() !== '');
+  // Get languages data
+  const langInputs = document.querySelectorAll('.languages-section .language-input');
+  const langLevelInputs = document.querySelectorAll('.languages-section .language-level-input');
+  data.languages = Array.from(langInputs).map((input, index) => {
+    const name = input.value.trim();
+    const levelInput = langLevelInputs[index];
+    const level = levelInput ? levelInput.value.trim() : '';
+    if (name) {
+      return { name, level };
+    }
+    return null;
+  }).filter(lang => lang !== null);
 
   const refInputs = document.querySelectorAll('.references-section input[type="text"]');
   data.references = Array.from(refInputs).map(input => input.value).filter(value => value.trim() !== '');
@@ -543,7 +553,14 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
     experience: Array.isArray(formData?.experience) && formData.experience.length > 0 ? formData.experience : [],
     skills: Array.isArray(formData?.skills) ? formData.skills.filter(skill => skill && skill.trim() !== '') : [],
     certifications: Array.isArray(formData?.certifications) && formData.certifications.length > 0 ? formData.certifications.filter(cert => cert && cert.trim() !== '') : [],
-    languages: Array.isArray(formData?.languages) && formData.languages.length > 0 ? formData.languages.filter(lang => lang && lang.trim() !== '') : [],
+    languages: Array.isArray(formData?.languages) && formData.languages.length > 0 ? formData.languages.filter(lang => {
+      if (!lang) return false;
+      if (typeof lang === 'string') {
+        return lang.trim() !== '';
+      }
+      // Handle object format { name, level }
+      return lang.name && lang.name.trim() !== '';
+    }) : [],
     hobbies: Array.isArray(formData?.hobbies) && formData.hobbies.length > 0 ? formData.hobbies.filter(hobby => hobby && hobby.trim() !== '') : [],
     otherInfo: Array.isArray(formData?.otherInfo) && formData.otherInfo.length > 0 ? formData.otherInfo.filter(info => info && info.value && info.value.trim() !== '') : [],
     customSection: Array.isArray(formData?.customSection) && formData.customSection.length > 0 ? formData.customSection : [],
@@ -663,15 +680,6 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
           </div>
         )}
 
-        {/* Languages */}
-        {displayData.languages && displayData.languages.length > 0 && (
-          <div className="template2-sidebar-section">
-            <h4 className="template2-sidebar-section-title">Languages</h4>
-            {displayData.languages.map((language, index) => (
-              <div key={index} className="template2-language-item">{language}</div>
-            ))}
-          </div>
-        )}
 
         {/* Hobbies */}
         {displayData.hobbies && displayData.hobbies.length > 0 && (
@@ -680,6 +688,25 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
             {displayData.hobbies.map((hobby, index) => (
               <div key={index} className="template2-hobby-item">{hobby}</div>
             ))}
+          </div>
+        )}
+
+        {/* Languages */}
+        {displayData.languages && displayData.languages.length > 0 && (
+          <div className="template2-sidebar-section">
+            <h4 className="template2-sidebar-section-title">Languages</h4>
+            {displayData.languages.map((language, index) => {
+              const languageName = typeof language === 'string' ? language : (language.name || language);
+              const languageLevel = typeof language === 'string' ? '' : (language.level || '');
+              return (
+                <div key={index} className="template2-language-item">
+                  {languageName}
+                  {languageLevel && (
+                    <span className="template2-language-level"> - {languageLevel}</span>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
 
@@ -889,34 +916,67 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
             
             // Always store in localStorage before navigating to preview
             // This ensures data is available when returning from preview
-            try {
-              // Create a serializable copy (handle profileImage properly)
-              const serializableData = {
-                ...mergedData,
-                profileImage: mergedData.profileImage 
-                  ? (mergedData.profileImage.data 
-                      ? { data: mergedData.profileImage.data } 
-                      : mergedData.profileImage instanceof File 
-                        ? null // Can't serialize File objects
-                        : mergedData.profileImage)
-                  : null
-              };
-              localStorage.setItem('cvFormData', JSON.stringify(serializableData));
-              console.log('Stored form data in localStorage before navigating to preview');
-            } catch (e) {
-              console.error('Error storing form data in localStorage:', e);
-            }
+            // Convert File to base64 if needed
+            const storeDataWithImage = async () => {
+              try {
+                let profileImageData = null;
+                
+                if (mergedData.profileImage) {
+                  if (mergedData.profileImage.data) {
+                    // Already base64 from database
+                    profileImageData = { data: mergedData.profileImage.data };
+                  } else if (mergedData.profileImage instanceof File) {
+                    // Convert File to base64
+                    try {
+                      const base64 = await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(reader.result);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(mergedData.profileImage);
+                      });
+                      profileImageData = { data: base64 };
+                      console.log('Converted profile image to base64');
+                    } catch (err) {
+                      console.error('Error converting profile image to base64:', err);
+                      profileImageData = null;
+                    }
+                  } else {
+                    profileImageData = mergedData.profileImage;
+                  }
+                }
+                
+                // Create a serializable copy
+                const serializableData = {
+                  ...mergedData,
+                  profileImage: profileImageData
+                };
+                localStorage.setItem('cvFormData', JSON.stringify(serializableData));
+                console.log('Stored form data in localStorage before navigating to preview');
+              } catch (e) {
+                console.error('Error storing form data in localStorage:', e);
+                // Fallback: store without image
+                try {
+                  const { profileImage, ...dataWithoutImage } = mergedData;
+                  localStorage.setItem('cvFormData', JSON.stringify(dataWithoutImage));
+                } catch (e2) {
+                  console.error('Error storing form data even without image:', e2);
+                }
+              }
+            };
             
-            // Small delay to ensure data is synced, then navigate to preview page
-            setTimeout(() => {
-              setCVView('preview');
-              // Ensure selectedApp is set to cv-builder
-              localStorage.setItem('selectedApp', 'cv-builder');
-              // Another small delay to ensure localStorage is written before reload
+            // Convert and store, then navigate
+            storeDataWithImage().then(() => {
+              // Small delay to ensure data is synced, then navigate to preview page
               setTimeout(() => {
-                window.location.reload();
-              }, 50);
-            }, 100);
+                setCVView('preview');
+                // Ensure selectedApp is set to cv-builder
+                localStorage.setItem('selectedApp', 'cv-builder');
+                // Another small delay to ensure localStorage is written before reload
+                setTimeout(() => {
+                  window.location.reload();
+                }, 50);
+              }, 100);
+            });
           }}
           title="View A4 Preview"
         >
@@ -989,11 +1049,10 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
                   onClick={(e) => e.stopPropagation()}
                   title="Switch Template"
                 >
-                  <option value="template2">Template 2</option>
+                  <option value="template1">Template 1</option>
                   <option value="template2">Template 2</option>
                   <option value="template3">Template 3</option>
                   <option value="template4">Template 4</option>
-                  <option value="template5">Template 5 (Europass)</option>
                 </select>
               </div>
             )}

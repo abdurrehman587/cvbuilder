@@ -42,7 +42,7 @@ const usePreviewHandler = (passedFormData = null) => {
       experience: [],
       skills: [],
       certifications: [],
-      languages: [],
+      languages: formDataRef.current?.languages || [], // Use ref to avoid dependency
       hobbies: formDataRef.current?.hobbies || [], // Use ref to avoid dependency
       otherInfo: [],
       customSection: [],
@@ -128,8 +128,17 @@ const usePreviewHandler = (passedFormData = null) => {
     data.certifications = Array.from(certInputs).map(input => input.value).filter(value => value.trim() !== '');
 
     // Get languages data
-    const langInputs = document.querySelectorAll('.languages-section input[type="text"]');
-    data.languages = Array.from(langInputs).map(input => input.value).filter(value => value.trim() !== '');
+    const langInputs = document.querySelectorAll('.languages-section .language-input');
+    const langLevelInputs = document.querySelectorAll('.languages-section .language-level-input');
+    data.languages = Array.from(langInputs).map((input, index) => {
+      const name = input.value.trim();
+      const levelInput = langLevelInputs[index];
+      const level = levelInput ? levelInput.value.trim() : '';
+      if (name) {
+        return { name, level };
+      }
+      return null;
+    }).filter(lang => lang !== null);
 
     // Get hobbies data - now managed through React state
     // Since hobbies are now managed in React state, we need to get them from the current formData state

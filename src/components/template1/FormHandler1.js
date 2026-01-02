@@ -1,7 +1,25 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 const useFormHandler = (formData, updateFormData, markAsChanged) => {
+    // Use refs to track latest values and avoid stale closures
+    const formDataRef = useRef(formData);
+    const updateFormDataRef = useRef(updateFormData);
+    const markAsChangedRef = useRef(markAsChanged);
+    
+    // Update refs when values change
+    useEffect(() => {
+        formDataRef.current = formData;
+    }, [formData]);
+    
+    useEffect(() => {
+        updateFormDataRef.current = updateFormData;
+    }, [updateFormData]);
+    
+    useEffect(() => {
+        markAsChangedRef.current = markAsChanged;
+    }, [markAsChanged]);
+    
     // Local state for references input
     // Initialize with default only if formData has no references
     const [referenceText, setReferenceText] = useState(
@@ -13,6 +31,13 @@ const useFormHandler = (formData, updateFormData, markAsChanged) => {
     
     // State for active section
     const [activeSection, setActiveSection] = useState('contact-info');
+    
+    // Debug: Track activeSection changes
+    useEffect(() => {
+        console.log('[FormHandler] ========== activeSection changed ==========');
+        console.log('[FormHandler] New activeSection:', activeSection);
+        console.log('[FormHandler] ========== activeSection change completed ==========');
+    }, [activeSection]);
 
     // Sync referenceText with formData changes
     useEffect(() => {
@@ -28,11 +53,32 @@ const useFormHandler = (formData, updateFormData, markAsChanged) => {
 
     // Handle input changes and trigger auto-save
     const handleInputChange = (field, value) => {
-        console.log('handleInputChange called:', { field, value });
+        console.log('[FormHandler] handleInputChange called:', { field, value });
+        console.log('[FormHandler] Current formData:', formData);
+        if (field === 'languages') {
+            console.log('[FormHandler] Languages field being updated');
+            console.log('[FormHandler] Current formData.languages:', formData.languages);
+            console.log('[FormHandler] Current formData.languages type:', typeof formData.languages);
+            console.log('[FormHandler] Current formData.languages is array:', Array.isArray(formData.languages));
+            console.log('[FormHandler] New languages value:', value);
+            console.log('[FormHandler] New languages value type:', typeof value);
+            console.log('[FormHandler] New languages value is array:', Array.isArray(value));
+        }
         const newFormData = { ...formData, [field]: value };
-        console.log('New form data:', newFormData);
+        console.log('[FormHandler] New form data:', newFormData);
+        if (field === 'languages') {
+            console.log('[FormHandler] New formData.languages:', newFormData.languages);
+            console.log('[FormHandler] New formData.languages length:', newFormData.languages?.length);
+        }
+        console.log('[FormHandler] Calling updateFormData with newFormData...');
+        console.log('[FormHandler] updateFormData function:', updateFormData);
+        console.log('[FormHandler] typeof updateFormData:', typeof updateFormData);
         updateFormData(newFormData);
+        console.log('[FormHandler] updateFormData called');
+        console.log('[FormHandler] Calling markAsChanged...');
         markAsChanged();
+        console.log('[FormHandler] markAsChanged called');
+        console.log('[FormHandler] handleInputChange completed');
     };
 
     // Handle references input change
@@ -53,22 +99,14 @@ const useFormHandler = (formData, updateFormData, markAsChanged) => {
 
     // React-based toggle section function
     const toggleSection = (sectionId) => {
+        console.log('[FormHandler] ========== toggleSection called ==========');
+        console.log('[FormHandler] Section ID:', sectionId);
+        console.log('[FormHandler] Current activeSection before toggle:', activeSection);
+        console.log('[FormHandler] Calling setActiveSection with:', sectionId);
         setActiveSection(sectionId);
+        console.log('[FormHandler] setActiveSection called - React will update state');
+        console.log('[FormHandler] ========== toggleSection completed ==========');
     };
-
-    // Initialize languages with default values on component mount
-    useEffect(() => {
-        console.log('FormHandler1 - Checking languages:', formData.languages);
-        if (!formData.languages || formData.languages.length === 0) {
-            console.log('Initializing default languages...');
-            const newFormData = { ...formData, languages: ['English', 'Urdu', 'Punjabi'] };
-            updateFormData(newFormData);
-        }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []); // Only run once on mount
-
-    // Track if languages have been explicitly cleared by user
-    const [languagesCleared, setLanguagesCleared] = useState(false);
 
     // Function to initialize the form - show only Contact Information on page load
     const initializeForm = useCallback(() => {
@@ -167,13 +205,70 @@ const useFormHandler = (formData, updateFormData, markAsChanged) => {
         markAsChanged();
     };
 
+
     // Function to add new language input
-    const addLanguageInput = () => {
-        const newLanguages = [...(formData.languages || [])];
-        newLanguages.push('');
-        updateFormData({ ...formData, languages: newLanguages });
-        markAsChanged();
-    };
+    // Use useCallback and refs to avoid stale closure issues
+    const addLanguageInput = useCallback(() => {
+        const callTimestamp = Date.now();
+        console.log('[FormHandler] ========== addLanguageInput called ==========');
+        console.log('[FormHandler] Call timestamp:', callTimestamp);
+        const currentFormData = formDataRef.current;
+        console.log('[FormHandler] Current formData from ref:', currentFormData);
+        console.log('[FormHandler] Current formData.languages:', currentFormData.languages);
+        console.log('[FormHandler] Current formData.languages type:', typeof currentFormData.languages);
+        console.log('[FormHandler] Current formData.languages is array:', Array.isArray(currentFormData.languages));
+        const currentLanguages = Array.isArray(currentFormData.languages) ? currentFormData.languages : [];
+        console.log('[FormHandler] currentLanguages after check:', currentLanguages);
+        console.log('[FormHandler] currentLanguages length:', currentLanguages.length);
+        console.log('[FormHandler] currentLanguages structure:', currentLanguages.map((lang, idx) => ({
+            index: idx,
+            type: typeof lang,
+            value: lang,
+            isString: typeof lang === 'string',
+            isObject: typeof lang === 'object' && lang !== null
+        })));
+        const newLanguage = { name: '', level: '' };
+        console.log('[FormHandler] New language object to add:', newLanguage);
+        const newLanguages = [...currentLanguages, newLanguage];
+        console.log('[FormHandler] newLanguages after adding:', newLanguages);
+        console.log('[FormHandler] newLanguages length:', newLanguages.length);
+        console.log('[FormHandler] Languages array reference changed:', currentLanguages !== newLanguages);
+        const newFormData = { ...currentFormData, languages: newLanguages };
+        console.log('[FormHandler] newFormData:', newFormData);
+        console.log('[FormHandler] newFormData.languages:', newFormData.languages);
+        console.log('[FormHandler] newFormData.languages length:', newFormData.languages.length);
+        console.log('[FormHandler] FormData reference changed:', currentFormData !== newFormData);
+        console.log('[FormHandler] updateFormDataRef.current:', updateFormDataRef.current);
+        console.log('[FormHandler] typeof updateFormDataRef.current:', typeof updateFormDataRef.current);
+        console.log('[FormHandler] updateFormDataRef.current is function:', typeof updateFormDataRef.current === 'function');
+        if (typeof updateFormDataRef.current !== 'function') {
+            console.error('[FormHandler] ❌ CRITICAL ERROR: updateFormDataRef.current is not a function!');
+            return;
+        }
+        console.log('[FormHandler] Calling updateFormDataRef.current with newFormData...');
+        const beforeUpdate = Date.now();
+        try {
+            updateFormDataRef.current(newFormData);
+            const afterUpdate = Date.now();
+            console.log('[FormHandler] ✅ updateFormDataRef.current called successfully');
+            console.log('[FormHandler] Function execution time:', afterUpdate - beforeUpdate, 'ms');
+            console.log('[FormHandler] State update scheduled - React should re-render');
+            console.log('[FormHandler] React will batch this update and re-render asynchronously');
+        } catch (error) {
+            console.error('[FormHandler] ❌ ERROR calling updateFormDataRef.current:', error);
+            console.error('[FormHandler] Error stack:', error.stack);
+        }
+        console.log('[FormHandler] markAsChangedRef.current:', markAsChangedRef.current);
+        console.log('[FormHandler] typeof markAsChangedRef.current:', typeof markAsChangedRef.current);
+        console.log('[FormHandler] Calling markAsChangedRef.current...');
+        try {
+            markAsChangedRef.current();
+            console.log('[FormHandler] markAsChangedRef.current called successfully');
+        } catch (error) {
+            console.error('[FormHandler] ERROR calling markAsChangedRef.current:', error);
+        }
+        console.log('[FormHandler] ========== addLanguageInput completed ==========');
+    }, []); // Empty deps array since we're using refs
 
     // Function to add new hobby input
     const addHobbyInput = () => {
@@ -230,7 +325,7 @@ const useFormHandler = (formData, updateFormData, markAsChanged) => {
         }
     };
 
-    return {
+    const returnObject = {
         toggleSection,
         initializeForm,
         addEducationGroup,
@@ -247,9 +342,14 @@ const useFormHandler = (formData, updateFormData, markAsChanged) => {
         handleReferenceChange,
         referenceText,
         activeSection,
-        languagesCleared,
-        setLanguagesCleared
     };
+    
+    console.log('[FormHandler] Returning from useFormHandler');
+    console.log('[FormHandler] addLanguageInput in return object:', returnObject.addLanguageInput);
+    console.log('[FormHandler] typeof addLanguageInput:', typeof returnObject.addLanguageInput);
+    console.log('[FormHandler] Full return object keys:', Object.keys(returnObject));
+    
+    return returnObject;
 };
 
 export default useFormHandler;

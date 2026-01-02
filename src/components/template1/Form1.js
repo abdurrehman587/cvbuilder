@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import useFormHandler from './FormHandler1';
 import './Form1.css';
 
@@ -9,7 +9,7 @@ function Form({ formData, updateFormData, markAsChanged }) {
         addSkillInput, 
         addCertificationInput, 
         addCustomInformation, 
-        addLanguageInput, 
+        addLanguageInput,
         addHobbyInput, 
         addCustomSectionDetail, 
         addCustomSection,
@@ -17,15 +17,131 @@ function Form({ formData, updateFormData, markAsChanged }) {
         handleInputChange,
         handleReferenceChange,
         referenceText,
-        activeSection,
-        languagesCleared,
-        setLanguagesCleared
+        activeSection
     } = useFormHandler(formData, updateFormData, markAsChanged);
+
+    // Render counter for debugging
+    const renderCountRef = useRef(0);
+    renderCountRef.current += 1;
+    
+    // Log every render
+    const renderTimestamp = Date.now();
+    console.log('[Form1] ========== Component RENDER ==========');
+    console.log('[Form1] Render timestamp:', renderTimestamp);
+    console.log('[Form1] Render count:', renderCountRef.current);
+    console.log('[Form1] formData.languages:', formData.languages);
+    console.log('[Form1] formData.languages length:', formData.languages?.length);
+    console.log('[Form1] formData.languages type:', typeof formData.languages);
+    console.log('[Form1] formData.languages is array:', Array.isArray(formData.languages));
+    if (Array.isArray(formData.languages) && formData.languages.length > 0) {
+        console.log('[Form1] formData.languages first item:', formData.languages[0]);
+        console.log('[Form1] formData.languages first item type:', typeof formData.languages[0]);
+        console.log('[Form1] formData.languages last item:', formData.languages[formData.languages.length - 1]);
+        console.log('[Form1] formData.languages last item type:', typeof formData.languages[formData.languages.length - 1]);
+        // Check for mixed types
+        const hasStrings = formData.languages.some(lang => typeof lang === 'string');
+        const hasObjects = formData.languages.some(lang => typeof lang === 'object' && lang !== null);
+        console.log('[Form1] formData.languages has strings:', hasStrings);
+        console.log('[Form1] formData.languages has objects:', hasObjects);
+        if (hasStrings && hasObjects) {
+            console.warn('[Form1] ⚠️ WARNING: formData.languages contains MIXED types (strings and objects)! This may cause rendering issues.');
+        }
+    }
+    console.log('[Form1] activeSection:', activeSection);
+    console.log('[Form1] activeSection === "languages":', activeSection === 'languages');
+
+    // Log addLanguageInput availability and formData changes
+    useEffect(() => {
+        console.log('[Form1] ========== Component Effect Triggered ==========');
+        console.log('[Form1] Render count:', renderCountRef.current);
+        console.log('[Form1] addLanguageInput available:', typeof addLanguageInput);
+        console.log('[Form1] addLanguageInput value:', addLanguageInput);
+        console.log('[Form1] activeSection:', activeSection);
+        console.log('[Form1] formData.languages:', formData.languages);
+        console.log('[Form1] formData.languages length:', formData.languages?.length);
+        console.log('[Form1] formData.languages is array:', Array.isArray(formData.languages));
+        if (Array.isArray(formData.languages)) {
+            console.log('[Form1] formData.languages structure:', formData.languages.map((lang, idx) => ({
+                index: idx,
+                type: typeof lang,
+                value: lang,
+                isString: typeof lang === 'string',
+                isObject: typeof lang === 'object' && lang !== null
+            })));
+        }
+        console.log('[Form1] Full formData:', formData);
+        console.log('[Form1] ========== Component Effect Completed ==========');
+    }, [addLanguageInput, activeSection, formData.languages, formData]);
+
+    // Debug: Track when formData prop changes
+    const prevFormDataRef = useRef(formData);
+    useEffect(() => {
+        const changeTimestamp = Date.now();
+        console.log('[Form1] ========== formData Prop Changed ==========');
+        console.log('[Form1] Change timestamp:', changeTimestamp);
+        console.log('[Form1] Render count:', renderCountRef.current);
+        console.log('[Form1] Previous formData.languages length:', prevFormDataRef.current?.languages?.length);
+        console.log('[Form1] Current formData.languages length:', formData.languages?.length);
+        console.log('[Form1] Languages length changed:', prevFormDataRef.current?.languages?.length !== formData.languages?.length);
+        console.log('[Form1] Languages reference changed:', prevFormDataRef.current?.languages !== formData.languages);
+        if (prevFormDataRef.current?.languages?.length !== formData.languages?.length) {
+            console.log('[Form1] ✅ Languages array length changed! This should trigger a re-render.');
+            console.log('[Form1] Previous languages:', prevFormDataRef.current?.languages);
+            console.log('[Form1] Current languages:', formData.languages);
+        }
+        prevFormDataRef.current = formData;
+        console.log('[Form1] New formData.languages:', formData.languages);
+        console.log('[Form1] New formData.languages length:', formData.languages?.length);
+        console.log('[Form1] Number of language inputs that should render:', (formData.languages || []).length);
+        if (Array.isArray(formData.languages)) {
+            console.log('[Form1] formData.languages detailed structure:', JSON.stringify(formData.languages, null, 2));
+        }
+        console.log('[Form1] ========== formData Prop Change Completed ==========');
+    }, [formData]);
 
     // Initialize form on component mount
     useEffect(() => {
         initializeForm();
     }, [initializeForm]);
+
+    // Normalize languages: convert strings to objects
+    const normalizeLanguages = (languages) => {
+        if (!Array.isArray(languages)) return [];
+        return languages.map(lang => {
+            if (typeof lang === 'string') {
+                // Convert string to object format (no default level)
+                return { name: lang, level: '' };
+            } else if (typeof lang === 'object' && lang !== null && lang.name) {
+                // Already an object, preserve existing level or leave empty
+                return { name: lang.name, level: lang.level || '' };
+            }
+            // Invalid format, return default
+            return { name: '', level: '' };
+        });
+    };
+
+    // Normalize existing languages if they're strings (for backward compatibility)
+    // No default languages - user must add them manually
+    useEffect(() => {
+        const currentLanguages = formData.languages || [];
+        
+        // Check if languages need normalization (contain strings)
+        const needsNormalization = Array.isArray(currentLanguages) && 
+            currentLanguages.some(lang => typeof lang === 'string');
+        
+        if (needsNormalization) {
+            console.log('[Form1] Languages contain strings, normalizing to objects...');
+            const normalizedLanguages = normalizeLanguages(currentLanguages);
+            const newFormData = {
+                ...formData,
+                languages: normalizedLanguages
+            };
+            updateFormData(newFormData);
+            markAsChanged();
+            console.log('[Form1] Languages normalized');
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // Sync form fields with formData when it changes (e.g., when returning from preview)
     useEffect(() => {
@@ -747,72 +863,6 @@ function Form({ formData, updateFormData, markAsChanged }) {
                 </div>
             </div>
 
-            <div id="languages" className={`languages-section ${activeSection === 'languages' ? 'active' : ''}`}>
-                <h3 className="section-title" onClick={() => toggleSection('languages')} >Languages</h3>
-
-                {/* Render all language inputs dynamically */}
-                {(() => {
-                    // If languages have been explicitly cleared by user, don't show fallback
-                    if (languagesCleared && (!formData.languages || formData.languages.length === 0)) {
-                        return [];
-                    }
-                    // Otherwise show current languages or default fallback
-                    return (formData.languages && formData.languages.length > 0 ? formData.languages : ['English', 'Urdu', 'Punjabi']);
-                })().map((language, index) => (
-                    <div key={index} className="language-input-container input-group">
-                        <div className="language-input-wrapper">
-                            <input
-                                id={`language-input-${index}`}
-                                className="language-input styled-input"
-                                type="text"
-                                name="language"
-                                placeholder="Enter a language"
-                                value={language}
-                                onChange={(e) => {
-                                    const newLanguages = [...(formData.languages || [])];
-                                    newLanguages[index] = e.target.value;
-                                    // Filter out empty languages
-                                    const filteredLanguages = newLanguages.filter(lang => lang && lang.trim() !== '');
-                                    
-                                    // If all languages are cleared, mark as cleared
-                                    if (filteredLanguages.length === 0) {
-                                        setLanguagesCleared(true);
-                                    }
-                                    
-                                    handleInputChange('languages', filteredLanguages);
-                                }}
-                            />
-                            <button 
-                                type="button" 
-                                className="remove-language-button"
-                                onClick={() => {
-                                    const newLanguages = [...(formData.languages || [])];
-                                    newLanguages.splice(index, 1);
-                                    
-                                    // If all languages are removed, mark as cleared
-                                    if (newLanguages.length === 0) {
-                                        setLanguagesCleared(true);
-                                    }
-                                    
-                                    handleInputChange('languages', newLanguages);
-                                }}
-                            >
-                                Remove
-                            </button>
-                        </div>
-                    </div>
-                ))}
-
-                <div className="add-language-container">
-                    <button type="button" onClick={() => {
-                        setLanguagesCleared(false); // Reset cleared state when adding language
-                        addLanguageInput();
-                    }} className="add-language-button">
-                        Add Language
-                    </button>
-                </div>
-            </div>
-
             <div id="hobbies" className={`hobbies-section ${activeSection === 'hobbies' ? 'active' : ''}`}>
                 <h3 className="section-title" onClick={() => toggleSection('hobbies')} >Hobbies</h3>
 
@@ -851,6 +901,158 @@ function Form({ formData, updateFormData, markAsChanged }) {
                 <div className="add-hobby-container">
                     <button type="button" onClick={addHobbyInput} className="add-hobby-button">
                         Add Hobby
+                    </button>
+                </div>
+            </div>
+
+            <div id="languages" className={`languages-section ${activeSection === 'languages' ? 'active' : ''}`}>
+                <h3 className="section-title" onClick={() => {
+                    console.log('[Form1] Languages section title clicked');
+                    console.log('[Form1] Current activeSection:', activeSection);
+                    console.log('[Form1] Calling toggleSection("languages")...');
+                    toggleSection('languages');
+                    console.log('[Form1] toggleSection("languages") called');
+                }} >Languages</h3>
+
+                {(() => {
+                    console.log('[Form1] ========== Languages Section Rendering ==========');
+                    console.log('[Form1] Render count:', renderCountRef.current);
+                    console.log('[Form1] activeSection:', activeSection);
+                    console.log('[Form1] activeSection === "languages":', activeSection === 'languages');
+                    console.log('[Form1] Section will be visible:', activeSection === 'languages');
+                    console.log('[Form1] Current formData:', formData);
+                    console.log('[Form1] Current formData.languages:', formData.languages);
+                    const languagesArray = formData.languages || [];
+                    console.log('[Form1] languagesArray:', languagesArray);
+                    console.log('[Form1] languagesArray length:', languagesArray.length);
+                    console.log('[Form1] languagesArray is array:', Array.isArray(languagesArray));
+                    console.log('[Form1] languagesArray type:', typeof languagesArray);
+                    if (Array.isArray(languagesArray)) {
+                        console.log('[Form1] languagesArray structure:', languagesArray.map((lang, idx) => ({
+                            index: idx,
+                            type: typeof lang,
+                            value: lang,
+                            isString: typeof lang === 'string',
+                            isObject: typeof lang === 'object' && lang !== null,
+                            name: typeof lang === 'object' && lang !== null ? lang.name : (typeof lang === 'string' ? lang : 'N/A')
+                        })));
+                    }
+                    console.log('[Form1] About to map over languagesArray...');
+                    const mappedResult = languagesArray.map((language, index) => {
+                        // Handle both string and object formats
+                        const languageName = typeof language === 'string' ? language : (language.name || '');
+                        const languageLevel = typeof language === 'string' ? '' : (language.level || '');
+                        console.log(`[Form1] Rendering language ${index}:`, { languageName, languageLevel, language });
+                        
+                        return (
+                            <div key={index} className="language-input-container input-group">
+                            <div className="language-input-wrapper">
+                                <input
+                                    id={`language-input-${index}`}
+                                    className="language-input styled-input"
+                                    type="text"
+                                    name="language"
+                                    placeholder="Enter a language"
+                                    value={languageName}
+                                    onChange={(e) => {
+                                        console.log('[Form1] Language name input changed');
+                                        console.log('[Form1] Input value:', e.target.value);
+                                        console.log('[Form1] Index:', index);
+                                        console.log('[Form1] Current formData.languages:', formData.languages);
+                                        const newLanguages = [...(formData.languages || [])];
+                                        // Ensure we're working with object format
+                                        const currentLang = typeof newLanguages[index] === 'string' 
+                                            ? { name: newLanguages[index], level: '' }
+                                            : (newLanguages[index] || { name: '', level: '' });
+                                        newLanguages[index] = { ...currentLang, name: e.target.value };
+                                        console.log('[Form1] Updated newLanguages:', newLanguages);
+                                        console.log('[Form1] Calling handleInputChange("languages", ...)');
+                                        handleInputChange('languages', newLanguages);
+                                    }}
+                                />
+                                <input
+                                    id={`language-level-input-${index}`}
+                                    className="language-level-input styled-input"
+                                    type="text"
+                                    name="language-level"
+                                    placeholder="Level (e.g., Proficient)"
+                                    value={languageLevel}
+                                    onChange={(e) => {
+                                        const newLanguages = [...(formData.languages || [])];
+                                        // Ensure we're working with object format
+                                        const currentLang = typeof newLanguages[index] === 'string' 
+                                            ? { name: newLanguages[index], level: '' }
+                                            : (newLanguages[index] || { name: '', level: '' });
+                                        newLanguages[index] = { ...currentLang, level: e.target.value };
+                                        handleInputChange('languages', newLanguages);
+                                    }}
+                                    style={{ width: '150px', flexShrink: 0 }}
+                                />
+                                <button 
+                                    type="button" 
+                                    className="remove-language-button"
+                                    onClick={() => {
+                                        const newLanguages = [...(formData.languages || [])];
+                                        newLanguages.splice(index, 1);
+                                        handleInputChange('languages', newLanguages);
+                                    }}
+                                >
+                                    Remove
+                                </button>
+                            </div>
+                        </div>
+                        );
+                    });
+                    console.log('[Form1] Mapped result length:', mappedResult.length);
+                    console.log('[Form1] Mapped result:', mappedResult);
+                    console.log('[Form1] ========== Languages Section Rendering Completed ==========');
+                    
+                    // Check DOM after render
+                    setTimeout(() => {
+                        const languagesSection = document.getElementById('languages');
+                        const languageInputs = document.querySelectorAll('#languages .language-input');
+                        console.log('[Form1] ========== DOM Check (after render) ==========');
+                        console.log('[Form1] languages section element:', languagesSection);
+                        console.log('[Form1] languages section classes:', languagesSection?.className);
+                        console.log('[Form1] languages section has "active" class:', languagesSection?.classList.contains('active'));
+                        console.log('[Form1] Number of language input elements found:', languageInputs.length);
+                        console.log('[Form1] Language input elements:', Array.from(languageInputs).map((el, idx) => ({
+                            index: idx,
+                            id: el.id,
+                            value: el.value,
+                            visible: el.offsetParent !== null,
+                            display: window.getComputedStyle(el).display,
+                            visibility: window.getComputedStyle(el).visibility
+                        })));
+                        console.log('[Form1] ========== DOM Check Completed ==========');
+                    }, 100);
+                    
+                    return mappedResult;
+                })()}
+
+                <div className="add-language-container">
+                    <button 
+                        type="button" 
+                        onClick={() => {
+                            console.log('[Form1] Add Language button clicked');
+                            
+                            // Ensure languages section is active/expanded so the input will be visible
+                            if (activeSection !== 'languages') {
+                                toggleSection('languages');
+                            }
+                            
+                            // Add a new language input directly
+                            const currentLanguages = formData.languages || [];
+                            console.log('[Form1] Current languages count:', currentLanguages.length);
+                            const newLanguage = { name: '', level: '' };
+                            const newLanguages = [...currentLanguages, newLanguage];
+                            console.log('[Form1] New languages count:', newLanguages.length);
+                            handleInputChange('languages', newLanguages);
+                            console.log('[Form1] Language added successfully');
+                        }} 
+                        className="add-language-button"
+                    >
+                        Add Language
                     </button>
                 </div>
             </div>

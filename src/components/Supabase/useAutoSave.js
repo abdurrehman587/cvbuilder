@@ -104,16 +104,19 @@ const useAutoSave = (formData, saveInterval = 10000) => {
         console.log('✅ CV updated successfully:', savedCV);
       } else {
         // Check if a CV with the same name already exists to prevent duplicates
+        console.log('🔍 No currentCVId set, searching for existing CV with name:', cvData.name);
         const existingCV = await cvService.findCVByName(user.id, cvData.name, isAdmin);
         
         if (existingCV) {
           console.log('🔍 Found existing CV with same name, updating instead of creating:', existingCV.id);
+          console.log('📋 Existing CV details:', { id: existingCV.id, name: existingCV.name, created_at: existingCV.created_at });
           // Update existing CV instead of creating a new one
           savedCV = await cvService.updateCV(existingCV.id, cvData, user.id, isAdmin);
           console.log('✅ Existing CV updated successfully:', savedCV);
           setCurrentCVId(existingCV.id);
         } else {
-          console.log('➕ Creating new CV...');
+          console.log('➕ No existing CV found with this name, creating new CV...');
+          console.log('📋 New CV data:', { name: cvData.name, user_id: user.id });
           // Create new CV only if no existing CV found
           savedCV = await cvService.createCV(cvData);
           console.log('✅ New CV created:', savedCV);
@@ -160,6 +163,43 @@ const useAutoSave = (formData, saveInterval = 10000) => {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Try to find and set currentCVId when formData has a name but currentCVId is null
+  // This prevents creating duplicates when form loads from localStorage
+  useEffect(() => {
+    const findAndSetCVId = async () => {
+      // Only run if we have a name but no currentCVId
+      if (!formData.name?.trim() || currentCVId || !isAuthenticated) {
+        return;
+      }
+
+      try {
+        const user = await authService.getCurrentUser();
+        if (!user) return;
+
+        // Check if user is admin
+        const { data: userData } = await supabase
+          .from('users')
+          .select('is_admin')
+          .eq('email', user.email)
+          .single();
+        
+        const isAdmin = userData?.is_admin || false;
+
+        // Try to find existing CV with this exact name
+        const existingCV = await cvService.findCVByName(user.id, formData.name, isAdmin);
+        
+        if (existingCV) {
+          console.log('🔍 Found existing CV on form load, setting currentCVId:', existingCV.id);
+          setCurrentCVId(existingCV.id);
+        }
+      } catch (error) {
+        console.error('Error finding CV by name on form load:', error);
+      }
+    };
+
+    findAndSetCVId();
+  }, [formData.name, currentCVId, isAuthenticated]);
+
   // Set up auto-save interval
   useEffect(() => {
     if (!isAuthenticated) {
@@ -171,6 +211,7 @@ const useAutoSave = (formData, saveInterval = 10000) => {
       console.log('Auto-save interval check:', { 
         hasUnsavedChanges, 
         name: formData.name?.trim(),
+        currentCVId,
         formDataKeys: Object.keys(formData)
       });
       
@@ -197,7 +238,7 @@ const useAutoSave = (formData, saveInterval = 10000) => {
     }, saveInterval);
 
     return () => clearInterval(interval);
-  }, [formData, saveInterval, isAuthenticated, autoSave, hasUnsavedChanges]);
+  }, [formData, saveInterval, isAuthenticated, autoSave, hasUnsavedChanges, currentCVId]);
 
   // Removed localStorage loading - form data will reset on page reload
 

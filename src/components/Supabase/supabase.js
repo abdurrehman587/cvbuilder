@@ -114,14 +114,14 @@ export const cvService = {
     let query = supabase
       .from(TABLES.CVS)
       .select('*')
-      .ilike('name', trimmedName) // Case-insensitive comparison
+      .eq('name', trimmedName) // Exact match (case-sensitive) to prevent duplicates
     
     // Only filter by user_id if not admin
     if (!isAdmin) {
       query = query.eq('user_id', userId)
     }
     
-    // Get the most recent CV with this name
+    // Get the most recent CV with this exact name
     query = query.order('created_at', { ascending: false }).limit(1)
     
     const { data, error } = await query

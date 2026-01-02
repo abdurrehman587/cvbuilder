@@ -3,14 +3,14 @@ import { setCVView } from '../../utils/routing';
 import generatePDF1 from '../template1/pdf1';
 import generatePDF2 from '../template2/pdf2';
 import generatePDF3 from '../template3/pdf3';
-import generatePDF5 from '../template5/pdf5';
+import generatePDF4 from '../template4/pdf4';
 import './PreviewPage.css';
 
 // Import all preview components
 import Preview1 from '../template1/Preview1';
 import Preview2 from '../template2/Preview2';
 import Preview3 from '../template3/Preview3';
-import Preview5 from '../template5/Preview5';
+import Preview4 from '../template4/Preview4';
 
 function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
   // On mount, check if formData is empty and try to load from localStorage
@@ -50,8 +50,8 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
         return <Preview2 {...previewProps} />;
       case 'template3':
         return <Preview3 {...previewProps} />;
-      case 'template5':
-        return <Preview5 {...previewProps} />;
+      case 'template4':
+        return <Preview4 {...previewProps} />;
       default:
         return <Preview1 {...previewProps} />;
     }
@@ -93,36 +93,62 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
     const hasDataToStore = dataToStore && (dataToStore.name || dataToStore.education?.length > 0 || dataToStore.experience?.length > 0);
     
     if (hasDataToStore) {
-      try {
-        // Create a serializable copy (handle profileImage properly)
-        const serializableData = {
-          ...dataToStore,
-          profileImage: dataToStore.profileImage 
-            ? (dataToStore.profileImage.data 
-                ? { data: dataToStore.profileImage.data } 
-                : dataToStore.profileImage instanceof File 
-                  ? null // Can't serialize File objects
-                  : dataToStore.profileImage)
-            : null
-        };
-        
-        // Store formData in localStorage so it can be loaded when returning to form
-        localStorage.setItem('cvFormData', JSON.stringify(serializableData));
-        // Set a flag to indicate we're returning from preview (not creating new CV)
-        localStorage.setItem('returningFromPreview', 'true');
-        console.log('PreviewPage - Stored formData in localStorage before navigating back:', serializableData);
-      } catch (e) {
-        console.error('PreviewPage - Error storing formData:', e);
-        // If serialization fails, try storing without profileImage
+      // Convert File to base64 if needed before storing
+      const storeDataWithImage = async () => {
         try {
-          const { profileImage, ...dataWithoutImage } = dataToStore;
-          localStorage.setItem('cvFormData', JSON.stringify(dataWithoutImage));
+          let profileImageData = null;
+          
+          if (dataToStore.profileImage) {
+            if (dataToStore.profileImage.data) {
+              // Already base64 from database
+              profileImageData = { data: dataToStore.profileImage.data };
+            } else if (dataToStore.profileImage instanceof File) {
+              // Convert File to base64
+              try {
+                const base64 = await new Promise((resolve, reject) => {
+                  const reader = new FileReader();
+                  reader.onload = () => resolve(reader.result);
+                  reader.onerror = reject;
+                  reader.readAsDataURL(dataToStore.profileImage);
+                });
+                profileImageData = { data: base64 };
+                console.log('PreviewPage - Converted profile image to base64');
+              } catch (err) {
+                console.error('PreviewPage - Error converting profile image to base64:', err);
+                profileImageData = null;
+              }
+            } else {
+              profileImageData = dataToStore.profileImage;
+            }
+          }
+          
+          // Create a serializable copy
+          const serializableData = {
+            ...dataToStore,
+            profileImage: profileImageData
+          };
+          
+          // Store formData in localStorage so it can be loaded when returning to form
+          localStorage.setItem('cvFormData', JSON.stringify(serializableData));
+          // Set a flag to indicate we're returning from preview (not creating new CV)
           localStorage.setItem('returningFromPreview', 'true');
-          console.log('PreviewPage - Stored formData without profileImage due to serialization error');
-        } catch (e2) {
-          console.error('PreviewPage - Error storing formData even without profileImage:', e2);
+          console.log('PreviewPage - Stored formData in localStorage before navigating back:', serializableData);
+        } catch (e) {
+          console.error('PreviewPage - Error storing formData:', e);
+          // If serialization fails, try storing without profileImage
+          try {
+            const { profileImage, ...dataWithoutImage } = dataToStore;
+            localStorage.setItem('cvFormData', JSON.stringify(dataWithoutImage));
+            localStorage.setItem('returningFromPreview', 'true');
+            console.log('PreviewPage - Stored formData without profileImage due to serialization error');
+          } catch (e2) {
+            console.error('PreviewPage - Error storing formData even without profileImage:', e2);
+          }
         }
-      }
+      };
+      
+      // Convert and store
+      storeDataWithImage();
     } else {
       // If no meaningful data, still set the flag but log a warning
       console.warn('PreviewPage - No meaningful formData available to store when going back');
@@ -177,8 +203,8 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
       case 'template3':
         generatePDF = generatePDF3;
         break;
-      case 'template5':
-        generatePDF = generatePDF5;
+      case 'template4':
+        generatePDF = generatePDF4;
         break;
       default:
         generatePDF = generatePDF1;
@@ -186,8 +212,8 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
     
     // Call the PDF generation function
     if (generatePDF) {
-      // Template 1, 2, and 3 accept formData parameter for filename
-      if (selectedTemplate === 'template1' || selectedTemplate === 'template2' || selectedTemplate === 'template3') {
+      // Template 1, 2, 3, and 4 accept formData parameter for filename
+      if (selectedTemplate === 'template1' || selectedTemplate === 'template2' || selectedTemplate === 'template3' || selectedTemplate === 'template4') {
         generatePDF(dataForFileName);
       } else {
         // Other templates don't accept formData parameter
@@ -253,11 +279,11 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
                 T3
               </button>
               <button
-                className={`preview-template-button ${selectedTemplate === 'template5' ? 'active' : ''}`}
-                onClick={() => onTemplateSwitch('template5')}
-                title="Template 5 (Europass)"
+                className={`preview-template-button ${selectedTemplate === 'template4' ? 'active' : ''}`}
+                onClick={() => onTemplateSwitch('template4')}
+                title="Template 4 (Europass)"
               >
-                T5
+                T4
               </button>
             </div>
           </div>

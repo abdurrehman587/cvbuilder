@@ -7,8 +7,7 @@ import Form1 from './components/template1/Form1';
 import Preview1 from './components/template1/Preview1';
 import Preview2 from './components/template2/Preview2';
 import Preview3 from './components/template3/Preview3';
-import Form5 from './components/template5/Form5';
-import Preview5 from './components/template5/Preview5';
+import Preview4 from './components/template4/Preview4';
 import useAutoSave from './components/Supabase/useAutoSave';
 import { authService, supabase } from './components/Supabase/supabase';
 import IDCardPrintPage from './components/IDCardPrint/IDCardPrintPage';
@@ -53,12 +52,29 @@ function App() {
     // It will be written when user navigates or in event handlers
     return 'cv-builder';
   }); // 'marketplace', 'cv-builder', or 'id-card-print'
+  // Normalize languages: convert strings to objects
+  const normalizeLanguages = (languages) => {
+    if (!Array.isArray(languages)) return [];
+    return languages.map(lang => {
+      if (typeof lang === 'string') {
+        // Convert string to object format (no default level)
+        return { name: lang, level: '' };
+      } else if (typeof lang === 'object' && lang !== null && lang.name) {
+        // Already an object, preserve existing level or leave empty
+        return { name: lang.name, level: lang.level || '' };
+      }
+      // Invalid format, return default
+      return { name: '', level: '' };
+    });
+  };
+
   const [formData, setFormData] = useState({
     name: '',
     position: '',
     phone: '',
     email: '',
     address: '',
+    profileImage: null,
     professionalSummary: '',
     education: [],
     experience: [],
@@ -70,6 +86,25 @@ function App() {
     otherInfo: [],
     customSection: []
   });
+
+  // Debug: Track formData changes
+  useEffect(() => {
+    console.log('[App] ========== formData State Changed ==========');
+    console.log('[App] formData changed');
+    console.log('[App] formData.languages:', formData.languages);
+    console.log('[App] formData.languages length:', formData.languages?.length);
+    console.log('[App] formData.languages is array:', Array.isArray(formData.languages));
+    if (Array.isArray(formData.languages)) {
+      console.log('[App] formData.languages structure:', formData.languages.map((lang, idx) => ({
+        index: idx,
+        type: typeof lang,
+        value: lang,
+        isString: typeof lang === 'string',
+        isObject: typeof lang === 'object' && lang !== null
+      })));
+    }
+    console.log('[App] ========== formData State Change Completed ==========');
+  }, [formData]);
   // Local state for UI (will be overridden by hook)
   const [autoSaveStatus, setAutoSaveStatus] = useState('');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -173,6 +208,12 @@ function App() {
               console.log('App.js - Flags that triggered load:', { returningFromPreview, goToCVForm });
               console.log('App.js - Data being loaded:', parsedData);
               
+              // Normalize languages if needed (convert strings to objects)
+              if (parsedData.languages) {
+                parsedData.languages = normalizeLanguages(parsedData.languages);
+                console.log('App.js - Normalized languages:', parsedData.languages);
+              }
+              
               // Load the data IMMEDIATELY
               setFormData(parsedData);
               
@@ -239,6 +280,11 @@ function App() {
             if (hasStoredData && !hasCurrentData) {
               // If formData is empty, load stored data
               console.log('App.js - Loading formData from localStorage (form is empty):', parsedData);
+              // Normalize languages if needed
+              if (parsedData.languages) {
+                parsedData.languages = normalizeLanguages(parsedData.languages);
+                console.log('App.js - Normalized languages:', parsedData.languages);
+              }
               setFormData(parsedData);
               return true;
             } else if (hasStoredData && hasCurrentData) {
@@ -247,6 +293,11 @@ function App() {
               const currentDataComplete = (formData.education?.length || 0) + (formData.experience?.length || 0);
               if (storedDataComplete > currentDataComplete) {
                 console.log('App.js - Loading formData from localStorage (stored data is more complete):', parsedData);
+                // Normalize languages if needed
+                if (parsedData.languages) {
+                  parsedData.languages = normalizeLanguages(parsedData.languages);
+                  console.log('App.js - Normalized languages:', parsedData.languages);
+                }
                 setFormData(parsedData);
                 return true;
               }
@@ -293,8 +344,30 @@ function App() {
 
   // Update form data
   const updateFormData = (newData) => {
+    console.log('[App] ========== updateFormData called ==========');
+    console.log('[App] Current formData.languages:', formData.languages);
+    console.log('[App] Current formData.languages length:', formData.languages?.length);
+    console.log('[App] New data.languages:', newData.languages);
+    console.log('[App] New data.languages length:', newData.languages?.length);
+    console.log('[App] Languages changed:', formData.languages !== newData.languages);
+    console.log('[App] Languages length changed:', formData.languages?.length !== newData.languages?.length);
+    if (Array.isArray(newData.languages)) {
+      console.log('[App] New data.languages structure:', newData.languages.map((lang, idx) => ({
+        index: idx,
+        type: typeof lang,
+        value: lang,
+        isString: typeof lang === 'string',
+        isObject: typeof lang === 'object' && lang !== null
+      })));
+    }
+    console.log('[App] Full newData:', newData);
+    console.log('[App] Calling setFormData...');
     setFormData(newData);
+    console.log('[App] setFormData called - React will schedule a re-render');
+    console.log('[App] Calling hookMarkAsChanged...');
     hookMarkAsChanged(); // Use hook's markAsChanged instead of local state
+    console.log('[App] hookMarkAsChanged called');
+    console.log('[App] ========== updateFormData completed ==========');
   };
 
   // Fresh, simplified navigation handler
@@ -364,6 +437,7 @@ function App() {
       phone: '',
       email: '',
       address: '',
+      profileImage: null,
       professionalSummary: '',
       education: [],
       experience: [],
@@ -1551,19 +1625,23 @@ function App() {
                   />
                 </>
               );
-            case 'template5':
+            case 'template4':
               return (
                 <>
-                  <Form5 
+                  <Form1 
                     key={formResetKey}
                     formData={formData}
                     updateFormData={updateFormData}
                     markAsChanged={hookMarkAsChanged}
                   />
-                  <Preview5 
+                  <Preview4 
                     formData={formData}
                     autoSaveStatus={hookAutoSaveStatus}
                     hasUnsavedChanges={hookHasUnsavedChanges}
+                    selectedTemplate={selectedTemplate}
+                    onTemplateSwitch={handleTemplateSwitch}
+                    isPreviewPage={false}
+                    updateFormData={updateFormData}
                   />
                 </>
               );
@@ -1802,19 +1880,23 @@ function App() {
                 />
               </>
             );
-          case 'template5':
+          case 'template4':
             return (
               <>
-                <Form5 
+                <Form1 
                   key={formResetKey}
                   formData={formData}
                   updateFormData={updateFormData}
                   markAsChanged={hookMarkAsChanged}
                 />
-                <Preview5 
+                <Preview4 
                   formData={formData}
                   autoSaveStatus={hookAutoSaveStatus}
                   hasUnsavedChanges={hookHasUnsavedChanges}
+                  selectedTemplate={selectedTemplate}
+                  onTemplateSwitch={handleTemplateSwitch}
+                  isPreviewPage={false}
+                  updateFormData={updateFormData}
                 />
               </>
             );
@@ -1922,13 +2004,6 @@ function App() {
             return (
               <>
                 <Preview3 formData={formData} isPreviewPage={false} />
-              </>
-            );
-          case 'template5':
-            return (
-              <>
-                <Form5 formData={formData} updateFormData={updateFormData} />
-                <Preview5 formData={formData} />
               </>
             );
           default:
@@ -2058,22 +2133,6 @@ function App() {
                 autoSaveStatus={hookAutoSaveStatus}
                 hasUnsavedChanges={hookHasUnsavedChanges}
                 isPreviewPage={false}
-              />
-            </>
-          );
-        case 'template5':
-          return (
-            <>
-              <Form5 
-                key={formResetKey}
-                formData={formData}
-                updateFormData={updateFormData}
-                markAsChanged={hookMarkAsChanged}
-              />
-              <Preview5 
-                formData={formData}
-                autoSaveStatus={hookAutoSaveStatus}
-                hasUnsavedChanges={hookHasUnsavedChanges}
               />
             </>
           );

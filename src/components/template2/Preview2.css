@@ -2,15 +2,18 @@
 .template2-cv-content-wrapper {
   display: grid;
   grid-template-columns: 35% 65%;
-  grid-template-rows: 1fr;
+  grid-template-rows: auto;
   gap: 0;
   width: 100%;
-  height: 100vh;
+  min-height: auto;
+  height: auto;
+  max-height: 100%;
   background: #ffffff;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 /* ===== LEFT SIDEBAR STYLING ===== */
@@ -20,10 +23,14 @@
   flex-direction: column;
   gap: 24px;
   position: relative;
-  margin: -21px 0 0 -19px;
-  padding-left: 16px;
-  height: 100%;
+  margin: 0;
+  padding-left: 20px;
+  padding-right: 18px;
+  min-height: 100%;
+  height: auto;
   box-sizing: border-box;
+  overflow-y: auto;
+  background: linear-gradient(to bottom, #48cae4, #90e0ef, #ade8f4);
 }
 
 .template2-cv-left-sidebar::before {
@@ -39,8 +46,8 @@
 
 /* ===== PROFILE IMAGE ===== */
 .template2-profile-image-container {
-  width: 100px;
-  height: 100px;
+  width: 150px;
+  height: 150px;
   flex-shrink: 0;
   border-radius: 8px;
   overflow: hidden;
@@ -66,7 +73,7 @@
 
 /* ===== NAME & TITLE ===== */
 .template2-header-name {
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 700;
   margin: 0;
   line-height: 1.3;
@@ -75,7 +82,7 @@
 }
 
 .template2-header-title {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   margin: 4px 0 0 0;
   text-align: center;
@@ -91,7 +98,7 @@
 }
 
 .template2-sidebar-section-title {
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 700;
   margin: 0;
   padding-bottom: 6px;
@@ -105,12 +112,12 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.4;
 }
 
 .template2-contact-icon {
-  font-size: 16px;
+  font-size: 17px;
   flex-shrink: 0;
 }
 
@@ -126,14 +133,13 @@
   background: #ffffff;
   padding: 4px 8px;
   border-radius: 4px;
-  font-size: 12px;
+  font-size: 13px;
   word-break: break-word;
 }
 
 /* ===== LANGUAGE ITEMS ===== */
 .template2-language-item {
-  font-size: 12px;
-
+  font-size: 13px;
   padding-left: 10px;
   position: relative;
 }
@@ -144,9 +150,14 @@
   left: 0;
 }
 
+.template2-language-level {
+  font-weight: 400;
+  color: #6b7280;
+}
+
 /* ===== HOBBY ITEMS ===== */
 .template2-hobby-item {
-  font-size: 12px;
+  font-size: 13px;
   padding-left: 10px;
   position: relative;
 }
@@ -161,17 +172,20 @@
 /* ===== OTHER INFO ===== */
 .template2-other-info-item {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
-  font-size: 12px;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 5px;
+  font-size: 13px;
 }
 
 .template2-other-info-label {
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .template2-other-info-value {
-  font-size: 12px;
+  font-size: 13px;
+  flex: 1;
 }
 
 /* ===== RIGHT CONTENT AREA ===== */
@@ -182,6 +196,9 @@
   flex-direction: column;
   gap: 16px;
   overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 100%;
+  height: auto;
 }
 
 /* ===== SECTIONS ===== */
@@ -201,7 +218,7 @@
 }
 
 .template2-section-heading {
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 700;
   margin: 0;
   padding-bottom: 8px;
@@ -218,7 +235,7 @@
 
 /* ===== PROFESSIONAL SUMMARY ===== */
 .template2-professional-summary-text {
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.6;
   color: #333;
   margin: 0;
@@ -236,13 +253,13 @@
 }
 
 .template2-experience-title {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   margin: 0;
 }
 
 .template2-experience-company {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   color: #48cae4;
   margin: 0;
@@ -256,14 +273,14 @@
 }
 
 .template2-experience-duration {
-  font-size: 11px;
+  font-size: 12px;
   margin: 0;
   font-style: italic;
   white-space: nowrap;
 }
 
 .template2-experience-details {
-  font-size: 11px;
+  font-size: 12px;
   margin-top: 4px;
 }
 
@@ -278,30 +295,30 @@
 }
 
 .template2-education-degree {
-  font-size: 13px;
+  font-size: 14px;
   color: #48cae4;
   font-weight: 700;
   margin: 0;
 }
 
 .template2-education-board {
-  font-size: 12px;
+  font-size: 13px;
   margin: 0;
 }
 
 .template2-education-year {
-  font-size: 11px;
+  font-size: 12px;
   margin: 0;
 }
 
 .template2-education-marks {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   margin: 0;
 }
 
 .template2-education-single-line {
-  font-size: 12px;
+  font-size: 13px;
   margin: 0;
   padding-left: 8px;
   border-left: 2px solid #f39c12;
@@ -321,13 +338,13 @@
   padding: 6px 0;
   padding-left: 8px;
   border-left: 2px solid #48cae4;
-  font-size: 12px;
+  font-size: 13px;
   margin: 0;
 }
 
 /* ===== REFERENCE ITEMS ===== */
 .template2-reference-item {
-  font-size: 12px;
+  font-size: 13px;
   color: #333;
   padding-left: 8px;
   padding: 6px 0 6px 8px;
@@ -355,40 +372,136 @@
 }
 
 .template2-custom-section-detail {
-  font-size: 12px;
+  font-size: 13px;
   margin: 0;
 }
 
 /* ===== RESPONSIVE DESIGN ===== */
+/* ===== TABLET RESPONSIVE (max-width: 1024px) ===== */
 @media (max-width: 1024px) {
   .template2-cv-content-wrapper {
-    grid-template-columns: 35% 65%;
+    grid-template-columns: 32% 68%;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    min-height: auto;
+    height: auto;
   }
 
   .template2-cv-left-sidebar {
-    padding: 20px 12px;
+    padding: 18px 12px;
+    gap: 16px;
+    margin: 0;
+    padding-left: 14px;
+    padding-right: 12px;
+    min-height: auto;
+    height: auto;
+    overflow-y: visible;
+    background: linear-gradient(to bottom, #48cae4, #90e0ef, #ade8f4);
+  }
+
+  .template2-cv-left-sidebar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to bottom, #48cae4, #90e0ef, #ade8f4);
+    z-index: -1;
+  }
+
+  .template2-cv-right-content {
+    padding: 18px 14px;
+    overflow-x: hidden;
+    overflow-y: visible;
+    min-height: auto;
+    height: auto;
+  }
+
+  .template2-section-heading {
+    font-size: 14px;
+    padding-bottom: 6px;
+  }
+
+  .template2-cv-section {
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    gap: 6px;
+  }
+
+  .template2-profile-image-container {
+    width: 130px;
+    height: 130px;
+  }
+
+  .template2-header-name {
+    font-size: 20px;
+  }
+
+  .template2-header-title {
+    font-size: 11.5px;
+  }
+
+  .template2-sidebar-section-title {
+    font-size: 13px;
+    padding-bottom: 4px;
+  }
+
+  .template2-sidebar-section {
+    gap: 6px;
+  }
+
+  .template2-contact-item {
+    font-size: 11px;
+  }
+
+  .template2-skill-tag {
+    font-size: 11px;
+    padding: 3px 7px;
+  }
+}
+
+/* ===== MOBILE RESPONSIVE (max-width: 768px) ===== */
+/* Note: A4 scaling is handled by Preview2.mobile.css */
+/* This section only adjusts internal spacing for better mobile readability */
+@media (max-width: 768px) {
+  .template2-cv-content-wrapper {
+    /* Keep two-column layout for A4 appearance */
+    grid-template-columns: 35% 65%;
+    grid-template-rows: auto;
+    height: auto;
+    padding: 0;
+    min-height: auto;
+  }
+
+  .template2-cv-left-sidebar {
+    padding: 20px 14px;
     gap: 20px;
+    margin: 0;
+    padding-left: 16px;
+    padding-right: 14px;
+    background: linear-gradient(to bottom, #48cae4, #90e0ef, #ade8f4);
+  }
+
+  .template2-cv-left-sidebar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to bottom, #48cae4, #90e0ef, #ade8f4);
+    z-index: -1;
   }
 
   .template2-cv-right-content {
     padding: 20px;
   }
-}
 
-@media (max-width: 768px) {
-  .template2-cv-content-wrapper {
-    grid-template-columns: 1fr;
-    min-height: auto;
-  }
-
-  .template2-cv-left-sidebar {
-    padding: 16px;
-    gap: 16px;
-    order: -1;
-  }
-
-  .template2-cv-right-content {
-    padding: 16px;
+  .template2-profile-image-container {
+    width: 120px;
+    height: 120px;
   }
 
   .template2-header-name {
@@ -396,27 +509,27 @@
   }
 
   .template2-section-heading {
-    font-size: 13px;
+    font-size: 14px;
   }
 }
 
+/* ===== SMALL MOBILE (max-width: 480px) ===== */
+/* Note: A4 scaling is handled by Preview2.mobile.css */
 @media (max-width: 480px) {
-  .template2-cv-content-wrapper {
-    grid-template-columns: 1fr;
-  }
-
   .template2-cv-left-sidebar {
-    padding: 12px;
-    gap: 12px;
+    padding: 18px 12px;
+    gap: 16px;
+    padding-left: 14px;
+    padding-right: 12px;
   }
 
   .template2-cv-right-content {
-    padding: 12px;
+    padding: 18px 14px;
   }
 
   .template2-profile-image-container {
-    width: 80px;
-    height: 80px;
+    width: 110px;
+    height: 110px;
   }
 
   .template2-header-name {
@@ -424,244 +537,12 @@
   }
 
   .template2-section-heading {
-    font-size: 12px;
+    font-size: 13px;
   }
 
   .template2-skill-tag {
     font-size: 10px;
     padding: 3px 6px;
-  }
-
-  /* ===== MOBILE RESPONSIVE (max-width: 768px) ===== */
-}
-
-@media (max-width: 768px) {
-  .template2-cv-content-wrapper {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr;
-    height: auto;
-    padding: 0;
-  }
-
-  /* ===== LEFT SIDEBAR MOBILE ===== */
-  .template2-cv-left-sidebar {
-    padding: 20px 16px;
-    margin: 0;
-    padding-left: 16px;
-    gap: 16px;
-    border-radius: 0;
-    width: 100%;
-    height: auto;
-  }
-
-  .template2-cv-left-sidebar::before {
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-  }
-
-  /* ===== PROFILE IMAGE MOBILE ===== */
-  .template2-profile-image-container {
-    width: 80px;
-    height: 80px;
-    margin: 0 auto 12px;
-  }
-
-  .template2-profile-image {
-    width: 100%;
-    height: 100%;
-  }
-
-  /* ===== NAME & TITLE MOBILE ===== */
-  .template2-header-name {
-    font-size: 24px;
-    text-align: center;
-    margin-bottom: 4px;
-  }
-
-  .template2-header-title {
-    font-size: 12px;
-    text-align: center;
-    margin-bottom: 12px;
-  }
-
-  /* ===== SIDEBAR SECTIONS MOBILE ===== */
-  .template2-sidebar-section {
-    margin-bottom: 12px;
-    padding-bottom: 12px;
-  }
-
-  .template2-sidebar-section-title {
-    font-size: 12px;
-    margin-bottom: 8px;
-    font-weight: 600;
-  }
-
-  /* ===== CONTACT ITEMS MOBILE ===== */
-  .template2-contact-item {
-    font-size: 12px;
-    margin-bottom: 6px;
-    word-break: break-word;
-  }
-
-  .template2-contact-icon {
-    width: 14px;
-    height: 14px;
-    margin-right: 8px;
-  }
-
-  /* ===== SKILL TAGS MOBILE ===== */
-  .template2-skill-tag {
-    font-size: 11px;
-    padding: 4px 10px;
-    margin-right: 6px;
-    margin-bottom: 6px;
-  }
-
-  /* ===== LANGUAGE ITEMS MOBILE ===== */
-  .template2-language-item {
-    font-size: 12px;
-    margin-bottom: 6px;
-  }
-
-  /* ===== HOBBY ITEMS MOBILE ===== */
-  .template2-hobby-item {
-    font-size: 12px;
-    margin-bottom: 6px;
-  }
-
-  /* ===== OTHER INFO MOBILE ===== */
-  .template2-other-info-item {
-    font-size: 12px;
-    margin-bottom: 8px;
-    flex-basis: 100%;
-  }
-
-  .template2-other-info-label {
-    font-size: 11px;
-    font-weight: 600;
-  }
-
-  .template2-other-info-value {
-    font-size: 11px;
-  }
-
-  /* ===== RIGHT CONTENT AREA MOBILE ===== */
-  .template2-cv-right-content {
-    padding: 20px 16px;
-    overflow-y: auto;
-    max-height: calc(100vh - 200px);
-  }
-
-  /* ===== SECTIONS MOBILE ===== */
-  .template2-cv-section {
-    margin-bottom: 16px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid #e0e0e0;
-  }
-
-  .template2-cv-section:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
-    padding-bottom: 0;
-  }
-
-  .template2-section-heading {
-    font-size: 14px;
-    margin-bottom: 8px;
-    font-weight: 700;
-    color: #f39c12;
-  }
-
-  .template2-section-content {
-    font-size: 12px;
-  }
-
-  /* ===== PROFESSIONAL SUMMARY MOBILE ===== */
-  .template2-professional-summary-text {
-    font-size: 12px;
-    line-height: 1.4;
-    margin-bottom: 8px;
-  }
-
-  /* ===== EXPERIENCE ITEMS MOBILE ===== */
-  .template2-experience-item {
-    margin-bottom: 12px;
-  }
-
-  .template2-experience-header {
-    flex-direction: column;
-    align-items: flex-start;
-    margin-bottom: 4px;
-  }
-
-  .template2-experience-title {
-    font-size: 13px;
-    font-weight: 600;
-    margin-bottom: 2px;
-  }
-
-  .template2-experience-company {
-    font-size: 11px;
-    color: #666;
-    margin-bottom: 2px;
-  }
-
-  .template2-experience-duration {
-    font-size: 11px;
-    color: #999;
-    margin-bottom: 4px;
-  }
-
-  .template2-experience-details {
-    font-size: 11px;
-    line-height: 1.4;
-  }
-
-  /* ===== EDUCATION ITEMS MOBILE ===== */
-  .template2-education-item {
-    margin-bottom: 12px;
-  }
-
-  .template2-education-single-line {
-    font-size: 12px;
-    margin-bottom: 2px;
-  }
-
-  /* ===== CERTIFICATIONS MOBILE ===== */
-  .template2-cv-section ul li {
-    font-size: 12px;
-    margin-bottom: 8px;
-  }
-
-  /* ===== CUSTOM SECTIONS MOBILE ===== */
-  .template2-custom-section-item {
-    margin-bottom: 10px;
-    padding-bottom: 10px;
-  }
-
-  .template2-custom-section-detail {
-    font-size: 11px;
-  }
-}
-
-/* ===== TABLET RESPONSIVE (max-width: 1024px) ===== */
-@media (max-width: 1024px) {
-  .template2-cv-content-wrapper {
-    grid-template-columns: 30% 70%;
-  }
-
-  .template2-cv-right-content {
-    padding: 24px 20px;
-  }
-
-  .template2-section-heading {
-    font-size: 15px;
-  }
-
-  .template2-cv-section {
-    margin-bottom: 12px;
   }
 }
 
