@@ -97,15 +97,11 @@ const CVDashboard = ({ onTemplateSelect, onLogout, onEditCV, onCreateNewCV }) =>
         setUserType(type);
         console.log('CVDashboard: Final user type:', type, 'for user:', user.email);
 
-        if (type === 'shopkeeper') {
-          console.log('CVDashboard: Loading credits for shopkeeper...');
-          const credits = await cvCreditsService.getCredits(user.id);
-          console.log('CVDashboard: Credits loaded:', credits);
-          setCvCredits(credits);
-        } else {
-          console.log('CVDashboard: Not a shopkeeper, skipping credits');
-          setCvCredits(null);
-        }
+        // Load credits for all users (not just shopkeepers)
+        console.log('CVDashboard: Loading credits...');
+        const credits = await cvCreditsService.getCredits(user.id);
+        console.log('CVDashboard: Credits loaded:', credits);
+        setCvCredits(credits);
       } catch (err) {
         console.error('CVDashboard: Error loading CV credits:', err);
         setCvCredits(null);
@@ -155,38 +151,47 @@ const CVDashboard = ({ onTemplateSelect, onLogout, onEditCV, onCreateNewCV }) =>
           <p className="welcome-message">Welcome! Let's create your professional CV</p>
           <p className="sub-message">Your CVs are automatically saved and secure</p>
           
-          {/* CV Credits Display for Shopkeepers */}
-          {userType === 'shopkeeper' && cvCredits !== null && (
+          {/* CV Credits Display for All Users */}
+          {cvCredits !== null && (
             <div 
               className="cv-credits-badge"
               style={{
-                display: 'inline-flex',
+                display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
                 gap: '8px',
-                padding: '12px 20px',
-                marginTop: '1rem',
-                backgroundColor: cvCredits > 0 ? 'rgba(40, 167, 69, 0.15)' : 'rgba(220, 53, 69, 0.15)',
-                borderRadius: '12px',
-                border: `2px solid ${cvCredits > 0 ? '#28a745' : '#dc3545'}`,
-                backdropFilter: 'blur(10px)',
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
+                padding: '20px 30px',
+                marginTop: '1.5rem',
+                backgroundColor: 'white',
+                borderRadius: '16px',
+                border: `3px solid ${cvCredits > 0 ? '#28a745' : '#dc3545'}`,
+                boxShadow: '0 6px 20px rgba(0, 0, 0, 0.2)'
               }}
               title="CV Download Credits Remaining"
             >
               <span style={{ 
-                fontSize: '16px', 
-                fontWeight: '700', 
-                color: cvCredits > 0 ? '#28a745' : '#dc3545',
-                textShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+                fontSize: '18px', 
+                fontWeight: '600', 
+                color: '#333',
+                textAlign: 'center'
               }}>
-                📥 CV Download Credits: {cvCredits}
+                📥 Remaining CV Download Credits
+              </span>
+              <span style={{ 
+                fontSize: '48px', 
+                fontWeight: '800', 
+                color: cvCredits > 0 ? '#28a745' : '#dc3545',
+                lineHeight: '1',
+                textAlign: 'center'
+              }}>
+                {cvCredits}
               </span>
               {cvCredits === 0 && (
                 <span style={{ 
-                  fontSize: '12px', 
+                  fontSize: '14px', 
                   color: '#dc3545',
                   fontStyle: 'italic',
-                  marginLeft: '8px'
+                  textAlign: 'center'
                 }}>
                   (Contact admin to add more)
                 </span>

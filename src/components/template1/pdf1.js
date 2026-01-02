@@ -547,20 +547,16 @@ const generatePDF = async (formData = null) => {
   try {
     console.log('Starting PDF generation...');
     
-    // Check CV credits for shopkeepers before allowing download
+    // Check CV credits before allowing download
     try {
       const user = await authService.getCurrentUser();
       if (user) {
-        const userType = user.user_metadata?.user_type || 'regular';
-        
-        if (userType === 'shopkeeper') {
-          const canDownload = await cvCreditsService.canDownloadCV(user.id);
-          if (!canDownload) {
-            const credits = await cvCreditsService.getCredits(user.id);
-            alert(`You have no CV download credits remaining (${credits} credits). Please contact admin to add more credits.`);
-            updateButtonState('📄 Download PDF', false);
-            return;
-          }
+        const canDownload = await cvCreditsService.canDownloadCV(user.id);
+        if (!canDownload) {
+          const credits = await cvCreditsService.getCredits(user.id);
+          alert(`You have no CV download credits remaining (${credits} credits). Please contact admin to add more credits.`);
+          updateButtonState('📄 Download PDF', false);
+          return;
         }
       }
     } catch (creditError) {
@@ -656,21 +652,20 @@ const generatePDF = async (formData = null) => {
       pdf.save(fileName);
     }
     
-    // Decrement credits for shopkeepers after successful download
+    // Decrement credits after successful download
     try {
       const user = await authService.getCurrentUser();
       if (user) {
-        const userType = user.user_metadata?.user_type || 'regular';
-        if (userType === 'shopkeeper') {
-          const newCredits = await cvCreditsService.decrementCredits(user.id);
-          if (newCredits >= 0) {
-            console.log(`CV credits decremented. Remaining credits: ${newCredits}`);
-            // Optionally show remaining credits to user
-            if (newCredits === 0) {
-              alert(`PDF downloaded successfully! You have no credits remaining. Please contact admin to add more credits.`);
-            } else {
-              console.log(`Remaining CV credits: ${newCredits}`);
-            }
+        const newCredits = await cvCreditsService.decrementCredits(user.id);
+        if (newCredits >= 0) {
+          console.log(`CV credits decremented. Remaining credits: ${newCredits}`);
+          // Dispatch event to update credits display in Header and Dashboard
+          window.dispatchEvent(new CustomEvent('cvCreditsUpdated'));
+          // Optionally show remaining credits to user
+          if (newCredits === 0) {
+            alert(`PDF downloaded successfully! You have no credits remaining. Please contact admin to add more credits.`);
+          } else {
+            console.log(`Remaining CV credits: ${newCredits}`);
           }
         }
       }

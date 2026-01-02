@@ -89,6 +89,52 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
     checkAdminStatus();
   }, [isAuthenticated]);
 
+  // Load CV credits for all users
+  useEffect(() => {
+    const loadCredits = async () => {
+      if (!isAuthenticated) {
+        setCvCredits(null);
+        setUserType(null);
+        return;
+      }
+
+      try {
+        const user = await authService.getCurrentUser();
+        if (!user) {
+          setCvCredits(null);
+          setUserType(null);
+          return;
+        }
+
+        const type = user.user_metadata?.user_type || 'regular';
+        setUserType(type);
+
+        // Load credits for all users (not just shopkeepers)
+        const credits = await cvCreditsService.getCredits(user.id);
+        setCvCredits(credits);
+      } catch (err) {
+        console.error('Error loading CV credits:', err);
+        setCvCredits(null);
+      }
+    };
+
+    loadCredits();
+    
+    // Refresh credits periodically (every 30 seconds)
+    const interval = setInterval(loadCredits, 30000);
+    
+    // Also listen for credit updates
+    const handleCreditUpdate = () => {
+      loadCredits();
+    };
+    window.addEventListener('cvCreditsUpdated', handleCreditUpdate);
+    
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('cvCreditsUpdated', handleCreditUpdate);
+    };
+  }, [isAuthenticated]);
+
   // Check if we're on the admin panel page
   useEffect(() => {
     const checkAdminPage = () => {
@@ -377,8 +423,8 @@ Cart
               </button>
             )}
             
-            {/* CV Credits Display for Shopkeepers */}
-            {isAuthenticated && userType === 'shopkeeper' && cvCredits !== null && (
+            {/* CV Credits Display for All Users */}
+            {isAuthenticated && cvCredits !== null && (
               <div 
                 className="cv-credits-display"
                 style={{

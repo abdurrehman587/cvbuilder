@@ -11,6 +11,7 @@ const AdminPanel = ({ initialView = 'marketplace' }) => {
   const [stats, setStats] = useState({
     totalUsers: 0
   })
+  const [searchTerm, setSearchTerm] = useState('')
 
   // Check if current user is admin
   useEffect(() => {
@@ -294,7 +295,48 @@ const AdminPanel = ({ initialView = 'marketplace' }) => {
 
       {/* Users Management */}
       <div className="admin-section">
-        <h2>Users Management</h2>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+          <h2 style={{ margin: 0 }}>Users Management</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <input
+              type="text"
+              placeholder="Search by name or email..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={{
+                padding: '10px 16px',
+                fontSize: '14px',
+                border: '2px solid #ddd',
+                borderRadius: '8px',
+                minWidth: '300px',
+                outline: 'none',
+                transition: 'border-color 0.3s ease'
+              }}
+              onFocus={(e) => e.target.style.borderColor = '#667eea'}
+              onBlur={(e) => e.target.style.borderColor = '#ddd'}
+            />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                style={{
+                  padding: '10px 16px',
+                  fontSize: '14px',
+                  backgroundColor: '#dc3545',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontWeight: '500',
+                  transition: 'background-color 0.3s ease'
+                }}
+                onMouseEnter={(e) => e.target.style.backgroundColor = '#c82333'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = '#dc3545'}
+              >
+                Clear
+              </button>
+            )}
+          </div>
+        </div>
         <div className="admin-table">
           <table>
             <thead>
@@ -308,7 +350,15 @@ const AdminPanel = ({ initialView = 'marketplace' }) => {
               </tr>
             </thead>
             <tbody>
-              {allUsers.map((user) => {
+              {allUsers
+                .filter((user) => {
+                  if (!searchTerm) return true;
+                  const search = searchTerm.toLowerCase();
+                  const email = (user.email || '').toLowerCase();
+                  const fullName = (user.full_name || '').toLowerCase();
+                  return email.includes(search) || fullName.includes(search);
+                })
+                .map((user) => {
                 // Determine user type display
                 let userTypeDisplay = 'Regular User'
                 let badgeClass = 'user'
@@ -344,7 +394,7 @@ const AdminPanel = ({ initialView = 'marketplace' }) => {
                       </span>
                     </td>
                     <td>
-                      {user.user_type === 'shopkeeper' ? (
+                      {!user.is_admin ? (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <span style={{ fontWeight: '600', color: (user.cv_credits || 0) > 0 ? '#28a745' : '#dc3545' }}>
                             {user.cv_credits || 0}
@@ -426,6 +476,19 @@ const AdminPanel = ({ initialView = 'marketplace' }) => {
                   </tr>
                 )
               })}
+              {allUsers.filter((user) => {
+                if (!searchTerm) return false;
+                const search = searchTerm.toLowerCase();
+                const email = (user.email || '').toLowerCase();
+                const fullName = (user.full_name || '').toLowerCase();
+                return email.includes(search) || fullName.includes(search);
+              }).length === 0 && searchTerm && (
+                <tr>
+                  <td colSpan="6" style={{ textAlign: 'center', padding: '2rem', color: '#666' }}>
+                    No users found matching "{searchTerm}"
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

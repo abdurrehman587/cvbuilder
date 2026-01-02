@@ -59,7 +59,8 @@ BEGIN
 END;
 $$;
 
--- Function to update user_type in auth metadata
+-- Function to update user_type in auth metadata (admin only)
+-- This function can only be called by admins to change user types
 CREATE OR REPLACE FUNCTION update_user_type(user_email text, new_user_type text)
 RETURNS void
 LANGUAGE plpgsql
@@ -67,7 +68,22 @@ SECURITY DEFINER
 AS $$
 DECLARE
   auth_user_id uuid;
+  current_user_id uuid;
+  is_admin_user boolean;
 BEGIN
+  -- Get the current authenticated user
+  current_user_id := auth.uid();
+  
+  -- Check if current user is admin
+  SELECT is_admin INTO is_admin_user
+  FROM public.users
+  WHERE id = current_user_id;
+  
+  -- Only allow admins to update user types
+  IF NOT is_admin_user THEN
+    RAISE EXCEPTION 'Only admins can update user types';
+  END IF;
+  
   -- Get the user ID from auth.users
   SELECT id INTO auth_user_id FROM auth.users WHERE email = user_email;
   

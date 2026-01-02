@@ -1,4 +1,4 @@
--- CV Credits System for Shopkeepers
+-- CV Credits System for All Users
 -- Run this SQL in Supabase SQL Editor
 
 -- Add cv_credits column to users table
@@ -22,7 +22,7 @@ BEGIN
 END;
 $$;
 
--- Create function to decrement CV credits (for shopkeepers)
+-- Create function to decrement CV credits (for all users)
 CREATE OR REPLACE FUNCTION decrement_cv_credits(user_id uuid)
 RETURNS INTEGER
 LANGUAGE plpgsql
@@ -31,18 +31,7 @@ AS $$
 DECLARE
   current_credits INTEGER;
   new_credits INTEGER;
-  user_type TEXT;
 BEGIN
-  -- Get user type from auth metadata
-  SELECT COALESCE((au.raw_user_meta_data->>'user_type')::text, 'regular') INTO user_type
-  FROM auth.users au
-  WHERE au.id = user_id;
-  
-  -- Only decrement for shopkeepers
-  IF user_type != 'shopkeeper' THEN
-    RETURN -1; -- Not a shopkeeper, no credits needed
-  END IF;
-  
   -- Get current credits
   SELECT COALESCE(cv_credits, 0) INTO current_credits
   FROM public.users
@@ -68,7 +57,7 @@ BEGIN
 END;
 $$;
 
--- Create function to add CV credits to a shopkeeper (admin only)
+-- Create function to add CV credits to a user (admin only)
 CREATE OR REPLACE FUNCTION add_cv_credits(user_id uuid, credits_to_add INTEGER)
 RETURNS INTEGER
 LANGUAGE plpgsql

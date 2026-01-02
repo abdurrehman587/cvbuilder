@@ -273,6 +273,41 @@ export const authService = {
 
   // Update user metadata
   async updateUserMetadata(metadata) {
+    // Prevent users from changing their own user_type
+    // Only allow setting user_type if it doesn't exist yet, or if admin is changing it
+    if (metadata.user_type !== undefined) {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) {
+          throw new Error('User not authenticated')
+        }
+
+        // Check if user already has a user_type
+        const currentUserType = user.user_metadata?.user_type
+        if (currentUserType && currentUserType !== metadata.user_type) {
+          // User is trying to change their own type - check if they're admin
+          const { data: userData } = await supabase
+            .from('users')
+            .select('is_admin')
+            .eq('id', user.id)
+            .single()
+          
+          const isAdmin = userData?.is_admin === true
+          
+          if (!isAdmin) {
+            throw new Error('You cannot change your own user type. Only admins can change user types.')
+          }
+        }
+      } catch (err) {
+        // If it's our custom error, throw it
+        if (err.message && err.message.includes('cannot change your own user type')) {
+          throw err
+        }
+        // Otherwise, log and continue (might be a new user without a record yet)
+        console.warn('Could not verify admin status for user_type update:', err)
+      }
+    }
+
     const { data, error } = await supabase.auth.updateUser({
       data: metadata
     })
@@ -319,22 +354,14 @@ export const cvCreditsService = {
     return data
   },
 
-  // Check if user can download CV (has credits or is not shopkeeper)
+  // Check if user can download CV (has credits)
   async canDownloadCV(userId) {
     try {
-      // Get current user to check user type
+      // Get current user
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return false
 
-      // Get user type from metadata
-      const userType = user.user_metadata?.user_type || 'regular'
-      
-      // If not shopkeeper, allow download
-      if (userType !== 'shopkeeper') {
-        return true
-      }
-
-      // If shopkeeper, check credits
+      // Check credits for all users
       const credits = await this.getCredits(userId)
       return credits > 0
     } catch (err) {
