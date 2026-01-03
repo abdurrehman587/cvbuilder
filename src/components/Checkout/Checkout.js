@@ -155,8 +155,9 @@ const Checkout = () => {
                     <p><strong>IBAN:</strong> PK72MEZN000218010050304</p>
                   </div>
                   <p className="payment-note">
-                    After making the transfer, please send a screenshot or proof of payment to our email or WhatsApp.
-                    Your order will be processed once payment is confirmed.
+                    After making the transfer, please send a screenshot or proof of payment to our WhatsApp. Your order will be processed once payment is confirmed.
+                    <br />
+                    <strong>WhatsApp: 03153338612</strong>
                   </p>
                 </div>
               ) : (

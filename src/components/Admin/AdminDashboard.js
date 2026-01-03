@@ -5,7 +5,7 @@ import AdminPanel from '../Supabase/AdminPanel';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
-  const [activeSection, setActiveSection] = useState('dashboard');
+  const [activeSection, setActiveSection] = useState('cv-management');
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -15,10 +15,10 @@ const AdminDashboard = () => {
     const updateSectionFromHash = () => {
       const hash = window.location.hash;
       if (hash === '#admin' || hash === '#admin/') {
-        setActiveSection('dashboard');
+        setActiveSection('cv-management');
       } else if (hash.startsWith('#admin/')) {
         const section = hash.replace('#admin/', '').split('/')[0];
-        if (['marketplace', 'cv-management', 'dashboard'].includes(section)) {
+        if (['marketplace', 'cv-management'].includes(section)) {
           setActiveSection(section);
         }
       }
@@ -62,11 +62,7 @@ const AdminDashboard = () => {
   const handleSectionChange = (section) => {
     setActiveSection(section);
     // Update URL hash
-    if (section === 'dashboard') {
-      window.location.hash = '#admin';
-    } else {
-      window.location.hash = `#admin/${section}`;
-    }
+    window.location.hash = `#admin/${section}`;
   };
 
   if (loading) {
@@ -110,12 +106,6 @@ const AdminDashboard = () => {
         </div>
         <div className="admin-nav">
           <button
-            className={activeSection === 'dashboard' ? 'active' : ''}
-            onClick={() => handleSectionChange('dashboard')}
-          >
-            Dashboard
-          </button>
-          <button
             className={activeSection === 'marketplace' ? 'active' : ''}
             onClick={() => handleSectionChange('marketplace')}
           >
@@ -131,24 +121,6 @@ const AdminDashboard = () => {
       </div>
 
       <div className="admin-dashboard-content">
-        {activeSection === 'dashboard' && (
-          <div className="admin-dashboard-overview">
-            <h2>Welcome to Admin Dashboard</h2>
-            <div className="admin-dashboard-cards">
-              <div className="admin-card" onClick={() => handleSectionChange('marketplace')}>
-                <h3>Marketplace Admin</h3>
-                <p>Manage products, orders, and marketplace settings</p>
-                <button>Go to Marketplace Admin</button>
-              </div>
-              <div className="admin-card" onClick={() => handleSectionChange('cv-management')}>
-                <h3>CV & ID Card Management</h3>
-                <p>Manage users, CVs, and ID Card credits</p>
-                <button>Go to CV & ID Card Management</button>
-              </div>
-            </div>
-          </div>
-        )}
-
         {activeSection === 'marketplace' && <MarketplaceAdmin />}
         {activeSection === 'cv-management' && <AdminPanel initialView="dashboard" />}
       </div>

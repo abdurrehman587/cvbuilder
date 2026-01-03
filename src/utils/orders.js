@@ -166,7 +166,7 @@ Account: Abdur Rehman
 A/C No: 02180100520304
 IBAN: PK72MEZN000218010050304
 
-Please send payment proof after transfer.` : 'Please keep the exact amount ready at delivery.'}
+Please send payment proof after transfer to WhatsApp: 03153338612` : 'Please keep the exact amount ready at delivery.'}
 
 We'll keep you updated on your order status. Thank you! 🙏`,
 
