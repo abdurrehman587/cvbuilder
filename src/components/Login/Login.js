@@ -24,10 +24,14 @@ function Login() {
   useEffect(() => {
     const checkPasswordReset = async () => {
       const hash = window.location.hash;
+      const fullUrl = window.location.href;
+      
+      console.log('Checking password reset - Hash:', hash);
+      console.log('Full URL:', fullUrl);
       
       // Check for error in URL (expired or invalid link)
-      if (hash.includes('error=')) {
-        const errorMatch = hash.match(/error_description=([^&]+)/);
+      if (hash.includes('error=') || fullUrl.includes('error=')) {
+        const errorMatch = hash.match(/error_description=([^&]+)/) || fullUrl.match(/error_description=([^&]+)/);
         const errorDescription = errorMatch ? decodeURIComponent(errorMatch[1].replace(/\+/g, ' ')) : 'Invalid or expired reset link';
         setError(errorDescription + '. Please request a new password reset link.');
         setIsResettingPassword(false);
@@ -35,60 +39,100 @@ function Login() {
         return;
       }
       
-      // Check if hash contains recovery token (Supabase puts it as access_token with type=recovery)
-      const hasRecoveryToken = hash.includes('type=recovery') || 
-                               (hash.includes('access_token') && hash.includes('type=recovery')) ||
-                               hash === '#reset-password' || 
-                               hash.startsWith('#reset-password');
+      // Check if hash contains recovery token
+      // Supabase formats: #reset-password&access_token=xxx&type=recovery&... 
+      // OR: #access_token=xxx&type=recovery&...
+      const hasAccessToken = hash.includes('access_token=');
+      const hasRecoveryType = hash.includes('type=recovery');
+      const hasRecoveryToken = hasRecoveryType || (hasAccessToken && hash.includes('recovery'));
+      const isResetPasswordRoute = hash.includes('reset-password') || hash === '#reset-password' || hash.startsWith('#reset-password');
       
-      if (hasRecoveryToken) {
+      console.log('Token check - hasAccessToken:', hasAccessToken, 'hasRecoveryType:', hasRecoveryType, 'isResetPasswordRoute:', isResetPasswordRoute, 'hasRecoveryToken:', hasRecoveryToken);
+      
+      // Show reset form if we have recovery tokens OR if we're on the reset-password route (Supabase might redirect there)
+      if (hasRecoveryToken || isResetPasswordRoute) {
         // Check if there's a recovery session
         const { data: { session } } = await supabase.auth.getSession();
+        console.log('Session check - has session:', !!session);
         
-        if (session) {
+        // If we have recovery tokens in the URL, show the form immediately
+        // Supabase will establish the session when it processes the hash
+        if (hasRecoveryToken) {
+          console.log('Recovery tokens detected in URL, showing reset form');
+          setIsResettingPassword(true);
+          setIsLogin(true);
+        } else if (session) {
           // User has a recovery session, show password reset form
           console.log('Recovery session found, showing reset form');
           setIsResettingPassword(true);
           setIsLogin(true);
-        } else {
-          // Token is in URL but session not yet established
-          // Listen for auth state changes to detect when session is established
-          const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-            console.log('Auth state change in Login:', event, session ? 'has session' : 'no session');
-            if (event === 'PASSWORD_RECOVERY' || (session && (hash.includes('type=recovery') || hash.includes('access_token')))) {
-              console.log('Password recovery detected, showing reset form');
-              setIsResettingPassword(true);
-              setIsLogin(true);
-            }
-          });
-          
-          // Also check after delays in case Supabase processes it asynchronously
-          setTimeout(async () => {
-            const { data: { session: retrySession } } = await supabase.auth.getSession();
-            if (retrySession) {
-              console.log('Recovery session found after delay');
-              setIsResettingPassword(true);
-              setIsLogin(true);
-            }
-          }, 500);
-          
-          setTimeout(async () => {
-            const { data: { session: retrySession2 } } = await supabase.auth.getSession();
-            if (retrySession2) {
-              console.log('Recovery session found after second delay');
-              setIsResettingPassword(true);
-              setIsLogin(true);
-            }
-          }, 2000);
-          
-          return () => {
-            subscription.unsubscribe();
-          };
+        } else if (isResetPasswordRoute) {
+          // We're on the reset-password route but no tokens yet
+          // Wait a bit for Supabase to process any tokens
+          console.log('On reset-password route, waiting for session');
         }
+        
+        // Always set up listener to catch when session is established
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+          console.log('Auth state change in Login:', event, session ? 'has session' : 'no session');
+          if (event === 'PASSWORD_RECOVERY') {
+            console.log('PASSWORD_RECOVERY event detected, showing reset form');
+            setIsResettingPassword(true);
+            setIsLogin(true);
+          } else if (session && (hasRecoveryType || hasAccessToken || isResetPasswordRoute)) {
+            console.log('Session established, showing reset form');
+            setIsResettingPassword(true);
+            setIsLogin(true);
+          }
+        });
+        
+        // Also check after delays in case Supabase processes it asynchronously
+        setTimeout(async () => {
+          const { data: { session: retrySession } } = await supabase.auth.getSession();
+          if (retrySession) {
+            console.log('Recovery session found after 500ms delay');
+            setIsResettingPassword(true);
+            setIsLogin(true);
+          }
+        }, 500);
+        
+        setTimeout(async () => {
+          const { data: { session: retrySession2 } } = await supabase.auth.getSession();
+          if (retrySession2) {
+            console.log('Recovery session found after 2000ms delay');
+            setIsResettingPassword(true);
+            setIsLogin(true);
+          } else if (hasRecoveryToken) {
+            // If we have tokens but no session after delays, still show the form
+            // The user might be able to proceed once Supabase finishes processing
+            console.log('No session found after delays but tokens present, showing form anyway');
+            setIsResettingPassword(true);
+            setIsLogin(true);
+          } else {
+            console.log('No session found after delays, hash:', hash);
+          }
+        }, 2000);
+        
+        return () => {
+          subscription.unsubscribe();
+        };
+      } else {
+        console.log('No recovery token detected in hash');
       }
     };
     
     checkPasswordReset();
+    
+    // Also listen for hash changes in case the hash is updated after component mounts
+    const handleHashChange = () => {
+      checkPasswordReset();
+    };
+    
+    window.addEventListener('hashchange', handleHashChange);
+    
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
   }, []);
 
   const handleSubmit = async (e) => {
@@ -103,6 +147,33 @@ function Login() {
         
         if (error) {
           console.error('Login error:', error);
+          
+          // Check if this is a "user not found" or "invalid password" error
+          // which might indicate the account was created with Google
+          if (error.message && (
+            error.message.includes('Invalid login credentials') || 
+            error.message.includes('Email not confirmed') ||
+            error.message.toLowerCase().includes('password')
+          )) {
+            // Check if user exists with this email (might be a Google account)
+            try {
+              const { data: userData, error: userError } = await supabase
+                .from('users')
+                .select('email, user_metadata')
+                .eq('email', email)
+                .single();
+              
+              if (userData && !userError) {
+                // User exists - likely created with Google
+                setError('This email is registered with Google sign-in. Please use "Continue with Google" to sign in. If you want to set a password, please contact support.');
+                return;
+              }
+            } catch (checkErr) {
+              // If we can't check, just show the original error
+              console.log('Could not check user existence:', checkErr);
+            }
+          }
+          
           setError('Login failed: ' + error.message);
           return;
         }
@@ -137,7 +208,17 @@ function Login() {
         
         if (error) {
           console.error('Signup error:', error);
-          setError('Signup failed: ' + error.message);
+          
+          // Check if error is due to existing user (might be a Google account)
+          if (error.message && (
+            error.message.includes('already registered') ||
+            error.message.includes('User already registered') ||
+            error.message.includes('already exists')
+          )) {
+            setError('An account with this email already exists. If you signed up with Google, please use "Continue with Google" to sign in instead.');
+          } else {
+            setError('Signup failed: ' + error.message);
+          }
           return;
         }
         
