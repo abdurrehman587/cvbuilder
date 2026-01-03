@@ -98,6 +98,56 @@ const OrderDetails = ({ orderId: propOrderId }) => {
     return 'status-pending';
   };
 
+  // Generate WhatsApp message for sharing order with employees
+  const generateShareMessage = () => {
+    if (!order) return '';
+    
+    const orderNumber = order.order_number || order.id?.slice(0, 8);
+    const orderItems = Array.isArray(order.order_items) ? order.order_items : [];
+    const itemsList = orderItems.map(item => 
+      `• ${item.name} x${item.quantity} - Rs. ${((item.price || 0) * (item.quantity || 1)).toLocaleString()}`
+    ).join('\n');
+
+    const paymentMethod = order.payment_method === 'bank_transfer' ? '🏦 Bank Transfer' : 
+                         order.payment_method === 'cash_on_delivery' ? '💵 Cash on Delivery' : 
+                         order.payment_method || 'N/A';
+
+    const paymentStatus = order.payment_status || 'Pending';
+    const orderStatus = order.order_status || 'Pending';
+
+    return `📦 *Order Details - #${orderNumber}*
+
+*Customer Information:*
+👤 Name: ${order.customer_name || 'N/A'}
+📧 Email: ${order.customer_email || order.user_email || 'N/A'}
+📱 Phone: ${order.customer_phone || 'N/A'}
+📍 Address: ${order.customer_address || 'N/A'}
+
+*Order Items:*
+${itemsList}
+
+*Payment Information:*
+💳 Method: ${paymentMethod}
+✅ Payment Status: ${paymentStatus}
+📋 Order Status: ${orderStatus}
+
+💰 *Total Amount:* Rs. ${order.total_amount?.toLocaleString() || '0'}
+
+📅 *Order Date:* ${formatDate(order.created_at)}
+
+${order.notes ? `📝 *Notes:*\n${order.notes}\n` : ''}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+  };
+
+  // Share order on WhatsApp
+  const handleShareOnWhatsApp = () => {
+    const message = generateShareMessage();
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
   if (loading) {
     return (
       <div className="order-details-page">
@@ -273,9 +323,25 @@ const OrderDetails = ({ orderId: propOrderId }) => {
 
           {/* Actions */}
           <div className="order-details-actions">
+            {fromAdmin && (
+              <button 
+                className="btn-whatsapp-share"
+                onClick={handleShareOnWhatsApp}
+                title="Share order details on WhatsApp"
+              >
+                📱 Share on WhatsApp
+              </button>
+            )}
             <button 
               className="btn-primary"
-              onClick={() => window.location.href = fromAdmin ? '/#admin?tab=orders' : '/#products'}
+              onClick={() => {
+                if (fromAdmin) {
+                  // Navigate to marketplace admin panel with orders tab
+                  window.location.hash = '#admin/marketplace?tab=orders';
+                } else {
+                  window.location.href = '/#products';
+                }
+              }}
             >
               {fromAdmin ? 'Back to Orders' : 'Continue Shopping'}
             </button>

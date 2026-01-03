@@ -9,7 +9,7 @@ const MarketplaceAdmin = () => {
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('products');
+  const [activeTab, setActiveTab] = useState('orders');
 
   // Helper function to convert HTML to plain text (preserving line breaks)
   const htmlToPlainText = (html) => {
@@ -453,9 +453,14 @@ const MarketplaceAdmin = () => {
     const checkTabParameter = () => {
       const hash = window.location.hash;
       
+      // Allow order-details and other routes to pass through without interference
+      if (hash.startsWith('#order-details') || hash.startsWith('#cart') || hash.startsWith('#checkout') || hash.startsWith('#order-history')) {
+        return;
+      }
+      
       // Check if there's a tab parameter in the URL
       if (hash.includes('#admin')) {
-        // Extract tab parameter from hash like #admin?tab=orders
+        // Extract tab parameter from hash like #admin?tab=orders or #admin/marketplace?tab=orders
         const hashParts = hash.split('?');
         if (hashParts.length > 1) {
           const urlParams = new URLSearchParams(hashParts[1]);
@@ -465,16 +470,26 @@ const MarketplaceAdmin = () => {
             if (tabParam === 'orders') {
               loadOrders();
             }
-            // Keep the tab parameter in URL
+            // Keep the tab parameter in URL, but ensure it's in the correct format
+            if (hash.includes('#admin/marketplace')) {
+              // Already in correct format
+              return;
+            } else if (hash.includes('#admin?tab=')) {
+              // Update to marketplace format
+              window.history.replaceState(null, '', window.location.pathname + '#admin/marketplace?tab=' + tabParam);
+            }
             return;
           }
         }
       }
-      // If no tab parameter and hash is just #admin, keep it as is
-      if (window.location.hash === '#admin') {
+      // If no tab parameter and hash is just #admin or #admin/marketplace, default to orders tab
+      if (window.location.hash === '#admin' || window.location.hash === '#admin/marketplace') {
+        setActiveTab('orders');
+        loadOrders();
+        window.history.replaceState(null, '', window.location.pathname + '#admin/marketplace?tab=orders');
         return;
       }
-      // If hash doesn't include #admin, set it
+      // If hash doesn't include #admin, set it (but only if not navigating to other routes)
       if (!window.location.hash.includes('#admin')) {
         window.history.replaceState(null, '', window.location.pathname + '#admin');
       }
@@ -497,6 +512,12 @@ const MarketplaceAdmin = () => {
   // Keep hash as #admin when switching tabs (but preserve tab parameter if it exists)
   useEffect(() => {
     const hash = window.location.hash;
+    
+    // Allow order-details and other routes to pass through without interference
+    if (hash.startsWith('#order-details') || hash.startsWith('#cart') || hash.startsWith('#checkout') || hash.startsWith('#order-history')) {
+      return;
+    }
+    
     if (hash.includes('#admin?tab=')) {
       // Preserve the tab parameter
       return;
@@ -590,6 +611,22 @@ const MarketplaceAdmin = () => {
       >
         <button
           type="button"
+          className={activeTab === 'orders' ? 'active' : ''}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.nativeEvent?.stopImmediatePropagation();
+            handleTabChange('orders');
+          }}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+        >
+          Orders
+        </button>
+        <button
+          type="button"
           className={activeTab === 'products' ? 'active' : ''}
           onClick={(e) => {
             e.preventDefault();
@@ -619,22 +656,6 @@ const MarketplaceAdmin = () => {
           }}
         >
           Sections
-        </button>
-        <button
-          type="button"
-          className={activeTab === 'orders' ? 'active' : ''}
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            e.nativeEvent?.stopImmediatePropagation();
-            handleTabChange('orders');
-          }}
-          onMouseDown={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-          }}
-        >
-          Orders
         </button>
       </div>
 
@@ -1113,57 +1134,24 @@ const MarketplaceAdmin = () => {
                         </td>
                         <td>{formatDate(order.created_at)}</td>
                         <td>
-                          <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
-                            <button 
-                              onClick={() => {
-                                window.location.href = `/#order-details?orderId=${order.order_number || order.id}&from=admin`;
-                              }}
-                              style={{
-                                padding: '0.25rem 0.5rem',
-                                fontSize: '0.875rem',
-                                backgroundColor: '#3b82f6',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '4px',
-                                cursor: 'pointer'
-                              }}
-                            >
-                              View
-                            </button>
-                            {order.has_whatsapp && order.customer_phone && (
-                              <div style={{ position: 'relative', display: 'inline-block' }}>
-                                <select
-                                  onChange={(e) => {
-                                    if (e.target.value) {
-                                      orderService.sendWhatsAppMessage(order, e.target.value);
-                                      e.target.value = '';
-                                    }
-                                  }}
-                                  style={{
-                                    padding: '0.25rem 0.5rem',
-                                    fontSize: '0.875rem',
-                                    backgroundColor: '#25D366',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer',
-                                    appearance: 'none',
-                                    paddingRight: '1.5rem',
-                                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E")`,
-                                    backgroundRepeat: 'no-repeat',
-                                    backgroundPosition: 'right 0.3rem center'
-                                  }}
-                                  defaultValue=""
-                                >
-                                  <option value="" disabled>📱 WhatsApp</option>
-                                  <option value="order_confirmation">📦 Order Confirmation</option>
-                                  <option value="order_shipped">🚚 Order Shipped</option>
-                                  <option value="order_delivered">✅ Order Delivered</option>
-                                  <option value="order_status">📋 Status Update</option>
-                                </select>
-                              </div>
-                            )}
-                          </div>
+                          <button 
+                            onClick={() => {
+                              const orderId = order.order_number || order.id;
+                              // Use hash navigation to avoid full page reload
+                              window.location.hash = `#order-details?orderId=${orderId}&from=admin`;
+                            }}
+                            style={{
+                              padding: '0.25rem 0.5rem',
+                              fontSize: '0.875rem',
+                              backgroundColor: '#3b82f6',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '4px',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            View
+                          </button>
                         </td>
                       </tr>
                     );

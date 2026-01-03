@@ -17,9 +17,18 @@ const AdminDashboard = () => {
       if (hash === '#admin' || hash === '#admin/') {
         setActiveSection('cv-management');
       } else if (hash.startsWith('#admin/')) {
-        const section = hash.replace('#admin/', '').split('/')[0];
+        // Handle format: #admin/marketplace?tab=orders
+        const hashWithoutQuery = hash.split('?')[0];
+        const section = hashWithoutQuery.replace('#admin/', '').split('/')[0];
         if (['marketplace', 'cv-management'].includes(section)) {
           setActiveSection(section);
+        }
+      } else if (hash.includes('#admin?tab=')) {
+        // Handle format: #admin?tab=orders - default to marketplace for orders tab
+        const urlParams = new URLSearchParams(hash.split('?')[1] || '');
+        const tabParam = urlParams.get('tab');
+        if (tabParam === 'orders') {
+          setActiveSection('marketplace');
         }
       }
     };

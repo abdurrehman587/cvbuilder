@@ -1592,14 +1592,46 @@ function App() {
   // No state updates during render - only reads
   // ============================================
   
-  // ABSOLUTE PRIORITY: Check for admin panel route FIRST (hash-based routing)
-  // This must take priority over ALL other routing logic
-  // Check this BEFORE authentication check to ensure admin panel always shows
+  // ABSOLUTE PRIORITY: Check for order-details, cart, checkout, order-history FIRST
+  // These routes should work even when coming from admin panel
   // Always read directly from window.location.hash to ensure we get the latest value
   const hashToCheck = window.location.hash;
   
-  // Force check - this should ALWAYS run first
-  if (hashToCheck === '#admin' || hashToCheck.startsWith('#admin/')) {
+  // Check for order details route BEFORE admin check (allows navigation from admin panel)
+  if (hashToCheck.startsWith('#order-details')) {
+    console.log('App.js routing - Rendering ORDER DETAILS (before admin check)');
+    if (isAuthenticated && !isLoading) {
+      return wrapWithTopNav(
+        wrapWithNavbar(
+          <>
+            <Header 
+              isAuthenticated={isAuthenticated} 
+              currentProduct="products"
+              showProductsOnHeader={true}
+              onLogout={isAuthenticated ? handleLogout : undefined}
+            />
+            <OrderDetails />
+          </>
+        )
+      );
+    } else {
+      return wrapWithNavbar(
+        <>
+          <Header 
+            isAuthenticated={false} 
+            currentProduct="products"
+            showProductsOnHeader={true}
+          />
+          <OrderDetails />
+        </>
+      );
+    }
+  }
+  
+  // Check for admin panel route (hash-based routing)
+  // This must take priority over other routing logic (except order-details above)
+  // Check this BEFORE authentication check to ensure admin panel always shows
+  if (hashToCheck === '#admin' || hashToCheck.startsWith('#admin/') || hashToCheck.includes('#admin?')) {
     // Show admin dashboard - it will handle authentication check internally
     // DO NOT wrap with TopNav - admin panel should be full screen
     return (
