@@ -1142,6 +1142,17 @@ function App() {
           return;
         }
         
+        // Handle password recovery
+        if (event === 'PASSWORD_RECOVERY') {
+          console.log('PASSWORD_RECOVERY event detected in App.js');
+          // The Login component will handle showing the reset form
+          // Just ensure we're on the right route
+          if (!window.location.hash.includes('#reset-password') && !window.location.hash.includes('type=recovery')) {
+            window.location.hash = '#reset-password';
+          }
+          return; // Don't process as a normal sign-in
+        }
+        
         // Handle user type for Google OAuth sign-in (before state updates)
         if (event === 'SIGNED_IN' && session?.user) {
           const isOAuthCallback = window.location.hash.includes('access_token') || 

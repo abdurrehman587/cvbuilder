@@ -252,9 +252,13 @@ export const authService = {
   // Reset password (forgot password)
   async resetPassword(email) {
     const redirectUrl = process.env.REACT_APP_SITE_URL || window.location.origin;
+    // Use the full URL with hash for password reset redirect
+    const resetUrl = `${redirectUrl}/#reset-password`;
+    
+    console.log('Sending password reset email with redirect URL:', resetUrl);
     
     const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${redirectUrl}/#reset-password`
+      redirectTo: resetUrl
     })
     
     if (error) throw error

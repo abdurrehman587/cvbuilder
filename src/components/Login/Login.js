@@ -25,44 +25,65 @@ function Login() {
     const checkPasswordReset = async () => {
       const hash = window.location.hash;
       
-      // Check if hash contains recovery token
-      if (hash.includes('type=recovery') || hash === '#reset-password' || hash.startsWith('#reset-password')) {
+      // Check for error in URL (expired or invalid link)
+      if (hash.includes('error=')) {
+        const errorMatch = hash.match(/error_description=([^&]+)/);
+        const errorDescription = errorMatch ? decodeURIComponent(errorMatch[1].replace(/\+/g, ' ')) : 'Invalid or expired reset link';
+        setError(errorDescription + '. Please request a new password reset link.');
+        setIsResettingPassword(false);
+        setShowForgotPassword(true);
+        return;
+      }
+      
+      // Check if hash contains recovery token (Supabase puts it as access_token with type=recovery)
+      const hasRecoveryToken = hash.includes('type=recovery') || 
+                               (hash.includes('access_token') && hash.includes('type=recovery')) ||
+                               hash === '#reset-password' || 
+                               hash.startsWith('#reset-password');
+      
+      if (hasRecoveryToken) {
         // Check if there's a recovery session
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session) {
           // User has a recovery session, show password reset form
+          console.log('Recovery session found, showing reset form');
           setIsResettingPassword(true);
           setIsLogin(true);
-        } else if (hash.includes('type=recovery')) {
+        } else {
           // Token is in URL but session not yet established
           // Listen for auth state changes to detect when session is established
           const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-            if (event === 'PASSWORD_RECOVERY' || (session && hash.includes('type=recovery'))) {
+            console.log('Auth state change in Login:', event, session ? 'has session' : 'no session');
+            if (event === 'PASSWORD_RECOVERY' || (session && (hash.includes('type=recovery') || hash.includes('access_token')))) {
+              console.log('Password recovery detected, showing reset form');
               setIsResettingPassword(true);
               setIsLogin(true);
             }
           });
           
-          // Also check after a short delay in case Supabase processes it synchronously
+          // Also check after delays in case Supabase processes it asynchronously
           setTimeout(async () => {
             const { data: { session: retrySession } } = await supabase.auth.getSession();
             if (retrySession) {
+              console.log('Recovery session found after delay');
               setIsResettingPassword(true);
               setIsLogin(true);
             }
-          }, 1000);
+          }, 500);
+          
+          setTimeout(async () => {
+            const { data: { session: retrySession2 } } = await supabase.auth.getSession();
+            if (retrySession2) {
+              console.log('Recovery session found after second delay');
+              setIsResettingPassword(true);
+              setIsLogin(true);
+            }
+          }, 2000);
           
           return () => {
             subscription.unsubscribe();
           };
-        } else {
-          // Just the route, check session anyway
-          const { data: { session: checkSession } } = await supabase.auth.getSession();
-          if (checkSession) {
-            setIsResettingPassword(true);
-            setIsLogin(true);
-          }
         }
       }
     };
@@ -164,6 +185,45 @@ function Login() {
     setShowForgotPassword(false);
     setResetEmailSent(false);
     setError('');
+  };
+
+  const handlePasswordReset = async (e) => {
+    e.preventDefault();
+    setError('');
+
+    if (!newPassword || !confirmNewPassword) {
+      setError('Please enter and confirm your new password');
+      return;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
+
+    try {
+      await authService.updatePassword(newPassword);
+      setPasswordResetSuccess(true);
+      setError('');
+      // Clear the hash to remove the token
+      window.history.replaceState(null, '', window.location.pathname);
+      // Redirect to login after 3 seconds
+      setTimeout(() => {
+        setIsResettingPassword(false);
+        setPasswordResetSuccess(false);
+        setNewPassword('');
+        setConfirmNewPassword('');
+        window.location.hash = '';
+      }, 3000);
+    } catch (err) {
+      console.error('Password reset error:', err);
+      setError('Failed to reset password: ' + (err.message || 'Invalid or expired reset link. Please request a new one.'));
+    }
   };
 
   const handleGoogleSignIn = async () => {
