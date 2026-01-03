@@ -1,20 +1,74 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Login.css';
-import { authService } from '../Supabase/supabase';
+import { authService, supabase } from '../Supabase/supabase';
 
 function Login() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
   const [userType, setUserType] = useState('regular'); // 'regular' or 'shopkeeper'
   const [error, setError] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [passwordResetSuccess, setPasswordResetSuccess] = useState(false);
   const [isGoogleSigningIn, setIsGoogleSigningIn] = useState(false);
   const [showUserTypeModal, setShowUserTypeModal] = useState(false);
   const [pendingGoogleSignIn, setPendingGoogleSignIn] = useState(false);
+
+  // Check if we're on a password reset page
+  useEffect(() => {
+    const checkPasswordReset = async () => {
+      const hash = window.location.hash;
+      
+      // Check if hash contains recovery token
+      if (hash.includes('type=recovery') || hash === '#reset-password' || hash.startsWith('#reset-password')) {
+        // Check if there's a recovery session
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session) {
+          // User has a recovery session, show password reset form
+          setIsResettingPassword(true);
+          setIsLogin(true);
+        } else if (hash.includes('type=recovery')) {
+          // Token is in URL but session not yet established
+          // Listen for auth state changes to detect when session is established
+          const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            if (event === 'PASSWORD_RECOVERY' || (session && hash.includes('type=recovery'))) {
+              setIsResettingPassword(true);
+              setIsLogin(true);
+            }
+          });
+          
+          // Also check after a short delay in case Supabase processes it synchronously
+          setTimeout(async () => {
+            const { data: { session: retrySession } } = await supabase.auth.getSession();
+            if (retrySession) {
+              setIsResettingPassword(true);
+              setIsLogin(true);
+            }
+          }, 1000);
+          
+          return () => {
+            subscription.unsubscribe();
+          };
+        } else {
+          // Just the route, check session anyway
+          const { data: { session: checkSession } } = await supabase.auth.getSession();
+          if (checkSession) {
+            setIsResettingPassword(true);
+            setIsLogin(true);
+          }
+        }
+      }
+    };
+    
+    checkPasswordReset();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -181,9 +235,11 @@ function Login() {
     <div className="login-container">
       <div className="login-card">
         <div className="login-header">
-          <h1>{showForgotPassword ? 'Reset Password' : 'Welcome'}</h1>
+          <h1>{showForgotPassword || isResettingPassword ? 'Reset Password' : 'Welcome'}</h1>
           <p>
-            {showForgotPassword 
+            {isResettingPassword
+              ? 'Enter your new password'
+              : showForgotPassword 
               ? (resetEmailSent 
                   ? 'Check your email for reset instructions' 
                   : 'Enter your email to reset your password')
@@ -199,7 +255,71 @@ function Login() {
           )}
         </div>
 
-        {showForgotPassword ? (
+        {isResettingPassword ? (
+          <form onSubmit={handlePasswordReset} className="login-form">
+            {passwordResetSuccess ? (
+              <div className="success-message">
+                <p>✅ Password reset successful!</p>
+                <p>Your password has been updated. Redirecting to login...</p>
+              </div>
+            ) : (
+              <>
+                <div className="form-group">
+                  <label htmlFor="new-password">New Password</label>
+                  <input
+                    type="password"
+                    id="new-password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Enter your new password"
+                    required
+                    minLength={6}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="confirm-new-password">Confirm New Password</label>
+                  <input
+                    type="password"
+                    id="confirm-new-password"
+                    value={confirmNewPassword}
+                    onChange={(e) => setConfirmNewPassword(e.target.value)}
+                    placeholder="Confirm your new password"
+                    required
+                    minLength={6}
+                  />
+                </div>
+
+                {error && <div className="error-message">{error}</div>}
+
+                <button type="submit" className="login-button">
+                  Reset Password
+                </button>
+
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    setIsResettingPassword(false);
+                    setNewPassword('');
+                    setConfirmNewPassword('');
+                    setError('');
+                    window.location.hash = '';
+                  }}
+                  className="toggle-button"
+                  style={{ 
+                    width: '100%', 
+                    marginTop: '0.5rem',
+                    background: 'transparent',
+                    color: '#667eea',
+                    border: '1px solid #667eea'
+                  }}
+                >
+                  Back to Sign In
+                </button>
+              </>
+            )}
+          </form>
+        ) : showForgotPassword ? (
           <form onSubmit={handleForgotPassword} className="login-form">
             {resetEmailSent ? (
               <div className="success-message">

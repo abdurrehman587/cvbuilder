@@ -1727,9 +1727,27 @@ function App() {
     }
     
     // ============================================
-    // CART, CHECKOUT, ORDER DETAILS - CHECK BEFORE MARKETPLACE
+    // CART, CHECKOUT, ORDER DETAILS, RESET PASSWORD - CHECK BEFORE MARKETPLACE
     // ============================================
     const currentHash = window.location.hash;
+    
+    // Check for password reset route
+    if (currentHash === '#reset-password' || currentHash.startsWith('#reset-password') || currentHash.includes('type=recovery')) {
+      console.log('App.js routing - Rendering RESET PASSWORD');
+      return wrapWithTopNav(
+        wrapWithNavbar(
+          <>
+            <Header 
+              isAuthenticated={isAuthenticated} 
+              currentProduct="home"
+              showProductsOnHeader={false}
+              onLogout={isAuthenticated ? handleLogout : undefined}
+            />
+            <Login />
+          </>
+        )
+      );
+    }
     
     // Check for cart route
     if (currentHash === '#cart') {
@@ -1780,6 +1798,24 @@ function App() {
               onLogout={isAuthenticated ? handleLogout : undefined}
             />
             <OrderDetails />
+          </>
+        )
+      );
+    }
+    
+    // Check for order history route
+    if (currentHash === '#order-history') {
+      console.log('App.js routing - Rendering ORDER HISTORY');
+      return wrapWithTopNav(
+        wrapWithNavbar(
+          <>
+            <Header 
+              isAuthenticated={isAuthenticated} 
+              currentProduct="products"
+              showProductsOnHeader={true}
+              onLogout={isAuthenticated ? handleLogout : undefined}
+            />
+            <OrderHistory />
           </>
         )
       );
@@ -2507,8 +2543,22 @@ function App() {
                                  localStorage.getItem('navigateToCVBuilder') === 'true' ||
                                  localStorage.getItem('navigateToIDCardPrint') === 'true';
     
-    // Check for cart, checkout, or order-details routes FIRST (these should work for unauthenticated users too)
+    // Check for cart, checkout, order-details, or reset-password routes FIRST (these should work for unauthenticated users too)
     const hash = window.location.hash;
+    
+    // Check for password reset route
+    if (hash === '#reset-password' || hash.startsWith('#reset-password') || hash.includes('type=recovery')) {
+      return wrapWithNavbar(
+        <>
+          <Header 
+            isAuthenticated={false} 
+            currentProduct="home"
+            showProductsOnHeader={false}
+          />
+          <Login />
+        </>
+      );
+    }
     
     if (hash === '#cart') {
       return wrapWithNavbar(

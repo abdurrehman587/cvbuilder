@@ -2,7 +2,16 @@
   min-height: calc(100vh - var(--header-height, 80px));
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
   padding: 2rem;
-  margin-top: var(--header-height, 80px);
+  margin-top: calc(var(--header-height, 80px) + env(safe-area-inset-top, 0));
+  position: fixed;
+  top: calc(var(--header-height, 80px) + env(safe-area-inset-top, 0));
+  left: 200px; /* Position beside navbar */
+  right: 0;
+  bottom: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: calc(100% - 200px); /* Account for navbar width */
+  box-sizing: border-box;
   padding-bottom: 4rem;
 }
 
@@ -330,6 +339,8 @@
   .order-history-page {
     padding: 1rem;
     padding-bottom: 5rem; /* Space for bottom nav */
+    left: 0; /* Navbar is hidden on mobile, so start from left */
+    width: 100%; /* Full width on mobile */
   }
 
   .order-history-header h1 {
@@ -366,6 +377,8 @@
 @media (max-width: 480px) {
   .order-history-page {
     padding: 0.75rem;
+    left: 0; /* Navbar is hidden on mobile, so start from left */
+    width: 100%; /* Full width on mobile */
   }
 
   .order-history-header h1 {
