@@ -1629,6 +1629,16 @@ function App() {
     
     let routingApp = route.app;
     
+    // Check if hash contains product detail route - if so, ensure marketplace routing
+    const hash = window.location.hash;
+    const productMatch = hash.match(/^#product\/(.+)$/);
+    if (productMatch && routingApp !== 'marketplace') {
+      // User is viewing a product detail page - ensure marketplace routing
+      routingApp = 'marketplace';
+      setCurrentApp('marketplace');
+      explicitlyClickedMarketplaceRef.current = true;
+    }
+    
     // DEBUG: Log initial routing state
     console.log('App.js routing - Initial route.app:', route.app, 'localStorage selectedApp:', localStorage.getItem('selectedApp'), 'explicitlyClickedMarketplace:', explicitlyClickedMarketplaceRef.current, 'lastKnownApp:', lastKnownAppRef.current);
     
@@ -1717,9 +1727,89 @@ function App() {
     }
     
     // ============================================
+    // CART, CHECKOUT, ORDER DETAILS - CHECK BEFORE MARKETPLACE
+    // ============================================
+    const currentHash = window.location.hash;
+    
+    // Check for cart route
+    if (currentHash === '#cart') {
+      console.log('App.js routing - Rendering CART');
+      return wrapWithTopNav(
+        wrapWithNavbar(
+          <>
+            <Header 
+              isAuthenticated={isAuthenticated} 
+              currentProduct="products"
+              showProductsOnHeader={true}
+              onLogout={isAuthenticated ? handleLogout : undefined}
+            />
+            <Cart />
+          </>
+        )
+      );
+    }
+    
+    // Check for checkout route
+    if (currentHash === '#checkout') {
+      console.log('App.js routing - Rendering CHECKOUT');
+      return wrapWithTopNav(
+        wrapWithNavbar(
+          <>
+            <Header 
+              isAuthenticated={isAuthenticated} 
+              currentProduct="products"
+              showProductsOnHeader={true}
+              onLogout={isAuthenticated ? handleLogout : undefined}
+            />
+            <Checkout />
+          </>
+        )
+      );
+    }
+    
+    // Check for order details route
+    if (currentHash.startsWith('#order-details')) {
+      console.log('App.js routing - Rendering ORDER DETAILS');
+      return wrapWithTopNav(
+        wrapWithNavbar(
+          <>
+            <Header 
+              isAuthenticated={isAuthenticated} 
+              currentProduct="products"
+              showProductsOnHeader={true}
+              onLogout={isAuthenticated ? handleLogout : undefined}
+            />
+            <OrderDetails />
+          </>
+        )
+      );
+    }
+    
+    // ============================================
     // MARKETPLACE SECTION - CHECK SECOND to prevent override
     // ============================================
     if (routingApp === 'marketplace') {
+      // Check if we're viewing a product detail page
+      const productMatch = currentHash.match(/^#product\/(.+)$/);
+      const productId = productMatch ? productMatch[1] : null;
+      
+      if (productId) {
+        console.log('App.js routing - Rendering PRODUCT DETAIL:', productId);
+        return wrapWithTopNav(
+          wrapWithNavbar(
+            <>
+              <Header 
+                isAuthenticated={isAuthenticated} 
+                currentProduct="products"
+                showProductsOnHeader={true}
+                onLogout={isAuthenticated ? handleLogout : undefined}
+              />
+              <ProductDetail productId={productId} />
+            </>
+          )
+        );
+      }
+      
       console.log('App.js routing - Rendering MARKETPLACE');
       return wrapWithTopNav(
         wrapWithNavbar(
@@ -2417,8 +2507,53 @@ function App() {
                                  localStorage.getItem('navigateToCVBuilder') === 'true' ||
                                  localStorage.getItem('navigateToIDCardPrint') === 'true';
     
+    // Check for cart, checkout, or order-details routes FIRST (these should work for unauthenticated users too)
+    const hash = window.location.hash;
+    
+    if (hash === '#cart') {
+      return wrapWithNavbar(
+        <>
+          <Header 
+            isAuthenticated={false} 
+            currentProduct="products"
+            showProductsOnHeader={true}
+          />
+          <Cart />
+        </>
+      );
+    }
+    
+    if (hash === '#checkout') {
+      return wrapWithNavbar(
+        <>
+          <Header 
+            isAuthenticated={false} 
+            currentProduct="products"
+            showProductsOnHeader={true}
+          />
+          <Checkout />
+        </>
+      );
+    }
+    
+    if (hash.startsWith('#order-details')) {
+      return wrapWithNavbar(
+        <>
+          <Header 
+            isAuthenticated={false} 
+            currentProduct="products"
+            showProductsOnHeader={true}
+          />
+          <OrderDetails />
+        </>
+      );
+    }
+    
     // Check if user wants to see products page (marketplace) - either via hash or flag
-    const wantsProductsPage = window.location.hash === '#products' ||
+    const productMatch = hash.match(/^#product\/(.+)$/);
+    const productId = productMatch ? productMatch[1] : null;
+    const wantsProductsPage = hash === '#products' ||
+                              hash.startsWith('#product/') ||
                               localStorage.getItem('showProductsPage') === 'true' ||
                               sessionStorage.getItem('showProductsPage') === 'true' ||
                               localStorage.getItem('selectedApp') === 'marketplace';
@@ -2462,6 +2597,20 @@ function App() {
     
     // Show ProductsPage (Marketplace) if user wants to see it or has navigation intent
     if (wantsProductsPage || hasNavigationIntent) {
+      // Check if we're viewing a product detail page
+      if (productId) {
+        return wrapWithNavbar(
+          <>
+            <Header 
+              isAuthenticated={false} 
+              currentProduct="products"
+              showProductsOnHeader={true}
+            />
+            <ProductDetail productId={productId} />
+          </>
+        );
+      }
+      
       return wrapWithNavbar(
         <>
           <Header 

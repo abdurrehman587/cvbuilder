@@ -554,7 +554,7 @@ const generatePDF = async (formData = null) => {
         const canDownload = await cvCreditsService.canDownloadCV(user.id);
         if (!canDownload) {
           const credits = await cvCreditsService.getCredits(user.id);
-          alert(`You have no CV download credits remaining (${credits} credits). Please contact admin to add more credits.`);
+          alert(`You have no CV download credits remaining (${credits} credits). To get more CV Download Credits Contact Administrator : 0315-3338612`);
           updateButtonState('📄 Download PDF', false);
           return;
         }
@@ -662,7 +662,7 @@ const generatePDF = async (formData = null) => {
           // Dispatch event to update credits display in Header and Dashboard
           window.dispatchEvent(new CustomEvent('cvCreditsUpdated'));
           if (newCredits === 0) {
-            alert(`PDF downloaded successfully! You have no credits remaining. Please contact admin to add more credits.`);
+            alert(`PDF downloaded successfully! You have no credits remaining. To get more CV Download Credits Contact Administrator : 0315-3338612`);
           } else {
             console.log(`Remaining CV credits: ${newCredits}`);
           }

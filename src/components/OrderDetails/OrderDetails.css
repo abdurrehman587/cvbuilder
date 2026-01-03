@@ -1,7 +1,17 @@
 .order-details-page {
-  min-height: 100vh;
+  min-height: calc(100vh - var(--header-height, 80px));
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   padding: 2rem 1rem;
+  margin-top: calc(var(--header-height, 80px) + env(safe-area-inset-top, 0));
+  position: fixed;
+  top: calc(var(--header-height, 80px) + env(safe-area-inset-top, 0));
+  left: 200px; /* Position beside navbar */
+  right: 0;
+  bottom: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: calc(100% - 200px); /* Account for navbar width */
+  box-sizing: border-box;
 }
 
 .order-details-container {
@@ -350,6 +360,8 @@
 @media (max-width: 768px) {
   .order-details-page {
     padding: 1rem 0.5rem;
+    left: 0; /* Navbar is hidden on mobile, so start from left */
+    width: 100%; /* Full width on mobile */
   }
 
   .order-details-content {

@@ -371,6 +371,55 @@ export const cvCreditsService = {
   }
 }
 
+// ID Card Credits Service for All Users
+export const idCardCreditsService = {
+  // Get current ID Card credits for a user
+  async getCredits(userId) {
+    const { data, error } = await supabase
+      .rpc('get_id_card_credits', { user_id: userId })
+    
+    if (error) throw error
+    return data || 0
+  },
+
+  // Decrement ID Card credits (returns new credit count, or 0 if no credits)
+  async decrementCredits(userId) {
+    const { data, error } = await supabase
+      .rpc('decrement_id_card_credits', { user_id: userId })
+    
+    if (error) throw error
+    return data
+  },
+
+  // Add ID Card credits to a user (admin only)
+  async addCredits(userId, creditsToAdd) {
+    const { data, error } = await supabase
+      .rpc('add_id_card_credits', { 
+        user_id: userId,
+        credits_to_add: creditsToAdd 
+      })
+    
+    if (error) throw error
+    return data
+  },
+
+  // Check if user can print ID Cards (has credits)
+  async canPrintIDCard(userId) {
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return false
+
+      // Check credits for all users
+      const credits = await this.getCredits(userId)
+      return credits > 0
+    } catch (err) {
+      console.error('Error checking print permission:', err)
+      return false
+    }
+  }
+}
+
 // Storage operations for CV files
 export const storageService = {
   // Upload CV PDF

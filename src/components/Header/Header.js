@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './Header.css';
-import { authService, supabase, cvCreditsService } from '../Supabase/supabase';
+import { authService, supabase } from '../Supabase/supabase';
 import { getCartItemCount } from '../../utils/cart';
 import OrderNotification from '../OrderNotification/OrderNotification';
 
@@ -10,8 +10,6 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
   const [cartItemCount, setCartItemCount] = useState(0);
   const [showInstallButton, setShowInstallButton] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
-  const [cvCredits, setCvCredits] = useState(null);
-  const [userType, setUserType] = useState(null);
 
   // Check if PWA is already installed and handle install button visibility
   useEffect(() => {
@@ -89,51 +87,6 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
     checkAdminStatus();
   }, [isAuthenticated]);
 
-  // Load CV credits for all users
-  useEffect(() => {
-    const loadCredits = async () => {
-      if (!isAuthenticated) {
-        setCvCredits(null);
-        setUserType(null);
-        return;
-      }
-
-      try {
-        const user = await authService.getCurrentUser();
-        if (!user) {
-          setCvCredits(null);
-          setUserType(null);
-          return;
-        }
-
-        const type = user.user_metadata?.user_type || 'regular';
-        setUserType(type);
-
-        // Load credits for all users (not just shopkeepers)
-        const credits = await cvCreditsService.getCredits(user.id);
-        setCvCredits(credits);
-      } catch (err) {
-        console.error('Error loading CV credits:', err);
-        setCvCredits(null);
-      }
-    };
-
-    loadCredits();
-    
-    // Refresh credits periodically (every 30 seconds)
-    const interval = setInterval(loadCredits, 30000);
-    
-    // Also listen for credit updates
-    const handleCreditUpdate = () => {
-      loadCredits();
-    };
-    window.addEventListener('cvCreditsUpdated', handleCreditUpdate);
-    
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener('cvCreditsUpdated', handleCreditUpdate);
-    };
-  }, [isAuthenticated]);
 
   // Check if we're on the admin panel page
   useEffect(() => {
@@ -421,28 +374,6 @@ Cart
                   <span className="cart-badge">{cartItemCount}</span>
                 )}
               </button>
-            )}
-            
-            {/* CV Credits Display for All Users */}
-            {isAuthenticated && cvCredits !== null && (
-              <div 
-                className="cv-credits-display"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  padding: '8px 12px',
-                  backgroundColor: cvCredits > 0 ? 'rgba(40, 167, 69, 0.1)' : 'rgba(220, 53, 69, 0.1)',
-                  borderRadius: '8px',
-                  border: `1px solid ${cvCredits > 0 ? '#28a745' : '#dc3545'}`,
-                  marginRight: '10px'
-                }}
-                title="CV Download Credits"
-              >
-                <span style={{ fontSize: '14px', fontWeight: '600', color: cvCredits > 0 ? '#28a745' : '#dc3545' }}>
-                  CV Credits: {cvCredits}
-                </span>
-              </div>
             )}
             
             {isAuthenticated && isAdmin && !window.location.hash.startsWith('#admin') && (

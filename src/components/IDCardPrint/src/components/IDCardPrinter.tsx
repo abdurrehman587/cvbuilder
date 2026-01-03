@@ -5,6 +5,7 @@ import { Card } from '../../../ui/card';
 import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
 import { useToast } from '../../../../hooks/use-toast';
+import { authService, idCardCreditsService } from '../../../Supabase/supabase';
 import './IDCardPrinter.css';
 
 type ScanMode = 'original' | 'auto' | 'gray' | 'black-white';
@@ -388,7 +389,7 @@ const IDCardPrinter: React.FC = () => {
     setCardDesigns(prev => prev.filter(card => card.id !== cardId));
   };
 
-  const handlePrint = () => {
+  const handlePrint = async () => {
     const hasImages = cardDesigns.some(card => card.frontImage || card.backImage);
     if (!hasImages) {
       toast({
@@ -397,6 +398,22 @@ const IDCardPrinter: React.FC = () => {
         variant: "destructive",
       });
       return;
+    }
+
+    // Check ID Card credits before allowing print
+    try {
+      const user = await authService.getCurrentUser();
+      if (user) {
+        const canPrint = await idCardCreditsService.canPrintIDCard(user.id);
+        if (!canPrint) {
+          const credits = await idCardCreditsService.getCredits(user.id);
+          alert(`You have no ID Card printing credits remaining (${credits} credits). To get more ID Card Credits Contact Administrator : 0315-3338612`);
+          return;
+        }
+      }
+    } catch (creditError) {
+      console.error('Error checking ID Card credits:', creditError);
+      // Continue with print if credit check fails (for backward compatibility)
     }
 
     // Create print window
@@ -644,6 +661,28 @@ const IDCardPrinter: React.FC = () => {
     
     printWindow.document.write(printContent);
     printWindow.document.close();
+
+    // Decrement ID Card credits after successful print
+    try {
+      const user = await authService.getCurrentUser();
+      if (user) {
+        const newCredits = await idCardCreditsService.decrementCredits(user.id);
+        if (newCredits >= 0) {
+          console.log(`ID Card credits decremented. Remaining credits: ${newCredits}`);
+          // Dispatch event to update credits display (if needed in future)
+          window.dispatchEvent(new CustomEvent('idCardCreditsUpdated'));
+          // Optionally show remaining credits to user
+          if (newCredits === 0) {
+            alert(`ID Cards printed successfully! You have no credits remaining. To get more ID Card Credits Contact Administrator : 0315-3338612`);
+          } else {
+            console.log(`Remaining ID Card credits: ${newCredits}`);
+          }
+        }
+      }
+    } catch (creditError) {
+      console.error('Error decrementing ID Card credits:', creditError);
+      // Don't block the print if credit decrement fails
+    }
   };
 
   const totalCards = cardDesigns.reduce((sum, design) => sum + design.copies, 0);

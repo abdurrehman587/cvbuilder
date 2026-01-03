@@ -3,7 +3,7 @@
 export { default as SupabaseProvider, useSupabase } from './SupabaseProvider'
 export { default as useAuth, useCVs } from './useAuth'
 export { default as useAutoSave } from './useAutoSave'
-export { default as supabase, cvService, authService, storageService, templateService, cvCreditsService, TABLES } from './supabase'
+export { default as supabase, cvService, authService, storageService, templateService, cvCreditsService, idCardCreditsService, TABLES } from './supabase'
 export { default as database, dbHelpers } from './database'
 export { default as AdminPanel } from './AdminPanel'
 

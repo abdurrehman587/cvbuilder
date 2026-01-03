@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { supabase, useAuth, cvCreditsService } from './index'
+import { supabase, useAuth, cvCreditsService, idCardCreditsService } from './index'
 import './AdminPanel.css'
 
 const AdminPanel = ({ initialView = 'marketplace' }) => {
@@ -211,6 +211,24 @@ const AdminPanel = ({ initialView = 'marketplace' }) => {
     }
   }
 
+  // Add ID Card credits to a user
+  const addIDCardCreditsToUser = async (userId, creditsToAdd) => {
+    const credits = parseInt(creditsToAdd)
+    if (isNaN(credits) || credits <= 0) {
+      alert('Please enter a valid number of credits (greater than 0)')
+      return
+    }
+
+    try {
+      const newCredits = await idCardCreditsService.addCredits(userId, credits)
+      loadAdminData() // Refresh data
+      alert(`Successfully added ${credits} ID Card credits. New total: ${newCredits} credits`)
+    } catch (err) {
+      console.error('Error adding ID Card credits:', err)
+      alert('Error adding ID Card credits: ' + (err.message || 'Unknown error'))
+    }
+  }
+
   if (!user) {
     return (
       <div className="admin-panel">
@@ -345,6 +363,7 @@ const AdminPanel = ({ initialView = 'marketplace' }) => {
                 <th>Full Name</th>
                 <th>User Type</th>
                 <th>CV Credits</th>
+                <th>ID Card Credits</th>
                 <th>Created</th>
                 <th>Actions</th>
               </tr>
@@ -394,55 +413,100 @@ const AdminPanel = ({ initialView = 'marketplace' }) => {
                       </span>
                     </td>
                     <td>
-                      {!user.is_admin ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontWeight: '600', color: (user.cv_credits || 0) > 0 ? '#28a745' : '#dc3545' }}>
-                            {user.cv_credits || 0}
-                          </span>
-                          <input
-                            type="number"
-                            min="1"
-                            placeholder="Qty"
-                            data-user-id={user.id}
-                            style={{
-                              width: '50px',
-                              padding: '4px 6px',
-                              border: '1px solid #ddd',
-                              borderRadius: '4px',
-                              fontSize: '12px'
-                            }}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                const credits = e.target.value
-                                if (credits) {
-                                  addCreditsToShopkeeper(user.id, credits)
-                                  e.target.value = ''
-                                }
-                              }
-                            }}
-                          />
-                          <button
-                            onClick={(e) => {
-                              const input = e.target.parentElement.querySelector('input[data-user-id]')
-                              const credits = input?.value || prompt('Enter number of CV credits to add:')
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontWeight: '600', color: (user.cv_credits || 0) > 0 ? '#28a745' : '#dc3545' }}>
+                          {user.cv_credits || 0}
+                        </span>
+                        <input
+                          type="number"
+                          min="1"
+                          placeholder="Qty"
+                          data-user-id={user.id}
+                          data-credit-type="cv"
+                          style={{
+                            width: '50px',
+                            padding: '4px 6px',
+                            border: '1px solid #ddd',
+                            borderRadius: '4px',
+                            fontSize: '12px'
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              const credits = e.target.value
                               if (credits) {
                                 addCreditsToShopkeeper(user.id, credits)
-                                if (input) input.value = ''
+                                e.target.value = ''
                               }
-                            }}
-                            className="toggle-admin-button"
-                            style={{ 
-                              padding: '4px 8px',
-                              fontSize: '11px'
-                            }}
-                            title="Add CV Credits"
-                          >
-                            Add
-                          </button>
-                        </div>
-                      ) : (
-                        <span style={{ color: '#999' }}>N/A</span>
-                      )}
+                            }
+                          }}
+                        />
+                        <button
+                          onClick={(e) => {
+                            const input = e.target.parentElement.querySelector('input[data-credit-type="cv"]')
+                            const credits = input?.value || prompt('Enter number of CV credits to add:')
+                            if (credits) {
+                              addCreditsToShopkeeper(user.id, credits)
+                              if (input) input.value = ''
+                            }
+                          }}
+                          className="toggle-admin-button"
+                          style={{ 
+                            padding: '4px 8px',
+                            fontSize: '11px'
+                          }}
+                          title="Add CV Credits"
+                        >
+                          Add
+                        </button>
+                      </div>
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontWeight: '600', color: (user.id_card_credits || 0) > 0 ? '#28a745' : '#dc3545' }}>
+                          {user.id_card_credits || 0}
+                        </span>
+                        <input
+                          type="number"
+                          min="1"
+                          placeholder="Qty"
+                          data-user-id={user.id}
+                          data-credit-type="idcard"
+                          style={{
+                            width: '50px',
+                            padding: '4px 6px',
+                            border: '1px solid #ddd',
+                            borderRadius: '4px',
+                            fontSize: '12px'
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              const credits = e.target.value
+                              if (credits) {
+                                addIDCardCreditsToUser(user.id, credits)
+                                e.target.value = ''
+                              }
+                            }
+                          }}
+                        />
+                        <button
+                          onClick={(e) => {
+                            const input = e.target.parentElement.querySelector('input[data-credit-type="idcard"]')
+                            const credits = input?.value || prompt('Enter number of ID Card credits to add:')
+                            if (credits) {
+                              addIDCardCreditsToUser(user.id, credits)
+                              if (input) input.value = ''
+                            }
+                          }}
+                          className="toggle-admin-button"
+                          style={{ 
+                            padding: '4px 8px',
+                            fontSize: '11px'
+                          }}
+                          title="Add ID Card Credits"
+                        >
+                          Add
+                        </button>
+                      </div>
                     </td>
                     <td>{new Date(user.created_at).toLocaleDateString()}</td>
                     <td>

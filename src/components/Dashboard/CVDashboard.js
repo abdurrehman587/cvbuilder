@@ -186,16 +186,14 @@ const CVDashboard = ({ onTemplateSelect, onLogout, onEditCV, onCreateNewCV }) =>
               }}>
                 {cvCredits}
               </span>
-              {cvCredits === 0 && (
-                <span style={{ 
-                  fontSize: '14px', 
-                  color: '#dc3545',
-                  fontStyle: 'italic',
-                  textAlign: 'center'
-                }}>
-                  (Contact admin to add more)
-                </span>
-              )}
+              <span style={{ 
+                fontSize: '14px', 
+                color: '#333',
+                textAlign: 'center',
+                marginTop: '8px'
+              }}>
+                To get more CV Download Credits Contact Administrator : 0315-3338612
+              </span>
             </div>
           )}
         </div>

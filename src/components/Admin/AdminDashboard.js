@@ -125,7 +125,7 @@ const AdminDashboard = () => {
             className={activeSection === 'cv-management' ? 'active' : ''}
             onClick={() => handleSectionChange('cv-management')}
           >
-            CV Management
+            CV & ID Card Management
           </button>
         </div>
       </div>
@@ -141,9 +141,9 @@ const AdminDashboard = () => {
                 <button>Go to Marketplace Admin</button>
               </div>
               <div className="admin-card" onClick={() => handleSectionChange('cv-management')}>
-                <h3>CV Management</h3>
-                <p>Manage users and CVs</p>
-                <button>Go to CV Management</button>
+                <h3>CV & ID Card Management</h3>
+                <p>Manage users, CVs, and ID Card credits</p>
+                <button>Go to CV & ID Card Management</button>
               </div>
             </div>
           </div>

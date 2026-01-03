@@ -14,7 +14,8 @@ RETURNS TABLE (
   created_at timestamptz,
   updated_at timestamptz,
   user_type text,
-  cv_credits integer
+  cv_credits integer,
+  id_card_credits integer
 ) 
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -30,7 +31,8 @@ BEGIN
     u.created_at,
     u.updated_at,
     COALESCE((au.raw_user_meta_data->>'user_type')::text, 'regular') as user_type,
-    COALESCE(u.cv_credits, 0) as cv_credits
+    COALESCE(u.cv_credits, 0) as cv_credits,
+    COALESCE(u.id_card_credits, 0) as id_card_credits
   FROM public.users u
   LEFT JOIN auth.users au ON u.id = au.id
   ORDER BY 
