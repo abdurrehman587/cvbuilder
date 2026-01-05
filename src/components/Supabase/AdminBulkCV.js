@@ -136,45 +136,96 @@ const AdminBulkCV = () => {
       const { data: { user }, error: authError } = await supabase.auth.getUser()
       if (authError) throw authError
 
-      // Create CV data structure
-      const cvRecord = {
-        user_id: user.id, // Admin creates CVs under their account
-        name: cvData.name,
-        title: cvData.position,
-        company: cvData.company,
-        template_id: 'template1', // Default template
-        cv_data: {
-          personal_info: {
-            name: cvData.name,
-            position: cvData.position,
-            phone: cvData.phone,
-            email: cvData.email,
-            address: cvData.address
-          },
-          professional_summary: cvData.professionalSummary,
-          education: cvData.education.filter(item => item.trim()),
-          experience: cvData.experience.filter(item => item.trim()),
-          skills: cvData.skills.filter(item => item.trim()),
-          certifications: cvData.certifications.filter(item => item.trim()),
-          languages: cvData.languages.filter(item => item.trim()),
-          hobbies: cvData.hobbies.filter(item => item.trim()),
-          references: cvData.references.filter(item => item.trim())
-        },
-        is_public: false,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      }
-
-      // Insert CV into database
-      const { error } = await supabase
+      // Check if CV with this name already exists for this admin user
+      const { data: existingCVs, error: searchError } = await supabase
         .from('cvs')
-        .insert([cvRecord])
-        .select()
-        .single()
+        .select('id, name, created_at')
+        .eq('name', cvData.name.trim())
+        .eq('user_id', user.id) // Check only for this admin's CVs
+        .order('created_at', { ascending: false })
+        .limit(1)
 
-      if (error) throw error
+      if (searchError) throw searchError
 
-      setSuccessMessage(`CV for ${cvData.name} created successfully!`)
+      let resultCV
+      if (existingCVs && existingCVs.length > 0) {
+        // Update existing CV instead of creating duplicate
+        const existingCV = existingCVs[0]
+        console.log('Found existing CV, updating instead of creating:', existingCV.id)
+        
+        const cvUpdateData = {
+          title: cvData.position,
+          company: cvData.company,
+          cv_data: {
+            personal_info: {
+              name: cvData.name,
+              position: cvData.position,
+              phone: cvData.phone,
+              email: cvData.email,
+              address: cvData.address
+            },
+            professional_summary: cvData.professionalSummary,
+            education: cvData.education.filter(item => item.trim()),
+            experience: cvData.experience.filter(item => item.trim()),
+            skills: cvData.skills.filter(item => item.trim()),
+            certifications: cvData.certifications.filter(item => item.trim()),
+            languages: cvData.languages.filter(item => item.trim()),
+            hobbies: cvData.hobbies.filter(item => item.trim()),
+            references: cvData.references.filter(item => item.trim())
+          },
+          updated_at: new Date().toISOString()
+        }
+
+        const { data: updatedCV, error: updateError } = await supabase
+          .from('cvs')
+          .update(cvUpdateData)
+          .eq('id', existingCV.id)
+          .select()
+          .single()
+
+        if (updateError) throw updateError
+        resultCV = updatedCV
+        setSuccessMessage(`CV for ${cvData.name} updated successfully!`)
+      } else {
+        // Create new CV only if none exists
+        const cvRecord = {
+          user_id: user.id, // Admin creates CVs under their account
+          name: cvData.name,
+          title: cvData.position,
+          company: cvData.company,
+          template_id: 'template1', // Default template
+          cv_data: {
+            personal_info: {
+              name: cvData.name,
+              position: cvData.position,
+              phone: cvData.phone,
+              email: cvData.email,
+              address: cvData.address
+            },
+            professional_summary: cvData.professionalSummary,
+            education: cvData.education.filter(item => item.trim()),
+            experience: cvData.experience.filter(item => item.trim()),
+            skills: cvData.skills.filter(item => item.trim()),
+            certifications: cvData.certifications.filter(item => item.trim()),
+            languages: cvData.languages.filter(item => item.trim()),
+            hobbies: cvData.hobbies.filter(item => item.trim()),
+            references: cvData.references.filter(item => item.trim())
+          },
+          is_public: false,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
+
+        const { data: newCV, error: insertError } = await supabase
+          .from('cvs')
+          .insert([cvRecord])
+          .select()
+          .single()
+
+        if (insertError) throw insertError
+        resultCV = newCV
+        setSuccessMessage(`CV for ${cvData.name} created successfully!`)
+      }
       
       // Clear saved draft
       localStorage.removeItem('adminCvDraft')

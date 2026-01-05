@@ -107,27 +107,36 @@ export const cvService = {
   },
 
   // Find CV by name for a user (to prevent duplicates)
+  // For admins, prefer CVs belonging to the current user to avoid updating wrong CVs
   async findCVByName(userId, name, isAdmin = false) {
     const trimmedName = name.trim();
     if (!trimmedName) return null;
     
+    // Always start by looking for CVs belonging to the current user first
+    // This prevents admins from accidentally updating CVs from other users
     let query = supabase
       .from(TABLES.CVS)
       .select('*')
       .eq('name', trimmedName) // Exact match (case-sensitive) to prevent duplicates
+      .eq('user_id', userId) // Always filter by user_id first, even for admins
     
-    // Only filter by user_id if not admin
-    if (!isAdmin) {
-      query = query.eq('user_id', userId)
-    }
-    
-    // Get the most recent CV with this exact name
+    // Get the most recent CV with this exact name for this user
     query = query.order('created_at', { ascending: false }).limit(1)
     
     const { data, error } = await query
     
     if (error) throw error
-    return data && data.length > 0 ? data[0] : null
+    
+    // If found, return it
+    if (data && data.length > 0) {
+      return data[0]
+    }
+    
+    // For non-admins, return null if not found
+    // For admins, we could search all CVs, but this is dangerous as it might
+    // update the wrong CV. So we return null to force creation of new CV
+    // if admin is creating CV for a different user
+    return null
   }
 }
 

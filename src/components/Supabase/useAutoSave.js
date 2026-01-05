@@ -5,7 +5,11 @@ import { dbHelpers } from './database';
 const useAutoSave = (formData, saveInterval = 10000) => {
   const [autoSaveStatus, setAutoSaveStatus] = useState('Ready');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [currentCVId, setCurrentCVId] = useState(null);
+  // Try to restore currentCVId from localStorage on mount
+  const [currentCVId, setCurrentCVId] = useState(() => {
+    const savedCVId = localStorage.getItem('currentCVId');
+    return savedCVId || null;
+  });
   const [isAuthenticated, setIsAuthenticated] = useState(true);
   const lastSavedDataRef = useRef(null);
 
@@ -113,6 +117,8 @@ const useAutoSave = (formData, saveInterval = 10000) => {
         // Update existing CV
         savedCV = await cvService.updateCV(currentCVId, cvData, user.id, isAdmin);
         console.log('✅ CV updated successfully:', savedCV);
+        // Ensure currentCVId is stored in localStorage
+        localStorage.setItem('currentCVId', currentCVId);
       } else {
         // For new CVs, set user_id to current user's ID
         cvData.user_id = user.id;
@@ -129,6 +135,8 @@ const useAutoSave = (formData, saveInterval = 10000) => {
           savedCV = await cvService.updateCV(existingCV.id, cvData, user.id, isAdmin);
           console.log('✅ Existing CV updated successfully:', savedCV);
           setCurrentCVId(existingCV.id);
+          // Store currentCVId in localStorage
+          localStorage.setItem('currentCVId', existingCV.id);
         } else {
           console.log('➕ No existing CV found with this name, creating new CV...');
           console.log('📋 New CV data:', { name: cvData.name, user_id: user.id });
@@ -136,6 +144,8 @@ const useAutoSave = (formData, saveInterval = 10000) => {
           savedCV = await cvService.createCV(cvData);
           console.log('✅ New CV created:', savedCV);
           setCurrentCVId(savedCV.id);
+          // Store currentCVId in localStorage
+          localStorage.setItem('currentCVId', savedCV.id);
         }
       }
       
@@ -206,6 +216,8 @@ const useAutoSave = (formData, saveInterval = 10000) => {
         if (existingCV) {
           console.log('🔍 Found existing CV on form load, setting currentCVId:', existingCV.id);
           setCurrentCVId(existingCV.id);
+          // Store currentCVId in localStorage
+          localStorage.setItem('currentCVId', existingCV.id);
         }
       } catch (error) {
         console.error('Error finding CV by name on form load:', error);
@@ -295,6 +307,8 @@ const useAutoSave = (formData, saveInterval = 10000) => {
       
       const cvData = await cvService.getCV(cvId, user.id, isAdmin);
       setCurrentCVId(cvId);
+      // Store currentCVId in localStorage to persist across page refreshes
+      localStorage.setItem('currentCVId', cvId);
       console.log('✅ CV loaded, currentCVId set to:', cvId);
       const formData = dbHelpers.extractFormData(cvData);
       console.log('📋 Extracted form data:', formData);
@@ -308,6 +322,8 @@ const useAutoSave = (formData, saveInterval = 10000) => {
   // Create new CV
   const createNewCV = () => {
     setCurrentCVId(null);
+    // Clear currentCVId from localStorage when creating new CV
+    localStorage.removeItem('currentCVId');
     setHasUnsavedChanges(false);
     setAutoSaveStatus('Ready');
     // Clear the last saved data reference to ensure new CV starts fresh
