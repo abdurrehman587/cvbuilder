@@ -9,6 +9,7 @@ const OrderNotification = ({ isAdmin, isAuthenticated }) => {
   const notificationIntervalRef = useRef(null);
   const audioRef = useRef(null);
   const lastCheckedTimeRef = useRef(null);
+  const isMarkingAsReadRef = useRef(false);
 
   // Load unread orders from localStorage
   const getUnreadOrders = () => {
@@ -40,10 +41,25 @@ const OrderNotification = ({ isAdmin, isAuthenticated }) => {
 
   // Mark all orders as read
   const markAllOrdersAsRead = () => {
+    // Prevent recursive calls
+    if (isMarkingAsReadRef.current) {
+      return;
+    }
+    
+    isMarkingAsReadRef.current = true;
     saveUnreadOrders([]);
     setNewOrders([]);
     setUnreadCount(0);
     setIsVisible(false);
+    // Update last checked time to now so we don't re-add these orders
+    lastCheckedTimeRef.current = new Date().toISOString();
+    // Don't dispatch event here to avoid infinite loop with handleOrdersViewed
+    // The state update is sufficient
+    
+    // Reset flag after a short delay
+    setTimeout(() => {
+      isMarkingAsReadRef.current = false;
+    }, 100);
   };
 
   // Update unread count
@@ -56,6 +72,7 @@ const OrderNotification = ({ isAdmin, isAuthenticated }) => {
     // If no unread orders, clear the newOrders state
     if (count === 0) {
       setNewOrders([]);
+      setIsVisible(false);
     }
   };
 
@@ -112,8 +129,8 @@ const OrderNotification = ({ isAdmin, isAuthenticated }) => {
     if (!isAdmin || !isAuthenticated) return;
 
     try {
-      // Get the last checked time
-      const lastChecked = lastCheckedTimeRef.current || new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      // Get the last checked time - if not set, use current time minus 1 minute (only check very recent orders)
+      const lastChecked = lastCheckedTimeRef.current || new Date(Date.now() - 60 * 1000).toISOString();
       
       const { data, error } = await supabase
         .from('marketplace_orders')
@@ -125,6 +142,7 @@ const OrderNotification = ({ isAdmin, isAuthenticated }) => {
 
       if (data && data.length > 0) {
         const unread = getUnreadOrders();
+        // Only add orders that are not already in the unread list
         const newOrderIds = data
           .filter(order => !unread.includes(order.id))
           .map(order => order.id);
@@ -153,7 +171,7 @@ const OrderNotification = ({ isAdmin, isAuthenticated }) => {
         }
       }
 
-      // Update last checked time
+      // Update last checked time to now (only if we actually checked)
       lastCheckedTimeRef.current = new Date().toISOString();
     } catch (err) {
       console.error('Error checking for new orders:', err);
@@ -211,19 +229,29 @@ const OrderNotification = ({ isAdmin, isAuthenticated }) => {
           const newOrder = payload.new;
           
           const unread = getUnreadOrders();
+          // Only add if not already in unread list AND not already marked as read
           if (!unread.includes(newOrder.id)) {
             // Add to unread
             const updatedUnread = [...unread, newOrder.id];
             saveUnreadOrders(updatedUnread);
 
             // Update state
-            setNewOrders(prev => [...prev, newOrder]);
+            setNewOrders(prev => {
+              // Check if order already exists in state
+              if (prev.some(o => o.id === newOrder.id)) {
+                return prev;
+              }
+              return [...prev, newOrder];
+            });
 
             // Play sound and show notification
             playNotificationSound();
             showBrowserNotification(newOrder);
 
             updateUnreadCount();
+            
+            // Update last checked time to prevent re-adding
+            lastCheckedTimeRef.current = new Date().toISOString();
           }
         }
       )
@@ -256,19 +284,37 @@ const OrderNotification = ({ isAdmin, isAuthenticated }) => {
 
   // Listen for orders viewed event
   useEffect(() => {
-    const handleOrdersViewed = () => {
-      // Clear all unread orders when admin views orders tab
-      markAllOrdersAsRead();
+    const handleOrdersViewed = (event) => {
+      // Prevent recursive calls
+      if (isMarkingAsReadRef.current) {
+        return;
+      }
+      
+      // If specific order IDs are provided, only mark those as read
+      if (event.detail && event.detail.orderIds && Array.isArray(event.detail.orderIds) && event.detail.orderIds.length > 0) {
+        const unread = getUnreadOrders();
+        const updatedUnread = unread.filter(id => !event.detail.orderIds.includes(id));
+        saveUnreadOrders(updatedUnread);
+        setNewOrders(prev => prev.filter(order => !event.detail.orderIds.includes(order.id)));
+        updateUnreadCount();
+      } else {
+        // If no order IDs provided, don't do anything to avoid loops
+        // The MarketplaceAdmin will handle marking orders as read when they're loaded
+        // Just update the count
+        updateUnreadCount();
+      }
     };
 
     // Also check if we're on the admin orders page
     const checkAdminOrdersPage = () => {
       const hash = window.location.hash;
-      if (hash.includes('#admin') && hash.includes('tab=orders')) {
-        // Small delay to ensure orders are loaded
-        setTimeout(() => {
-          markAllOrdersAsRead();
-        }, 1000);
+      // Check for both old and new routing formats
+      if ((hash.includes('#admin') && hash.includes('tab=orders')) || 
+          (hash.includes('#admin/marketplace') && hash.includes('tab=orders'))) {
+        // Don't call markAllOrdersAsRead directly - let MarketplaceAdmin handle it
+        // through the ordersViewed event system to avoid infinite loops
+        // Just update the count to reflect current state
+        updateUnreadCount();
       }
     };
 
@@ -278,16 +324,22 @@ const OrderNotification = ({ isAdmin, isAuthenticated }) => {
     checkAdminOrdersPage();
     window.addEventListener('hashchange', checkAdminOrdersPage);
     
+    // Periodic check to update unread count (every 5 seconds)
+    const countUpdateInterval = setInterval(() => {
+      updateUnreadCount();
+    }, 5000);
+    
     return () => {
       window.removeEventListener('ordersViewed', handleOrdersViewed);
       window.removeEventListener('hashchange', checkAdminOrdersPage);
+      clearInterval(countUpdateInterval);
     };
   }, []);
 
   // Handle notification click
   const handleNotificationClick = () => {
-    // Navigate to admin panel orders tab
-    window.location.href = '/#admin?tab=orders';
+    // Navigate to admin panel orders tab (use new routing format)
+    window.location.hash = '#admin/marketplace?tab=orders';
   };
 
   // Request notification permission on mount
@@ -341,9 +393,8 @@ const OrderNotification = ({ isAdmin, isAuthenticated }) => {
           className="notification-mark-read"
           onClick={(e) => {
             e.stopPropagation();
-            if (window.confirm('Mark all orders as read? The notification will disappear.')) {
-              markAllOrdersAsRead();
-            }
+            markAllOrdersAsRead();
+            updateUnreadCount();
           }}
           title="Mark all orders as read"
         >

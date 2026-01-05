@@ -20,6 +20,7 @@ const ProductDetail = ({ productId }) => {
           .from('marketplace_products')
           .select('*, marketplace_sections(name)')
           .eq('id', productId)
+          .or('is_hidden.is.null,is_hidden.eq.false')
           .single();
 
         if (error) throw error;
@@ -53,6 +54,7 @@ const ProductDetail = ({ productId }) => {
         .select('*, marketplace_sections(name)')
         .eq('section_id', sectionId)
         .neq('id', currentProductId) // Exclude current product
+        .or('is_hidden.is.null,is_hidden.eq.false') // Exclude hidden products
         .order('created_at', { ascending: false })
         .limit(20); // Fetch more products to sort by relevance
 

@@ -666,6 +666,11 @@ function App() {
                   }
                 } else if (session?.user) {
                   console.log('Session set successfully:', session.user?.email);
+                  
+                  // CRITICAL: Clear OAuth flags immediately to prevent redirect loop
+                  sessionStorage.removeItem('googleSignInStarted');
+                  sessionStorage.removeItem('pendingUserType');
+                  
                   setIsAuthenticated(true);
                   localStorage.setItem('cvBuilderAuth', 'true');
                   
@@ -699,6 +704,11 @@ function App() {
           const { data: { session } } = await sessionCheck;
           if (session?.user) {
             console.log('Session found:', session.user?.email);
+            
+            // CRITICAL: Clear OAuth flags immediately to prevent redirect loop
+            sessionStorage.removeItem('googleSignInStarted');
+            sessionStorage.removeItem('pendingUserType');
+            
             setIsAuthenticated(true);
             localStorage.setItem('cvBuilderAuth', 'true');
             
@@ -710,9 +720,9 @@ function App() {
             localStorage.removeItem('navigateToCVBuilder');
             sessionStorage.removeItem('navigateToIDCardPrint');
             localStorage.removeItem('navigateToIDCardPrint');
-            localStorage.setItem('selectedApp', 'marketplace');
+            localStorage.removeItem('selectedApp');
             startTransition(() => {
-              setSelectedApp('marketplace');
+              setSelectedApp('');
             });
           }
           
@@ -722,6 +732,10 @@ function App() {
           // Last resort: check for any existing session
           const { data: { session } } = await supabase.auth.getSession();
           if (session?.user) {
+            // CRITICAL: Clear OAuth flags immediately to prevent redirect loop
+            sessionStorage.removeItem('googleSignInStarted');
+            sessionStorage.removeItem('pendingUserType');
+            
             setIsAuthenticated(true);
             localStorage.setItem('cvBuilderAuth', 'true');
             
@@ -733,9 +747,9 @@ function App() {
             localStorage.removeItem('navigateToCVBuilder');
             sessionStorage.removeItem('navigateToIDCardPrint');
             localStorage.removeItem('navigateToIDCardPrint');
-            localStorage.setItem('selectedApp', 'marketplace');
+            localStorage.removeItem('selectedApp');
             startTransition(() => {
-              setSelectedApp('marketplace');
+              setSelectedApp('');
             });
           }
         }
@@ -1155,10 +1169,12 @@ function App() {
         
         // Handle user type for Google OAuth sign-in (before state updates)
         if (event === 'SIGNED_IN' && session?.user) {
-          const isOAuthCallback = window.location.hash.includes('access_token') || 
-                                  window.location.hash.includes('code') ||
-                                  window.location.search.includes('code') ||
-                                  sessionStorage.getItem('googleSignInStarted') === 'true';
+          // Check for OAuth callback - only if we have tokens OR flag with valid session
+          const hasOAuthTokens = window.location.hash.includes('access_token') || 
+                                 window.location.hash.includes('code') ||
+                                 window.location.search.includes('code');
+          const hasOAuthFlag = sessionStorage.getItem('googleSignInStarted') === 'true';
+          const isOAuthCallback = hasOAuthTokens || (hasOAuthFlag && session?.user);
           
           if (isOAuthCallback) {
             const pendingUserType = sessionStorage.getItem('pendingUserType');
@@ -1219,8 +1235,9 @@ function App() {
                   console.log('User type matches:', currentUserType);
                 }
               }
-              // Clear pending user type
+              // Clear pending user type and OAuth flag
               sessionStorage.removeItem('pendingUserType');
+              sessionStorage.removeItem('googleSignInStarted');
             }
           }
         }
@@ -1241,14 +1258,17 @@ function App() {
             }, 10000);
             
             // Check if this is an OAuth callback (Google login)
-            const isOAuthCallback = window.location.hash.includes('access_token') || 
-                                    window.location.hash.includes('code') ||
-                                    window.location.search.includes('code') ||
-                                    sessionStorage.getItem('googleSignInStarted') === 'true';
+            // IMPORTANT: Only check for actual OAuth tokens in URL, not the flag
+            // The flag might persist and cause false positives
+            const hasOAuthTokens = window.location.hash.includes('access_token') || 
+                                   window.location.hash.includes('code') ||
+                                   window.location.search.includes('code');
+            const hasOAuthFlag = sessionStorage.getItem('googleSignInStarted') === 'true';
+            const isOAuthCallback = hasOAuthTokens || (hasOAuthFlag && session?.user);
             
             // For OAuth logins (Google sign-in), always redirect to homepage
             if (isOAuthCallback) {
-              // Clear OAuth hash/query from URL
+              // Clear OAuth hash/query from URL immediately
               if (window.location.hash.includes('access_token') || window.location.hash.includes('code')) {
                 window.location.hash = '';
               }
@@ -1256,8 +1276,28 @@ function App() {
                 window.history.replaceState({}, document.title, window.location.pathname);
               }
               
-              // Clear Google sign-in flag
+              // CRITICAL: Clear Google sign-in flag immediately to prevent redirect loop
               sessionStorage.removeItem('googleSignInStarted');
+              sessionStorage.removeItem('pendingUserType');
+              
+              // Verify session is actually set before proceeding
+              // Note: session is already available from the callback parameter, so we can use it directly
+              if (!session?.user) {
+                console.error('OAuth callback detected but no session found - this should not happen');
+                // Wait a bit and check again (session might be setting asynchronously)
+                setTimeout(async () => {
+                  const { data: { session: retrySession } } = await supabase.auth.getSession();
+                  if (retrySession?.user) {
+                    console.log('Session found on retry');
+                    setIsAuthenticated(true);
+                    localStorage.setItem('cvBuilderAuth', 'true');
+                  } else {
+                    console.error('No session found even after retry - user needs to sign in again');
+                    // Don't redirect to login - let the auth state handle it
+                  }
+                }, 1000);
+                return; // Exit early if no session
+              }
               
               // For Google OAuth login, redirect to homepage
               // Clear any navigation flags to ensure user lands on homepage

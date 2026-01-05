@@ -501,6 +501,9 @@
   margin-right: 0.5rem;
   font-size: 0.875rem;
   transition: background 0.2s;
+  display: inline-block;
+  visibility: visible;
+  opacity: 1;
 }
 
 .admin-table button:hover {
@@ -513,6 +516,42 @@
 
 .admin-table .delete-btn:hover {
   background: #dc2626;
+}
+
+/* Hide/Show button styles */
+.admin-table .hide-show-btn,
+.admin-table button[title*="Hide product"],
+.admin-table button[title*="Show product"] {
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  background: #f59e0b !important;
+  color: white !important;
+  border: none !important;
+  padding: 0.5rem 1rem !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+  margin-right: 0.5rem !important;
+  margin-left: 0.5rem !important;
+  font-size: 0.875rem !important;
+  transition: background 0.2s !important;
+  white-space: nowrap !important;
+  min-width: 60px !important;
+}
+
+.admin-table .hide-show-btn[style*="background: rgb(16, 185, 129)"],
+.admin-table button[title*="Show product"] {
+  background: #10b981 !important;
+}
+
+.admin-table .hide-show-btn:hover,
+.admin-table button[title*="Hide product"]:hover {
+  background: #d97706 !important;
+}
+
+.admin-table .hide-show-btn[style*="background: rgb(16, 185, 129)"]:hover,
+.admin-table button[title*="Show product"]:hover {
+  background: #059669 !important;
 }
 
 .product-thumb {

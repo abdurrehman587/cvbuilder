@@ -143,8 +143,15 @@ const MarketplaceAdmin = () => {
         const updatedUnread = unread.filter(id => !orderIds.includes(id));
         localStorage.setItem('unreadOrders', JSON.stringify(updatedUnread));
         
-        // Dispatch event to update notification
-        window.dispatchEvent(new CustomEvent('ordersViewed'));
+        // Dispatch event to update notification with all order IDs
+        window.dispatchEvent(new CustomEvent('ordersViewed', { 
+          detail: { orderIds: orderIds } 
+        }));
+      } else {
+        // Even if no orders, clear unread list but don't dispatch event
+        // to avoid infinite loop - the notification component will handle it
+        localStorage.setItem('unreadOrders', JSON.stringify([]));
+        // Don't dispatch ordersViewed event here - it causes infinite loop
       }
     } catch (err) {
       console.error('Error loading orders:', err);
@@ -420,6 +427,32 @@ const MarketplaceAdmin = () => {
     } catch (err) {
       console.error('Error updating product:', err);
       alert('Error updating product: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleHideProduct = async (product) => {
+    const isCurrentlyHidden = product.is_hidden || false;
+    const action = isCurrentlyHidden ? 'show' : 'hide';
+    
+    if (!window.confirm(`Are you sure you want to ${action} this product? ${isCurrentlyHidden ? 'It will be visible to customers.' : 'It will be hidden from customers.'}`)) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const { error } = await supabase
+        .from('marketplace_products')
+        .update({ is_hidden: !isCurrentlyHidden })
+        .eq('id', product.id);
+
+      if (error) throw error;
+      await loadProducts();
+      alert(`Product ${isCurrentlyHidden ? 'shown' : 'hidden'} successfully!`);
+    } catch (err) {
+      console.error('Error toggling product visibility:', err);
+      alert('Error toggling product visibility: ' + err.message);
     } finally {
       setLoading(false);
     }
@@ -888,13 +921,14 @@ const MarketplaceAdmin = () => {
                   <th>Name</th>
                   <th>Price</th>
                   <th>Section</th>
+                  <th>Status</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {products.length === 0 && !loading ? (
                   <tr>
-                    <td colSpan="5" style={{ textAlign: 'center', padding: '2rem' }}>
+                    <td colSpan="6" style={{ textAlign: 'center', padding: '2rem' }}>
                       No products found. Add your first product above.
                       <br />
                       <small style={{ color: '#6b7280', marginTop: '0.5rem', display: 'block' }}>
@@ -904,7 +938,7 @@ const MarketplaceAdmin = () => {
                   </tr>
                 ) : products.length === 0 && loading ? (
                   <tr>
-                    <td colSpan="5" style={{ textAlign: 'center', padding: '2rem' }}>
+                    <td colSpan="6" style={{ textAlign: 'center', padding: '2rem' }}>
                       Loading products...
                     </td>
                   </tr>
@@ -925,6 +959,18 @@ const MarketplaceAdmin = () => {
                       <td>{product.name}</td>
                       <td>Rs. {product.price?.toLocaleString()}</td>
                       <td>{product.marketplace_sections?.name || 'N/A'}</td>
+                      <td>
+                        <span style={{
+                          padding: '0.25rem 0.5rem',
+                          borderRadius: '4px',
+                          fontSize: '0.875rem',
+                          fontWeight: '500',
+                          backgroundColor: product.is_hidden ? '#fef3c7' : '#d1fae5',
+                          color: product.is_hidden ? '#92400e' : '#065f46'
+                        }}>
+                          {product.is_hidden ? '🔒 Hidden' : '✅ Visible'}
+                        </span>
+                      </td>
                       <td>
                         <button onClick={() => {
                           setEditingProduct(product);
@@ -951,7 +997,22 @@ const MarketplaceAdmin = () => {
                         }}>
                           Edit
                         </button>
-                        <button onClick={() => handleDeleteProduct(product.id)} className="delete-btn">
+                        <button 
+                          onClick={() => handleHideProduct(product)} 
+                          className="hide-show-btn"
+                          style={{
+                            backgroundColor: product.is_hidden ? '#10b981' : '#f59e0b',
+                            color: 'white',
+                            marginLeft: '0.5rem',
+                            display: 'inline-block',
+                            visibility: 'visible',
+                            opacity: 1
+                          }}
+                          title={product.is_hidden ? 'Show product to customers' : 'Hide product from customers'}
+                        >
+                          {product.is_hidden ? 'Show' : 'Hide'}
+                        </button>
+                        <button onClick={() => handleDeleteProduct(product.id)} className="delete-btn" style={{ marginLeft: '0.5rem' }}>
                           Delete
                         </button>
                       </td>

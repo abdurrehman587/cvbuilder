@@ -239,10 +239,11 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
           if (sectionsError) throw sectionsError;
           setMarketplaceSections(sectionsData || []);
 
-          // Load products
+          // Load products (exclude hidden products)
           const { data: productsData, error: productsError } = await supabase
             .from('marketplace_products')
             .select('*, marketplace_sections(name)')
+            .or('is_hidden.is.null,is_hidden.eq.false')
             .order('created_at', { ascending: false });
 
           if (productsError) throw productsError;
