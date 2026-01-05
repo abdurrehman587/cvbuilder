@@ -81,7 +81,7 @@ function App() {
     experience: [],
     skills: ['Communication Skills', 'Time Management', 'Problem Solving', 'Hardworking'],
     certifications: [],
-    languages: [],
+    languages: [{ name: 'English', level: '' }, { name: 'Urdu', level: '' }, { name: 'Punjabi', level: '' }],
     hobbies: [],
     references: [],
     otherInfo: [],
@@ -233,9 +233,13 @@ function App() {
               console.log('App.js - Data being loaded:', parsedData);
               
               // Normalize languages if needed (convert strings to objects)
-              if (parsedData.languages) {
+              if (parsedData.languages && parsedData.languages.length > 0) {
                 parsedData.languages = normalizeLanguages(parsedData.languages);
                 console.log('App.js - Normalized languages:', parsedData.languages);
+              } else {
+                // If no languages or empty array, use default languages
+                parsedData.languages = [{ name: 'English', level: '' }, { name: 'Urdu', level: '' }, { name: 'Punjabi', level: '' }];
+                console.log('App.js - Using default languages:', parsedData.languages);
               }
               
               // Load the data IMMEDIATELY
@@ -305,9 +309,13 @@ function App() {
               // If formData is empty, load stored data
               console.log('App.js - Loading formData from localStorage (form is empty):', parsedData);
               // Normalize languages if needed
-              if (parsedData.languages) {
+              if (parsedData.languages && parsedData.languages.length > 0) {
                 parsedData.languages = normalizeLanguages(parsedData.languages);
                 console.log('App.js - Normalized languages:', parsedData.languages);
+              } else {
+                // If no languages or empty array, use default languages
+                parsedData.languages = [{ name: 'English', level: '' }, { name: 'Urdu', level: '' }, { name: 'Punjabi', level: '' }];
+                console.log('App.js - Using default languages:', parsedData.languages);
               }
               setFormData(parsedData);
               return true;
@@ -318,9 +326,13 @@ function App() {
               if (storedDataComplete > currentDataComplete) {
                 console.log('App.js - Loading formData from localStorage (stored data is more complete):', parsedData);
                 // Normalize languages if needed
-                if (parsedData.languages) {
+                if (parsedData.languages && parsedData.languages.length > 0) {
                   parsedData.languages = normalizeLanguages(parsedData.languages);
                   console.log('App.js - Normalized languages:', parsedData.languages);
+                } else {
+                  // If no languages or empty array, use default languages
+                  parsedData.languages = [{ name: 'English', level: '' }, { name: 'Urdu', level: '' }, { name: 'Punjabi', level: '' }];
+                  console.log('App.js - Using default languages:', parsedData.languages);
                 }
                 setFormData(parsedData);
                 return true;
@@ -467,7 +479,7 @@ function App() {
       experience: [],
       skills: ['Communication Skills', 'Time Management', 'Problem Solving', 'Hardworking'],
       certifications: [],
-      languages: [],
+      languages: [{ name: 'English', level: '' }, { name: 'Urdu', level: '' }, { name: 'Punjabi', level: '' }],
       hobbies: [],
       references: [],
       otherInfo: [],
@@ -991,9 +1003,20 @@ function App() {
         // Priority 1: Check localStorage
         let appToPreserve = localStorage.getItem('selectedApp');
         
-        // CRITICAL: If appToPreserve is 'marketplace', check if user was actually on it
-        // Preserve marketplace if ref has it (user was on it when tab lost focus)
-        if (appToPreserve === 'marketplace') {
+        // CRITICAL: Check ID Card Printer FIRST to prevent redirect to CV Builder
+        if (appToPreserve === 'id-card-print' || lastKnownAppRef.current === 'id-card-print') {
+          // User is on ID Card Printer - preserve it
+          appToPreserve = 'id-card-print';
+          setCurrentApp('id-card-print');
+          // Restore idCardView from localStorage
+          const savedIdCardView = localStorage.getItem('idCardView');
+          if (savedIdCardView === 'print') {
+            setIdCardView('print');
+          } else if (savedIdCardView === 'dashboard') {
+            setIdCardView('dashboard');
+          }
+          explicitlyClickedMarketplaceRef.current = false;
+        } else if (appToPreserve === 'marketplace') {
           // Check if user was actually on marketplace
           if (lastKnownAppRef.current === 'marketplace') {
             // User was on marketplace - preserve it
@@ -1031,12 +1054,18 @@ function App() {
             setCurrentApp(appToPreserve);
           } else {
             // Priority 3: Infer from React state only if there's evidence of active use
-            // If no evidence, preserve null to keep homepage
-            if (currentView === 'cv-builder') {
-              appToPreserve = 'cv-builder';
-              setCurrentApp(appToPreserve);
-            } else if (idCardView === 'print') {
+            // Check ID Card Printer FIRST before CV Builder to prevent redirect
+            if (idCardView === 'print' || idCardView === 'dashboard') {
               appToPreserve = 'id-card-print';
+              setCurrentApp(appToPreserve);
+              // Also ensure idCardView is preserved
+              if (idCardView === 'print') {
+                localStorage.setItem('idCardView', 'print');
+              } else if (idCardView === 'dashboard') {
+                localStorage.setItem('idCardView', 'dashboard');
+              }
+            } else if (currentView === 'cv-builder') {
+              appToPreserve = 'cv-builder';
               setCurrentApp(appToPreserve);
             }
             // If no evidence of active use, keep appToPreserve as null/empty to preserve homepage
@@ -1065,7 +1094,17 @@ function App() {
       } else if (document.hidden && isAuthenticated) {
         // Tab lost focus - save current app to ref
         const currentApp = getCurrentApp();
-        if (currentApp === 'marketplace') {
+        // CRITICAL: Save ID Card Printer state if user is on it
+        if (currentApp === 'id-card-print') {
+          lastKnownAppRef.current = 'id-card-print';
+          // Preserve idCardView state
+          if (idCardView === 'print') {
+            localStorage.setItem('idCardView', 'print');
+          } else if (idCardView === 'dashboard') {
+            localStorage.setItem('idCardView', 'dashboard');
+          }
+          explicitlyClickedMarketplaceRef.current = false;
+        } else if (currentApp === 'marketplace') {
           // User is on marketplace - always save it to ref to preserve state
           lastKnownAppRef.current = 'marketplace';
           // Keep explicitlyClickedMarketplaceRef.current as is (don't clear it)
@@ -2878,51 +2917,16 @@ function App() {
                 onLogout={handleLogout}
                 currentProduct="id-card-print"
               />
-              <div className="app-header-cv" style={{ 
-                display: 'flex', 
-                visibility: 'visible', 
-                opacity: 1, 
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
-                padding: '24px 20px 12px 20px', 
-                position: 'fixed',
-                top: 'calc(var(--header-height, 80px) + 56px)',
-                left: '200px',
-                right: 0,
-                zIndex: 999,
-                width: 'calc(100% - 200px)',
-                minHeight: '80px',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                margin: 0
-              }}>
-                <h1 style={{ color: 'white', margin: 0, fontSize: '24px', fontWeight: 700 }}>ID Card Printer</h1>
+              <div className="app-header-cv">
+                <h1>ID Card Printer</h1>
                 <button 
                   onClick={handleBackToIDCardDashboard} 
                   className="back-to-dashboard-button"
-                  style={{ 
-                    visibility: 'visible', 
-                    opacity: 1, 
-                    display: 'block',
-                    padding: '10px 20px',
-                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                    color: 'white',
-                    border: '1px solid rgba(255, 255, 255, 0.3)',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    fontWeight: 600,
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
-                  }}
                 >
                   Back to Dashboard
                 </button>
               </div>
-              <div style={{ marginTop: 'calc(var(--header-height, 80px) + 56px + 80px)' }}>
+              <div className="id-card-print-content-wrapper">
                 <IDCardPrintPage />
               </div>
             </>

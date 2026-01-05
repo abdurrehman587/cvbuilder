@@ -518,12 +518,18 @@
 
   .checkout-page {
     padding: 1rem 0.5rem;
+    padding-bottom: 6rem; /* Extra padding at bottom to ensure button is visible */
     left: 0; /* Navbar is hidden on mobile, so start from left */
     width: 100%; /* Full width on mobile */
   }
 
   .checkout-content {
     padding: 1.5rem;
+    padding-bottom: 2rem; /* Extra padding for button */
+  }
+
+  .checkout-form {
+    padding-bottom: 1rem; /* Ensure form has bottom padding */
   }
 
   .checkout-header h1 {
@@ -551,11 +557,25 @@
   .btn-secondary {
     width: 100%;
   }
+
+  .checkout-submit-button {
+    width: 100%;
+    padding: 1rem;
+    font-size: 1rem;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  }
 }
 
 @media (max-width: 480px) {
+  .checkout-page {
+    padding-bottom: 7rem; /* Even more padding on smaller screens */
+  }
+
   .checkout-content {
     padding: 1rem;
+    padding-bottom: 2rem;
   }
 
   .checkout-section {
@@ -568,6 +588,12 @@
 
   .order-confirmation {
     padding: 2rem 1rem;
+  }
+
+  .checkout-submit-button {
+    padding: 0.875rem;
+    font-size: 0.95rem;
+    bottom: 0.5rem;
   }
 }
 

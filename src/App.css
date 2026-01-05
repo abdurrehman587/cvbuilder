@@ -187,7 +187,7 @@ html {
   margin: 0;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   position: fixed;
-  top: 70px;
+  top: calc(var(--header-height, 80px) + 56px);
   left: 0;
   right: 0;
   z-index: 999;
@@ -201,10 +201,30 @@ html {
   border: none;
 }
 
+.app-header-cv h1 {
+  color: white;
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+}
+
 /* When navbar is present, adjust CV header position */
 .app-content-with-navbar .app-header-cv {
   left: 200px;
   width: calc(100% - 200px);
+}
+
+/* ID Card Print content wrapper */
+.id-card-print-content-wrapper {
+  margin-top: calc(var(--header-height, 80px) + 56px + 80px);
+  padding-left: 0;
+  padding-right: 0;
+  padding-bottom: 1rem;
+}
+
+.app-content-with-navbar .id-card-print-content-wrapper {
+  padding-left: 0;
+  padding-right: 0;
 }
 
 @media (max-width: 768px) {
@@ -212,12 +232,22 @@ html {
     left: 0 !important;
     width: 100% !important;
   }
+
+  .id-card-print-content-wrapper {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
 }
 
 @media (max-width: 480px) {
   .app-content-with-navbar .app-header-cv {
     left: 0 !important;
     width: 100% !important;
+  }
+
+  .id-card-print-content-wrapper {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
   }
 }
 
