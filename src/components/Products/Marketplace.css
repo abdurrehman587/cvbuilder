@@ -4771,6 +4771,9 @@
   overflow-x: hidden !important;
   height: auto !important;
   max-height: none !important;
+  /* Performance optimizations */
+  contain: layout style;
+  will-change: contents;
 }
 
 .product-card-fresh {
@@ -4778,13 +4781,18 @@
   border-radius: 16px;
   overflow: hidden !important;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   border: 1px solid rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
   position: relative;
   z-index: 0;
+  /* Performance optimizations */
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+  contain: layout style paint;
 }
 
 .product-card-fresh:hover {
@@ -5039,6 +5047,95 @@
 .product-card-add-to-cart-btn:active {
   transform: translateY(0);
   box-shadow: 0 2px 4px rgba(245, 158, 11, 0.2);
+}
+
+/* Loading Spinner for Marketplace */
+.marketplace-loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  min-height: 400px;
+}
+
+.marketplace-loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #e2e8f0;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1.5rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.marketplace-loading-text {
+  font-size: 1.1rem;
+  color: #64748b;
+  font-weight: 500;
+  margin: 0;
+}
+
+/* Loading More Products */
+.marketplace-loading-more {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  width: 100%;
+}
+
+.marketplace-loading-spinner-small {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+.marketplace-loading-text-small {
+  font-size: 0.95rem;
+  color: #64748b;
+  font-weight: 500;
+  margin: 0;
+}
+
+/* End of Products Message */
+.marketplace-end-message {
+  text-align: center;
+  padding: 3rem 2rem;
+  margin: 2rem 0;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 16px;
+  border: 2px dashed #cbd5e1;
+}
+
+.marketplace-end-message p {
+  font-size: 1.1rem;
+  color: #64748b;
+  margin: 0.5rem 0;
+  font-weight: 500;
+}
+
+.marketplace-end-subtext {
+  font-size: 0.9rem !important;
+  color: #94a3b8 !important;
+  font-weight: 400 !important;
+}
+
+/* Load More Trigger (hidden) */
+.load-more-trigger {
+  visibility: hidden;
+  pointer-events: none;
 }
 
 /* Empty State */

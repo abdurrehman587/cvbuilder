@@ -1,7 +1,10 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
 import './Marketplace.css';
 import { authService, supabase } from '../Supabase/supabase';
 import { addToCart } from '../../utils/cart';
+
+// Constants
+const PRODUCTS_PER_PAGE = 12; // Load 12 products at a time for progressive loading
 
 // Move products array outside component to keep it stable
   const products = [
@@ -18,8 +21,127 @@ import { addToCart } from '../../utils/cart';
     },
   ];
 
+// Memoized Product Card Component for better performance
+const ProductCard = memo(({ 
+  product, 
+  productImages, 
+  currentImageIndex, 
+  onProductClick, 
+  onAddToCart, 
+  onBuyNow,
+  onMouseEnter,
+  onMouseLeave
+}) => {
+  const imageRef = useRef(null);
+  const [isInView, setIsInView] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+
+  // Intersection Observer for lazy loading
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setIsInView(true);
+            observer.disconnect();
+          }
+        });
+      },
+      { rootMargin: '50px' } // Start loading 50px before visible
+    );
+
+    if (imageRef.current) {
+      observer.observe(imageRef.current);
+    }
+
+    return () => {
+      if (imageRef.current) {
+        observer.disconnect();
+      }
+    };
+  }, []);
+
+  const handleImageLoad = () => {
+    setImageLoaded(true);
+  };
+
+  return (
+    <div 
+      ref={imageRef}
+      className="product-card-fresh" 
+      data-product-id={product.id}
+      onClick={onProductClick}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    >
+      <div className="product-card-image-wrapper">
+        {isInView && productImages.length > 0 ? (
+          <>
+            {productImages.map((imageUrl, index) => {
+              const isActive = index === currentImageIndex;
+              const isFirst = index === 0;
+              return (
+                <img 
+                  key={`${product.id}-${index}`}
+                  src={isInView ? imageUrl : undefined}
+                  alt={`${product.name} - Image ${index + 1}`}
+                  className={`product-card-image ${isActive ? 'active' : ''} ${isFirst ? 'first-image' : ''}`}
+                  style={isFirst ? { opacity: imageLoaded ? 1 : 0, zIndex: 1, transform: 'translate(-50%, -50%)', transition: 'opacity 0.3s ease' } : { transform: 'translate(-50%, -50%)' }}
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                  }}
+                  onLoad={handleImageLoad}
+                  loading="lazy"
+                />
+              );
+            })}
+          </>
+        ) : null}
+        <div className="product-card-placeholder" style={{ 
+          display: (isInView && productImages.length > 0 && imageLoaded) ? 'none' : 'flex' 
+        }}>
+          <span className="product-placeholder-icon-fresh">📦</span>
+        </div>
+        <div className="product-card-overlay"></div>
+      </div>
+      <div className="product-card-body">
+        <h4 className="product-card-name">{product.name}</h4>
+        <div className="product-card-footer">
+          <div className="product-card-price-container">
+            {product.original_price && product.original_price > product.price ? (
+              <>
+                <span className="product-card-price-discounted">Rs. {product.price?.toLocaleString() || '0'}</span>
+                <span className="product-card-price-original">Rs. {product.original_price?.toLocaleString() || '0'}</span>
+              </>
+            ) : (
+              <span className="product-card-price">Rs. {product.price?.toLocaleString() || '0'}</span>
+            )}
+          </div>
+          <div className="product-card-action-buttons">
+            <button 
+              className="product-card-buy-now-btn"
+              onClick={onBuyNow}
+              title="Buy Now"
+            >
+              Buy Now
+            </button>
+            <button 
+              className="product-card-add-to-cart-btn"
+              onClick={onAddToCart}
+              title="Add to Cart"
+            >
+              Add to Cart
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+ProductCard.displayName = 'ProductCard';
+
 const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
-  console.log('ProductsPage component is rendering');
   const [showLogin, setShowLogin] = useState(showLoginOnMount);
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
@@ -119,6 +241,11 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
   const [marketplaceSections, setMarketplaceSections] = useState([]);
   const [marketplaceProducts, setMarketplaceProducts] = useState([]);
   const [loadingMarketplace, setLoadingMarketplace] = useState(false);
+  const [loadingMoreProducts, setLoadingMoreProducts] = useState(false);
+  const [hasMoreProducts, setHasMoreProducts] = useState(true);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [allProducts, setAllProducts] = useState([]); // Store all products
+  const loadMoreRef = useRef(null);
   const [cartNotification, setCartNotification] = useState({ 
     show: false, 
     message: '', 
@@ -227,10 +354,8 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
     };
   }, [showLoginOnMount]);
 
-  // Load marketplace sections and products from database
-  // Defer loading to prevent blocking initial render
+  // Load marketplace sections and all products metadata (for pagination)
   useEffect(() => {
-    // Use requestIdleCallback or setTimeout to defer data loading after initial render
     const loadTimeout = setTimeout(() => {
       const loadMarketplaceData = async () => {
         try {
@@ -245,7 +370,7 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
           if (sectionsError) throw sectionsError;
           setMarketplaceSections(sectionsData || []);
 
-          // Load products (exclude hidden products)
+          // Load ALL products metadata (we'll paginate the display)
           const { data: productsData, error: productsError } = await supabase
             .from('marketplace_products')
             .select('*, marketplace_sections(name)')
@@ -253,7 +378,15 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
             .order('created_at', { ascending: false });
 
           if (productsError) throw productsError;
-          setMarketplaceProducts(productsData || []);
+          
+          // Store all products
+          setAllProducts(productsData || []);
+          
+          // Load first batch of products
+          const firstBatch = (productsData || []).slice(0, PRODUCTS_PER_PAGE);
+          setMarketplaceProducts(firstBatch);
+          setCurrentPage(1);
+          setHasMoreProducts((productsData || []).length > PRODUCTS_PER_PAGE);
         } catch (err) {
           console.error('Error loading marketplace data:', err);
         } finally {
@@ -262,10 +395,66 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
       };
 
       loadMarketplaceData();
-    }, 200); // Defer by 200ms to allow initial render to complete
+    }, 200);
 
     return () => clearTimeout(loadTimeout);
   }, []);
+
+  // Load more products when scrolling
+  const loadMoreProducts = useCallback(async () => {
+    if (loadingMoreProducts || !hasMoreProducts) return;
+
+    try {
+      setLoadingMoreProducts(true);
+      
+      // Simulate a small delay for better UX
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      const nextPage = currentPage + 1;
+      const startIndex = currentPage * PRODUCTS_PER_PAGE;
+      const endIndex = startIndex + PRODUCTS_PER_PAGE;
+      const nextBatch = allProducts.slice(startIndex, endIndex);
+
+      if (nextBatch.length > 0) {
+        setMarketplaceProducts(prev => [...prev, ...nextBatch]);
+        setCurrentPage(nextPage);
+        setHasMoreProducts(endIndex < allProducts.length);
+      } else {
+        setHasMoreProducts(false);
+      }
+    } catch (err) {
+      console.error('Error loading more products:', err);
+    } finally {
+      setLoadingMoreProducts(false);
+    }
+  }, [currentPage, allProducts, loadingMoreProducts, hasMoreProducts]);
+
+  // Intersection Observer for infinite scroll
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const target = entries[0];
+        if (target.isIntersecting && hasMoreProducts && !loadingMoreProducts) {
+          loadMoreProducts();
+        }
+      },
+      {
+        root: null,
+        rootMargin: '200px', // Start loading 200px before reaching the bottom
+        threshold: 0.1
+      }
+    );
+
+    if (loadMoreRef.current) {
+      observer.observe(loadMoreRef.current);
+    }
+
+    return () => {
+      if (loadMoreRef.current) {
+        observer.unobserve(loadMoreRef.current);
+      }
+    };
+  }, [hasMoreProducts, loadingMoreProducts, loadMoreProducts]);
 
 
   // Handle escape key to close login modal and mobile keyboard issues
@@ -805,10 +994,10 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
 
                 <div className="marketplace-categories-fresh">
                     {loadingMarketplace ? (
-                    <div className="empty-state-fresh">
-                      <div className="empty-state-icon">⏳</div>
-                      <p className="empty-state-text">Loading products...</p>
-                      </div>
+                    <div className="marketplace-loading-container">
+                      <div className="marketplace-loading-spinner"></div>
+                      <p className="marketplace-loading-text">Loading products...</p>
+                    </div>
                     ) : marketplaceSections.length === 0 ? (
                     <div className="empty-state-fresh">
                       <div className="empty-state-icon">📦</div>
@@ -816,12 +1005,13 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
                       </div>
                     ) : (
                       marketplaceSections.map((section) => {
+                        // Filter products for this section (optimized)
                         const sectionProducts = marketplaceProducts.filter(
                           (product) => product.section_id === section.id
                         );
                         
                         if (sectionProducts.length === 0) {
-                        return null;
+                          return null;
                         }
 
                         return (
@@ -835,7 +1025,6 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
                                 const handleProductClick = (e) => {
                                   e.preventDefault();
                                   e.stopPropagation();
-                                  console.log('Product clicked:', product);
                                   window.location.href = `/#product/${product.id}`;
                                 };
 
@@ -901,98 +1090,22 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
                                 };
                                 
                                 const productImages = getProductImages(product);
-                                // Debug: Log image info
-                                if (productImages.length === 0) {
-                                  console.warn(`No images found for product: ${product.name}`, {
-                                    image_urls: product.image_urls,
-                                    image_url: product.image_url,
-                                    productId: product.id
-                                  });
-                                } else {
-                                  console.log(`Product ${product.name} has ${productImages.length} image(s):`, productImages);
-                                }
                                 const currentImageIndex = productImageIndices[product.id] !== undefined 
                                   ? productImageIndices[product.id] 
                                   : 0;
                                 
                                 return (
-                                <div 
-                                  key={product.id} 
-                                  className="product-card-fresh" 
-                                  data-product-id={product.id}
-                                  onClick={handleProductClick}
-                                  onMouseEnter={() => handleProductCardMouseEnter(product.id, productImages)}
-                                  onMouseLeave={() => handleProductCardMouseLeave(product.id)}
-                                >
-                                  <div className="product-card-image-wrapper">
-                                    {productImages.length > 0 ? (
-                                      <>
-                                        {productImages.map((imageUrl, index) => {
-                                          const isActive = index === currentImageIndex;
-                                          const isFirst = index === 0;
-                                          return (
-                                            <img 
-                                              key={`${product.id}-${index}`}
-                                              src={imageUrl} 
-                                              alt={`${product.name} - Image ${index + 1}`}
-                                              className={`product-card-image ${isActive ? 'active' : ''} ${isFirst ? 'first-image' : ''}`}
-                                              style={isFirst ? { opacity: 1, zIndex: 1, transform: 'translate(-50%, -50%)' } : { transform: 'translate(-50%, -50%)' }}
-                                              onError={(e) => {
-                                                console.error(`Failed to load image ${index + 1} for product ${product.name}:`, imageUrl);
-                                                e.target.style.display = 'none';
-                                              }}
-                                              onLoad={(e) => {
-                                                console.log(`Image ${index + 1} loaded for product ${product.name}`);
-                                                // Force first image to be visible when loaded
-                                                if (isFirst) {
-                                                  e.target.style.opacity = '1';
-                                                  e.target.style.zIndex = '1';
-                                                }
-                                              }}
-                                            />
-                                          );
-                                        })}
-                                      </>
-                                    ) : null}
-                                    <div className="product-card-placeholder" style={{ 
-                                      display: productImages.length > 0 ? 'none' : 'flex' 
-                                    }}>
-                                      <span className="product-placeholder-icon-fresh">📦</span>
-                                    </div>
-                                    <div className="product-card-overlay"></div>
-                                  </div>
-                                  <div className="product-card-body">
-                                    <h4 className="product-card-name">{product.name}</h4>
-                                    <div className="product-card-footer">
-                                      <div className="product-card-price-container">
-                                        {product.original_price && product.original_price > product.price ? (
-                                          <>
-                                            <span className="product-card-price-discounted">Rs. {product.price?.toLocaleString() || '0'}</span>
-                                            <span className="product-card-price-original">Rs. {product.original_price?.toLocaleString() || '0'}</span>
-                                          </>
-                                        ) : (
-                                      <span className="product-card-price">Rs. {product.price?.toLocaleString() || '0'}</span>
-                                        )}
-                                      </div>
-                                      <div className="product-card-action-buttons">
-                                        <button 
-                                          className="product-card-buy-now-btn"
-                                          onClick={handleBuyNow}
-                                          title="Buy Now"
-                                        >
-                                          Buy Now
-                                        </button>
-                                        <button 
-                                          className="product-card-add-to-cart-btn"
-                                          onClick={handleAddToCart}
-                                          title="Add to Cart"
-                                        >
-                                          Add to Cart
-                                        </button>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
+                                  <ProductCard
+                                    key={product.id}
+                                    product={product}
+                                    productImages={productImages}
+                                    currentImageIndex={currentImageIndex}
+                                    onProductClick={handleProductClick}
+                                    onAddToCart={handleAddToCart}
+                                    onBuyNow={handleBuyNow}
+                                    onMouseEnter={() => handleProductCardMouseEnter(product.id, productImages)}
+                                    onMouseLeave={() => handleProductCardMouseLeave(product.id)}
+                                  />
                                 );
                               })}
                             </div>
@@ -1000,6 +1113,28 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
                         );
                       })
                     )}
+                    
+                    {/* Load More Trigger - Hidden element for infinite scroll */}
+                    {!loadingMarketplace && marketplaceSections.length > 0 && (
+                      <div 
+                        ref={loadMoreRef}
+                        className="load-more-trigger"
+                        style={{ 
+                          height: '1px', 
+                          width: '100%',
+                          marginTop: '2rem'
+                        }}
+                      />
+                    )}
+                    
+                    {/* Loading More Products Indicator */}
+                    {loadingMoreProducts && (
+                      <div className="marketplace-loading-more">
+                        <div className="marketplace-loading-spinner-small"></div>
+                        <p className="marketplace-loading-text-small">Loading more products...</p>
+                      </div>
+                    )}
+                    
                 </div>
               </div>
             </div>
