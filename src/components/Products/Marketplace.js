@@ -65,8 +65,8 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
     return [];
   };
   
-  // Handle mouse enter - start sliding images
-  const handleProductCardMouseEnter = (productId, images) => {
+  // Handle mouse enter - start sliding images (optimized to reduce re-renders)
+  const handleProductCardMouseEnter = useCallback((productId, images) => {
     if (images.length <= 1) return; // No need to slide if only one image
     
     // Clear any existing interval for this product
@@ -74,32 +74,38 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
       clearInterval(imageSlideIntervals.current[productId]);
     }
     
-    // Set initial index to 0
-    setProductImageIndices(prev => ({ ...prev, [productId]: 0 }));
+    // Set initial index to 0 (only if not already set)
+    setProductImageIndices(prev => {
+      if (prev[productId] === 0) return prev; // Skip update if already 0
+      return { ...prev, [productId]: 0 };
+    });
     
-    // Start sliding through images every 1.5 seconds
+    // Start sliding through images every 2 seconds (increased from 1.5s for better performance)
     let currentIndex = 0;
     imageSlideIntervals.current[productId] = setInterval(() => {
       currentIndex = (currentIndex + 1) % images.length;
-      setProductImageIndices(prev => ({ ...prev, [productId]: currentIndex }));
-    }, 1500);
-  };
+      // Use functional update and only update if index changed
+      setProductImageIndices(prev => {
+        if (prev[productId] === currentIndex) return prev; // Skip if same
+        return { ...prev, [productId]: currentIndex };
+      });
+    }, 2000); // Increased interval for better performance
+  }, []);
   
   // Handle mouse leave - stop sliding and reset to first image
-  const handleProductCardMouseLeave = (productId) => {
+  const handleProductCardMouseLeave = useCallback((productId) => {
     if (imageSlideIntervals.current[productId]) {
       clearInterval(imageSlideIntervals.current[productId]);
       delete imageSlideIntervals.current[productId];
     }
-    // Reset to first image after a short delay
-    setTimeout(() => {
-      setProductImageIndices(prev => {
-        const newState = { ...prev };
-        delete newState[productId];
-        return newState;
-      });
-    }, 300);
-  };
+    // Reset to first image immediately (no delay for better UX)
+    setProductImageIndices(prev => {
+      if (!prev[productId] || prev[productId] === 0) return prev; // Skip if already reset
+      const newState = { ...prev };
+      delete newState[productId];
+      return newState;
+    });
+  }, []);
   
   // Cleanup intervals on unmount
   useEffect(() => {
@@ -298,21 +304,26 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
       window.handleProductSelect(productId);
     }
     
-    // Scroll to the product section
-    setTimeout(() => {
-      const sectionId = 'marketplace-section';
-      const element = document.getElementById(sectionId);
-      if (element) {
-        const headerOffset = 100;
-        const elementPosition = element.getBoundingClientRect().top;
-        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-        
-        window.scrollTo({
-          top: offsetPosition,
-          behavior: 'smooth'
-        });
-      }
-    }, 100);
+    // Scroll to the product section (optimized to prevent conflicts)
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        const sectionId = 'marketplace-section';
+        const element = document.getElementById(sectionId);
+        if (element) {
+          const headerOffset = 100;
+          // Use requestAnimationFrame for smooth scroll
+          requestAnimationFrame(() => {
+            const elementPosition = element.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+            
+            window.scrollTo({
+              top: offsetPosition,
+              behavior: 'smooth'
+            });
+          });
+        }
+      }, 100);
+    });
   };
 
   const handleGetStarted = (productId) => {

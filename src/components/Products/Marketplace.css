@@ -15,9 +15,12 @@
   /* Ensure no nested scrollbars */
   overflow-y: visible !important;
   overflow-x: hidden !important;
-  /* Enable smooth scrolling */
+  /* Enable smooth scrolling (can be disabled for better performance) */
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
+  /* Performance optimizations */
+  contain: layout style paint;
+  transform: translateZ(0); /* Force GPU acceleration */
 }
 
 .products-page::before {
@@ -48,12 +51,25 @@
   pointer-events: none;
   z-index: 0;
   filter: blur(40px);
+  /* Performance optimizations */
+  will-change: transform;
+  transform: translateZ(0); /* Force GPU acceleration */
+  backface-visibility: hidden;
+  /* Reduce animation complexity on low-end devices */
+  animation-play-state: running;
 }
 
 @keyframes float {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  33% { transform: translate(30px, -30px) scale(1.1); }
-  66% { transform: translate(-20px, 20px) scale(0.9); }
+  0%, 100% { transform: translate(0, 0) scale(1) translateZ(0); }
+  33% { transform: translate(30px, -30px) scale(1.1) translateZ(0); }
+  66% { transform: translate(-20px, 20px) scale(0.9) translateZ(0); }
+}
+
+/* Reduce animation on scroll for better performance */
+@media (prefers-reduced-motion: reduce) {
+  .products-page::after {
+    animation: none;
+  }
 }
 
 .products-page > * {
@@ -657,6 +673,9 @@
   /* Hide scrollbars */
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE and Edge */
+  /* Performance optimizations */
+  transform: translateZ(0); /* Force GPU acceleration */
+  backface-visibility: hidden;
 }
 
 .carousel-track::-webkit-scrollbar {
@@ -667,7 +686,7 @@
   min-width: 100%;
   padding: 0;
   cursor: pointer;
-  transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   position: relative;
   display: flex;
   align-items: center;
@@ -675,6 +694,10 @@
   overflow: hidden;
   min-height: 350px;
   background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  /* Performance optimizations */
+  will-change: transform;
+  transform: translateZ(0); /* Force GPU acceleration */
+  backface-visibility: hidden;
 }
 
 .carousel-slide::after {
@@ -3342,6 +3365,9 @@
   justify-content: center;
   overflow: hidden;
   position: relative;
+  /* Performance optimizations */
+  contain: layout style paint;
+  transform: translateZ(0); /* Force GPU acceleration */
 }
 
 .product-image {
@@ -3349,10 +3375,16 @@
   height: 100%;
   object-fit: contain;
   transition: transform 0.3s ease;
+  /* Performance optimizations */
+  will-change: transform;
+  transform: translateZ(0); /* Force GPU acceleration */
+  backface-visibility: hidden;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
 }
 
 .product-item:hover .product-image {
-  transform: scale(1.05);
+  transform: scale(1.05) translateZ(0);
 }
 
 .product-image-placeholder {
@@ -4716,6 +4748,10 @@
   padding: 0.75rem;
   box-sizing: border-box;
   pointer-events: auto;
+  /* Performance optimizations */
+  contain: layout style paint;
+  transform: translateZ(0); /* Force GPU acceleration */
+  will-change: contents;
 }
 
 .product-card-image {
@@ -4728,10 +4764,15 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) translateZ(0);
   opacity: 0;
   visibility: hidden;
   z-index: 0;
+  /* Performance optimizations */
+  will-change: opacity, transform;
+  backface-visibility: hidden;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
   display: block;
   pointer-events: none;
 }
