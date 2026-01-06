@@ -1115,14 +1115,13 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
                     )}
                     
                     {/* Load More Trigger - Hidden element for infinite scroll */}
-                    {!loadingMarketplace && marketplaceSections.length > 0 && (
+                    {!loadingMarketplace && marketplaceSections.length > 0 && hasMoreProducts && (
                       <div 
                         ref={loadMoreRef}
                         className="load-more-trigger"
                         style={{ 
                           height: '1px', 
-                          width: '100%',
-                          marginTop: '2rem'
+                          width: '100%'
                         }}
                       />
                     )}

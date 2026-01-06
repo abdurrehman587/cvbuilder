@@ -4674,9 +4674,9 @@
 .product-content-wrapper {
   width: 100%;
   max-width: 100%;
-  padding: 3rem 2rem;
+  padding: 3rem 2rem 0 2rem;
   box-sizing: border-box;
-  background: #ffffff;
+  background: transparent;
   /* Ensure no nested scrollbars */
   overflow: visible !important;
   overflow-y: visible !important;
@@ -5136,6 +5136,11 @@
 .load-more-trigger {
   visibility: hidden;
   pointer-events: none;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
 }
 
 /* Empty State */
