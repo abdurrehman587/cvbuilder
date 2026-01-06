@@ -268,7 +268,7 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
   }, []);
 
 
-  // Handle escape key to close login modal
+  // Handle escape key to close login modal and mobile keyboard issues
   useEffect(() => {
     const handleEscape = (e) => {
       if (e.key === 'Escape' && showLogin) {
@@ -281,18 +281,51 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
       }
     };
     
+    // Handle mobile viewport changes when keyboard appears
+    const handleViewportChange = () => {
+      if (showLogin) {
+        const modalContent = document.querySelector('.login-modal-content');
+        if (modalContent) {
+          // Scroll to top of modal when keyboard appears
+          const activeElement = document.activeElement;
+          if (activeElement && activeElement.tagName === 'INPUT') {
+            setTimeout(() => {
+              activeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 300);
+          }
+        }
+      }
+    };
+    
     if (showLogin) {
       // Prevent body scroll when modal is open
       document.body.style.overflow = 'hidden';
+      // Fix for iOS Safari - prevent body from scrolling
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
       window.addEventListener('keydown', handleEscape);
+      // Handle viewport changes (keyboard appearing)
+      window.addEventListener('resize', handleViewportChange);
+      window.addEventListener('orientationchange', handleViewportChange);
+      // Handle input focus for mobile
+      const inputs = document.querySelectorAll('.login-form-inline input');
+      inputs.forEach(input => {
+        input.addEventListener('focus', handleViewportChange);
+      });
     } else {
       // Restore body scroll when modal is closed
       document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
     }
     
     return () => {
       window.removeEventListener('keydown', handleEscape);
+      window.removeEventListener('resize', handleViewportChange);
+      window.removeEventListener('orientationchange', handleViewportChange);
       document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
     };
   }, [showLogin]);
 
