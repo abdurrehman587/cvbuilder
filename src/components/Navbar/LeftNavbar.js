@@ -19,7 +19,20 @@ const LeftNavbar = ({ isAuthenticated, onLogout }) => {
         }
       }
       
-      if (hash === '#products' || hash.startsWith('#product/') || hash === '#cart' || hash === '#checkout' || hash.startsWith('#order-details') || hash === '#admin') {
+      // Check for marketplace routes (clean URLs and hash for backward compatibility)
+      const isMarketplaceRoute = window.location.pathname === '/marketplace' || 
+                                 window.location.pathname.startsWith('/product/') ||
+                                 hash === '#products' || 
+                                 hash.startsWith('#product/');
+      const isOtherRoute = window.location.pathname === '/cart' || 
+                          window.location.pathname === '/checkout' ||
+                          window.location.pathname.startsWith('/order/') ||
+                          window.location.pathname.startsWith('/admin') ||
+                          hash === '#cart' || 
+                          hash === '#checkout' || 
+                          hash.startsWith('#order-details') || 
+                          hash === '#admin';
+      if (isMarketplaceRoute || isOtherRoute) {
         setActiveSection('marketplace');
       } else {
         // Check localStorage for selected app
@@ -141,25 +154,34 @@ const LeftNavbar = ({ isAuthenticated, onLogout }) => {
   };
 
   const handleSignIn = () => {
-    // Navigate to products page (Marketplace) and show login form
-    localStorage.setItem('showProductsPage', 'true');
-    sessionStorage.setItem('showProductsPage', 'true');
-    localStorage.setItem('selectedApp', 'marketplace');
+    // Always show login form - navigate to marketplace
+    // Set flag for login form - Marketplace component will check this on mount
+    localStorage.setItem('showLoginForm', 'true');
+    sessionStorage.setItem('showLoginForm', 'true');
     // Clear any navigation flags that might interfere
     sessionStorage.removeItem('navigateToCVBuilder');
     sessionStorage.removeItem('navigateToIDCardPrint');
     localStorage.removeItem('navigateToCVBuilder');
     localStorage.removeItem('navigateToIDCardPrint');
     
-    // Navigate to products page
-    window.location.href = '/#products';
+    // Set selectedApp to marketplace to ensure marketplace routing
+    localStorage.setItem('selectedApp', 'marketplace');
     
-    // Show login form after navigation
-    setTimeout(() => {
+    // If already on marketplace, try to show login form immediately
+    if (window.location.pathname === '/marketplace') {
+      // Try to show login form directly if Marketplace component is mounted
       if (window.showLoginForm) {
         window.showLoginForm();
+      } else {
+        // Marketplace component not mounted - dispatch event to trigger re-render
+        window.dispatchEvent(new CustomEvent('showLoginForm'));
       }
-    }, 100);
+    } else {
+      // Not on marketplace - navigate to marketplace
+      // The showLoginForm flag will be checked by Marketplace component on mount
+      window.dispatchEvent(new CustomEvent('navigateToSection', { detail: 'marketplace' }));
+      window.location.href = '/marketplace';
+    }
   };
 
   const handleLogout = async () => {

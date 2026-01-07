@@ -95,7 +95,7 @@ const Checkout = () => {
 
     if (cartItems.length === 0) {
       alert('Your cart is empty. Please add items to your cart first.');
-      window.location.href = '/#cart';
+      window.location.href = '/cart';
       return;
     }
 
@@ -177,13 +177,13 @@ const Checkout = () => {
             <div className="order-confirmation-actions">
               <button 
                 className="btn-primary"
-                onClick={() => window.location.href = '/#products'}
+                onClick={() => window.location.href = '/marketplace'}
               >
                 Continue Shopping
               </button>
               <button 
                 className="btn-secondary"
-                onClick={() => window.location.href = `/#order-details?orderId=${orderId}`}
+                onClick={() => window.location.href = `/order/${orderId}`}
               >
                 View Order Details
               </button>
@@ -220,7 +220,7 @@ const Checkout = () => {
         <div className="checkout-header">
           <button 
             className="checkout-back-button"
-            onClick={() => window.location.href = '/#cart'}
+            onClick={() => window.location.href = '/cart'}
           >
             ← Back to Cart
           </button>

@@ -1,38 +1,112 @@
-import React, { useState, useEffect, startTransition } from 'react';
+import React, { useState, useEffect, startTransition, Suspense, lazy } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import './App.css';
 import { SupabaseProvider } from './components/Supabase';
-import Login from './components/Login/Login';
-import CVDashboard from './components/Dashboard/CVDashboard';
-import Form1 from './components/template1/Form1';
-import Preview1 from './components/template1/Preview1';
-import Preview2 from './components/template2/Preview2';
-import Preview3 from './components/template3/Preview3';
-import Preview4 from './components/template4/Preview4';
 import useAutoSave from './components/Supabase/useAutoSave';
 import { authService, supabase } from './components/Supabase/supabase';
-import IDCardPrintPage from './components/IDCardPrint/IDCardPrintPage';
-import IDCardDashboard from './components/IDCardDashboard/IDCardDashboard';
-import ProductsPage from './components/Products/Marketplace';
-import HomePage from './components/HomePage/HomePage';
-import Header from './components/Header/Header';
-import MarketplaceAdmin from './components/MarketplaceAdmin/MarketplaceAdmin';
-import AdminDashboard from './components/Admin/AdminDashboard';
-import ProductDetail from './components/Products/ProductDetail';
-import Cart from './components/Cart/Cart';
-import Checkout from './components/Checkout/Checkout';
-import OrderDetails from './components/OrderDetails/OrderDetails';
-import OrderHistory from './components/OrderHistory/OrderHistory';
-import LeftNavbar from './components/Navbar/LeftNavbar';
-import TopNav from './components/TopNav/TopNav';
-import PreviewPage from './components/PreviewPage/PreviewPage';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
 import { getCurrentApp, setCurrentApp, getCVView, setCVView, getIDCardView, setIDCardView, getRoute } from './utils/routing';
+import { pathToApp, pathToCVView, getProductIdFromPath, getOrderIdFromPath } from './utils/routeMapping';
+import { setNavigate } from './utils/navigation';
+
+// Critical components - load immediately
+import Header from './components/Header/Header';
+import HomePage from './components/HomePage/HomePage';
+import ProductsPage from './components/Products/Marketplace';
+
+// Lazy load non-critical components for code splitting
+const Login = lazy(() => import('./components/Login/Login'));
+const CVDashboard = lazy(() => import('./components/Dashboard/CVDashboard'));
+const Form1 = lazy(() => import('./components/template1/Form1'));
+const Preview1 = lazy(() => import('./components/template1/Preview1'));
+const Preview2 = lazy(() => import('./components/template2/Preview2'));
+const Preview3 = lazy(() => import('./components/template3/Preview3'));
+const Preview4 = lazy(() => import('./components/template4/Preview4'));
+const IDCardPrintPage = lazy(() => import('./components/IDCardPrint/IDCardPrintPage'));
+const IDCardDashboard = lazy(() => import('./components/IDCardDashboard/IDCardDashboard'));
+const MarketplaceAdmin = lazy(() => import('./components/MarketplaceAdmin/MarketplaceAdmin'));
+const AdminDashboard = lazy(() => import('./components/Admin/AdminDashboard'));
+const ProductDetail = lazy(() => import('./components/Products/ProductDetail'));
+const Cart = lazy(() => import('./components/Cart/Cart'));
+const Checkout = lazy(() => import('./components/Checkout/Checkout'));
+const OrderDetails = lazy(() => import('./components/OrderDetails/OrderDetails'));
+const OrderHistory = lazy(() => import('./components/OrderHistory/OrderHistory'));
+const LeftNavbar = lazy(() => import('./components/Navbar/LeftNavbar'));
+const TopNav = lazy(() => import('./components/TopNav/TopNav'));
+const PreviewPage = lazy(() => import('./components/PreviewPage/PreviewPage'));
+
+// Loading fallback component
+const LoadingFallback = () => (
+  <div style={{ 
+    display: 'flex', 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    minHeight: '100vh',
+    background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%)'
+  }}>
+    <div style={{ textAlign: 'center' }}>
+      <div style={{
+        width: '50px',
+        height: '50px',
+        border: '4px solid #e2e8f0',
+        borderTop: '4px solid #667eea',
+        borderRadius: '50%',
+        animation: 'spin 1s linear infinite',
+        margin: '0 auto 1rem'
+      }}></div>
+      <p style={{ color: '#64748b', fontSize: '0.9rem' }}>Loading...</p>
+    </div>
+  </div>
+);
 
 function App() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const params = useParams();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [currentHash, setCurrentHash] = useState(window.location.hash);
+  
+  // Support both hash-based (legacy) and clean URL routing
+  const getCurrentPath = () => {
+    // If using clean URLs, use pathname
+    if (location.pathname && location.pathname !== '/') {
+      return location.pathname;
+    }
+    // Fallback to hash for backward compatibility
+    const hash = window.location.hash.replace('#', '');
+    return hash || '/';
+  };
+  
+  const currentPath = getCurrentPath();
+  
+  // Set navigate function for navigation utility
+  useEffect(() => {
+    setNavigate(navigate);
+  }, [navigate]);
+  
+  // Sync URL path to internal routing system
+  useEffect(() => {
+    // Don't sync for cart, checkout, orders, or order details - these are handled separately
+    const pathname = location.pathname;
+    if (pathname === '/cart' || pathname === '/checkout' || pathname === '/orders' || pathname.startsWith('/order/')) {
+      // These routes are handled by specific route checks, don't override with routingApp
+      return;
+    }
+    
+    const pathApp = pathToApp(location.pathname);
+    if (pathApp) {
+      setCurrentApp(pathApp);
+      setSelectedApp(pathApp);
+    }
+    
+    // Handle product detail route
+    const productId = getProductIdFromPath(location.pathname);
+    if (productId && pathApp === 'marketplace') {
+      setCurrentApp('marketplace');
+      setSelectedApp('marketplace');
+    }
+  }, [location.pathname]);
   const [selectedTemplate, setSelectedTemplate] = useState('template1');
   const [currentView, setCurrentView] = useState('dashboard');
   // Initialize idCardView from localStorage if available, otherwise default to 'dashboard'
@@ -44,14 +118,24 @@ function App() {
   // Writing during init can cause React error #301
   // CRITICAL: Default to empty string to allow homepage to show
   const [selectedApp, setSelectedApp] = useState(() => {
-    // Read from localStorage - preserve user's current section
-    const savedApp = localStorage.getItem('selectedApp');
-    if (savedApp) {
-      return savedApp; // Preserve user's section
+    // On page reload with pathname "/", always show homepage
+    // Check if this is a fresh page load (pathname is "/" and no navigation flags)
+    const pathname = window.location.pathname;
+    const hasNavFlags = sessionStorage.getItem('navigateToCVBuilder') ||
+                       sessionStorage.getItem('navigateToIDCardPrint') ||
+                       localStorage.getItem('navigateToCVBuilder') ||
+                       localStorage.getItem('navigateToIDCardPrint') ||
+                       sessionStorage.getItem('isNavigating');
+    
+    // If pathname is "/" and no navigation flags, clear selectedApp to show homepage
+    if (pathname === '/' && !hasNavFlags) {
+      localStorage.removeItem('selectedApp');
+      return '';
     }
-    // First visit - return empty string to allow homepage to show
-    // It will be written when user navigates or in event handlers
-    return '';
+    
+    // Otherwise, preserve user's section from localStorage (for navigation within app)
+    const savedApp = localStorage.getItem('selectedApp');
+    return savedApp || '';
   }); // 'marketplace', 'cv-builder', 'id-card-print', or '' for homepage
   // Normalize languages: convert strings to objects
   const normalizeLanguages = (languages) => {
@@ -150,13 +234,16 @@ function App() {
   // Listen for hash changes to trigger re-renders when admin panel is accessed
   React.useEffect(() => {
     const handleHashChange = () => {
-      setCurrentHash(window.location.hash);
+      // Hash changes are now handled by React Router, but we keep this for backward compatibility
+      // Force a re-render by updating selectedApp state
+      const hash = window.location.hash;
+      if (hash.startsWith('#admin')) {
+        // Admin panel accessed via hash - let React Router handle it
+        navigate('/admin');
+      }
     };
     
-    // Set initial hash
-    setCurrentHash(window.location.hash);
-    
-    // Listen for hash changes
+    // Listen for hash changes (for backward compatibility with hash routes)
     window.addEventListener('hashchange', handleHashChange);
     
     // Listen for homepage navigation event
@@ -170,8 +257,8 @@ function App() {
       localStorage.removeItem('selectedApp');
       // Clear cvView to reset CV Builder state
       localStorage.removeItem('cvView');
-      // Force re-render by updating hash state
-      setCurrentHash('');
+      // Navigate to homepage using React Router
+      navigate('/');
       // Force a re-render by updating selectedApp state and resetting currentView
       startTransition(() => {
         setSelectedApp('');
@@ -202,7 +289,8 @@ function App() {
         returningFromPreview, 
         goToCVForm,
         cvView, 
-        currentHash,
+        currentPath: location.pathname,
+        hash: window.location.hash,
         hasStoredData: !!localStorage.getItem('cvFormData'),
         currentFormDataName: formData.name,
         timestamp: new Date().toISOString()
@@ -1410,19 +1498,22 @@ function App() {
     setTimeout(() => {
       sessionStorage.removeItem('justLoggedIn');
     }, 10000);
-    // Check if user is on products page (homepage) - this takes priority
-    const isOnProductsPage = window.location.hash === '#products' || 
-                              window.location.hash === '' ||
-                                localStorage.getItem('selectedApp') === 'marketplace';
-    
     // Check if user clicked on a template - if so, navigate to CV Dashboard after login
     const templateClicked = sessionStorage.getItem('templateClicked') === 'true' || 
                             localStorage.getItem('templateClicked') === 'true';
     
-    // If user logged in from homepage (products page), keep them there
-    // UNLESS they clicked on a template - in that case, navigate to CV Dashboard
-    // This is the default behavior when logging in from header signin button
-    if (isOnProductsPage && !templateClicked) {
+    // Check for specific navigation intent (CV Builder or ID Card Print)
+    const navigateToCVBuilder = sessionStorage.getItem('navigateToCVBuilder') === 'true' || 
+                                localStorage.getItem('navigateToCVBuilder') === 'true';
+    const navigateToIDCardPrintCheck = sessionStorage.getItem('navigateToIDCardPrint') === 'true' || 
+                                  localStorage.getItem('navigateToIDCardPrint') === 'true';
+    
+    // If user has specific navigation intent, handle it
+    if (navigateToCVBuilder || navigateToIDCardPrintCheck || templateClicked) {
+      // User wants to go to a specific section - let the navigation logic handle it
+      // Don't clear selectedApp here - let the navigation flags work
+    } else {
+      // Default behavior: After login, land on homepage
       // Clear any navigation flags that might redirect away from homepage
       sessionStorage.removeItem('navigateToCVBuilder');
       localStorage.removeItem('navigateToCVBuilder');
@@ -1435,7 +1526,7 @@ function App() {
         setSelectedApp('');
       });
       
-      console.log('handleAuth: User logged in from homepage, keeping them on homepage');
+      console.log('handleAuth: User logged in - navigating to homepage');
       return; // Exit early to prevent any redirects
     }
     
@@ -1509,10 +1600,22 @@ function App() {
   };
 
   // Helper function to wrap content with navbar - navbar is ALWAYS included
+  // Helper function to wrap lazy components with Suspense
+  const wrapLazy = (Component, props = {}) => {
+    if (!Component) return null;
+    return (
+      <Suspense fallback={<LoadingFallback />}>
+        <Component {...props} />
+      </Suspense>
+    );
+  };
+
   const wrapWithNavbar = (content) => {
     return (
       <>
-        <LeftNavbar isAuthenticated={isAuthenticated} onLogout={handleLogout} />
+        <Suspense fallback={null}>
+          <LeftNavbar isAuthenticated={isAuthenticated} onLogout={handleLogout} />
+        </Suspense>
         <div className="app-content-with-navbar">
           {content}
         </div>
@@ -1652,11 +1755,13 @@ function App() {
     const currentSectionForNav = localStorage.getItem('selectedApp') || 'cv-builder';
     return (
       <>
-        <TopNav 
-          currentSection={currentSectionForNav}
-          onSectionChange={handleNavigateToSection}
-          isAuthenticated={isAuthenticated} 
-        />
+        <Suspense fallback={null}>
+          <TopNav 
+            currentSection={currentSectionForNav}
+            onSectionChange={handleNavigateToSection}
+            isAuthenticated={isAuthenticated} 
+          />
+        </Suspense>
         <div style={{ marginTop: '56px', minHeight: 'calc(100vh - 56px)' }}>
           {content}
         </div>
@@ -1689,7 +1794,9 @@ function App() {
               showProductsOnHeader={true}
               onLogout={isAuthenticated ? handleLogout : undefined}
             />
-            <OrderDetails />
+            <Suspense fallback={<LoadingFallback />}>
+              <OrderDetails />
+            </Suspense>
           </>
         )
       );
@@ -1721,11 +1828,35 @@ function App() {
           showProductsOnHeader={false}
           onLogout={isAuthenticated ? handleLogout : undefined}
         />
-        <AdminDashboard />
+        <Suspense fallback={<LoadingFallback />}>
+          <AdminDashboard />
+        </Suspense>
       </>
     );
   }
 
+  // Check for cart, checkout, and orders routes FIRST (before authentication check)
+  // These routes should be accessible to everyone
+  const currentHash = window.location.hash;
+  if (location.pathname === '/cart' || currentHash === '#cart') {
+    console.log('App.js routing - Rendering CART');
+    return wrapWithTopNav(
+      wrapWithNavbar(
+        <>
+          <Header 
+            isAuthenticated={isAuthenticated} 
+            currentProduct="products"
+            showProductsOnHeader={true}
+            onLogout={isAuthenticated ? handleLogout : undefined}
+          />
+          <Suspense fallback={<LoadingFallback />}>
+            <Cart />
+          </Suspense>
+        </>
+      )
+    );
+  }
+  
   if (isAuthenticated && !isLoading) {
     
     // Get current route from routing utility (reads from localStorage)
@@ -1740,20 +1871,30 @@ function App() {
       if (selectedProduct !== 'id-card-print' && selectedProduct !== 'marketplace') {
         console.log('App.js: Rendering Preview Page - cvView is preview');
         return (
-          <PreviewPage 
-            formData={formData}
-            selectedTemplate={selectedTemplate}
-            onTemplateSwitch={handleTemplateSwitch}
-          />
+          <Suspense fallback={<LoadingFallback />}>
+            <PreviewPage 
+              formData={formData}
+              selectedTemplate={selectedTemplate}
+              onTemplateSwitch={handleTemplateSwitch}
+            />
+          </Suspense>
         );
       }
+    }
+    
+    // Check for specific routes FIRST before determining routingApp
+    // This prevents routingApp from overriding specific routes like cart, checkout, etc.
+    const pathname = location.pathname;
+    if (pathname === '/cart' || pathname === '/checkout' || pathname.startsWith('/order/') || pathname === '/orders') {
+      // These routes are handled above, but if we reach here, let routingApp be determined normally
+      // The route checks above should have caught these, but this is a safety check
     }
     
     let routingApp = route.app;
     
     // Check if hash contains product detail route - if so, ensure marketplace routing
-    const hash = window.location.hash;
-    const productMatch = hash.match(/^#product\/(.+)$/);
+    const productHashCheck = window.location.hash;
+    const productMatch = productHashCheck.match(/^#product\/(.+)$/);
     if (productMatch && routingApp !== 'marketplace') {
       // User is viewing a product detail page - ensure marketplace routing
       routingApp = 'marketplace';
@@ -1849,7 +1990,8 @@ function App() {
     }
     
     // ============================================
-    // CART, CHECKOUT, ORDER DETAILS, RESET PASSWORD - CHECK BEFORE MARKETPLACE
+    // CHECKOUT, ORDER DETAILS, RESET PASSWORD - CHECK BEFORE MARKETPLACE
+    // (Cart is checked above, before authentication check)
     // ============================================
     const currentHash = window.location.hash;
     
@@ -1871,26 +2013,8 @@ function App() {
       );
     }
     
-    // Check for cart route
-    if (currentHash === '#cart') {
-      console.log('App.js routing - Rendering CART');
-      return wrapWithTopNav(
-        wrapWithNavbar(
-          <>
-            <Header 
-              isAuthenticated={isAuthenticated} 
-              currentProduct="products"
-              showProductsOnHeader={true}
-              onLogout={isAuthenticated ? handleLogout : undefined}
-            />
-            <Cart />
-          </>
-        )
-      );
-    }
-    
-    // Check for checkout route
-    if (currentHash === '#checkout') {
+    // Check for checkout route - support both clean URLs and hash
+    if (location.pathname === '/checkout' || currentHash === '#checkout') {
       console.log('App.js routing - Rendering CHECKOUT');
       return wrapWithTopNav(
         wrapWithNavbar(
@@ -1901,14 +2025,22 @@ function App() {
               showProductsOnHeader={true}
               onLogout={isAuthenticated ? handleLogout : undefined}
             />
-            <Checkout />
+            <Suspense fallback={<LoadingFallback />}>
+              <Checkout />
+            </Suspense>
           </>
         )
       );
     }
     
-    // Check for order details route
-    if (currentHash.startsWith('#order-details')) {
+    // Check for order details route - support both clean URLs and hash
+    const orderIdFromParams = params.orderId;
+    const orderIdFromPath = getOrderIdFromPath(location.pathname);
+    const orderHash = window.location.hash;
+    const orderMatch = orderHash.match(/#order-details\?orderId=(.+)/);
+    const orderId = orderIdFromParams || orderIdFromPath || (orderMatch ? orderMatch[1] : null);
+    
+    if (orderId || location.pathname.startsWith('/order/') || currentHash.startsWith('#order-details')) {
       console.log('App.js routing - Rendering ORDER DETAILS');
       return wrapWithTopNav(
         wrapWithNavbar(
@@ -1919,14 +2051,16 @@ function App() {
               showProductsOnHeader={true}
               onLogout={isAuthenticated ? handleLogout : undefined}
             />
-            <OrderDetails />
+            <Suspense fallback={<LoadingFallback />}>
+              <OrderDetails />
+            </Suspense>
           </>
         )
       );
     }
     
-    // Check for order history route
-    if (currentHash === '#order-history') {
+    // Check for order history route - support both clean URLs and hash
+    if (location.pathname === '/orders' || currentHash === '#order-history') {
       console.log('App.js routing - Rendering ORDER HISTORY');
       return wrapWithTopNav(
         wrapWithNavbar(
@@ -1937,7 +2071,9 @@ function App() {
               showProductsOnHeader={true}
               onLogout={isAuthenticated ? handleLogout : undefined}
             />
-            <OrderHistory />
+            <Suspense fallback={<LoadingFallback />}>
+              <OrderHistory />
+            </Suspense>
           </>
         )
       );
@@ -1947,9 +2083,12 @@ function App() {
     // MARKETPLACE SECTION - CHECK SECOND to prevent override
     // ============================================
     if (routingApp === 'marketplace') {
-      // Check if we're viewing a product detail page
-      const productMatch = currentHash.match(/^#product\/(.+)$/);
-      const productId = productMatch ? productMatch[1] : null;
+      // Check if we're viewing a product detail page - support both clean URLs and hash
+      const productIdFromParams = params.productId;
+      const productIdFromPath = getProductIdFromPath(location.pathname);
+      const productHash = window.location.hash;
+      const productMatch = productHash.match(/^#product\/(.+)$/);
+      const productId = productIdFromParams || productIdFromPath || (productMatch ? productMatch[1] : null);
       
       if (productId) {
         console.log('App.js routing - Rendering PRODUCT DETAIL:', productId);
@@ -1962,13 +2101,18 @@ function App() {
                 showProductsOnHeader={true}
                 onLogout={isAuthenticated ? handleLogout : undefined}
               />
-              <ProductDetail productId={productId} />
+              <Suspense fallback={<LoadingFallback />}>
+                <ProductDetail productId={productId} />
+              </Suspense>
             </>
           )
         );
       }
       
       console.log('App.js routing - Rendering MARKETPLACE');
+      // Check if login form should be shown
+      const shouldShowLogin = sessionStorage.getItem('showLoginForm') === 'true' ||
+                              localStorage.getItem('showLoginForm') === 'true';
       return wrapWithTopNav(
         wrapWithNavbar(
       <>
@@ -1978,7 +2122,7 @@ function App() {
           showProductsOnHeader={true}
               onLogout={isAuthenticated ? handleLogout : undefined}
             />
-            <ProductsPage />
+            <ProductsPage showLoginOnMount={shouldShowLogin} />
           </>
         )
       );
@@ -2139,12 +2283,14 @@ function App() {
           onLogout={handleLogout}
               currentProduct="cv-builder"
             />
-            <CVDashboard 
-              onTemplateSelect={handleTemplateSelect}
-              onLogout={handleLogout}
-              onEditCV={handleEditCV}
-              onCreateNewCV={handleMakeNewCV}
-            />
+            <Suspense fallback={<LoadingFallback />}>
+              <CVDashboard 
+                onTemplateSelect={handleTemplateSelect}
+                onLogout={handleLogout}
+                onEditCV={handleEditCV}
+                onCreateNewCV={handleMakeNewCV}
+              />
+            </Suspense>
       </>
         )
     );
@@ -2485,12 +2631,14 @@ function App() {
           onLogout={handleLogout}
           currentProduct="cv-builder"
         />
-        <CVDashboard 
-          onTemplateSelect={handleTemplateSelect}
-          onLogout={handleLogout}
-          onEditCV={handleEditCV}
-          onCreateNewCV={handleMakeNewCV}
-        />
+        <Suspense fallback={<LoadingFallback />}>
+          <CVDashboard 
+            onTemplateSelect={handleTemplateSelect}
+            onLogout={handleLogout}
+            onEditCV={handleEditCV}
+            onCreateNewCV={handleMakeNewCV}
+          />
+        </Suspense>
       </>
     );
   }
@@ -2695,7 +2843,7 @@ function App() {
       );
     }
     
-    if (hash === '#checkout') {
+    if (location.pathname === '/checkout' || hash === '#checkout') {
       return wrapWithNavbar(
         <>
           <Header 
@@ -2722,9 +2870,15 @@ function App() {
     }
     
     // Check if user wants to see products page (marketplace) - either via hash or flag
+    // Support both clean URLs and hash routes for product detail
+    const productIdFromParams = params.productId;
+    const productIdFromPath = getProductIdFromPath(location.pathname);
     const productMatch = hash.match(/^#product\/(.+)$/);
-    const productId = productMatch ? productMatch[1] : null;
-    const wantsProductsPage = hash === '#products' ||
+    const productId = productIdFromParams || productIdFromPath || (productMatch ? productMatch[1] : null);
+    // Support both clean URLs and hash routes
+    const wantsProductsPage = location.pathname === '/marketplace' ||
+                              location.pathname.startsWith('/product/') ||
+                              hash === '#products' ||
                               hash.startsWith('#product/') ||
                               localStorage.getItem('showProductsPage') === 'true' ||
                               sessionStorage.getItem('showProductsPage') === 'true' ||
@@ -2891,12 +3045,14 @@ function App() {
           onLogout={handleLogout}
           currentProduct="cv-builder"
         />
-        <CVDashboard 
-          onTemplateSelect={handleTemplateSelect}
-          onLogout={handleLogout}
-          onEditCV={handleEditCV}
-          onCreateNewCV={handleMakeNewCV}
-        />
+        <Suspense fallback={<LoadingFallback />}>
+          <CVDashboard 
+            onTemplateSelect={handleTemplateSelect}
+            onLogout={handleLogout}
+            onEditCV={handleEditCV}
+            onCreateNewCV={handleMakeNewCV}
+          />
+        </Suspense>
       </>
         )
     );
@@ -2979,12 +3135,14 @@ function App() {
           onLogout={handleLogout}
           currentProduct="cv-builder"
         />
-        <CVDashboard 
-          onTemplateSelect={handleTemplateSelect}
-          onLogout={handleLogout}
-          onEditCV={handleEditCV}
-          onCreateNewCV={handleMakeNewCV}
-        />
+        <Suspense fallback={<LoadingFallback />}>
+          <CVDashboard 
+            onTemplateSelect={handleTemplateSelect}
+            onLogout={handleLogout}
+            onEditCV={handleEditCV}
+            onCreateNewCV={handleMakeNewCV}
+          />
+        </Suspense>
       </>
     )
   );

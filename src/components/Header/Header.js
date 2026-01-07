@@ -161,8 +161,8 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
     sessionStorage.setItem('showProductsPage', 'true');
     
     // Use hash-based navigation instead of page reload to preserve session
-    if (window.location.hash !== '#products') {
-      window.location.hash = '#products';
+    if (window.location.pathname !== '/marketplace') {
+      window.location.href = '/marketplace';
       window.dispatchEvent(new CustomEvent('navigateToMarketplace'));
     }
   };
@@ -173,9 +173,29 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
       window.showLoginForm();
     } else {
       // If not on products page, navigate to products page with login form
-      localStorage.setItem('showProductsPage', 'true');
-      sessionStorage.setItem('showProductsPage', 'true');
-      window.location.href = '/#products';
+      // Use React Router navigation if available, otherwise fallback to window.location
+      if (window.location.pathname !== '/marketplace') {
+        // Use specific flag for login form, not showProductsPage
+        localStorage.setItem('showLoginForm', 'true');
+        sessionStorage.setItem('showLoginForm', 'true');
+        localStorage.setItem('selectedApp', 'marketplace');
+        // Try to use React Router navigation first (if available)
+        if (window.navigateToMarketplace) {
+          window.navigateToMarketplace();
+        } else {
+          window.location.href = '/marketplace';
+        }
+      } else {
+        // Already on marketplace, just show login form
+        if (window.showLoginForm) {
+          window.showLoginForm();
+        } else {
+          // Set flag and trigger re-render
+          localStorage.setItem('showLoginForm', 'true');
+          sessionStorage.setItem('showLoginForm', 'true');
+          window.dispatchEvent(new CustomEvent('showLoginForm'));
+        }
+      }
     }
   };
 
@@ -189,7 +209,7 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
       } else {
         localStorage.setItem('showProductsPage', 'true');
         sessionStorage.setItem('showProductsPage', 'true');
-        window.location.hash = '#products';
+        window.location.href = '/marketplace';
       }
     } else {
       // User is signed in: Navigate directly to CV Builder dashboard
@@ -251,7 +271,7 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
       } else {
         localStorage.setItem('showProductsPage', 'true');
         sessionStorage.setItem('showProductsPage', 'true');
-        window.location.hash = '#products';
+        window.location.href = '/marketplace';
       }
     } else {
       // User is signed in: Navigate directly to ID Card Dashboard
@@ -365,7 +385,7 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
             {/* Cart Button - Show on products page */}
             {showProductsOnHeader && (
               <button
-                onClick={() => window.location.href = '/#cart'}
+                onClick={() => window.location.href = '/cart'}
                 className="cart-btn-header"
                 title="View Cart"
               >

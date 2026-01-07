@@ -210,7 +210,11 @@ const ProductCard = memo(({
 ProductCard.displayName = 'ProductCard';
 
 const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
-  const [showLogin, setShowLogin] = useState(showLoginOnMount);
+  // Check for showLoginForm flag immediately on initialization
+  const initialShowLogin = showLoginOnMount || 
+                          sessionStorage.getItem('showLoginForm') === 'true' ||
+                          localStorage.getItem('showLoginForm') === 'true';
+  const [showLogin, setShowLogin] = useState(initialShowLogin);
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -440,13 +444,53 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
   
   // Show login form on mount if showLoginOnMount is true (when navigation flags are set)
   React.useEffect(() => {
-    // Check if user is already authenticated - if so, don't show login
+    // First, check if showLoginForm flag is set - if so, show login form immediately
+    const shouldShowLogin = sessionStorage.getItem('showLoginForm') === 'true' ||
+                            localStorage.getItem('showLoginForm') === 'true';
+    
+    // If flag is set, show login form immediately (before async auth check)
+    // Don't clear the flag here - keep it until user interacts with the form
+    if (shouldShowLogin || showLoginOnMount) {
+      const isAuth = localStorage.getItem('cvBuilderAuth') === 'true';
+      if (!isAuth && sessionStorage.getItem('justAuthenticated') !== 'true') {
+        // Show login form immediately and keep it visible
+        setShowLogin(true);
+        // Don't clear the flag here - let it persist until login is complete or cancelled
+      }
+    }
+    
+    // Then check auth asynchronously (but don't hide login form if flag is set)
     const checkAuth = async () => {
+      // Don't check auth if user was just authenticated (prevents redirect loop)
+      if (sessionStorage.getItem('justAuthenticated') === 'true') {
+        setShowLogin(false);
+        return;
+      }
+      
+      // Check if showLoginForm flag is still set - if so, keep login form visible
+      const flagStillSet = sessionStorage.getItem('showLoginForm') === 'true' ||
+                          localStorage.getItem('showLoginForm') === 'true';
+      
+      // If flag is set, ensure login form stays visible (don't hide it)
+      if (flagStillSet) {
+        const isAuth = localStorage.getItem('cvBuilderAuth') === 'true';
+        if (!isAuth && sessionStorage.getItem('justAuthenticated') !== 'true') {
+          // Keep login form visible if flag is set and user is not authenticated
+          setShowLogin(true);
+        }
+        // Don't proceed with auth check if flag is set - keep form visible
+        return;
+      }
+      
+      // Flag is not set - proceed with normal auth check
       try {
         const isAuthInStorage = localStorage.getItem('cvBuilderAuth') === 'true';
         if (isAuthInStorage) {
-          // User is authenticated, hide login form
+          // User is authenticated - hide login form
           setShowLogin(false);
+          // Clear any login flags
+          sessionStorage.removeItem('showLoginForm');
+          localStorage.removeItem('showLoginForm');
           return;
         }
         
@@ -454,10 +498,17 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
         const user = await authService.getCurrentUser();
         if (user) {
           setShowLogin(false);
+          // Clear any login flags
+          sessionStorage.removeItem('showLoginForm');
+          localStorage.removeItem('showLoginForm');
           return;
         }
       } catch (err) {
-        console.error('Error checking auth:', err);
+        // AuthSessionMissingError is expected when user is not authenticated
+        // Only log actual errors, not expected auth state
+        if (err?.name !== 'AuthSessionMissingError' && err?.message !== 'Auth session missing!') {
+          console.error('Error checking auth:', err);
+        }
       }
       
       // Check for navigation flags on mount and when prop changes
@@ -466,15 +517,27 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
                            localStorage.getItem('navigateToCVBuilder') === 'true' ||
                            localStorage.getItem('navigateToIDCardPrint') === 'true';
       
-      if (showLoginOnMount || hasNavIntent) {
-        // Small delay to ensure component is fully mounted
-        setTimeout(() => {
+      // Check for showLoginForm flag again (in case it was set after initial check)
+      const shouldShowLoginAfterAuth = sessionStorage.getItem('showLoginForm') === 'true' ||
+                                       localStorage.getItem('showLoginForm') === 'true';
+      
+      if (showLoginOnMount || hasNavIntent || shouldShowLoginAfterAuth) {
+        // Double-check auth before showing login form
+        const isAuth = localStorage.getItem('cvBuilderAuth') === 'true';
+        if (!isAuth && sessionStorage.getItem('justAuthenticated') !== 'true') {
+          // Show login form if flag is set
           setShowLogin(true);
-        }, 100);
+        } else if (isAuth) {
+          // User is authenticated, ensure login form is hidden
+          setShowLogin(false);
+          // Clear flags
+          sessionStorage.removeItem('showLoginForm');
+          localStorage.removeItem('showLoginForm');
+        }
       }
     };
     
-    // Check immediately
+    // Check auth asynchronously (but login form should already be shown if flag was set)
     checkAuth();
     
     // Also listen for hash changes in case navigation flags are set after mount
@@ -486,19 +549,36 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
     const handleUserAuthenticated = () => {
       console.log('User authenticated event received, hiding login form');
       setShowLogin(false);
-      // Clear navigation flags after successful authentication
+      // Clear all login-related flags after successful authentication
       sessionStorage.removeItem('navigateToCVBuilder');
       sessionStorage.removeItem('navigateToIDCardPrint');
       localStorage.removeItem('navigateToCVBuilder');
       localStorage.removeItem('navigateToIDCardPrint');
+      sessionStorage.removeItem('showLoginForm');
+      localStorage.removeItem('showLoginForm');
+      sessionStorage.removeItem('showProductsPage');
+      localStorage.removeItem('showProductsPage');
+      // Set a flag to prevent checkAuth from showing login form again
+      sessionStorage.setItem('justAuthenticated', 'true');
+      // Clear this flag after a short delay
+      setTimeout(() => {
+        sessionStorage.removeItem('justAuthenticated');
+      }, 2000);
     };
     
     window.addEventListener('hashchange', handleHashChange);
     window.addEventListener('userAuthenticated', handleUserAuthenticated);
     
+    // Listen for showLoginForm custom event (for when already on marketplace page)
+    const handleShowLoginForm = () => {
+      setShowLogin(true);
+    };
+    window.addEventListener('showLoginForm', handleShowLoginForm);
+    
     return () => {
       window.removeEventListener('hashchange', handleHashChange);
       window.removeEventListener('userAuthenticated', handleUserAuthenticated);
+      window.removeEventListener('showLoginForm', handleShowLoginForm);
     };
   }, [showLoginOnMount]);
 
@@ -904,7 +984,11 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
           }
         }
       } catch (error) {
-        console.error('Error checking auth:', error);
+        // AuthSessionMissingError is expected when user is not authenticated
+        // Only log actual errors, not expected auth state
+        if (error?.name !== 'AuthSessionMissingError' && error?.message !== 'Auth session missing!') {
+          console.error('Error checking auth:', error);
+        }
         // On error, show login form
         setShowLogin(true);
       }
@@ -967,7 +1051,11 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
           setShowLogin(true);
         }
       } catch (error) {
-        console.error('Error checking auth:', error);
+        // AuthSessionMissingError is expected when user is not authenticated
+        // Only log actual errors, not expected auth state
+        if (error?.name !== 'AuthSessionMissingError' && error?.message !== 'Auth session missing!') {
+          console.error('Error checking auth:', error);
+        }
         // On error, show login form and set flags
         sessionStorage.setItem('navigateToCVBuilder', 'true');
         localStorage.setItem('navigateToCVBuilder', 'true');
@@ -999,6 +1087,8 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
         
         console.log('Login successful:', data);
         localStorage.setItem('cvBuilderAuth', 'true');
+        // Set flag to prevent checkAuth from showing login form again
+        sessionStorage.setItem('justAuthenticated', 'true');
         // Show success message
         setLoginSuccess(true);
         setError('');
@@ -1042,6 +1132,9 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
             // Clear products page flags to allow navigation to specific product
             localStorage.removeItem('showProductsPage');
             sessionStorage.removeItem('showProductsPage');
+            // Clear login form flags
+            sessionStorage.removeItem('showLoginForm');
+            localStorage.removeItem('showLoginForm');
             // Set flag to indicate this is a navigation, not a close
             sessionStorage.setItem('isNavigating', 'true');
             sessionStorage.setItem('navigationTimestamp', Date.now().toString());
@@ -1050,16 +1143,20 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
             // The auth state change event will trigger handleAuth in App.js, which will handle navigation
             // No need to reload - the auth state change will trigger a re-render
           } else {
-            // No navigation flags - user should stay on products page (homepage)
-            // Ensure products page flags are set
-            localStorage.setItem('selectedApp', 'marketplace');
-            localStorage.setItem('showProductsPage', 'true');
-            sessionStorage.setItem('showProductsPage', 'true');
-            // Set hash to products page
-            window.location.hash = '#products';
-            // Don't reload - just update the hash to trigger re-render
+            // No navigation flags - user should land on homepage after login
+            // Clear selectedApp to show homepage
+            localStorage.removeItem('selectedApp');
+            // Clear all marketplace and login flags
+            sessionStorage.removeItem('showProductsPage');
+            localStorage.removeItem('showProductsPage');
+            sessionStorage.removeItem('showLoginForm');
+            localStorage.removeItem('showLoginForm');
+            // Navigate to homepage
+            if (window.location.pathname !== '/') {
+              window.location.href = '/';
+            }
             // The auth state change will handle the UI update
-            console.log('Login from homepage - staying on homepage');
+            console.log('Login successful - navigating to homepage');
           }
         }, 1500); // Show success message for 1.5 seconds
         
@@ -1360,7 +1457,7 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
                                   // Add product to cart first
                                   addToCart(product);
                                   // Navigate directly to checkout
-                                  window.location.href = '/#checkout';
+                                  window.location.href = '/checkout';
                                 };
                                 
                                 const productImages = getProductImages(product);
@@ -1468,7 +1565,7 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
                                   // Add product to cart first
                                   addToCart(product);
                                   // Navigate directly to checkout
-                                  window.location.href = '/#checkout';
+                                  window.location.href = '/checkout';
                                 };
                                 
                                 const productImages = getProductImages(product);

@@ -171,7 +171,7 @@ ${order.notes ? `📝 *Notes:*\n${order.notes}\n` : ''}
             <p>{error || 'The order you are looking for does not exist.'}</p>
             <button 
               className="btn-primary"
-              onClick={() => window.location.href = fromAdmin ? '/#admin?tab=orders' : '/#products'}
+              onClick={() => window.location.href = fromAdmin ? '/admin?tab=orders' : '/marketplace'}
             >
               {fromAdmin ? 'Back to Orders' : 'Back to Products'}
             </button>
@@ -339,7 +339,7 @@ ${order.notes ? `📝 *Notes:*\n${order.notes}\n` : ''}
                   // Navigate to marketplace admin panel with orders tab
                   window.location.hash = '#admin/marketplace?tab=orders';
                 } else {
-                  window.location.href = '/#products';
+                  window.location.href = '/marketplace';
                 }
               }}
             >

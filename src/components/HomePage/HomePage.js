@@ -3,20 +3,28 @@ import './HomePage.css';
 
 const HomePage = ({ onProductSelect }) => {
   const handleGetStarted = (productId) => {
-    // Check if user is authenticated
+    if (productId === 'marketplace') {
+      // Marketplace is accessible without login - navigate directly
+      localStorage.setItem('selectedApp', 'marketplace');
+      // Clear any login flags that might be set from previous actions
+      sessionStorage.removeItem('showLoginForm');
+      localStorage.removeItem('showLoginForm');
+      sessionStorage.removeItem('showProductsPage');
+      localStorage.removeItem('showProductsPage');
+      // Don't set any login flags - marketplace is public
+      // Dispatch event to set explicitlyClickedMarketplaceRef in App.js
+      window.dispatchEvent(new CustomEvent('navigateToSection', { detail: 'marketplace' }));
+      window.location.href = '/marketplace';
+      return;
+    }
+    
+    // For CV Builder and ID Card Print, check authentication
     const checkAuth = async () => {
       try {
         const isAuthInStorage = localStorage.getItem('cvBuilderAuth');
         if (isAuthInStorage) {
           // User is authenticated - navigate directly
-          if (productId === 'marketplace') {
-            // Navigate to marketplace
-            localStorage.setItem('selectedApp', 'marketplace');
-            sessionStorage.setItem('showProductsPage', 'true');
-            // Dispatch event to set explicitlyClickedMarketplaceRef in App.js
-            window.dispatchEvent(new CustomEvent('navigateToSection', { detail: 'marketplace' }));
-            window.location.href = '/#products';
-          } else if (productId === 'cv-builder') {
+          if (productId === 'cv-builder') {
             // Navigate to CV Builder dashboard
             sessionStorage.setItem('navigateToCVBuilder', 'true');
             localStorage.setItem('selectedApp', 'cv-builder');
@@ -32,27 +40,19 @@ const HomePage = ({ onProductSelect }) => {
           }
         } else {
           // User is not authenticated - show login form
-          if (productId === 'marketplace') {
-            // For marketplace, navigate to products page
-            localStorage.setItem('selectedApp', 'marketplace');
-            localStorage.setItem('showProductsPage', 'true');
-            sessionStorage.setItem('showProductsPage', 'true');
-            // Dispatch event to set explicitlyClickedMarketplaceRef in App.js
-            window.dispatchEvent(new CustomEvent('navigateToSection', { detail: 'marketplace' }));
-            window.location.href = '/#products';
-          } else if (productId === 'cv-builder') {
+          if (productId === 'cv-builder') {
             sessionStorage.setItem('navigateToCVBuilder', 'true');
             localStorage.setItem('selectedApp', 'cv-builder');
-            localStorage.setItem('showProductsPage', 'true');
-            sessionStorage.setItem('showProductsPage', 'true');
-            window.location.href = '/#products';
+            localStorage.setItem('showLoginForm', 'true');
+            sessionStorage.setItem('showLoginForm', 'true');
+            window.location.href = '/marketplace';
           } else if (productId === 'id-card-print') {
             sessionStorage.setItem('navigateToIDCardPrint', 'true');
             localStorage.setItem('navigateToIDCardPrint', 'true');
             localStorage.setItem('selectedApp', 'id-card-print');
-            localStorage.setItem('showProductsPage', 'true');
-            sessionStorage.setItem('showProductsPage', 'true');
-            window.location.href = '/#products';
+            localStorage.setItem('showLoginForm', 'true');
+            sessionStorage.setItem('showLoginForm', 'true');
+            window.location.href = '/marketplace';
           }
         }
       } catch (error) {

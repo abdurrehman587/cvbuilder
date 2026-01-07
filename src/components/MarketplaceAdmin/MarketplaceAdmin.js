@@ -567,7 +567,7 @@ const MarketplaceAdmin = () => {
   const handleBackToProducts = () => {
     localStorage.setItem('showProductsPage', 'true');
     sessionStorage.setItem('showProductsPage', 'true');
-    window.location.href = '/#products';
+    window.location.href = '/marketplace';
   };
 
   const handleTabChange = (tab) => {

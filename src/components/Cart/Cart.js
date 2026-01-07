@@ -66,7 +66,7 @@ const Cart = () => {
         <div className="cart-container">
           <button 
             className="cart-back-button"
-            onClick={() => window.location.href = '/#products'}
+            onClick={() => window.location.href = '/marketplace'}
           >
             ← Back to Products
           </button>
@@ -77,7 +77,7 @@ const Cart = () => {
             <div className="cart-empty-actions">
               <button 
                 className="cart-empty-button"
-                onClick={() => window.location.href = '/#products'}
+                onClick={() => window.location.href = '/marketplace'}
               >
                 Browse Products
               </button>
@@ -102,7 +102,7 @@ const Cart = () => {
         <div className="cart-header">
           <button 
             className="cart-back-button"
-            onClick={() => window.location.href = '/#products'}
+            onClick={() => window.location.href = '/marketplace'}
           >
             ← Back to Products
           </button>
@@ -199,7 +199,7 @@ const Cart = () => {
             </div>
             <button 
               className="cart-checkout-button"
-              onClick={() => window.location.href = '/#checkout'}
+              onClick={() => window.location.href = '/checkout'}
             >
               Proceed to Checkout
             </button>

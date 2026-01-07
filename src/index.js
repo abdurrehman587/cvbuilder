@@ -1,13 +1,49 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-import App from './App';
+import AppRouter from './AppRouter';
+
+// Loading fallback for initial app load
+const AppLoadingFallback = () => (
+  <div style={{ 
+    display: 'flex', 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    minHeight: '100vh',
+    background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%)'
+  }}>
+    <div style={{ textAlign: 'center' }}>
+      <div style={{
+        width: '50px',
+        height: '50px',
+        border: '4px solid #e2e8f0',
+        borderTop: '4px solid #667eea',
+        borderRadius: '50%',
+        animation: 'spin 1s linear infinite',
+        margin: '0 auto 1rem'
+      }}></div>
+      <p style={{ color: '#64748b', fontSize: '0.9rem' }}>Loading...</p>
+    </div>
+  </div>
+);
+
+// Add spin animation to global CSS
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+`;
+document.head.appendChild(style);
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 // Use startTransition for initial render to prevent blocking main thread
 root.render(
   <React.StrictMode>
-    <App />
+    <Suspense fallback={<AppLoadingFallback />}>
+      <AppRouter />
+    </Suspense>
   </React.StrictMode>
 );
 

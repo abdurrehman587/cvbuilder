@@ -111,7 +111,7 @@ const OrderHistory = () => {
 
         // Show success message and navigate to cart
         alert(`Added ${addedCount} item(s) to your cart!`);
-        window.location.href = '/#cart';
+        window.location.href = '/cart';
       } catch (err) {
         console.error('Error reordering:', err);
         alert('Error adding items to cart. Please try again.');
@@ -122,7 +122,7 @@ const OrderHistory = () => {
   };
 
   const handleViewOrder = (orderId) => {
-    window.location.href = `/#order-details?orderId=${orderId}`;
+    window.location.href = `/order/${orderId}`;
   };
 
   if (loading) {
@@ -158,7 +158,7 @@ const OrderHistory = () => {
         <div className="order-history-header">
           <button 
             className="order-history-back-button"
-            onClick={() => window.location.href = '/#products'}
+            onClick={() => window.location.href = '/marketplace'}
           >
             ← Back to Products
           </button>
@@ -173,7 +173,7 @@ const OrderHistory = () => {
             <p>You haven't placed any orders yet. Start shopping to see your order history here!</p>
             <button 
               className="shop-now-button"
-              onClick={() => window.location.href = '/#products'}
+              onClick={() => window.location.href = '/marketplace'}
             >
               Shop Now
             </button>
