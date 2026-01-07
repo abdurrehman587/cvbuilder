@@ -1256,6 +1256,10 @@
   /* Hide scrollbar but keep functionality */
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE and Edge */
+  /* Ensure content is above overlay */
+  z-index: 1001;
+  /* Ensure buttons are clickable */
+  pointer-events: auto;
   /* Mobile optimizations */
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
@@ -1638,6 +1642,15 @@
   min-height: 48px; /* Minimum touch target */
   touch-action: manipulation;
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+  /* Ensure button is clickable on mobile */
+  position: relative;
+  z-index: 10;
+  -webkit-user-select: none;
+  user-select: none;
+  /* Prevent double-tap zoom on iOS */
+  touch-action: pan-y pinch-zoom;
+  /* Ensure button receives touch events */
+  pointer-events: auto !important;
 }
 
 .google-button-inline:hover {
@@ -1646,9 +1659,64 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
-.google-button-inline:active {
+.google-button-inline:active,
+.google-button-inline:focus {
   background: #f1f3f4;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  outline: none;
+  border-color: #c4c7c5;
+}
+
+/* Mobile-specific active state */
+@media (hover: none) and (pointer: coarse) {
+  .google-button-inline:active {
+    background: #e8eaed;
+    transform: scale(0.98);
+  }
+}
+
+/* Ensure button is not blocked on mobile */
+.google-button-inline:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.google-button-inline:not(:disabled) {
+  pointer-events: auto !important;
+}
+
+/* Mobile-specific fixes for Google button */
+@media (max-width: 768px) {
+  .google-button-inline {
+    min-height: 50px;
+    padding: 14px 20px;
+    font-size: 15px;
+    /* Ensure button is above everything */
+    position: relative;
+    z-index: 1002;
+    /* Make sure it's clickable */
+    pointer-events: auto !important;
+    /* Better touch target */
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.2);
+    /* Prevent text selection on tap */
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  
+  .google-button-inline:active {
+    background: #e8eaed;
+    transform: scale(0.97);
+    transition: transform 0.1s ease;
+  }
+}
+
+@media (max-width: 480px) {
+  .google-button-inline {
+    min-height: 52px;
+    padding: 16px 22px;
+    font-size: 16px;
+  }
 }
 
 .google-icon {
@@ -4812,6 +4880,10 @@
   position: relative;
   min-height: 280px;
   max-height: 280px;
+  /* Performance optimizations */
+  contain: layout style paint;
+  will-change: contents;
+  transform: translateZ(0);
   padding: 0.75rem;
   box-sizing: border-box;
   pointer-events: auto;
@@ -4827,11 +4899,20 @@
   width: auto;
   height: auto;
   object-fit: contain;
-  transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
+  transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%) translateZ(0);
+  /* Performance optimizations */
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  will-change: opacity, transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  /* Prevent layout shift */
+  aspect-ratio: 1 / 1;
+  contain: layout style paint;
   opacity: 0;
   visibility: hidden;
   z-index: 0;

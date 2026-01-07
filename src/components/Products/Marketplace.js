@@ -4,7 +4,9 @@ import { authService, supabase } from '../Supabase/supabase';
 import { addToCart } from '../../utils/cart';
 
 // Constants
-const PRODUCTS_PER_PAGE = 12; // Load 12 products at a time for progressive loading
+const PRODUCTS_PER_PAGE = 8; // Reduced from 12 to 8 for faster initial load
+const INITIAL_PRODUCTS = 8; // Initial products to show
+const PRELOAD_DISTANCE = 300; // Preload images 300px before they're visible
 
 // Move products array outside component to keep it stable
   const products = [
@@ -21,6 +23,15 @@ const PRODUCTS_PER_PAGE = 12; // Load 12 products at a time for progressive load
     },
   ];
 
+// Helper function to optimize image URL (add compression/transformation if available)
+const optimizeImageUrl = (url, width = 400, quality = 80) => {
+  if (!url) return url;
+  // If Supabase storage URL, we can add transformations
+  // For now, return original URL but you can add Supabase image transformation here
+  // Example: return `${url}?width=${width}&quality=${quality}&format=webp`;
+  return url;
+};
+
 // Memoized Product Card Component for better performance
 const ProductCard = memo(({ 
   product, 
@@ -34,20 +45,26 @@ const ProductCard = memo(({
 }) => {
   const imageRef = useRef(null);
   const [isInView, setIsInView] = useState(false);
-  const [imageLoaded, setImageLoaded] = useState(false);
+  const [firstImageLoaded, setFirstImageLoaded] = useState(false);
+  const [loadedImages, setLoadedImages] = useState(new Set([0])); // Only first image initially
+  const [preloadedImages, setPreloadedImages] = useState(new Set());
 
-  // Intersection Observer for lazy loading
+  // Intersection Observer for lazy loading with better rootMargin
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             setIsInView(true);
+            // Preload first image immediately when in view
+            if (productImages.length > 0 && !loadedImages.has(0)) {
+              setLoadedImages(prev => new Set([...prev, 0]));
+            }
             observer.disconnect();
           }
         });
       },
-      { rootMargin: '50px' } // Start loading 50px before visible
+      { rootMargin: `${PRELOAD_DISTANCE}px` } // Start loading earlier
     );
 
     if (imageRef.current) {
@@ -59,11 +76,50 @@ const ProductCard = memo(({
         observer.disconnect();
       }
     };
-  }, []);
+  }, [productImages.length, loadedImages]);
 
-  const handleImageLoad = () => {
-    setImageLoaded(true);
+  // Preload other images when carousel starts (on hover)
+  useEffect(() => {
+    if (currentImageIndex > 0 && productImages.length > 1) {
+      // Load current and next image when carousel is active
+      const imagesToLoad = [currentImageIndex, (currentImageIndex + 1) % productImages.length];
+      setLoadedImages(prev => {
+        const newSet = new Set(prev);
+        imagesToLoad.forEach(idx => newSet.add(idx));
+        return newSet;
+      });
+    }
+  }, [currentImageIndex, productImages.length]);
+
+  // Preload images in background (low priority)
+  useEffect(() => {
+    if (isInView && productImages.length > 1) {
+      // Preload remaining images with delay to not block first image
+      const preloadTimer = setTimeout(() => {
+        productImages.forEach((_, index) => {
+          if (index > 0 && !preloadedImages.has(index)) {
+            const img = new Image();
+            img.src = optimizeImageUrl(productImages[index], 400, 75); // Lower quality for preload
+            setPreloadedImages(prev => new Set([...prev, index]));
+          }
+        });
+      }, 1000); // Wait 1 second after first image loads
+
+      return () => clearTimeout(preloadTimer);
+    }
+  }, [isInView, productImages, preloadedImages]);
+
+  const handleFirstImageLoad = () => {
+    setFirstImageLoaded(true);
   };
+
+  // Only render images that should be loaded
+  const imagesToRender = productImages.filter((_, index) => {
+    // Always render first image when in view
+    if (index === 0) return isInView;
+    // Render other images only if they're loaded or active
+    return loadedImages.has(index) || index === currentImageIndex;
+  });
 
   return (
     <div 
@@ -77,28 +133,40 @@ const ProductCard = memo(({
       <div className="product-card-image-wrapper">
         {isInView && productImages.length > 0 ? (
           <>
-            {productImages.map((imageUrl, index) => {
-              const isActive = index === currentImageIndex;
-              const isFirst = index === 0;
+            {imagesToRender.map((imageUrl, originalIndex) => {
+              // Find original index in productImages array
+              const actualIndex = productImages.indexOf(imageUrl);
+              const isActive = actualIndex === currentImageIndex;
+              const isFirst = actualIndex === 0;
+              const shouldLoad = loadedImages.has(actualIndex) || isActive;
+              
               return (
                 <img 
-                  key={`${product.id}-${index}`}
-                  src={isInView ? imageUrl : undefined}
-                  alt={`${product.name} - Image ${index + 1}`}
+                  key={`${product.id}-${actualIndex}`}
+                  src={shouldLoad ? optimizeImageUrl(imageUrl, 400, 85) : undefined}
+                  alt={`${product.name} - Image ${actualIndex + 1}`}
                   className={`product-card-image ${isActive ? 'active' : ''} ${isFirst ? 'first-image' : ''}`}
-                  style={isFirst ? { opacity: imageLoaded ? 1 : 0, zIndex: 1, transform: 'translate(-50%, -50%)', transition: 'opacity 0.3s ease' } : { transform: 'translate(-50%, -50%)' }}
+                  style={isFirst ? { 
+                    opacity: firstImageLoaded ? 1 : 0, 
+                    zIndex: 1, 
+                    transform: 'translate(-50%, -50%)', 
+                    transition: 'opacity 0.3s ease' 
+                  } : { transform: 'translate(-50%, -50%)' }}
                   onError={(e) => {
                     e.target.style.display = 'none';
                   }}
-                  onLoad={handleImageLoad}
-                  loading="lazy"
+                  onLoad={isFirst ? handleFirstImageLoad : undefined}
+                  loading={isFirst ? "lazy" : "lazy"}
+                  decoding="async"
+                  width="400"
+                  height="400"
                 />
               );
             })}
           </>
         ) : null}
         <div className="product-card-placeholder" style={{ 
-          display: (isInView && productImages.length > 0 && imageLoaded) ? 'none' : 'flex' 
+          display: (isInView && productImages.length > 0 && firstImageLoaded) ? 'none' : 'flex' 
         }}>
           <span className="product-placeholder-icon-fresh">📦</span>
         </div>
@@ -382,11 +450,47 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
           // Store all products
           setAllProducts(productsData || []);
           
-          // Load first batch of products
-          const firstBatch = (productsData || []).slice(0, PRODUCTS_PER_PAGE);
+          // Load initial batch (smaller for faster load)
+          const firstBatch = (productsData || []).slice(0, INITIAL_PRODUCTS);
           setMarketplaceProducts(firstBatch);
           setCurrentPage(1);
-          setHasMoreProducts((productsData || []).length > PRODUCTS_PER_PAGE);
+          setHasMoreProducts((productsData || []).length > INITIAL_PRODUCTS);
+          
+          // Preload images for first batch after a short delay
+          // Helper function to get images (defined inline to avoid scope issues)
+          const getImages = (product) => {
+            if (product.image_urls) {
+              if (Array.isArray(product.image_urls) && product.image_urls.length > 0) {
+                return product.image_urls.filter(url => url && url.trim() !== '');
+              } else if (typeof product.image_urls === 'string') {
+                try {
+                  const parsed = JSON.parse(product.image_urls);
+                  if (Array.isArray(parsed) && parsed.length > 0) {
+                    return parsed.filter(url => url && url.trim() !== '');
+                  }
+                } catch (e) {
+                  if (product.image_urls.trim() !== '') {
+                    return [product.image_urls];
+                  }
+                }
+              }
+            }
+            if (product.image_url && product.image_url.trim() !== '') {
+              return [product.image_url];
+            }
+            return [];
+          };
+          
+          setTimeout(() => {
+            firstBatch.forEach(product => {
+              const images = getImages(product);
+              if (images.length > 0) {
+                // Preload first image of each product
+                const img = new Image();
+                img.src = optimizeImageUrl(images[0], 400, 85);
+              }
+            });
+          }, 500);
         } catch (err) {
           console.error('Error loading marketplace data:', err);
         } finally {
@@ -407,18 +511,52 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
     try {
       setLoadingMoreProducts(true);
       
-      // Simulate a small delay for better UX
-      await new Promise(resolve => setTimeout(resolve, 300));
-      
-      const nextPage = currentPage + 1;
-      const startIndex = currentPage * PRODUCTS_PER_PAGE;
-      const endIndex = startIndex + PRODUCTS_PER_PAGE;
+      // Calculate batch size based on current page
+      const batchSize = currentPage === 1 ? PRODUCTS_PER_PAGE : PRODUCTS_PER_PAGE;
+      const startIndex = currentPage === 1 ? INITIAL_PRODUCTS : (currentPage - 1) * PRODUCTS_PER_PAGE + INITIAL_PRODUCTS;
+      const endIndex = startIndex + batchSize;
       const nextBatch = allProducts.slice(startIndex, endIndex);
 
       if (nextBatch.length > 0) {
         setMarketplaceProducts(prev => [...prev, ...nextBatch]);
-        setCurrentPage(nextPage);
+        setCurrentPage(prev => prev + 1);
         setHasMoreProducts(endIndex < allProducts.length);
+        
+        // Preload images for next batch in background (low priority)
+        // Helper function to get images (defined inline to avoid scope issues)
+        const getImages = (product) => {
+          if (product.image_urls) {
+            if (Array.isArray(product.image_urls) && product.image_urls.length > 0) {
+              return product.image_urls.filter(url => url && url.trim() !== '');
+            } else if (typeof product.image_urls === 'string') {
+              try {
+                const parsed = JSON.parse(product.image_urls);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                  return parsed.filter(url => url && url.trim() !== '');
+                }
+              } catch (e) {
+                if (product.image_urls.trim() !== '') {
+                  return [product.image_urls];
+                }
+              }
+            }
+          }
+          if (product.image_url && product.image_url.trim() !== '') {
+            return [product.image_url];
+          }
+          return [];
+        };
+        
+        setTimeout(() => {
+          nextBatch.forEach(product => {
+            const images = getImages(product);
+            if (images.length > 0) {
+              // Preload first image of each product in new batch
+              const img = new Image();
+              img.src = optimizeImageUrl(images[0], 400, 85);
+            }
+          });
+        }, 200);
       } else {
         setHasMoreProducts(false);
       }
@@ -440,7 +578,7 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
       },
       {
         root: null,
-        rootMargin: '200px', // Start loading 200px before reaching the bottom
+        rootMargin: `${PRELOAD_DISTANCE}px`, // Start loading earlier for smoother experience
         threshold: 0.1
       }
     );
@@ -919,12 +1057,36 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
     setError('');
   };
 
-  const handleGoogleSignIn = async () => {
+  const handleGoogleSignIn = useCallback(async (e) => {
+    // Prevent any default behavior
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    // Prevent if already signing in
+    if (isGoogleSigningIn || pendingGoogleSignIn) {
+      return;
+    }
+    
     setError('');
     // Show user type selection modal first
     setShowUserTypeModal(true);
     setPendingGoogleSignIn(true);
-  };
+  }, [isGoogleSigningIn, pendingGoogleSignIn]);
+  
+  // Mobile-specific touch handler
+  const handleGoogleSignInTouch = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Call handleGoogleSignIn directly
+    if (isGoogleSigningIn || pendingGoogleSignIn) {
+      return;
+    }
+    setError('');
+    setShowUserTypeModal(true);
+    setPendingGoogleSignIn(true);
+  }, [isGoogleSigningIn, pendingGoogleSignIn]);
 
   const handleUserTypeSelectedForGoogle = async (selectedType) => {
     setUserType(selectedType);
@@ -1321,10 +1483,39 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
 
                     <button 
                       type="button" 
-                      onClick={handleGoogleSignIn} 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleGoogleSignIn(e);
+                      }}
+                      onTouchStart={(e) => {
+                        // Prevent double-firing on mobile
+                        e.stopPropagation();
+                        handleGoogleSignInTouch(e);
+                      }}
+                      onTouchEnd={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
+                      onMouseDown={(e) => {
+                        // Ensure click works on mobile browsers that simulate mouse events
+                        if (!isGoogleSigningIn && !pendingGoogleSignIn) {
+                          e.stopPropagation();
+                        }
+                      }}
                       className="google-button-inline"
                       disabled={isGoogleSigningIn || pendingGoogleSignIn}
-                      style={{ opacity: (isGoogleSigningIn || pendingGoogleSignIn) ? 0.7 : 1, cursor: (isGoogleSigningIn || pendingGoogleSignIn) ? 'wait' : 'pointer' }}
+                      style={{ 
+                        opacity: (isGoogleSigningIn || pendingGoogleSignIn) ? 0.7 : 1, 
+                        cursor: (isGoogleSigningIn || pendingGoogleSignIn) ? 'wait' : 'pointer',
+                        pointerEvents: (isGoogleSigningIn || pendingGoogleSignIn) ? 'none' : 'auto',
+                        WebkitTapHighlightColor: 'rgba(0, 0, 0, 0.1)',
+                        userSelect: 'none',
+                        WebkitUserSelect: 'none',
+                        touchAction: 'manipulation'
+                      }}
+                      aria-label="Continue with Google"
+                      aria-disabled={isGoogleSigningIn || pendingGoogleSignIn}
                     >
                       <svg className="google-icon" viewBox="0 0 24 24" width="20" height="20">
                         <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
