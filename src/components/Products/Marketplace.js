@@ -225,6 +225,95 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
   const [productImageIndices, setProductImageIndices] = useState({});
   const imageSlideIntervals = useRef({});
   
+  // State declarations - must be before callbacks that use them
+  const [loginSuccess, setLoginSuccess] = useState(false);
+  const [marketplaceSections, setMarketplaceSections] = useState([]);
+  const [marketplaceProducts, setMarketplaceProducts] = useState([]);
+  const [loadingMarketplace, setLoadingMarketplace] = useState(false);
+  const [loadingMoreProducts, setLoadingMoreProducts] = useState(false);
+  const [hasMoreProducts, setHasMoreProducts] = useState(true);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [allProducts, setAllProducts] = useState([]); // Store all products
+  const [searchQuery, setSearchQuery] = useState(''); // Search query
+  const [filteredProducts, setFilteredProducts] = useState([]); // Filtered products based on search
+  const searchTimeoutRef = useRef(null);
+  const loadMoreRef = useRef(null);
+  
+  // Search/filter products function
+  const filterProducts = useCallback((products, query) => {
+    if (!query || query.trim() === '') {
+      return products;
+    }
+    
+    const searchTerm = query.toLowerCase().trim();
+    return products.filter(product => {
+      // Search in product name
+      const nameMatch = product.name?.toLowerCase().includes(searchTerm);
+      
+      // Search in product description
+      const descriptionMatch = product.description?.toLowerCase().includes(searchTerm);
+      
+      // Search in section name
+      const sectionMatch = product.marketplace_sections?.name?.toLowerCase().includes(searchTerm);
+      
+      // Search in price (if user types numbers)
+      const priceMatch = product.price?.toString().includes(searchTerm);
+      
+      return nameMatch || descriptionMatch || sectionMatch || priceMatch;
+    });
+  }, []);
+  
+  // Handle search input change with debouncing
+  const handleSearchChange = useCallback((e) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    
+    // Clear existing timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    
+    // Debounce search for performance
+    searchTimeoutRef.current = setTimeout(() => {
+      const filtered = filterProducts(allProducts, value);
+      setFilteredProducts(filtered);
+      
+      // Update displayed products based on search
+      if (value.trim() === '') {
+        // If search is empty, show paginated products
+        const firstBatch = allProducts.slice(0, INITIAL_PRODUCTS);
+        setMarketplaceProducts(firstBatch);
+        setCurrentPage(1);
+        setHasMoreProducts(allProducts.length > INITIAL_PRODUCTS);
+      } else {
+        // If searching, show all filtered products
+        setMarketplaceProducts(filtered);
+        setCurrentPage(1);
+        setHasMoreProducts(false); // Disable infinite scroll when searching
+      }
+    }, 300); // 300ms debounce
+  }, [allProducts, filterProducts]);
+  
+  // Clear search
+  const handleClearSearch = useCallback(() => {
+    setSearchQuery('');
+    setFilteredProducts([]);
+    // Reset to initial paginated view
+    const firstBatch = allProducts.slice(0, INITIAL_PRODUCTS);
+    setMarketplaceProducts(firstBatch);
+    setCurrentPage(1);
+    setHasMoreProducts(allProducts.length > INITIAL_PRODUCTS);
+  }, [allProducts]);
+  
+  // Cleanup search timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, []);
+  
   // Get images for a product
   const getProductImages = (product) => {
     // Check for image_urls array (JSONB from database)
@@ -305,15 +394,6 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
       });
     };
   }, []);
-  const [loginSuccess, setLoginSuccess] = useState(false);
-  const [marketplaceSections, setMarketplaceSections] = useState([]);
-  const [marketplaceProducts, setMarketplaceProducts] = useState([]);
-  const [loadingMarketplace, setLoadingMarketplace] = useState(false);
-  const [loadingMoreProducts, setLoadingMoreProducts] = useState(false);
-  const [hasMoreProducts, setHasMoreProducts] = useState(true);
-  const [currentPage, setCurrentPage] = useState(0);
-  const [allProducts, setAllProducts] = useState([]); // Store all products
-  const loadMoreRef = useRef(null);
   const [cartNotification, setCartNotification] = useState({ 
     show: false, 
     message: '', 
@@ -1149,6 +1229,36 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
         {/* Market Place Detailed View - Fresh Design */}
             <div id="marketplace-section" className="product-section-fresh">
               <div className="product-content-wrapper">
+                {/* Search Bar */}
+                <div className="marketplace-search-container">
+                  <div className="marketplace-search-wrapper">
+                    <div className="marketplace-search-icon">🔍</div>
+                    <input
+                      type="text"
+                      className="marketplace-search-input"
+                      placeholder="Search products by name, description, or category..."
+                      value={searchQuery}
+                      onChange={handleSearchChange}
+                      aria-label="Search products"
+                    />
+                    {searchQuery && (
+                      <button
+                        type="button"
+                        className="marketplace-search-clear"
+                        onClick={handleClearSearch}
+                        aria-label="Clear search"
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
+                  {searchQuery && (
+                    <div className="marketplace-search-results-count">
+                      {filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'} found
+                    </div>
+                  )}
+                </div>
+                
                 <div className="section-header-fresh">
                   <h2 className="section-title-fresh">Featured Products</h2>
                   <div className="section-divider"></div>
@@ -1160,12 +1270,122 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
                       <div className="marketplace-loading-spinner"></div>
                       <p className="marketplace-loading-text">Loading products...</p>
                     </div>
+                    ) : searchQuery && filteredProducts.length === 0 ? (
+                    <div className="empty-state-fresh">
+                      <div className="empty-state-icon">🔍</div>
+                      <p className="empty-state-text">No products found matching "{searchQuery}"</p>
+                      <button 
+                        type="button"
+                        onClick={handleClearSearch}
+                        className="marketplace-search-clear-all"
+                      >
+                        Clear Search
+                      </button>
+                    </div>
                     ) : marketplaceSections.length === 0 ? (
                     <div className="empty-state-fresh">
                       <div className="empty-state-icon">📦</div>
                       <p className="empty-state-text">No products available yet. Admin can add sections and products using the Admin Panel.</p>
                       </div>
+                    ) : searchQuery ? (
+                      // When searching, show all filtered products in a single grid
+                      <div className="category-section-fresh">
+                        <div className="category-header-fresh">
+                          <h3 className="category-title-fresh">Search Results</h3>
+                          <div className="category-badge">{filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'}</div>
+                        </div>
+                        <div className="products-grid-fresh">
+                          {marketplaceProducts.map((product) => {
+                                const handleProductClick = (e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  window.location.href = `/#product/${product.id}`;
+                                };
+
+                                const handleAddToCart = (e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  addToCart(product);
+                                  
+                                  // Calculate position relative to the clicked card
+                                  const cardElement = e.target.closest('.product-card-fresh');
+                                  if (cardElement) {
+                                    const cardRect = cardElement.getBoundingClientRect();
+                                    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                                    const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+                                    
+                                    // Notification dimensions (approximate)
+                                    const notificationWidth = window.innerWidth > 768 ? 320 : Math.min(300, window.innerWidth - 20);
+                                    
+                                    // Position notification near the top of the card
+                                    let top = cardRect.top + scrollTop + 10;
+                                    let left = cardRect.left + scrollLeft + (cardRect.width / 2) - (notificationWidth / 2);
+                                    
+                                    // Ensure notification stays within viewport
+                                    if (left < scrollLeft + 10) {
+                                      left = scrollLeft + 10;
+                                    } else if (left + notificationWidth > scrollLeft + window.innerWidth - 10) {
+                                      left = scrollLeft + window.innerWidth - notificationWidth - 10;
+                                    }
+                                    
+                                    // On mobile, position it at the top of the card
+                                    if (window.innerWidth <= 768) {
+                                      top = cardRect.top + scrollTop + 5;
+                                      left = scrollLeft + (window.innerWidth / 2) - (notificationWidth / 2);
+                                    }
+                                    
+                                    // Show clear notification message
+                                    setCartNotification({
+                                      show: true,
+                                      message: 'Added to cart!',
+                                      productName: product.name,
+                                      position: { top, left }
+                                    });
+                                    
+                                    // Hide notification after 3 seconds
+                                    setTimeout(() => {
+                                      setCartNotification({ 
+                                        show: false, 
+                                        message: '', 
+                                        productName: '',
+                                        position: { top: 0, left: 0 }
+                                      });
+                                    }, 3000);
+                                  }
+                                };
+
+                                const handleBuyNow = (e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  // Add product to cart first
+                                  addToCart(product);
+                                  // Navigate directly to checkout
+                                  window.location.href = '/#checkout';
+                                };
+                                
+                                const productImages = getProductImages(product);
+                                const currentImageIndex = productImageIndices[product.id] !== undefined 
+                                  ? productImageIndices[product.id] 
+                                  : 0;
+                                
+                                return (
+                                  <ProductCard
+                                    key={product.id}
+                                    product={product}
+                                    productImages={productImages}
+                                    currentImageIndex={currentImageIndex}
+                                    onProductClick={handleProductClick}
+                                    onAddToCart={handleAddToCart}
+                                    onBuyNow={handleBuyNow}
+                                    onMouseEnter={() => handleProductCardMouseEnter(product.id, productImages)}
+                                    onMouseLeave={() => handleProductCardMouseLeave(product.id)}
+                                  />
+                                );
+                              })}
+                        </div>
+                      </div>
                     ) : (
+                      // When not searching, show products grouped by sections
                       marketplaceSections.map((section) => {
                         // Filter products for this section (optimized)
                         const sectionProducts = marketplaceProducts.filter(
