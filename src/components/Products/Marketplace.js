@@ -23,12 +23,46 @@ const PRELOAD_DISTANCE = 300; // Preload images 300px before they're visible
     },
   ];
 
+// Helper function to check WebP support (cached)
+let webpSupported = null;
+const checkWebPSupport = () => {
+  if (webpSupported !== null) return webpSupported;
+  if (typeof window === 'undefined') {
+    webpSupported = false;
+    return false;
+  }
+  try {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1;
+    canvas.height = 1;
+    webpSupported = canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0;
+    return webpSupported;
+  } catch (e) {
+    webpSupported = false;
+    return false;
+  }
+};
+
 // Helper function to optimize image URL (add compression/transformation if available)
-const optimizeImageUrl = (url, width = 400, quality = 80) => {
+const optimizeImageUrl = (url, width = 400, quality = 80, format = 'webp') => {
   if (!url) return url;
+  
   // If Supabase storage URL, we can add transformations
-  // For now, return original URL but you can add Supabase image transformation here
-  // Example: return `${url}?width=${width}&quality=${quality}&format=webp`;
+  if (url.includes('supabase.co') || url.includes('supabase')) {
+    // Supabase storage supports image transformations
+    const useWebP = format === 'webp' && checkWebPSupport();
+    const imageFormat = useWebP ? 'webp' : 'auto';
+    return `${url}${url.includes('?') ? '&' : '?'}width=${width}&quality=${quality}&format=${imageFormat}`;
+  }
+  
+  // For external URLs (like Unsplash), try to use their optimization APIs
+  if (url.includes('unsplash.com')) {
+    const useWebP = format === 'webp' && checkWebPSupport();
+    const imageFormat = useWebP ? 'fm=webp&' : '';
+    return `${url}${url.includes('?') ? '&' : '?'}${imageFormat}w=${width}&q=${quality}`;
+  }
+  
+  // For other URLs, return as-is (can be enhanced with image CDN)
   return url;
 };
 
@@ -160,6 +194,7 @@ const ProductCard = memo(({
                   decoding="async"
                   width="400"
                   height="400"
+                  fetchPriority={isFirst && actualIndex === 0 ? "high" : "auto"}
                 />
               );
             })}

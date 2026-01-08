@@ -3,3 +3,17 @@
 
 /*    /index.html   200
 
+# Cache headers for static assets (efficient cache lifetimes)
+/static/*  /static/:splat  200  Cache-Control: public, max-age=31536000, immutable
+/images/*  /images/:splat  200  Cache-Control: public, max-age=31536000, immutable
+/icons/*   /icons/:splat    200  Cache-Control: public, max-age=31536000, immutable
+/*.js      /:file.js        200  Cache-Control: public, max-age=31536000, immutable
+/*.css     /:file.css       200  Cache-Control: public, max-age=31536000, immutable
+/*.woff    /:file.woff      200  Cache-Control: public, max-age=31536000, immutable
+/*.woff2   /:file.woff2    200  Cache-Control: public, max-age=31536000, immutable
+/*.png     /:file.png       200  Cache-Control: public, max-age=31536000, immutable
+/*.jpg     /:file.jpg       200  Cache-Control: public, max-age=31536000, immutable
+/*.jpeg    /:file.jpeg      200  Cache-Control: public, max-age=31536000, immutable
+/*.webp    /:file.webp      200  Cache-Control: public, max-age=31536000, immutable
+/*.svg     /:file.svg       200  Cache-Control: public, max-age=31536000, immutable
+
