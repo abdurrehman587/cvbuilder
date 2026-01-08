@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './LeftNavbar.css';
 import { authService } from '../Supabase/supabase';
 
 const LeftNavbar = ({ isAuthenticated, onLogout }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [activeSection, setActiveSection] = useState('marketplace');
 
   useEffect(() => {
@@ -154,8 +157,8 @@ const LeftNavbar = ({ isAuthenticated, onLogout }) => {
   };
 
   const handleSignIn = () => {
-    // Always show login form - navigate to marketplace
     // Set flag for login form - Marketplace component will check this on mount
+    // Set in both storages to ensure it's available immediately
     localStorage.setItem('showLoginForm', 'true');
     sessionStorage.setItem('showLoginForm', 'true');
     // Clear any navigation flags that might interfere
@@ -163,12 +166,11 @@ const LeftNavbar = ({ isAuthenticated, onLogout }) => {
     sessionStorage.removeItem('navigateToIDCardPrint');
     localStorage.removeItem('navigateToCVBuilder');
     localStorage.removeItem('navigateToIDCardPrint');
-    
-    // Set selectedApp to marketplace to ensure marketplace routing
-    localStorage.setItem('selectedApp', 'marketplace');
+    // Clear justAuthenticated flag to allow login form to show
+    sessionStorage.removeItem('justAuthenticated');
     
     // If already on marketplace, try to show login form immediately
-    if (window.location.pathname === '/marketplace') {
+    if (location.pathname === '/marketplace') {
       // Try to show login form directly if Marketplace component is mounted
       if (window.showLoginForm) {
         window.showLoginForm();
@@ -177,10 +179,11 @@ const LeftNavbar = ({ isAuthenticated, onLogout }) => {
         window.dispatchEvent(new CustomEvent('showLoginForm'));
       }
     } else {
-      // Not on marketplace - navigate to marketplace
+      // Not on marketplace - navigate to marketplace with login form flag
       // The showLoginForm flag will be checked by Marketplace component on mount
-      window.dispatchEvent(new CustomEvent('navigateToSection', { detail: 'marketplace' }));
-      window.location.href = '/marketplace';
+      // Dispatch event immediately so it's ready when component mounts
+      window.dispatchEvent(new CustomEvent('showLoginForm'));
+      navigate('/marketplace');
     }
   };
 

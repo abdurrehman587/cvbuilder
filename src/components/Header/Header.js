@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './Header.css';
 import { authService, supabase } from '../Supabase/supabase';
 import { getCartItemCount } from '../../utils/cart';
 import OrderNotification from '../OrderNotification/OrderNotification';
 
 const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, showProductsOnHeader = false }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [isAdmin, setIsAdmin] = useState(false);
   const [isOnAdminPage, setIsOnAdminPage] = useState(false);
   const [cartItemCount, setCartItemCount] = useState(0);
@@ -168,34 +171,33 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
   };
 
   const handleSignIn = () => {
-    // If on products page and login form function is available, show login form popup
-    if (showProductsOnHeader && window.showLoginForm) {
-      window.showLoginForm();
-    } else {
-      // If not on products page, navigate to products page with login form
-      // Use React Router navigation if available, otherwise fallback to window.location
-      if (window.location.pathname !== '/marketplace') {
-        // Use specific flag for login form, not showProductsPage
-        localStorage.setItem('showLoginForm', 'true');
-        sessionStorage.setItem('showLoginForm', 'true');
-        localStorage.setItem('selectedApp', 'marketplace');
-        // Try to use React Router navigation first (if available)
-        if (window.navigateToMarketplace) {
-          window.navigateToMarketplace();
-        } else {
-          window.location.href = '/marketplace';
-        }
+    // Set flag for login form - Marketplace component will check this on mount
+    // Set in both storages to ensure it's available immediately
+    localStorage.setItem('showLoginForm', 'true');
+    sessionStorage.setItem('showLoginForm', 'true');
+    // Clear any navigation flags that might interfere
+    sessionStorage.removeItem('navigateToCVBuilder');
+    sessionStorage.removeItem('navigateToIDCardPrint');
+    localStorage.removeItem('navigateToCVBuilder');
+    localStorage.removeItem('navigateToIDCardPrint');
+    // Clear justAuthenticated flag to allow login form to show
+    sessionStorage.removeItem('justAuthenticated');
+    
+    // If already on marketplace, try to show login form immediately
+    if (location.pathname === '/marketplace') {
+      // Try to show login form directly if Marketplace component is mounted
+      if (window.showLoginForm) {
+        window.showLoginForm();
       } else {
-        // Already on marketplace, just show login form
-        if (window.showLoginForm) {
-          window.showLoginForm();
-        } else {
-          // Set flag and trigger re-render
-          localStorage.setItem('showLoginForm', 'true');
-          sessionStorage.setItem('showLoginForm', 'true');
-          window.dispatchEvent(new CustomEvent('showLoginForm'));
-        }
+        // Marketplace component not mounted - dispatch event to trigger re-render
+        window.dispatchEvent(new CustomEvent('showLoginForm'));
       }
+    } else {
+      // Not on marketplace - navigate to marketplace with login form flag
+      // The showLoginForm flag will be checked by Marketplace component on mount
+      // Dispatch event immediately so it's ready when component mounts
+      window.dispatchEvent(new CustomEvent('showLoginForm'));
+      navigate('/marketplace');
     }
   };
 

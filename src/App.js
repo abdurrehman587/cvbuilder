@@ -1442,10 +1442,21 @@ function App() {
             
             // Trigger auth event for other components
             window.dispatchEvent(new CustomEvent('userAuthenticated'));
-          } else if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED' && !session) {
+          } else if (event === 'SIGNED_OUT') {
+            // User explicitly signed out
             setIsAuthenticated(false);
             localStorage.removeItem('cvBuilderAuth');
             sessionStorage.removeItem('justLoggedIn');
+          } else if (event === 'TOKEN_REFRESHED' && !session) {
+            // Token refresh failed - but don't clear auth if user just logged in
+            // This prevents race conditions where session hasn't propagated yet
+            const justLoggedIn = sessionStorage.getItem('justLoggedIn');
+            if (!justLoggedIn) {
+              // Only clear auth if user didn't just log in
+              setIsAuthenticated(false);
+              localStorage.removeItem('cvBuilderAuth');
+            }
+            // Don't remove justLoggedIn here - let it expire naturally
           } else if (event === 'TOKEN_REFRESHED' && session?.user) {
             // Session refreshed - user is still authenticated
             setIsAuthenticated(true);

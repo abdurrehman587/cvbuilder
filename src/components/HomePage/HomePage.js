@@ -1,10 +1,19 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import './HomePage.css';
 
 const HomePage = ({ onProductSelect }) => {
+  const navigate = useNavigate();
   const handleGetStarted = (productId) => {
     if (productId === 'marketplace') {
       // Marketplace is accessible without login - navigate directly
+      // Preserve authentication state before navigation
+      const wasAuthenticated = localStorage.getItem('cvBuilderAuth') === 'true';
+      
+      // Set navigation flag to prevent auth clearing during navigation
+      sessionStorage.setItem('isNavigating', 'true');
+      sessionStorage.setItem('navigationTimestamp', Date.now().toString());
+      
       localStorage.setItem('selectedApp', 'marketplace');
       // Clear any login flags that might be set from previous actions
       sessionStorage.removeItem('showLoginForm');
@@ -14,7 +23,17 @@ const HomePage = ({ onProductSelect }) => {
       // Don't set any login flags - marketplace is public
       // Dispatch event to set explicitlyClickedMarketplaceRef in App.js
       window.dispatchEvent(new CustomEvent('navigateToSection', { detail: 'marketplace' }));
-      window.location.href = '/marketplace';
+      
+      // Use React Router navigation instead of window.location.href to avoid full page reload
+      // This preserves authentication state
+      navigate('/marketplace');
+      
+      // Restore auth state after navigation (in case it was cleared during navigation)
+      if (wasAuthenticated) {
+        setTimeout(() => {
+          localStorage.setItem('cvBuilderAuth', 'true');
+        }, 100);
+      }
       return;
     }
     
@@ -45,14 +64,16 @@ const HomePage = ({ onProductSelect }) => {
             localStorage.setItem('selectedApp', 'cv-builder');
             localStorage.setItem('showLoginForm', 'true');
             sessionStorage.setItem('showLoginForm', 'true');
-            window.location.href = '/marketplace';
+            // Use React Router navigation instead of window.location.href
+            navigate('/marketplace');
           } else if (productId === 'id-card-print') {
             sessionStorage.setItem('navigateToIDCardPrint', 'true');
             localStorage.setItem('navigateToIDCardPrint', 'true');
             localStorage.setItem('selectedApp', 'id-card-print');
             localStorage.setItem('showLoginForm', 'true');
             sessionStorage.setItem('showLoginForm', 'true');
-            window.location.href = '/marketplace';
+            // Use React Router navigation instead of window.location.href
+            navigate('/marketplace');
           }
         }
       } catch (error) {

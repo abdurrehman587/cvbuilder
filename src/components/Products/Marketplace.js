@@ -211,9 +211,20 @@ ProductCard.displayName = 'ProductCard';
 
 const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
   // Check for showLoginForm flag immediately on initialization
-  const initialShowLogin = showLoginOnMount || 
-                          sessionStorage.getItem('showLoginForm') === 'true' ||
-                          localStorage.getItem('showLoginForm') === 'true';
+  // This must be synchronous to ensure login form shows on first click
+  const checkShowLoginFlag = () => {
+    if (showLoginOnMount) return true;
+    const sessionFlag = sessionStorage.getItem('showLoginForm') === 'true';
+    const localFlag = localStorage.getItem('showLoginForm') === 'true';
+    if (sessionFlag || localFlag) {
+      // Only show if user is not authenticated
+      const isAuth = localStorage.getItem('cvBuilderAuth') === 'true';
+      const justAuthenticated = sessionStorage.getItem('justAuthenticated') === 'true';
+      return !isAuth && !justAuthenticated;
+    }
+    return false;
+  };
+  const initialShowLogin = checkShowLoginFlag();
   const [showLogin, setShowLogin] = useState(initialShowLogin);
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
@@ -444,26 +455,49 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
   
   // Show login form on mount if showLoginOnMount is true (when navigation flags are set)
   React.useEffect(() => {
-    // First, check if showLoginForm flag is set - if so, show login form immediately
+    // CRITICAL: Check flag synchronously FIRST, before any async operations
+    // This ensures the login form shows immediately on first click
     const shouldShowLogin = sessionStorage.getItem('showLoginForm') === 'true' ||
                             localStorage.getItem('showLoginForm') === 'true';
     
-    // If flag is set, show login form immediately (before async auth check)
-    // Don't clear the flag here - keep it until user interacts with the form
+    // If flag is set OR showLoginOnMount prop is true, show login form immediately
+    // This must happen synchronously, before any async auth checks
     if (shouldShowLogin || showLoginOnMount) {
       const isAuth = localStorage.getItem('cvBuilderAuth') === 'true';
-      if (!isAuth && sessionStorage.getItem('justAuthenticated') !== 'true') {
+      const justAuthenticated = sessionStorage.getItem('justAuthenticated') === 'true';
+      
+      // Only show login form if user is NOT authenticated and NOT just authenticated
+      if (!isAuth && !justAuthenticated) {
         // Show login form immediately and keep it visible
-        setShowLogin(true);
+        // Use setTimeout with 0 delay to ensure this happens after render
+        // but before any async operations
+        setTimeout(() => {
+          setShowLogin(true);
+        }, 0);
         // Don't clear the flag here - let it persist until login is complete or cancelled
       }
     }
     
     // Then check auth asynchronously (but don't hide login form if flag is set)
     const checkAuth = async () => {
-      // Don't check auth if user was just authenticated (prevents redirect loop)
+      // CRITICAL: First check if user was just authenticated - if so, don't do anything
+      // This prevents the auth check from interfering with the login process
       if (sessionStorage.getItem('justAuthenticated') === 'true') {
         setShowLogin(false);
+        // Don't clear cvBuilderAuth - user is authenticated
+        return;
+      }
+      
+      // CRITICAL: If user is authenticated in localStorage, don't check further
+      // This prevents race conditions where Supabase session hasn't propagated yet
+      const isAuthInStorage = localStorage.getItem('cvBuilderAuth') === 'true';
+      if (isAuthInStorage) {
+        // User is authenticated - hide login form and don't check further
+        setShowLogin(false);
+        // Clear any login flags
+        sessionStorage.removeItem('showLoginForm');
+        localStorage.removeItem('showLoginForm');
+        // Don't proceed with async auth check - user is already authenticated
         return;
       }
       
@@ -482,21 +516,13 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
         return;
       }
       
-      // Flag is not set - proceed with normal auth check
+      // Flag is not set and user is not authenticated in storage - proceed with auth check
       try {
-        const isAuthInStorage = localStorage.getItem('cvBuilderAuth') === 'true';
-        if (isAuthInStorage) {
-          // User is authenticated - hide login form
-          setShowLogin(false);
-          // Clear any login flags
-          sessionStorage.removeItem('showLoginForm');
-          localStorage.removeItem('showLoginForm');
-          return;
-        }
-        
-        // Check with authService
+        // Check with authService (only if not authenticated in storage)
         const user = await authService.getCurrentUser();
         if (user) {
+          // User is authenticated via Supabase - update localStorage
+          localStorage.setItem('cvBuilderAuth', 'true');
           setShowLogin(false);
           // Clear any login flags
           sessionStorage.removeItem('showLoginForm');
@@ -509,6 +535,7 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
         if (err?.name !== 'AuthSessionMissingError' && err?.message !== 'Auth session missing!') {
           console.error('Error checking auth:', err);
         }
+        // Don't clear cvBuilderAuth on error - preserve existing auth state
       }
       
       // Check for navigation flags on mount and when prop changes
@@ -559,11 +586,12 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
       sessionStorage.removeItem('showProductsPage');
       localStorage.removeItem('showProductsPage');
       // Set a flag to prevent checkAuth from showing login form again
+      // Keep this flag longer to prevent race conditions
       sessionStorage.setItem('justAuthenticated', 'true');
-      // Clear this flag after a short delay
+      // Clear this flag after a longer delay to ensure navigation completes
       setTimeout(() => {
         sessionStorage.removeItem('justAuthenticated');
-      }, 2000);
+      }, 5000); // Increased from 2 seconds to 5 seconds
     };
     
     window.addEventListener('hashchange', handleHashChange);
@@ -571,7 +599,16 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
     
     // Listen for showLoginForm custom event (for when already on marketplace page)
     const handleShowLoginForm = () => {
-      setShowLogin(true);
+      // Check flag again when event is received (in case it was just set)
+      const flagSet = sessionStorage.getItem('showLoginForm') === 'true' ||
+                      localStorage.getItem('showLoginForm') === 'true';
+      if (flagSet) {
+        const isAuth = localStorage.getItem('cvBuilderAuth') === 'true';
+        const justAuthenticated = sessionStorage.getItem('justAuthenticated') === 'true';
+        if (!isAuth && !justAuthenticated) {
+          setShowLogin(true);
+        }
+      }
     };
     window.addEventListener('showLoginForm', handleShowLoginForm);
     
@@ -1088,7 +1125,12 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
         console.log('Login successful:', data);
         localStorage.setItem('cvBuilderAuth', 'true');
         // Set flag to prevent checkAuth from showing login form again
+        // Keep this flag longer to prevent race conditions during navigation
         sessionStorage.setItem('justAuthenticated', 'true');
+        // Clear this flag after navigation completes (longer delay)
+        setTimeout(() => {
+          sessionStorage.removeItem('justAuthenticated');
+        }, 5000); // 5 seconds to ensure navigation completes
         // Show success message
         setLoginSuccess(true);
         setError('');
@@ -1484,8 +1526,9 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
                     ) : (
                       // When not searching, show products grouped by sections
                       marketplaceSections.map((section) => {
-                        // Filter products for this section (optimized)
-                        const sectionProducts = marketplaceProducts.filter(
+                        // Filter products for this section from ALL products (not just paginated ones)
+                        // This ensures all products in a section are displayed, not just the first batch
+                        const sectionProducts = allProducts.filter(
                           (product) => product.section_id === section.id
                         );
                         
