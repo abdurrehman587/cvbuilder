@@ -174,21 +174,6 @@ function App() {
 
   // Debug: Track formData changes
   useEffect(() => {
-    console.log('[App] ========== formData State Changed ==========');
-    console.log('[App] formData changed');
-    console.log('[App] formData.languages:', formData.languages);
-    console.log('[App] formData.languages length:', formData.languages?.length);
-    console.log('[App] formData.languages is array:', Array.isArray(formData.languages));
-    if (Array.isArray(formData.languages)) {
-      console.log('[App] formData.languages structure:', formData.languages.map((lang, idx) => ({
-        index: idx,
-        type: typeof lang,
-        value: lang,
-        isString: typeof lang === 'string',
-        isObject: typeof lang === 'object' && lang !== null
-      })));
-    }
-    console.log('[App] ========== formData State Change Completed ==========');
   }, [formData]);
   // Local state for UI (will be overridden by hook)
   const [autoSaveStatus, setAutoSaveStatus] = useState('');
@@ -285,82 +270,36 @@ function App() {
       const goToCVForm = sessionStorage.getItem('goToCVForm') === 'true' || localStorage.getItem('goToCVForm') === 'true';
       const cvView = getCVView();
       
-      console.log('App.js - Data loading check (MOUNT):', { 
-        returningFromPreview, 
-        goToCVForm,
-        cvView, 
-        currentPath: location.pathname,
-        hash: window.location.hash,
-        hasStoredData: !!localStorage.getItem('cvFormData'),
-        currentFormDataName: formData.name,
-        timestamp: new Date().toISOString()
-      });
+      // Data loading check on mount
       
       // If returning from preview OR goToCVForm flag is set, ALWAYS load from localStorage
       // This is the primary condition - don't check other things first
       if (returningFromPreview || goToCVForm) {
         const storedData = localStorage.getItem('cvFormData');
-        console.log('App.js - Flags detected, checking stored data. Stored data exists:', !!storedData);
-        
         if (storedData) {
           try {
             const parsedData = JSON.parse(storedData);
             const hasStoredData = parsedData.name || parsedData.education?.length > 0 || parsedData.experience?.length > 0;
             
-            console.log('App.js - Parsed data:', { 
-              hasName: !!parsedData.name, 
-              name: parsedData.name,
-              educationCount: parsedData.education?.length || 0,
-              experienceCount: parsedData.experience?.length || 0,
-              hasStoredData 
-            });
-            
             if (hasStoredData) {
-              console.log('App.js - *** LOADING formData from localStorage ***');
-              console.log('App.js - Flags that triggered load:', { returningFromPreview, goToCVForm });
-              console.log('App.js - Data being loaded:', parsedData);
-              
               // Normalize languages if needed (convert strings to objects)
               if (parsedData.languages && parsedData.languages.length > 0) {
                 parsedData.languages = normalizeLanguages(parsedData.languages);
-                console.log('App.js - Normalized languages:', parsedData.languages);
               } else {
                 // If no languages or empty array, use default languages
                 parsedData.languages = [{ name: 'English', level: '' }, { name: 'Urdu', level: '' }, { name: 'Punjabi', level: '' }];
-                console.log('App.js - Using default languages:', parsedData.languages);
               }
               
               // Load the data IMMEDIATELY
               setFormData(parsedData);
-              
-              // Verify data was set (check on next tick after state update)
-              setTimeout(() => {
-                // Read from localStorage again to verify
-                const verifyData = localStorage.getItem('cvFormData');
-                if (verifyData) {
-                  try {
-                    const verifyParsed = JSON.parse(verifyData);
-                    console.log('App.js - Verification: Data still in localStorage after setFormData:', {
-                      hasName: !!verifyParsed.name,
-                      name: verifyParsed.name,
-                      educationCount: verifyParsed.education?.length || 0,
-                      experienceCount: verifyParsed.experience?.length || 0
-                    });
-                  } catch (e) {
-                    console.error('App.js - Verification: Error parsing verify data:', e);
-                  }
-                }
-              }, 50);
               
               // Clear the flags AFTER setting the data
               localStorage.removeItem('returningFromPreview');
               sessionStorage.removeItem('goToCVForm');
               localStorage.removeItem('goToCVForm');
               
-              console.log('App.js - Form data loaded and flags cleared');
               return true; // Successfully loaded
             } else {
-              console.warn('App.js - Stored data exists but is empty, not loading');
               // Still clear flags even if data is empty
               localStorage.removeItem('returningFromPreview');
               sessionStorage.removeItem('goToCVForm');
@@ -376,8 +315,6 @@ function App() {
             return false;
           }
         } else {
-          console.warn('App.js - No stored data found in localStorage, but flags were set');
-          console.warn('App.js - Available localStorage keys:', Object.keys(localStorage));
           // Clear flags even if no data
           localStorage.removeItem('returningFromPreview');
           sessionStorage.removeItem('goToCVForm');
@@ -395,15 +332,12 @@ function App() {
             
             if (hasStoredData && !hasCurrentData) {
               // If formData is empty, load stored data
-              console.log('App.js - Loading formData from localStorage (form is empty):', parsedData);
               // Normalize languages if needed
               if (parsedData.languages && parsedData.languages.length > 0) {
                 parsedData.languages = normalizeLanguages(parsedData.languages);
-                console.log('App.js - Normalized languages:', parsedData.languages);
               } else {
                 // If no languages or empty array, use default languages
                 parsedData.languages = [{ name: 'English', level: '' }, { name: 'Urdu', level: '' }, { name: 'Punjabi', level: '' }];
-                console.log('App.js - Using default languages:', parsedData.languages);
               }
               setFormData(parsedData);
               return true;
@@ -412,15 +346,12 @@ function App() {
               const storedDataComplete = (parsedData.education?.length || 0) + (parsedData.experience?.length || 0);
               const currentDataComplete = (formData.education?.length || 0) + (formData.experience?.length || 0);
               if (storedDataComplete > currentDataComplete) {
-                console.log('App.js - Loading formData from localStorage (stored data is more complete):', parsedData);
                 // Normalize languages if needed
                 if (parsedData.languages && parsedData.languages.length > 0) {
                   parsedData.languages = normalizeLanguages(parsedData.languages);
-                  console.log('App.js - Normalized languages:', parsedData.languages);
                 } else {
                   // If no languages or empty array, use default languages
                   parsedData.languages = [{ name: 'English', level: '' }, { name: 'Urdu', level: '' }, { name: 'Punjabi', level: '' }];
-                  console.log('App.js - Using default languages:', parsedData.languages);
                 }
                 setFormData(parsedData);
                 return true;
@@ -444,11 +375,9 @@ function App() {
       const goToCVForm = sessionStorage.getItem('goToCVForm') === 'true' || localStorage.getItem('goToCVForm') === 'true';
       
       if (returningFromPreview || goToCVForm) {
-        console.log('App.js - Initial load failed, retrying after 100ms...');
         const retryTimeout = setTimeout(() => {
           const retryLoaded = attemptLoadData();
           if (!retryLoaded) {
-            console.warn('App.js - Retry also failed, trying one more time after 300ms...');
             setTimeout(() => {
               attemptLoadData();
             }, 300);
@@ -468,30 +397,8 @@ function App() {
 
   // Update form data
   const updateFormData = (newData) => {
-    console.log('[App] ========== updateFormData called ==========');
-    console.log('[App] Current formData.languages:', formData.languages);
-    console.log('[App] Current formData.languages length:', formData.languages?.length);
-    console.log('[App] New data.languages:', newData.languages);
-    console.log('[App] New data.languages length:', newData.languages?.length);
-    console.log('[App] Languages changed:', formData.languages !== newData.languages);
-    console.log('[App] Languages length changed:', formData.languages?.length !== newData.languages?.length);
-    if (Array.isArray(newData.languages)) {
-      console.log('[App] New data.languages structure:', newData.languages.map((lang, idx) => ({
-        index: idx,
-        type: typeof lang,
-        value: lang,
-        isString: typeof lang === 'string',
-        isObject: typeof lang === 'object' && lang !== null
-      })));
-    }
-    console.log('[App] Full newData:', newData);
-    console.log('[App] Calling setFormData...');
     setFormData(newData);
-    console.log('[App] setFormData called - React will schedule a re-render');
-    console.log('[App] Calling hookMarkAsChanged...');
     hookMarkAsChanged(); // Use hook's markAsChanged instead of local state
-    console.log('[App] hookMarkAsChanged called');
-    console.log('[App] ========== updateFormData completed ==========');
   };
 
   // Fresh, simplified navigation handler
@@ -521,17 +428,13 @@ function App() {
 
   // Fresh handler for "Make a new CV" button - Rebuilt from scratch
   const handleMakeNewCV = React.useCallback(() => {
-    console.log('App.js: handleMakeNewCV called - creating new CV');
-    
     // Check if we're returning from preview - if so, load data from localStorage
     const returningFromPreview = localStorage.getItem('returningFromPreview') === 'true';
     if (returningFromPreview) {
-      console.log('App.js - Returning from preview, loading form data from localStorage');
       const storedData = localStorage.getItem('cvFormData');
       if (storedData) {
         try {
           const parsedData = JSON.parse(storedData);
-          console.log('App.js - Loading formData from localStorage in handleMakeNewCV:', parsedData);
           setFormData(parsedData);
         } catch (e) {
           console.error('App.js - Error parsing stored form data in handleMakeNewCV:', e);
@@ -588,14 +491,14 @@ function App() {
     setCurrentView('cv-builder');
     });
     
-    console.log('handleMakeNewCV - Form view activated');
   }, [createNewCV]);
 
   // Fresh handler for "Create New ID Card" button - Rebuilt from scratch
   const handleCreateNewIDCard = React.useCallback(() => {
-    console.log('App.js: handleCreateNewIDCard called');
     setCurrentApp('id-card-print');
     setIDCardView('print');
+    localStorage.setItem('selectedApp', 'id-card-print');
+    localStorage.setItem('idCardView', 'print');
     lastKnownAppRef.current = 'id-card-print'; // Track as last known app
     startTransition(() => {
       setSelectedApp('id-card-print');
@@ -622,7 +525,6 @@ function App() {
       // Set a maximum loading timeout (10 seconds total)
       // Already in setTimeout, so safe
       loadingTimeout = setTimeout(() => {
-        console.warn('Authentication check timeout - stopping loading after 10 seconds');
         setIsLoading(false);
       }, 10000);
 
@@ -681,7 +583,6 @@ function App() {
         setTimeout(() => {
         // If it's a timeout error, use localStorage as fallback
         if (error.message === 'Supabase session check timed out') {
-          console.warn('Supabase session check timed out after 8 seconds, using localStorage fallback');
           const cachedAuth = localStorage.getItem('cvBuilderAuth');
           setIsAuthenticated(cachedAuth === 'true');
         } else {
@@ -700,7 +601,6 @@ function App() {
 
     // Handle deep links for OAuth callback (mobile app) - OPTIMIZED
     const handleAppUrl = async (url) => {
-      console.log('App opened with URL:', url);
       
       // Clear the loading timeout since we received a callback
       clearTimeout(loadingTimeout);
@@ -710,7 +610,6 @@ function App() {
       
       // Check if this is an OAuth callback
       if (url.url && url.url.includes('oauth-callback')) {
-        console.log('OAuth callback detected:', url.url);
         
         // Close the browser immediately (don't wait)
         Browser.close().catch(() => {
@@ -747,7 +646,6 @@ function App() {
             }
             
             if (accessToken && refreshToken) {
-              console.log('Found tokens, setting session immediately...');
               
               // Set session immediately (don't wait for browser close)
               try {
@@ -765,7 +663,6 @@ function App() {
                     localStorage.setItem('cvBuilderAuth', 'true');
                   }
                 } else if (session?.user) {
-                  console.log('Session set successfully:', session.user?.email);
                   
                   // CRITICAL: Clear OAuth flags immediately to prevent redirect loop
                   sessionStorage.removeItem('googleSignInStarted');
@@ -803,7 +700,6 @@ function App() {
           
           const { data: { session } } = await sessionCheck;
           if (session?.user) {
-            console.log('Session found:', session.user?.email);
             
             // CRITICAL: Clear OAuth flags immediately to prevent redirect loop
             sessionStorage.removeItem('googleSignInStarted');
@@ -861,7 +757,6 @@ function App() {
 
     // Fallback: If deep link doesn't work, check for session periodically after Google sign-in starts
     const handleGoogleSignInStarted = () => {
-      console.log('Google sign-in started, setting up fallback session check');
       
       // Clear any existing interval
       if (sessionCheckIntervalRef.current) {
@@ -880,7 +775,6 @@ function App() {
           const { data: { session }, error } = await supabase.auth.getSession();
           
           if (session?.user && !isAuthenticated) {
-            console.log('Fallback: Session found after Google sign-in:', session.user.email);
             setIsAuthenticated(true);
             localStorage.setItem('cvBuilderAuth', 'true');
             setIsLoading(false);
@@ -907,7 +801,6 @@ function App() {
               sessionCheckIntervalRef.current = null;
             }
           } else if (checkCount >= maxChecks) {
-            console.log('Fallback: Max checks reached, stopping session check');
             if (sessionCheckIntervalRef.current) {
               clearInterval(sessionCheckIntervalRef.current);
               sessionCheckIntervalRef.current = null;
@@ -1266,12 +1159,10 @@ function App() {
       // Listen for auth state changes (this is the authoritative source)
       // Supabase handles session management internally
       const authStateSubscription = supabase.auth.onAuthStateChange(async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email);
         
         // CRITICAL: Skip INITIAL_SESSION - we already handle it in getInitialSession
         // This prevents React error #301 from INITIAL_SESSION firing during render
         if (event === 'INITIAL_SESSION') {
-          console.log('Skipping INITIAL_SESSION - already handled by getInitialSession');
           // Mark that we've seen the initial session, so we can handle future ones if needed
           ignoreInitialSessionRef.current = false;
           return;
@@ -1285,7 +1176,6 @@ function App() {
         
         // Handle password recovery
         if (event === 'PASSWORD_RECOVERY') {
-          console.log('PASSWORD_RECOVERY event detected in App.js');
           // The Login component will handle showing the reset form
           // Just ensure we're on the right route
           if (!window.location.hash.includes('#reset-password') && !window.location.hash.includes('type=recovery')) {
@@ -1318,12 +1208,10 @@ function App() {
                     user_type: pendingUserType,
                     ...session.user.user_metadata // Preserve existing metadata
                   });
-                  console.log('User type set to:', pendingUserType);
                 } catch (err) {
                   console.error('Error setting user type:', err);
                   // If error is about not being able to change type, that's expected for existing users
                   if (err.message && err.message.includes('cannot change your own user type')) {
-                    console.log('User already has a type set, cannot change it');
                   }
                 }
               } else {
@@ -1359,7 +1247,6 @@ function App() {
                   return;
                 } else {
                   // Types match - proceed normally
-                  console.log('User type matches:', currentUserType);
                 }
               }
               // Clear pending user type and OAuth flag
@@ -1420,7 +1307,6 @@ function App() {
                 setTimeout(async () => {
                   const { data: { session: retrySession } } = await supabase.auth.getSession();
                   if (retrySession?.user) {
-                    console.log('Session found on retry');
                     setIsAuthenticated(true);
                     localStorage.setItem('cvBuilderAuth', 'true');
                   } else {
@@ -1507,7 +1393,6 @@ function App() {
     try {
       setIsLoading(true);
       await authService.signOut();
-      console.log('User signed out successfully');
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
@@ -1561,7 +1446,6 @@ function App() {
         setSelectedApp('');
       });
       
-      console.log('handleAuth: User logged in - navigating to homepage');
       return; // Exit early to prevent any redirects
     }
     
@@ -1591,7 +1475,6 @@ function App() {
       // Set idCardView to dashboard
       setIdCardView('dashboard');
       // DO NOT set currentView to 'dashboard' - this would trigger CV Builder routing
-      console.log('handleAuth: ID Card Print flag detected, setting idCardView to dashboard');
     }
     // Check if user wants to navigate to CV Builder dashboard after login
     else {
@@ -1611,7 +1494,6 @@ function App() {
           // Removed - no longer needed
         localStorage.removeItem('showProductsPage');
         sessionStorage.removeItem('showProductsPage');
-        console.log('handleAuth: CV Builder flag detected, setting currentView to dashboard');
       } else if (currentView === 'cv-builder') {
         // If user was on form/preview page, redirect to dashboard after login
         setCurrentView('dashboard');
@@ -1628,7 +1510,6 @@ function App() {
         startTransition(() => {
           setSelectedApp('');
         });
-        console.log('handleAuth: No specific navigation intent, redirecting to homepage');
       }
     }
     }, 0);
@@ -1665,7 +1546,6 @@ function App() {
   };
 
   const handleBackToDashboard = () => {
-    console.log('handleBackToDashboard called - navigating to CV dashboard');
     // Clear the goToCVForm flag to prevent showing form
     sessionStorage.removeItem('goToCVForm');
     localStorage.removeItem('goToCVForm');
@@ -1693,7 +1573,6 @@ function App() {
   };
 
   const handleEditCV = async (cv) => {
-    console.log('App.js - CV selected for editing:', cv);
     // Load the CV data and switch to CV builder view
     if (cv && cv.id) {
       try {
@@ -1723,14 +1602,12 @@ function App() {
                 : null
             };
             localStorage.setItem('cvFormData', JSON.stringify(serializableData));
-            console.log('App.js - Stored loaded CV formData in localStorage:', serializableData);
           } catch (e) {
             console.error('App.js - Error storing loaded CV formData in localStorage:', e);
           }
           
           setCurrentView('cv-builder');
           setSelectedTemplate(cv.template_id || 'template1');
-          console.log('CV loaded for editing, currentCVId should be set in hook');
         } else {
           console.error('Failed to load CV data for ID:', cv.id);
           alert('Failed to load CV data. Please try again.');
@@ -1818,7 +1695,6 @@ function App() {
   
   // Check for order details route BEFORE admin check (allows navigation from admin panel)
   if (hashToCheck.startsWith('#order-details')) {
-    console.log('App.js routing - Rendering ORDER DETAILS (before admin check)');
     if (isAuthenticated && !isLoading) {
       return wrapWithTopNav(
         wrapWithNavbar(
@@ -1849,10 +1725,16 @@ function App() {
     }
   }
   
-  // Check for admin panel route (hash-based routing)
+  // Check for admin panel route (both hash-based and clean URL routing)
   // This must take priority over other routing logic (except order-details above)
   // Check this BEFORE authentication check to ensure admin panel always shows
-  if (hashToCheck === '#admin' || hashToCheck.startsWith('#admin/') || hashToCheck.includes('#admin?')) {
+  const isAdminRoute = location.pathname === '/admin' || 
+                       location.pathname.startsWith('/admin/') ||
+                       hashToCheck === '#admin' || 
+                       hashToCheck.startsWith('#admin/') || 
+                       hashToCheck.includes('#admin?');
+  
+  if (isAdminRoute) {
     // Show admin dashboard - it will handle authentication check internally
     // DO NOT wrap with TopNav - admin panel should be full screen
     return (
@@ -1874,7 +1756,6 @@ function App() {
   // These routes should be accessible to everyone
   const currentHash = window.location.hash;
   if (location.pathname === '/cart' || currentHash === '#cart') {
-    console.log('App.js routing - Rendering CART');
     return wrapWithTopNav(
       wrapWithNavbar(
         <>
@@ -1911,12 +1792,15 @@ function App() {
       if (navigateToIDCardPrintCheck) {
         routingApp = 'id-card-print';
         localStorage.setItem('selectedApp', 'id-card-print');
-        localStorage.setItem('idCardView', 'dashboard');
-        console.log('PRIORITY: pathname is "/" with navigateToIDCardPrint flag - routing to ID Card Dashboard');
+        // DON'T reset idCardView here - preserve it if it's already set to 'print'
+        const currentIdCardView = localStorage.getItem('idCardView');
+        if (currentIdCardView !== 'print') {
+          localStorage.setItem('idCardView', 'dashboard');
+        }
+        console.log('PRIORITY: pathname is "/" with navigateToIDCardPrint flag - routing to ID Card, idCardView:', localStorage.getItem('idCardView'));
       } else if (navigateToCVBuilderCheck) {
         routingApp = 'cv-builder';
         localStorage.setItem('selectedApp', 'cv-builder');
-        console.log('PRIORITY: pathname is "/" with navigateToCVBuilder flag - routing to CV Builder');
       } else if (!hasNavFlags) {
         // If no navigation flags, force homepage
         routingApp = null;
@@ -1935,18 +1819,22 @@ function App() {
       // Clear any navigation flags
       sessionStorage.removeItem('navigateToCVBuilder');
       localStorage.removeItem('navigateToCVBuilder');
-      console.log('PRIORITY 0: /cv-builder pathname detected - forcing CV Builder routing');
     }
     
     if (pathname === '/id-card-print') {
       // User navigated to ID Card Print URL - force ID Card Print routing
       routingApp = 'id-card-print';
       localStorage.setItem('selectedApp', 'id-card-print');
-      localStorage.setItem('idCardView', 'dashboard');
+      // DON'T reset idCardView here - preserve it if it's already set to 'print'
+      // Only set to 'dashboard' if it's not already set to 'print'
+      const currentIdCardView = localStorage.getItem('idCardView');
+      if (currentIdCardView !== 'print') {
+        localStorage.setItem('idCardView', 'dashboard');
+      }
       // Clear any navigation flags
       sessionStorage.removeItem('navigateToIDCardPrint');
       localStorage.removeItem('navigateToIDCardPrint');
-      console.log('PRIORITY 0: /id-card-print pathname detected - forcing ID Card Print routing');
+      console.log('PRIORITY 0: /id-card-print pathname detected - forcing ID Card Print routing, idCardView:', localStorage.getItem('idCardView'));
     }
     
     // Get current route from routing utility (reads from localStorage)
@@ -1960,7 +1848,6 @@ function App() {
       const selectedProduct = localStorage.getItem('selectedApp');
       // Don't show preview if user is on marketplace or id-card-print
       if (selectedProduct !== 'id-card-print' && selectedProduct !== 'marketplace') {
-        console.log('App.js: Rendering Preview Page - cvView is preview');
         return (
           <Suspense fallback={<LoadingFallback />}>
             <PreviewPage 
@@ -1996,8 +1883,6 @@ function App() {
       explicitlyClickedMarketplaceRef.current = true;
     }
     
-    // DEBUG: Log initial routing state
-    console.log('App.js routing - Initial route.app:', route.app, 'localStorage selectedApp:', localStorage.getItem('selectedApp'), 'explicitlyClickedMarketplace:', explicitlyClickedMarketplaceRef.current, 'lastKnownApp:', lastKnownAppRef.current);
     
     // Check for CV Builder flags and pathname (needed for all checks below)
     const navigateToCVBuilderFlag = sessionStorage.getItem('navigateToCVBuilder') === 'true' ||
@@ -2024,7 +1909,6 @@ function App() {
         sessionStorage.removeItem('navigateToCVBuilder');
         localStorage.removeItem('navigateToCVBuilder');
       }
-      console.log('PRIORITY 0: navigateToCVBuilder flag or selectedApp=cv-builder detected - routing to CV Builder');
     }
     
     // PRIORITY 0: Check for navigateToIDCardPrint flag (similar to CV Builder)
@@ -2035,14 +1919,17 @@ function App() {
       // User wants ID Card Dashboard - set routingApp and clear flag
       routingApp = 'id-card-print';
       localStorage.setItem('selectedApp', 'id-card-print');
-      // Set idCardView to dashboard
-      localStorage.setItem('idCardView', 'dashboard');
+      // DON'T reset idCardView here - preserve it if it's already set to 'print'
+      const currentIdCardView = localStorage.getItem('idCardView');
+      if (currentIdCardView !== 'print') {
+        localStorage.setItem('idCardView', 'dashboard');
+      }
       // Clear the flag after using it (but keep selectedApp)
       if (navigateToIDCardPrintFlag) {
         sessionStorage.removeItem('navigateToIDCardPrint');
         localStorage.removeItem('navigateToIDCardPrint');
       }
-      console.log('PRIORITY 0: navigateToIDCardPrint flag or selectedApp=id-card-print detected - routing to ID Card Dashboard');
+      console.log('PRIORITY 0: navigateToIDCardPrint flag or selectedApp=id-card-print detected - routing to ID Card, idCardView:', localStorage.getItem('idCardView'));
     }
     
     // PRIORITY: Check for homepage navigation flag BEFORE any default logic
@@ -2109,8 +1996,6 @@ function App() {
       }
     }
     
-    // DEBUG: Log final routing decision
-    console.log('App.js routing - Final routingApp:', routingApp, 'Will check marketplace:', routingApp === 'marketplace');
     
     // cvView was already declared at the beginning for preview check
     // Use it here with default fallback if needed
@@ -2121,7 +2006,6 @@ function App() {
     // HOMEPAGE SECTION - CHECK FIRST when routingApp is null
     // ============================================
     if (!routingApp || routingApp === null) {
-      console.log('App.js routing - Rendering HOMEPAGE (routingApp is null)');
       return wrapWithNavbar(
         <>
           <Header 
@@ -2143,7 +2027,6 @@ function App() {
     
     // Check for password reset route
     if (currentHash === '#reset-password' || currentHash.startsWith('#reset-password') || currentHash.includes('type=recovery')) {
-      console.log('App.js routing - Rendering RESET PASSWORD');
       return wrapWithTopNav(
         wrapWithNavbar(
           <>
@@ -2161,7 +2044,6 @@ function App() {
     
     // Check for checkout route - support both clean URLs and hash
     if (location.pathname === '/checkout' || currentHash === '#checkout') {
-      console.log('App.js routing - Rendering CHECKOUT');
       return wrapWithTopNav(
         wrapWithNavbar(
           <>
@@ -2187,7 +2069,6 @@ function App() {
     const orderId = orderIdFromParams || orderIdFromPath || (orderMatch ? orderMatch[1] : null);
     
     if (orderId || location.pathname.startsWith('/order/') || currentHash.startsWith('#order-details')) {
-      console.log('App.js routing - Rendering ORDER DETAILS');
       return wrapWithTopNav(
         wrapWithNavbar(
           <>
@@ -2207,7 +2088,6 @@ function App() {
     
     // Check for order history route - support both clean URLs and hash
     if (location.pathname === '/orders' || currentHash === '#order-history') {
-      console.log('App.js routing - Rendering ORDER HISTORY');
       return wrapWithTopNav(
         wrapWithNavbar(
           <>
@@ -2237,7 +2117,6 @@ function App() {
       const productId = productIdFromParams || productIdFromPath || (productMatch ? productMatch[1] : null);
       
       if (productId) {
-        console.log('App.js routing - Rendering PRODUCT DETAIL:', productId);
         return wrapWithTopNav(
           wrapWithNavbar(
             <>
@@ -2255,7 +2134,6 @@ function App() {
         );
       }
       
-      console.log('App.js routing - Rendering MARKETPLACE');
       // Check if login form should be shown
       const shouldShowLogin = sessionStorage.getItem('showLoginForm') === 'true' ||
                               localStorage.getItem('showLoginForm') === 'true';
@@ -2368,9 +2246,9 @@ function App() {
                     autoSaveStatus={hookAutoSaveStatus}
                     hasUnsavedChanges={hookHasUnsavedChanges}
                   />
-      </>
-    );
-  }
+                </>
+              );
+          }
         };
 
         return wrapWithTopNav(
@@ -2441,7 +2319,7 @@ function App() {
         )
     );
   }
-
+    
     // ============================================
     // ID CARD PRINTER SECTION
     // ============================================
@@ -2532,11 +2410,7 @@ function App() {
         )
     );
   }
-
-    // Marketplace section moved to top to prevent override
   }
-
-  // All hash-based routing removed - user will add navigation one by one
   
   // PRIORITY: Check if we should show CV Builder form/preview FIRST
   // This ensures that when currentView is 'cv-builder', we show the form instead of dashboard
@@ -2545,7 +2419,6 @@ function App() {
     const selectedProduct = localStorage.getItem('selectedApp');
     // Don't show CV form if user is on marketplace or id-card-print
     if (selectedProduct !== 'id-card-print' && selectedProduct !== 'marketplace') {
-      console.log('Rendering CV Builder form/preview - currentView is cv-builder');
       const renderFormAndPreview = () => {
         switch (selectedTemplate) {
           case 'template1':
@@ -2797,7 +2670,6 @@ function App() {
   if (currentView === 'cv-builder' && isAuthenticated && !isLoading) {
     const selectedProduct = localStorage.getItem('selectedApp');
     if (selectedProduct !== 'id-card-print') {
-      console.log('Rendering CV Builder form/preview - currentView is cv-builder');
     const renderFormAndPreview = () => {
       switch (selectedTemplate) {
         case 'template1':
@@ -2870,7 +2742,6 @@ function App() {
       }
     };
 
-      console.log('Rendering CV Builder with header - currentView:', currentView, 'selectedTemplate:', selectedTemplate);
 
     return (
       <>
@@ -3208,34 +3079,34 @@ function App() {
   
     if (appToShow === 'id-card-print') {
       if (idCardView === 'print') {
-        const handleBackToIDCardDashboard = () => {
-          setIdCardView('dashboard');
-          localStorage.setItem('idCardView', 'dashboard');
-        };
-        
-        return wrapWithTopNav(
-          wrapWithNavbar(
-      <>
-        <Header 
-                isAuthenticated={true} 
-                onLogout={handleLogout}
-                currentProduct="id-card-print"
-              />
-              <div className="app-header-cv">
-                <h1>ID Card Printer</h1>
-                <button 
-                  onClick={handleBackToIDCardDashboard} 
-                  className="back-to-dashboard-button"
-                >
-                  Back to Dashboard
-                </button>
-              </div>
-              <div className="id-card-print-content-wrapper">
-                <IDCardPrintPage />
-              </div>
-            </>
-          )
-        );
+      const handleBackToIDCardDashboard = () => {
+        setIdCardView('dashboard');
+        localStorage.setItem('idCardView', 'dashboard');
+      };
+      
+      return wrapWithTopNav(
+        wrapWithNavbar(
+          <>
+            <Header 
+              isAuthenticated={true} 
+              onLogout={handleLogout}
+              currentProduct="id-card-print"
+            />
+            <div className="app-header-cv">
+              <h1>ID Card Printer</h1>
+              <button 
+                onClick={handleBackToIDCardDashboard} 
+                className="back-to-dashboard-button"
+              >
+                Back to Dashboard
+              </button>
+            </div>
+            <div className="id-card-print-content-wrapper">
+              <IDCardPrintPage />
+            </div>
+          </>
+        )
+      );
       }
       
       return wrapWithTopNav(
@@ -3245,14 +3116,14 @@ function App() {
               isAuthenticated={true} 
               onLogout={handleLogout}
               currentProduct="id-card-print"
-        />
+            />
             <IDCardDashboard 
               onCreateNewIDCard={handleCreateNewIDCard}
             />
-      </>
+          </>
         )
-    );
-  }
+      );
+    }
   
     // Only show marketplace if explicitly set to marketplace
     // CRITICAL: Don't default to marketplace if appToShow is null/empty
@@ -3260,15 +3131,15 @@ function App() {
     if (appToShow === 'marketplace') {
       return wrapWithTopNav(
         wrapWithNavbar(
-    <>
-      <Header 
-        isAuthenticated={isAuthenticated} 
-        currentProduct="products"
-        showProductsOnHeader={true}
-        onLogout={isAuthenticated ? handleLogout : undefined}
-      />
-      <ProductsPage />
-    </>
+          <>
+            <Header 
+              isAuthenticated={isAuthenticated} 
+              currentProduct="products"
+              showProductsOnHeader={true}
+              onLogout={isAuthenticated ? handleLogout : undefined}
+            />
+            <ProductsPage />
+          </>
         )
       );
     }

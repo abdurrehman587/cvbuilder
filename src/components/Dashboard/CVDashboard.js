@@ -16,8 +16,6 @@ const CVDashboard = ({ onTemplateSelect, onLogout, onEditCV, onCreateNewCV }) =>
 
   // Fresh handler for creating new CV
   const handleMakeNewCV = React.useCallback(() => {
-    console.log('CVDashboard: Create New CV clicked');
-    
     // Use routing utilities to set state
     setCurrentApp('cv-builder');
     setCVView('cv-builder');
@@ -33,20 +31,16 @@ const CVDashboard = ({ onTemplateSelect, onLogout, onEditCV, onCreateNewCV }) =>
 
   // Fresh handler for searching CVs
   const handleSearchCV = React.useCallback(() => {
-    console.log('CVDashboard: Search CV clicked');
     setCurrentView('search-cv');
   }, []);
 
   // Fresh handler for going back to dashboard
   const handleBackToDashboard = React.useCallback(() => {
-    console.log('CVDashboard: Back to dashboard');
     setCurrentView('dashboard');
   }, []);
 
   // Fresh handler for editing CV
   const handleEditCV = React.useCallback((cv) => {
-    console.log('CVDashboard: Edit CV clicked', cv);
-    
     // Ensure we're on CV Builder section
     setCurrentApp('cv-builder');
     setCVView('cv-builder');
@@ -63,18 +57,13 @@ const CVDashboard = ({ onTemplateSelect, onLogout, onEditCV, onCreateNewCV }) =>
       try {
         const user = await authService.getCurrentUser();
         if (!user) {
-          console.log('CVDashboard: No user found');
           setCvCredits(null);
           setUserType(null);
           return;
         }
-
-        console.log('CVDashboard: User found:', user.email);
-        console.log('CVDashboard: User metadata:', user.user_metadata);
         
         // Get user type - first try metadata, then check database via RPC
         let type = user.user_metadata?.user_type || 'regular';
-        console.log('CVDashboard: User type from metadata:', type);
         
         // Always check database via RPC to ensure we have the correct user type
         // This is more reliable than just checking metadata
@@ -86,21 +75,16 @@ const CVDashboard = ({ onTemplateSelect, onLogout, onEditCV, onCreateNewCV }) =>
             const dbUser = rpcData.find(u => u.email === user.email);
             if (dbUser) {
               type = dbUser.user_type || type;
-              console.log('CVDashboard: User type from database:', type);
             }
           }
         } catch (dbErr) {
-          console.error('CVDashboard: Error checking database for user type:', dbErr);
           // Fall back to metadata type
         }
         
         setUserType(type);
-        console.log('CVDashboard: Final user type:', type, 'for user:', user.email);
 
         // Load credits for all users (not just shopkeepers)
-        console.log('CVDashboard: Loading credits...');
         const credits = await cvCreditsService.getCredits(user.id);
-        console.log('CVDashboard: Credits loaded:', credits);
         setCvCredits(credits);
       } catch (err) {
         console.error('CVDashboard: Error loading CV credits:', err);
@@ -115,7 +99,6 @@ const CVDashboard = ({ onTemplateSelect, onLogout, onEditCV, onCreateNewCV }) =>
     
     // Also listen for credit updates
     const handleCreditUpdate = () => {
-      console.log('CVDashboard: Credit update event received');
       loadCredits();
     };
     window.addEventListener('cvCreditsUpdated', handleCreditUpdate);
@@ -125,12 +108,6 @@ const CVDashboard = ({ onTemplateSelect, onLogout, onEditCV, onCreateNewCV }) =>
       window.removeEventListener('cvCreditsUpdated', handleCreditUpdate);
     };
   }, []);
-
-  // Debug logging
-  React.useEffect(() => {
-    console.log('CVDashboard: Render state - userType:', userType, 'cvCredits:', cvCredits);
-    console.log('CVDashboard: Should show credits?', userType === 'shopkeeper' && cvCredits !== null);
-  }, [userType, cvCredits]);
 
   // Show search view if active
   if (currentView === 'search-cv') {

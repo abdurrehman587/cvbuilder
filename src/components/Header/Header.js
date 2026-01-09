@@ -220,33 +220,30 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
     if (!isAuthenticated) {
       // User is not signed in: Show login form
       sessionStorage.setItem('navigateToIDCardPrint', 'true');
+      localStorage.setItem('navigateToIDCardPrint', 'true');
       localStorage.setItem('selectedApp', 'id-card-print');
+      localStorage.setItem('idCardView', 'dashboard');
       if (showProductsOnHeader && window.showLoginForm) {
         window.showLoginForm();
       } else {
-        localStorage.setItem('showProductsPage', 'true');
-        sessionStorage.setItem('showProductsPage', 'true');
-        window.location.href = '/marketplace';
+        localStorage.setItem('showLoginForm', 'true');
+        sessionStorage.setItem('showLoginForm', 'true');
+        navigate('/');
       }
     } else {
       // User is signed in: Navigate directly to ID Card Dashboard
       // Set navigation flags to prevent logout
       sessionStorage.setItem('isNavigating', 'true');
       sessionStorage.setItem('navigationTimestamp', Date.now().toString());
-      localStorage.setItem('selectedApp', 'id-card-print');
       sessionStorage.setItem('navigateToIDCardPrint', 'true');
-      // Reset idCardView to dashboard
-      if (window.setIdCardView) {
-        window.setIdCardView('dashboard');
-      }
+      localStorage.setItem('navigateToIDCardPrint', 'true');
+      localStorage.setItem('selectedApp', 'id-card-print');
+      localStorage.setItem('idCardView', 'dashboard');
+      // Clear any marketplace flags
       localStorage.removeItem('showProductsPage');
       sessionStorage.removeItem('showProductsPage');
-      if (window.resetProductsPageFlag) {
-        window.resetProductsPageFlag();
-      }
-      // Use hash-based navigation instead of page reload
-      window.location.hash = '';
-      window.dispatchEvent(new CustomEvent('navigateToIDCardPrinter'));
+      // Navigate to /id-card-print route using React Router
+      navigate('/id-card-print');
     }
   };
 
@@ -340,12 +337,12 @@ Cart
               </button>
             )}
             
-            {isAuthenticated && isAdmin && !window.location.hash.startsWith('#admin') && (
+            {isAuthenticated && isAdmin && location.pathname !== '/admin' && !location.pathname.startsWith('/admin/') && (
               <button 
                 type="button"
                 onClick={() => {
-                  // Navigate to admin dashboard
-                  window.location.hash = '#admin';
+                  // Navigate to admin dashboard using clean URL
+                  navigate('/admin');
                 }}
                 className="admin-btn-header"
                 title="Open Admin Dashboard"

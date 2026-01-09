@@ -41,37 +41,10 @@ function Form({ formData, updateFormData, markAsChanged }) {
         // Check for mixed types
         const hasStrings = formData.languages.some(lang => typeof lang === 'string');
         const hasObjects = formData.languages.some(lang => typeof lang === 'object' && lang !== null);
-        console.log('[Form1] formData.languages has strings:', hasStrings);
-        console.log('[Form1] formData.languages has objects:', hasObjects);
         if (hasStrings && hasObjects) {
             console.warn('[Form1] ⚠️ WARNING: formData.languages contains MIXED types (strings and objects)! This may cause rendering issues.');
         }
     }
-    console.log('[Form1] activeSection:', activeSection);
-    console.log('[Form1] activeSection === "languages":', activeSection === 'languages');
-
-    // Log addLanguageInput availability and formData changes
-    useEffect(() => {
-        console.log('[Form1] ========== Component Effect Triggered ==========');
-        console.log('[Form1] Render count:', renderCountRef.current);
-        console.log('[Form1] addLanguageInput available:', typeof addLanguageInput);
-        console.log('[Form1] addLanguageInput value:', addLanguageInput);
-        console.log('[Form1] activeSection:', activeSection);
-        console.log('[Form1] formData.languages:', formData.languages);
-        console.log('[Form1] formData.languages length:', formData.languages?.length);
-        console.log('[Form1] formData.languages is array:', Array.isArray(formData.languages));
-        if (Array.isArray(formData.languages)) {
-            console.log('[Form1] formData.languages structure:', formData.languages.map((lang, idx) => ({
-                index: idx,
-                type: typeof lang,
-                value: lang,
-                isString: typeof lang === 'string',
-                isObject: typeof lang === 'object' && lang !== null
-            })));
-        }
-        console.log('[Form1] Full formData:', formData);
-        console.log('[Form1] ========== Component Effect Completed ==========');
-    }, [addLanguageInput, activeSection, formData.languages, formData]);
 
     // Debug: Track when formData prop changes
     const prevFormDataRef = useRef(formData);

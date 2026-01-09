@@ -89,60 +89,42 @@ const useAutoSave = (formData, saveInterval = 10000) => {
         .single();
       
       const isAdmin = userData?.is_admin || false;
-      console.log('🔐 Admin status for CV update:', isAdmin);
 
       // Format CV data for database
-      console.log('Profile image before formatting:', formData.profileImage);
       const cvData = await dbHelpers.formatCVData(formData);
       cvData.template_id = 'template1'; // Default template
       
       let savedCV;
       if (currentCVId) {
-        console.log('🔄 Updating existing CV:', currentCVId);
         // Fetch the original CV to preserve its user_id
         const originalCV = await cvService.getCV(currentCVId, user.id, isAdmin);
         if (originalCV) {
           // Preserve the original user_id when updating (important for admins editing user CVs)
           cvData.user_id = originalCV.user_id;
-          console.log('📋 Preserving original user_id:', originalCV.user_id);
         } else {
           // Fallback: use current user's ID if CV not found
           cvData.user_id = user.id;
-          console.log('⚠️ Original CV not found, using current user_id:', user.id);
         }
-        
-        console.log('Formatted CV data for update:', cvData);
-        console.log('Profile image in formatted data:', cvData.cv_data.profileImage);
         
         // Update existing CV
         savedCV = await cvService.updateCV(currentCVId, cvData, user.id, isAdmin);
-        console.log('✅ CV updated successfully:', savedCV);
         // Ensure currentCVId is stored in localStorage
         localStorage.setItem('currentCVId', currentCVId);
       } else {
         // For new CVs, set user_id to current user's ID
         cvData.user_id = user.id;
-        console.log('Formatted CV data for new CV:', cvData);
-        console.log('Profile image in formatted data:', cvData.cv_data.profileImage);
         // Check if a CV with the same name already exists to prevent duplicates
-        console.log('🔍 No currentCVId set, searching for existing CV with name:', cvData.name);
         const existingCV = await cvService.findCVByName(user.id, cvData.name, isAdmin);
         
         if (existingCV) {
-          console.log('🔍 Found existing CV with same name, updating instead of creating:', existingCV.id);
-          console.log('📋 Existing CV details:', { id: existingCV.id, name: existingCV.name, created_at: existingCV.created_at });
           // Update existing CV instead of creating a new one
           savedCV = await cvService.updateCV(existingCV.id, cvData, user.id, isAdmin);
-          console.log('✅ Existing CV updated successfully:', savedCV);
           setCurrentCVId(existingCV.id);
           // Store currentCVId in localStorage
           localStorage.setItem('currentCVId', existingCV.id);
         } else {
-          console.log('➕ No existing CV found with this name, creating new CV...');
-          console.log('📋 New CV data:', { name: cvData.name, user_id: user.id });
           // Create new CV only if no existing CV found
           savedCV = await cvService.createCV(cvData);
-          console.log('✅ New CV created:', savedCV);
           setCurrentCVId(savedCV.id);
           // Store currentCVId in localStorage
           localStorage.setItem('currentCVId', savedCV.id);
@@ -214,7 +196,6 @@ const useAutoSave = (formData, saveInterval = 10000) => {
         const existingCV = await cvService.findCVByName(user.id, formData.name, isAdmin);
         
         if (existingCV) {
-          console.log('🔍 Found existing CV on form load, setting currentCVId:', existingCV.id);
           setCurrentCVId(existingCV.id);
           // Store currentCVId in localStorage
           localStorage.setItem('currentCVId', existingCV.id);
@@ -287,7 +268,6 @@ const useAutoSave = (formData, saveInterval = 10000) => {
   // Load CV data from Supabase
   const loadCV = async (cvId) => {
     try {
-      console.log('📥 Loading CV with ID:', cvId);
       // Get current user to ensure we only load user's own CVs
       const user = await authService.getCurrentUser();
       if (!user) {
@@ -303,15 +283,12 @@ const useAutoSave = (formData, saveInterval = 10000) => {
         .single();
       
       const isAdmin = userData?.is_admin || false;
-      console.log('🔐 Admin status for CV loading:', isAdmin);
       
       const cvData = await cvService.getCV(cvId, user.id, isAdmin);
       setCurrentCVId(cvId);
       // Store currentCVId in localStorage to persist across page refreshes
       localStorage.setItem('currentCVId', cvId);
-      console.log('✅ CV loaded, currentCVId set to:', cvId);
       const formData = dbHelpers.extractFormData(cvData);
-      console.log('📋 Extracted form data:', formData);
       return formData;
     } catch (err) {
       console.error('❌ Error loading CV:', err);

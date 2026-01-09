@@ -182,18 +182,15 @@ function Preview4({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
     if (storedData) {
       try {
         const parsedData = JSON.parse(storedData);
-        console.log('Preview4 - Using stored data from localStorage:', parsedData);
         // Preserve profileImage from propFormData if it exists and is from database
         if (propFormData?.profileImage && propFormData.profileImage.data) {
           parsedData.profileImage = propFormData.profileImage;
-          console.log('Preview4 - Preserved profileImage from propFormData:', parsedData.profileImage);
         } else {
           // If no profileImage in stored data or propFormData, try to get from file input (if form is in DOM)
           if (!parsedData.profileImage && !isPreviewPage) {
             const fileInput = document.getElementById('file-input');
             if (fileInput?.files?.[0]) {
               parsedData.profileImage = fileInput.files[0];
-              console.log('Preview4 - Restored profileImage from file input:', parsedData.profileImage);
             }
           }
         }
@@ -209,20 +206,14 @@ function Preview4({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
     // Even if hookFormData has data, preserve profileImage from propFormData if it's from database
     if (propFormData?.profileImage && propFormData.profileImage.data && (!formData.profileImage || !formData.profileImage.data)) {
       formData = { ...formData, profileImage: propFormData.profileImage };
-      console.log('Preview4 - Preserved profileImage from propFormData in hookFormData:', formData.profileImage);
     } else if (!formData.profileImage && !isPreviewPage) {
       // If no profileImage, try to get from file input (if form is in DOM)
       const fileInput = document.getElementById('file-input');
       if (fileInput?.files?.[0]) {
         formData = { ...formData, profileImage: fileInput.files[0] };
-        console.log('Preview4 - Restored profileImage from file input in hookFormData:', formData.profileImage);
       }
     }
   }
-  
-  console.log('Preview4 - Final formData:', formData);
-  console.log('Preview4 - formData.education:', formData.education);
-  console.log('Preview4 - formData.experience:', formData.experience);
 
   // Refresh preview data from form inputs whenever app form data changes
   // Only update if not on preview page (where form is not in DOM)
@@ -554,10 +545,6 @@ function Preview4({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
   // Default sections to show on page load: professional-summary, skills, languages, references
   // Ensure all data is properly extracted from formData
   // Debug: Log formData to see what we're getting
-  console.log('Preview4 - Full formData:', formData);
-  console.log('Preview4 - propFormData:', propFormData);
-  console.log('Preview4 - hookFormData:', hookFormData);
-  
   const displayData = {
     name: formData?.name || '',
     position: formData?.position || '',
@@ -583,7 +570,6 @@ function Preview4({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
     references: Array.isArray(formData?.references) && formData.references.length > 0 ? formData.references.filter(ref => ref && ref.trim() !== '') : []
   };
   
-  console.log('Preview4 - displayData:', displayData);
   
   // Create local getProfileImageUrl function that uses the merged formData
   // Use useMemo to recalculate when formData or propFormData changes
@@ -647,30 +633,6 @@ function Preview4({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
     };
   }, []);
   const contactInfo = formatContactInfo();
-  
-  // Debug: Log contact information
-  console.log('Template4 - Contact Info:', contactInfo);
-  console.log('Template4 - Form Data:', formData);
-  console.log('Template4 - Profile Image:', formData.profileImage);
-  console.log('Template4 - Profile Image URL:', profileImageUrl);
-  console.log('Template4 - Custom Section Data:', displayData.customSection);
-  console.log('Template4 - Custom Section Data Details:', displayData.customSection.map((item, index) => ({
-    index,
-    heading: item.heading,
-    detail: item.detail,
-    hasHeading: !!item.heading,
-    hasDetail: !!item.detail
-  })));
-  console.log('Template4 - Full Custom Section Array:', JSON.stringify(displayData.customSection, null, 2));
-  console.log('Template4 - Individual Items:');
-  displayData.customSection.forEach((item, index) => {
-    console.log(`Item ${index}:`, {
-      heading: item.heading,
-      detail: item.detail,
-      headingLength: item.heading?.length || 0,
-      detailLength: item.detail?.length || 0
-    });
-  });
 
   // Render the CV preview content (reusable for both normal and modal view)
   const renderCVContent = () => (
@@ -1024,12 +986,9 @@ function Preview4({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
         <button 
           className="preview-a4-button"
           onClick={async () => {
-            console.log('Preview button clicked - capturing form data and syncing to App.js');
-            
             // Capture all form data from DOM, preserving profileImage from existing formData if it's from database
             const existingData = propFormData || hookFormData || formData;
             const capturedData = getFormDataFromDOM(existingData);
-            console.log('Captured form data from DOM:', capturedData);
             
             // Merge captured data with propFormData to ensure we have all data (especially from database)
             // Prefer propFormData for fields that might not be in DOM (like profileImage from database)
@@ -1068,12 +1027,9 @@ function Preview4({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
                 : capturedData.references
             };
             
-            console.log('Merged form data (DOM + propFormData):', mergedData);
-            
             // Sync to App.js state if updateFormData is available
             if (updateFormData) {
               updateFormData(mergedData);
-              console.log('Synced merged form data to App.js state');
             }
             
             // Always store in localStorage before navigating to preview
@@ -1097,7 +1053,6 @@ function Preview4({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
                         reader.readAsDataURL(mergedData.profileImage);
                       });
                       profileImageData = { data: base64 };
-                      console.log('Converted profile image to base64');
                     } catch (err) {
                       console.error('Error converting profile image to base64:', err);
                       profileImageData = null;
@@ -1113,7 +1068,6 @@ function Preview4({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
                   profileImage: profileImageData
                 };
                 localStorage.setItem('cvFormData', JSON.stringify(serializableData));
-                console.log('Stored form data in localStorage before navigating to preview');
               } catch (e) {
                 console.error('Error storing form data in localStorage:', e);
                 // Fallback: store without image

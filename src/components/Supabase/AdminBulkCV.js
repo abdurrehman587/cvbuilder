@@ -151,7 +151,6 @@ const AdminBulkCV = () => {
       if (existingCVs && existingCVs.length > 0) {
         // Update existing CV instead of creating duplicate
         const existingCV = existingCVs[0]
-        console.log('Found existing CV, updating instead of creating:', existingCV.id)
         
         const cvUpdateData = {
           title: cvData.position,

@@ -98,7 +98,6 @@ const MarketplaceAdmin = () => {
   const loadProducts = async () => {
     try {
       setLoading(true);
-      console.log('Loading products in admin panel...');
       const { data, error } = await supabase
         .from('marketplace_products')
         .select('*, marketplace_sections(name)')
@@ -109,21 +108,9 @@ const MarketplaceAdmin = () => {
         throw error;
       }
       
-      console.log('Products loaded successfully:', data?.length || 0, 'products');
-      console.log('Products data:', data);
       setProducts(data || []);
-      
-      if (!data || data.length === 0) {
-        console.warn('No products found in database. This might be due to RLS policies or empty database.');
-      }
     } catch (err) {
       console.error('Error loading products:', err);
-      console.error('Error details:', {
-        message: err.message,
-        code: err.code,
-        details: err.details,
-        hint: err.hint
-      });
       alert('Error loading products: ' + err.message);
     } finally {
       setLoading(false);

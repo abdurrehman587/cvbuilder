@@ -275,7 +275,6 @@ const preloadAndConvertImages = async (element) => {
         const base64 = await blobToBase64(originalSrc);
         img.src = base64;
         imageData.set(img, originalSrc); // Store original to restore later
-        console.log('Converted blob URL to base64 for PDF generation');
       } catch (error) {
         console.warn('Failed to convert blob URL:', error);
       }
@@ -296,13 +295,7 @@ const restoreImageSources = (imageData) => {
 };
 
 const generateCanvas = async (cvPreview) => {
-  console.log('CV preview element found, generating canvas...');
-  console.log('CV preview dimensions:', {
-    width: cvPreview.scrollWidth,
-    height: cvPreview.scrollHeight,
-    offsetWidth: cvPreview.offsetWidth,
-    offsetHeight: cvPreview.offsetHeight
-  });
+  // Generate canvas from CV preview element
 
   // Apply page breaks to original preview before cloning
   applyPageBreaks(cvPreview);
@@ -311,9 +304,7 @@ const generateCanvas = async (cvPreview) => {
   void cvPreview.offsetHeight;
 
   // Preload all images and convert blob URLs to base64
-  console.log('Preloading and converting images...');
   const imageData = await preloadAndConvertImages(cvPreview);
-  console.log('Images preloaded and converted');
 
   // Calculate A4 dimensions in pixels at 96 DPI
   // A4: 210mm x 297mm = 794px x 1123px (at 96 DPI)
@@ -435,11 +426,6 @@ const generateCanvas = async (cvPreview) => {
   // Restore original image sources after canvas generation
   restoreImageSources(imageData);
 
-  console.log('Canvas generated, creating PDF...');
-  console.log('Canvas dimensions:', {
-    width: canvas.width,
-    height: canvas.height
-  });
 
   return canvas;
 };
@@ -545,7 +531,6 @@ const generatePDF = async (formData = null) => {
   let cvPreview, downloadButton, originalDisplay, originalWidth, originalMaxWidth, originalMinWidth, originalTransform, originalDisplayStyle, originalVisibility, originalOpacity, originalPosition, originalZIndex, originalTop, originalLeft, modal, modalOverlay, originalModalDisplay, originalModalOverlayDisplay;
 
   try {
-    console.log('Starting PDF generation...');
     
     // Check CV credits before allowing download
     try {
@@ -620,17 +605,12 @@ const generatePDF = async (formData = null) => {
           reader.readAsDataURL(pdfBlob);
         });
         
-        console.log('Attempting to use native FileDownload plugin...');
-        console.log('File name:', fileName);
-        
         try {
           // Use native plugin to save directly to Downloads folder
           const result = await FileDownload.savePdfToDownloads({
             base64Data: base64Data,
             fileName: fileName
           });
-          
-          console.log('FileDownload plugin result:', result);
           
           if (result && result.success) {
             alert(`✅ PDF saved successfully to Downloads folder!\n\nFile: ${fileName}\n\nPath: ${result.path || 'Downloads'}`);
@@ -658,14 +638,12 @@ const generatePDF = async (formData = null) => {
       if (user) {
         const newCredits = await cvCreditsService.decrementCredits(user.id);
         if (newCredits >= 0) {
-          console.log(`CV credits decremented. Remaining credits: ${newCredits}`);
           // Dispatch event to update credits display in Header and Dashboard
           window.dispatchEvent(new CustomEvent('cvCreditsUpdated'));
           // Optionally show remaining credits to user
           if (newCredits === 0) {
             alert(`PDF downloaded successfully! You have no credits remaining. To get more CV Download Credits Contact Administrator : 0315-3338612`);
           } else {
-            console.log(`Remaining CV credits: ${newCredits}`);
           }
         }
       }
@@ -674,7 +652,6 @@ const generatePDF = async (formData = null) => {
       // Don't block the download if credit decrement fails
     }
     
-    console.log('PDF download completed');
     
   } catch (error) {
     console.error('Error generating PDF:', error);

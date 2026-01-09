@@ -69,8 +69,6 @@ export const useCVs = () => {
       const adminStatus = await checkAdminStatus()
       setIsAdmin(adminStatus)
       
-      console.log('📋 Fetching CVs - Admin status:', adminStatus)
-      
       let query = supabase
         .from('cvs')
         .select(`
@@ -88,10 +86,7 @@ export const useCVs = () => {
       
       // If admin, get all CVs; otherwise, get only user's CVs
       if (!adminStatus) {
-        console.log('👤 Regular user - filtering by user_id:', user.id)
         query = query.eq('user_id', user.id)
-      } else {
-        console.log('🔐 Admin user - getting all CVs')
       }
       
       const { data, error } = await query
@@ -100,9 +95,6 @@ export const useCVs = () => {
         console.error('❌ Error fetching CVs:', error)
         throw error
       }
-      
-      console.log('📊 CVs fetched:', data?.length || 0, 'CVs')
-      console.log('📋 CV data:', data)
       setCvs(data || [])
     } catch (err) {
       console.error('❌ Error in fetchCVs:', err)
@@ -228,8 +220,6 @@ export const useCVs = () => {
       // Check if user is admin
       const adminStatus = await checkAdminStatus()
       
-      console.log('🔍 Search CVs - Admin status:', adminStatus)
-      console.log('🔍 Search term:', searchTerm)
       
       let query = supabase
         .from('cvs')
@@ -249,10 +239,7 @@ export const useCVs = () => {
       
       // If not admin, restrict to user's own CVs
       if (!adminStatus) {
-        console.log('👤 Regular user search - filtering by user_id:', user.id)
         query = query.eq('user_id', user.id)
-      } else {
-        console.log('🔐 Admin user search - searching all CVs')
       }
       
       const { data, error } = await query
@@ -262,7 +249,6 @@ export const useCVs = () => {
         throw error
       }
       
-      console.log('🔍 Search results:', data?.length || 0, 'CVs found')
       return data || []
     } catch (err) {
       console.error('❌ Error in searchCVs:', err)

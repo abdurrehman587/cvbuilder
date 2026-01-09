@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './IDCardDashboard.css';
 import { setCurrentApp, setIDCardView } from '../../utils/routing';
 import { authService, idCardCreditsService, supabase } from '../Supabase/supabase';
@@ -9,14 +10,23 @@ import { authService, idCardCreditsService, supabase } from '../Supabase/supabas
  * No complex state management
  */
 const IDCardDashboard = ({ onCreateNewIDCard }) => {
+  const navigate = useNavigate();
   const [idCardCredits, setIdCardCredits] = useState(null);
   const [userType, setUserType] = useState(null);
 
   // Fresh handler for creating new ID card
   const handleCreateNewIDCard = React.useCallback(() => {
-    console.log('IDCardDashboard: Create New ID Card clicked');
+    // Set navigation flags FIRST to prevent logout on page reload
+    sessionStorage.setItem('isNavigating', 'true');
+    sessionStorage.setItem('navigationTimestamp', Date.now().toString());
+    sessionStorage.setItem('navigateToIDCardPrint', 'true');
+    localStorage.setItem('navigateToIDCardPrint', 'true');
     
-    // Use routing utilities to set state
+    // Use routing utilities to set state - SET THESE FIRST
+    localStorage.setItem('selectedApp', 'id-card-print');
+    localStorage.setItem('idCardView', 'print');
+    
+    // Then use routing utilities
     setCurrentApp('id-card-print');
     setIDCardView('print');
     
@@ -24,7 +34,12 @@ const IDCardDashboard = ({ onCreateNewIDCard }) => {
     if (onCreateNewIDCard) {
       onCreateNewIDCard();
     }
-  }, [onCreateNewIDCard]);
+    
+    // Small delay to ensure localStorage is written before navigation
+    setTimeout(() => {
+      navigate('/id-card-print');
+    }, 50);
+  }, [onCreateNewIDCard, navigate]);
 
   // Load ID Card credits for all users
   useEffect(() => {
@@ -151,16 +166,22 @@ const IDCardDashboard = ({ onCreateNewIDCard }) => {
       </div>
       
       <div className="dashboard-options">
-        <div 
-          className="option-card" 
-          onClick={handleCreateNewIDCard}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              handleCreateNewIDCard();
-            }
+        <button
+          className="option-card"
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleCreateNewIDCard();
+          }}
+          style={{ 
+            cursor: 'pointer', 
+            position: 'relative', 
+            zIndex: 10,
+            border: 'none',
+            background: 'white',
+            width: '100%',
+            textAlign: 'center'
           }}
         >
           <div className="option-icon">
@@ -172,7 +193,7 @@ const IDCardDashboard = ({ onCreateNewIDCard }) => {
           </div>
           <h3>Get Your ID Card Ready for Printing</h3>
           <p>Start creating ID cards with front and back printing support</p>
-        </div>
+        </button>
       </div>
     </div>
   );

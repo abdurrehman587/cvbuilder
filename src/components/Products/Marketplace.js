@@ -552,7 +552,6 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
     
     // Listen for authentication events to hide login form
     const handleUserAuthenticated = () => {
-      console.log('User authenticated event received, hiding login form');
       setShowLogin(false);
       // Clear all login-related flags after successful authentication
       sessionStorage.removeItem('navigateToCVBuilder');
@@ -1109,7 +1108,6 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
     try {
       if (isLogin) {
         // Real Supabase login
-        console.log('Attempting Supabase login...');
         const { data, error } = await authService.signIn(email, password);
         
         if (error) {
@@ -1117,8 +1115,6 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
           setError('Login failed: ' + error.message);
           return;
         }
-        
-        console.log('Login successful:', data);
         localStorage.setItem('cvBuilderAuth', 'true');
         // Set flags to prevent checkAuth and App.js from clearing auth state
         // Set both flags to ensure compatibility with all auth checks
@@ -1141,15 +1137,6 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
         // Check if user wants to navigate to CV Builder or ID Card Print
         const navigateToCVBuilder = sessionStorage.getItem('navigateToCVBuilder') === 'true' || localStorage.getItem('navigateToCVBuilder') === 'true';
         const navigateToIDCardPrint = sessionStorage.getItem('navigateToIDCardPrint') === 'true' || localStorage.getItem('navigateToIDCardPrint') === 'true';
-        
-        console.log('Login successful - checking navigation flags:', {
-          navigateToCVBuilder,
-          navigateToIDCardPrint,
-          sessionStorageCV: sessionStorage.getItem('navigateToCVBuilder'),
-          sessionStorageID: sessionStorage.getItem('navigateToIDCardPrint'),
-          localStorageCV: localStorage.getItem('navigateToCVBuilder'),
-          localStorageID: localStorage.getItem('navigateToIDCardPrint')
-        });
         
         // Ensure flags are set in both storages for persistence
         if (navigateToIDCardPrint) {
@@ -1199,14 +1186,11 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
               window.location.href = '/';
             }
             // The auth state change will handle the UI update
-            console.log('Login successful - navigating to homepage');
           }
         }, 1500); // Show success message for 1.5 seconds
         
       } else {
         // Real Supabase signup
-        console.log('Attempting Supabase signup...');
-        
         if (password !== confirmPassword) {
           setError('Passwords do not match');
           return;
@@ -1230,8 +1214,6 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
           setError('Signup failed: ' + error.message);
           return;
         }
-        
-        console.log('Signup successful:', data);
         setError('Signup successful! Please check your email to confirm your account, then login.');
         setIsLogin(true);
       }
@@ -1336,7 +1318,6 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
     window.addEventListener('googleSignInError', handleError);
     
     try {
-      console.log('Attempting Google sign-in with user type:', selectedType);
       const { error } = await authService.signInWithGoogle();
       
       if (error) {

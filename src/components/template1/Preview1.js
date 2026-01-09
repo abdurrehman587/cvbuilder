@@ -182,18 +182,15 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
     if (storedData) {
       try {
         const parsedData = JSON.parse(storedData);
-        console.log('Preview1 - Using stored data from localStorage:', parsedData);
         // Preserve profileImage from propFormData if it exists and is from database
         if (propFormData?.profileImage && propFormData.profileImage.data) {
           parsedData.profileImage = propFormData.profileImage;
-          console.log('Preview1 - Preserved profileImage from propFormData:', parsedData.profileImage);
         } else {
           // If no profileImage in stored data or propFormData, try to get from file input (if form is in DOM)
           if (!parsedData.profileImage && !isPreviewPage) {
             const fileInput = document.getElementById('file-input');
             if (fileInput?.files?.[0]) {
               parsedData.profileImage = fileInput.files[0];
-              console.log('Preview1 - Restored profileImage from file input:', parsedData.profileImage);
             }
           }
         }
@@ -209,20 +206,14 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
     // Even if hookFormData has data, preserve profileImage from propFormData if it's from database
     if (propFormData?.profileImage && propFormData.profileImage.data && (!formData.profileImage || !formData.profileImage.data)) {
       formData = { ...formData, profileImage: propFormData.profileImage };
-      console.log('Preview1 - Preserved profileImage from propFormData in hookFormData:', formData.profileImage);
     } else if (!formData.profileImage && !isPreviewPage) {
       // If no profileImage, try to get from file input (if form is in DOM)
       const fileInput = document.getElementById('file-input');
       if (fileInput?.files?.[0]) {
         formData = { ...formData, profileImage: fileInput.files[0] };
-        console.log('Preview1 - Restored profileImage from file input in hookFormData:', formData.profileImage);
       }
     }
   }
-  
-  console.log('Preview1 - Final formData:', formData);
-  console.log('Preview1 - formData.education:', formData.education);
-  console.log('Preview1 - formData.experience:', formData.experience);
 
   // Refresh preview data from form inputs whenever app form data changes
   // Only update if not on preview page (where form is not in DOM)
@@ -553,11 +544,6 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
   
   // Default sections to show on page load: professional-summary, skills, languages, references
   // Ensure all data is properly extracted from formData
-  // Debug: Log formData to see what we're getting
-  console.log('Preview1 - Full formData:', formData);
-  console.log('Preview1 - propFormData:', propFormData);
-  console.log('Preview1 - hookFormData:', hookFormData);
-  
   const displayData = {
     name: formData?.name || '',
     position: formData?.position || '',
@@ -583,7 +569,6 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
     references: Array.isArray(formData?.references) && formData.references.length > 0 ? formData.references.filter(ref => ref && ref.trim() !== '') : []
   };
   
-  console.log('Preview1 - displayData:', displayData);
   
   // Create local getProfileImageUrl function that uses the merged formData
   // Use useMemo to recalculate when formData or propFormData changes
@@ -647,30 +632,6 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
     };
   }, []);
   const contactInfo = formatContactInfo();
-  
-  // Debug: Log contact information
-  console.log('Template1 - Contact Info:', contactInfo);
-  console.log('Template1 - Form Data:', formData);
-  console.log('Template1 - Profile Image:', formData.profileImage);
-  console.log('Template1 - Profile Image URL:', profileImageUrl);
-  console.log('Template1 - Custom Section Data:', displayData.customSection);
-  console.log('Template1 - Custom Section Data Details:', displayData.customSection.map((item, index) => ({
-    index,
-    heading: item.heading,
-    detail: item.detail,
-    hasHeading: !!item.heading,
-    hasDetail: !!item.detail
-  })));
-  console.log('Template1 - Full Custom Section Array:', JSON.stringify(displayData.customSection, null, 2));
-  console.log('Template1 - Individual Items:');
-  displayData.customSection.forEach((item, index) => {
-    console.log(`Item ${index}:`, {
-      heading: item.heading,
-      detail: item.detail,
-      headingLength: item.heading?.length || 0,
-      detailLength: item.detail?.length || 0
-    });
-  });
 
   // Render the CV preview content (reusable for both normal and modal view)
   const renderCVContent = () => (

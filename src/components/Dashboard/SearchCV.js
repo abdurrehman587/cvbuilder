@@ -14,32 +14,6 @@ const SearchCV = ({ onBack, onEditCV }) => {
   const [displayLimit, setDisplayLimit] = useState(50);
   const { cvs, searchCVs, fetchCompleteCV, loading, isAdmin } = useCVs();
   
-  // Debug: Log admin status
-  useEffect(() => {
-    console.log('🔐 SearchCV - Admin status:', isAdmin);
-    console.log('📊 SearchCV - Total CVs loaded:', cvs.length);
-  }, [isAdmin, cvs.length]);
-
-  // Debug: Test admin detection directly
-  useEffect(() => {
-    const testAdminDetection = async () => {
-      try {
-        console.log('🧪 Testing admin detection directly...');
-        const { data } = await supabase
-          .from('users')
-          .select('is_admin, email, full_name')
-          .eq('email', 'admin@cvbuilder.com')  // Replace with your admin email
-          .single();
-        
-        console.log('🧪 Direct admin check result:', data);
-        console.log('🧪 Is admin (direct check):', data?.is_admin);
-      } catch (err) {
-        console.error('🧪 Direct admin check error:', err);
-      }
-    };
-    
-    testAdminDetection();
-  }, []);
   const searchTimeoutRef = useRef(null);
   const searchCacheRef = useRef(new Map());
 

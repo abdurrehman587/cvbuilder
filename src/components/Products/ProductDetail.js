@@ -300,7 +300,6 @@ const ProductDetail = ({ productId }) => {
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            console.log('Back to Products button clicked');
             // Use window.location.href to ensure full navigation and state reset
             window.location.href = '/marketplace';
           }}

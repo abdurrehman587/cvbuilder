@@ -1,20 +1,36 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../Supabase/supabase';
 import MarketplaceAdmin from '../MarketplaceAdmin/MarketplaceAdmin';
 import AdminPanel from '../Supabase/AdminPanel';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('cv-management');
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     checkAdminStatus();
-    // Check URL hash for section
-    const updateSectionFromHash = () => {
+    // Check URL for section (both clean URL and hash-based routing)
+    const updateSectionFromURL = () => {
+      const pathname = location.pathname;
       const hash = window.location.hash;
-      if (hash === '#admin' || hash === '#admin/') {
+      
+      // Check clean URL pathname first
+      if (pathname === '/admin' || pathname === '/admin/') {
+        setActiveSection('cv-management');
+      } else if (pathname.startsWith('/admin/')) {
+        // Handle format: /admin/marketplace
+        const section = pathname.replace('/admin/', '').split('/')[0];
+        if (['marketplace', 'cv-management'].includes(section)) {
+          setActiveSection(section);
+        }
+      }
+      // Fallback to hash-based routing for backward compatibility
+      else if (hash === '#admin' || hash === '#admin/') {
         setActiveSection('cv-management');
       } else if (hash.startsWith('#admin/')) {
         // Handle format: #admin/marketplace?tab=orders
@@ -33,15 +49,15 @@ const AdminDashboard = () => {
       }
     };
     
-    updateSectionFromHash();
+    updateSectionFromURL();
     
-    // Listen for hash changes
-    window.addEventListener('hashchange', updateSectionFromHash);
+    // Listen for hash changes and location changes
+    window.addEventListener('hashchange', updateSectionFromURL);
     
     return () => {
-      window.removeEventListener('hashchange', updateSectionFromHash);
+      window.removeEventListener('hashchange', updateSectionFromURL);
     };
-  }, []);
+  }, [location.pathname]);
 
   const checkAdminStatus = async () => {
     try {
@@ -70,8 +86,8 @@ const AdminDashboard = () => {
 
   const handleSectionChange = (section) => {
     setActiveSection(section);
-    // Update URL hash
-    window.location.hash = `#admin/${section}`;
+    // Update URL using clean URL routing
+    navigate(`/admin/${section}`);
   };
 
   if (loading) {
@@ -93,8 +109,8 @@ const AdminDashboard = () => {
   }
 
   const handleBack = () => {
-    // Clear admin hash and navigate back
-    window.location.hash = '';
+    // Navigate back to homepage using clean URL
+    navigate('/');
     // Optionally set selectedApp to go to a specific section
     const savedApp = localStorage.getItem('selectedApp') || 'cv-builder';
     localStorage.setItem('selectedApp', savedApp);
