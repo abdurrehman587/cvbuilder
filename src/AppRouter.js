@@ -23,9 +23,9 @@ const AppRouter = () => {
           path="/" 
           element={
             <RouteWrapper 
-              title="Home" 
-              description="Get Glory - Professional CV Builder, ID Card Printing, and Marketplace. Create professional CVs, print ID cards, and explore our marketplace."
-              keywords="CV builder, resume builder, ID card printing, professional CV, resume templates, Pakistan"
+              title="Online CV Builder in Pakistan | Free Resume Maker - GetGlory" 
+              description="Create professional CVs online in Pakistan. Free resume builder with modern templates. Download PDF and print your CV instantly. Get Glory offers the best CV builder and resume maker tools."
+              keywords="CV builder, resume builder, online CV builder, free resume maker, CV builder Pakistan, resume templates, professional CV, create CV online, download CV PDF"
             >
               <App />
             </RouteWrapper>
@@ -37,9 +37,9 @@ const AppRouter = () => {
           path="/cv-builder" 
           element={
             <RouteWrapper 
-              title="CV Builder" 
-              description="Create professional CVs with our easy-to-use CV builder. Choose from multiple templates and customize your resume."
-              keywords="CV builder, resume builder, professional CV, resume templates, CV maker"
+              title="Online CV Builder in Pakistan | Free Resume Maker - GetGlory" 
+              description="Create professional CVs online in Pakistan. Free resume builder with modern templates. Download PDF and print your CV instantly. Best CV builder tool for job seekers."
+              keywords="CV builder, resume builder, online CV builder, free resume maker, CV builder Pakistan, resume templates, professional CV, create CV online, download CV PDF, CV maker"
             >
               <App />
             </RouteWrapper>

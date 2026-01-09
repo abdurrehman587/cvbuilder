@@ -7,9 +7,11 @@ import { useLocation } from 'react-router-dom';
  */
 const SEO = ({ title, description, keywords, ogImage, ogType = 'website' }) => {
   const location = useLocation();
-  const baseTitle = 'Get Glory - Professional CV Builder & ID Card Printing';
-  const fullTitle = title ? `${title} | ${baseTitle}` : baseTitle;
-  const defaultDescription = 'Create professional CVs, print ID cards, and explore our marketplace. Get Glory offers the best tools for your career needs.';
+  const baseTitle = 'GetGlory';
+  // If title is provided, use it as-is (should already be in format: "Main Title | Secondary - Brand")
+  // Otherwise, use default homepage title
+  const fullTitle = title || 'Online CV Builder in Pakistan | Free Resume Maker - GetGlory';
+  const defaultDescription = 'Create professional CVs online in Pakistan. Free resume builder with modern templates. Download PDF and print your CV instantly. Get Glory offers the best CV builder and resume maker tools.';
   const metaDescription = description || defaultDescription;
   const canonicalUrl = `https://getglory.pk${location.pathname}`;
 

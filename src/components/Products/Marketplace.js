@@ -4,9 +4,9 @@ import { authService, supabase } from '../Supabase/supabase';
 import { addToCart } from '../../utils/cart';
 
 // Constants
-const PRODUCTS_PER_PAGE = 8; // Reduced from 12 to 8 for faster initial load
-const INITIAL_PRODUCTS = 8; // Initial products to show
-const PRELOAD_DISTANCE = 300; // Preload images 300px before they're visible
+const PRODUCTS_PER_PAGE = 6; // Reduced for faster initial load
+const INITIAL_PRODUCTS = 6; // Initial products to show (reduced for faster load)
+const PRELOAD_DISTANCE = 200; // Preload images 200px before they're visible (reduced for better performance)
 
 // Move products array outside component to keep it stable
   const products = [
@@ -44,7 +44,7 @@ const checkWebPSupport = () => {
 };
 
 // Helper function to optimize image URL (add compression/transformation if available)
-const optimizeImageUrl = (url, width = 400, quality = 80, format = 'webp') => {
+const optimizeImageUrl = (url, width = 400, quality = 80, format = 'webp', blur = false) => {
   if (!url) return url;
   
   // If Supabase storage URL, we can add transformations
@@ -52,14 +52,24 @@ const optimizeImageUrl = (url, width = 400, quality = 80, format = 'webp') => {
     // Supabase storage supports image transformations
     const useWebP = format === 'webp' && checkWebPSupport();
     const imageFormat = useWebP ? 'webp' : 'auto';
-    return `${url}${url.includes('?') ? '&' : '?'}width=${width}&quality=${quality}&format=${imageFormat}`;
+    let optimizedUrl = `${url}${url.includes('?') ? '&' : '?'}width=${width}&quality=${quality}&format=${imageFormat}`;
+    // Add blur for low-quality placeholders
+    if (blur) {
+      optimizedUrl += '&blur=20';
+    }
+    return optimizedUrl;
   }
   
   // For external URLs (like Unsplash), try to use their optimization APIs
   if (url.includes('unsplash.com')) {
     const useWebP = format === 'webp' && checkWebPSupport();
     const imageFormat = useWebP ? 'fm=webp&' : '';
-    return `${url}${url.includes('?') ? '&' : '?'}${imageFormat}w=${width}&q=${quality}`;
+    let optimizedUrl = `${url}${url.includes('?') ? '&' : '?'}${imageFormat}w=${width}&q=${quality}`;
+    // Add blur for low-quality placeholders
+    if (blur) {
+      optimizedUrl += '&blur=20';
+    }
+    return optimizedUrl;
   }
   
   // For other URLs, return as-is (can be enhanced with image CDN)
@@ -70,18 +80,14 @@ const optimizeImageUrl = (url, width = 400, quality = 80, format = 'webp') => {
 const ProductCard = memo(({ 
   product, 
   productImages, 
-  currentImageIndex, 
   onProductClick, 
   onAddToCart, 
-  onBuyNow,
-  onMouseEnter,
-  onMouseLeave
+  onBuyNow
 }) => {
   const imageRef = useRef(null);
   const [isInView, setIsInView] = useState(false);
   const [firstImageLoaded, setFirstImageLoaded] = useState(false);
-  const [loadedImages, setLoadedImages] = useState(new Set([0])); // Only first image initially
-  const [preloadedImages, setPreloadedImages] = useState(new Set());
+  const [firstImageHighQualityLoaded, setFirstImageHighQualityLoaded] = useState(false);
 
   // Intersection Observer for lazy loading with better rootMargin
   useEffect(() => {
@@ -90,10 +96,6 @@ const ProductCard = memo(({
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             setIsInView(true);
-            // Preload first image immediately when in view
-            if (productImages.length > 0 && !loadedImages.has(0)) {
-              setLoadedImages(prev => new Set([...prev, 0]));
-            }
             observer.disconnect();
           }
         });
@@ -110,50 +112,28 @@ const ProductCard = memo(({
         observer.disconnect();
       }
     };
-  }, [productImages.length, loadedImages]);
+  }, [productImages.length]);
 
-  // Preload other images when carousel starts (on hover)
-  useEffect(() => {
-    if (currentImageIndex > 0 && productImages.length > 1) {
-      // Load current and next image when carousel is active
-      const imagesToLoad = [currentImageIndex, (currentImageIndex + 1) % productImages.length];
-      setLoadedImages(prev => {
-        const newSet = new Set(prev);
-        imagesToLoad.forEach(idx => newSet.add(idx));
-        return newSet;
-      });
-    }
-  }, [currentImageIndex, productImages.length]);
+  // No need to preload additional images - only showing first image
 
-  // Preload images in background (low priority)
-  useEffect(() => {
-    if (isInView && productImages.length > 1) {
-      // Preload remaining images with delay to not block first image
-      const preloadTimer = setTimeout(() => {
-        productImages.forEach((_, index) => {
-          if (index > 0 && !preloadedImages.has(index)) {
-            const img = new Image();
-            img.src = optimizeImageUrl(productImages[index], 400, 75); // Lower quality for preload
-            setPreloadedImages(prev => new Set([...prev, index]));
-          }
-        });
-      }, 1000); // Wait 1 second after first image loads
-
-      return () => clearTimeout(preloadTimer);
-    }
-  }, [isInView, productImages, preloadedImages]);
-
-  const handleFirstImageLoad = () => {
+  const handleFirstImageLoad = (e) => {
     setFirstImageLoaded(true);
+    // After low-quality loads, immediately start loading high-quality version
+    if (!firstImageHighQualityLoaded && productImages.length > 0) {
+      const highQualityImg = new Image();
+      highQualityImg.onload = () => {
+        setFirstImageHighQualityLoaded(true);
+        // Swap the src of the main image to high-quality
+        if (e && e.target) {
+          e.target.src = optimizeImageUrl(productImages[0], 400, 85, 'webp', false);
+        }
+      };
+      highQualityImg.src = optimizeImageUrl(productImages[0], 400, 85, 'webp', false);
+    }
   };
 
-  // Only render images that should be loaded
-  const imagesToRender = productImages.filter((_, index) => {
-    // Always render first image when in view
-    if (index === 0) return isInView;
-    // Render other images only if they're loaded or active
-    return loadedImages.has(index) || index === currentImageIndex;
-  });
+  // Only render the first image - no carousel
+  const firstImage = productImages.length > 0 ? productImages[0] : null;
 
   return (
     <div 
@@ -161,43 +141,49 @@ const ProductCard = memo(({
       className="product-card-fresh" 
       data-product-id={product.id}
       onClick={onProductClick}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
     >
       <div className="product-card-image-wrapper">
-        {isInView && productImages.length > 0 ? (
+        {/* Skeleton loader - shown while low-quality image is loading */}
+        {isInView && firstImage && !firstImageLoaded && (
+          <div className="product-card-skeleton">
+            <div className="skeleton-shimmer"></div>
+          </div>
+        )}
+        
+        {isInView && firstImage ? (
           <>
-            {imagesToRender.map((imageUrl, originalIndex) => {
-              // Find original index in productImages array
-              const actualIndex = productImages.indexOf(imageUrl);
-              const isActive = actualIndex === currentImageIndex;
-              const isFirst = actualIndex === 0;
-              const shouldLoad = loadedImages.has(actualIndex) || isActive;
+            {/* Low-quality thumbnail first, then high-quality */}
+            {(() => {
+              const useLowQuality = !firstImageHighQualityLoaded;
+              const imageWidth = useLowQuality ? 200 : 400;
+              const imageQuality = useLowQuality ? 60 : 85;
+              const imageSrc = optimizeImageUrl(firstImage, imageWidth, imageQuality, 'webp', useLowQuality);
               
               return (
                 <img 
-                  key={`${product.id}-${actualIndex}`}
-                  src={shouldLoad ? optimizeImageUrl(imageUrl, 400, 85) : undefined}
-                  alt={`${product.name} - Image ${actualIndex + 1}`}
-                  className={`product-card-image ${isActive ? 'active' : ''} ${isFirst ? 'first-image' : ''}`}
-                  style={isFirst ? { 
-                    opacity: firstImageLoaded ? 1 : 0, 
+                  key={`${product.id}-0`}
+                  src={imageSrc}
+                  alt={`${product.name} - ${product.description || 'Professional product image'}`}
+                  className={`product-card-image first-image ${!firstImageHighQualityLoaded ? 'loading-high-quality' : ''}`}
+                  style={{ 
+                    opacity: firstImageLoaded ? (firstImageHighQualityLoaded ? 1 : 0.8) : 0, 
                     zIndex: 1, 
                     transform: 'translate(-50%, -50%)', 
-                    transition: 'opacity 0.3s ease' 
-                  } : { transform: 'translate(-50%, -50%)' }}
+                    transition: 'opacity 0.4s ease',
+                    filter: useLowQuality ? 'blur(8px)' : 'none'
+                  }}
                   onError={(e) => {
                     e.target.style.display = 'none';
                   }}
-                  onLoad={isFirst ? handleFirstImageLoad : undefined}
-                  loading={isFirst ? "lazy" : "lazy"}
+                  onLoad={handleFirstImageLoad}
+                  loading="lazy"
                   decoding="async"
                   width="400"
                   height="400"
-                  fetchPriority={isFirst && actualIndex === 0 ? "high" : "auto"}
+                  fetchPriority="high"
                 />
               );
-            })}
+            })()}
           </>
         ) : null}
         <div className="product-card-placeholder" style={{ 
@@ -272,8 +258,7 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
   const [isGoogleSigningIn, setIsGoogleSigningIn] = useState(false);
   const [showUserTypeModal, setShowUserTypeModal] = useState(false);
   const [pendingGoogleSignIn, setPendingGoogleSignIn] = useState(false);
-  const [productImageIndices, setProductImageIndices] = useState({});
-  const imageSlideIntervals = useRef({});
+  // Removed hover carousel - only showing first image for better performance
   
   // State declarations - must be before callbacks that use them
   const [loginSuccess, setLoginSuccess] = useState(false);
@@ -394,56 +379,7 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
     return [];
   };
   
-  // Handle mouse enter - start sliding images (optimized to reduce re-renders)
-  const handleProductCardMouseEnter = useCallback((productId, images) => {
-    if (images.length <= 1) return; // No need to slide if only one image
-    
-    // Clear any existing interval for this product
-    if (imageSlideIntervals.current[productId]) {
-      clearInterval(imageSlideIntervals.current[productId]);
-    }
-    
-    // Set initial index to 0 (only if not already set)
-    setProductImageIndices(prev => {
-      if (prev[productId] === 0) return prev; // Skip update if already 0
-      return { ...prev, [productId]: 0 };
-    });
-    
-    // Start sliding through images every 2 seconds (increased from 1.5s for better performance)
-    let currentIndex = 0;
-    imageSlideIntervals.current[productId] = setInterval(() => {
-      currentIndex = (currentIndex + 1) % images.length;
-      // Use functional update and only update if index changed
-      setProductImageIndices(prev => {
-        if (prev[productId] === currentIndex) return prev; // Skip if same
-        return { ...prev, [productId]: currentIndex };
-      });
-    }, 2000); // Increased interval for better performance
-  }, []);
-  
-  // Handle mouse leave - stop sliding and reset to first image
-  const handleProductCardMouseLeave = useCallback((productId) => {
-    if (imageSlideIntervals.current[productId]) {
-      clearInterval(imageSlideIntervals.current[productId]);
-      delete imageSlideIntervals.current[productId];
-    }
-    // Reset to first image immediately (no delay for better UX)
-    setProductImageIndices(prev => {
-      if (!prev[productId] || prev[productId] === 0) return prev; // Skip if already reset
-      const newState = { ...prev };
-      delete newState[productId];
-      return newState;
-    });
-  }, []);
-  
-  // Cleanup intervals on unmount
-  useEffect(() => {
-    return () => {
-      Object.values(imageSlideIntervals.current).forEach(interval => {
-        if (interval) clearInterval(interval);
-      });
-    };
-  }, []);
+  // Removed hover carousel handlers - no longer needed
   const [cartNotification, setCartNotification] = useState({ 
     show: false, 
     message: '', 
@@ -562,6 +498,11 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
           // Clear any login flags
           sessionStorage.removeItem('showLoginForm');
           localStorage.removeItem('showLoginForm');
+          // Set justAuthenticated flag to prevent other checks from clearing auth
+          sessionStorage.setItem('justAuthenticated', 'true');
+          setTimeout(() => {
+            sessionStorage.removeItem('justAuthenticated');
+          }, 5000);
           return;
         }
       } catch (err) {
@@ -570,7 +511,9 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
         if (err?.name !== 'AuthSessionMissingError' && err?.message !== 'Auth session missing!') {
           console.error('Error checking auth:', err);
         }
-        // Don't clear cvBuilderAuth on error - preserve existing auth state
+        // CRITICAL: Don't clear cvBuilderAuth on error - preserve existing auth state
+        // This is especially important for admin users who might have valid sessions
+        // but the check might fail due to timing or network issues
       }
       
       // Check for navigation flags on mount and when prop changes
@@ -717,12 +660,17 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
             firstBatch.forEach(product => {
               const images = getImages(product);
               if (images.length > 0) {
-                // Preload first image of each product
-                const img = new Image();
-                img.src = optimizeImageUrl(images[0], 400, 85);
+                // Preload low-quality thumbnail first for faster initial render
+                const lowQualityImg = new Image();
+                lowQualityImg.src = optimizeImageUrl(images[0], 200, 60, 'webp', true);
+                // Then preload high-quality in background
+                setTimeout(() => {
+                  const highQualityImg = new Image();
+                  highQualityImg.src = optimizeImageUrl(images[0], 400, 85);
+                }, 300);
               }
             });
-          }, 500);
+          }, 200);
         } catch (err) {
           console.error('Error loading marketplace data:', err);
         } finally {
@@ -783,12 +731,17 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
           nextBatch.forEach(product => {
             const images = getImages(product);
             if (images.length > 0) {
-              // Preload first image of each product in new batch
-              const img = new Image();
-              img.src = optimizeImageUrl(images[0], 400, 85);
+              // Preload low-quality thumbnail first for faster initial render
+              const lowQualityImg = new Image();
+              lowQualityImg.src = optimizeImageUrl(images[0], 200, 60, 'webp', true);
+              // Then preload high-quality in background
+              setTimeout(() => {
+                const highQualityImg = new Image();
+                highQualityImg.src = optimizeImageUrl(images[0], 400, 85);
+              }, 300);
             }
           });
-        }, 200);
+        }, 100);
       } else {
         setHasMoreProducts(false);
       }
@@ -837,6 +790,14 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
         setPassword('');
         setConfirmPassword('');
         setUserType('regular');
+        // Keep showLoginForm flags set so form can be reopened by clicking sign-in again
+        // Only clear flags if user is authenticated
+        const isAuth = localStorage.getItem('cvBuilderAuth') === 'true';
+        if (!isAuth) {
+          // User closed without signing in - keep flags so form can be shown again
+          localStorage.setItem('showLoginForm', 'true');
+          sessionStorage.setItem('showLoginForm', 'true');
+        }
       }
     };
     
@@ -1159,13 +1120,18 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
         
         console.log('Login successful:', data);
         localStorage.setItem('cvBuilderAuth', 'true');
-        // Set flag to prevent checkAuth from showing login form again
-        // Keep this flag longer to prevent race conditions during navigation
+        // Set flags to prevent checkAuth and App.js from clearing auth state
+        // Set both flags to ensure compatibility with all auth checks
+        const loginTimestamp = Date.now();
         sessionStorage.setItem('justAuthenticated', 'true');
-        // Clear this flag after navigation completes (longer delay)
+        sessionStorage.setItem('justLoggedIn', loginTimestamp.toString());
+        // Clear these flags after navigation completes (longer delay)
         setTimeout(() => {
           sessionStorage.removeItem('justAuthenticated');
         }, 5000); // 5 seconds to ensure navigation completes
+        setTimeout(() => {
+          sessionStorage.removeItem('justLoggedIn');
+        }, 10000); // 10 seconds for App.js auth handler
         // Show success message
         setLoginSuccess(true);
         setError('');
@@ -1538,21 +1504,15 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
                                 };
                                 
                                 const productImages = getProductImages(product);
-                                const currentImageIndex = productImageIndices[product.id] !== undefined 
-                                  ? productImageIndices[product.id] 
-                                  : 0;
                                 
                                 return (
                                   <ProductCard
                                     key={product.id}
                                     product={product}
                                     productImages={productImages}
-                                    currentImageIndex={currentImageIndex}
                                     onProductClick={handleProductClick}
                                     onAddToCart={handleAddToCart}
                                     onBuyNow={handleBuyNow}
-                                    onMouseEnter={() => handleProductCardMouseEnter(product.id, productImages)}
-                                    onMouseLeave={() => handleProductCardMouseLeave(product.id)}
                                   />
                                 );
                               })}
@@ -1647,21 +1607,15 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
                                 };
                                 
                                 const productImages = getProductImages(product);
-                                const currentImageIndex = productImageIndices[product.id] !== undefined 
-                                  ? productImageIndices[product.id] 
-                                  : 0;
                                 
                                 return (
                                   <ProductCard
                                     key={product.id}
                                     product={product}
                                     productImages={productImages}
-                                    currentImageIndex={currentImageIndex}
                                     onProductClick={handleProductClick}
                                     onAddToCart={handleAddToCart}
                                     onBuyNow={handleBuyNow}
-                                    onMouseEnter={() => handleProductCardMouseEnter(product.id, productImages)}
-                                    onMouseLeave={() => handleProductCardMouseLeave(product.id)}
                                   />
                                 );
                               })}
@@ -1706,6 +1660,14 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
             setPassword('');
             setConfirmPassword('');
             setUserType('regular');
+            // Keep showLoginForm flags set so form can be reopened by clicking sign-in again
+            // Only clear flags if user is authenticated
+            const isAuth = localStorage.getItem('cvBuilderAuth') === 'true';
+            if (!isAuth) {
+              // User closed without signing in - keep flags so form can be shown again
+              localStorage.setItem('showLoginForm', 'true');
+              sessionStorage.setItem('showLoginForm', 'true');
+            }
           }}>
             <div className="login-modal-content" onClick={(e) => e.stopPropagation()}>
               <button 
@@ -1718,6 +1680,14 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
                   setPassword('');
                   setConfirmPassword('');
                   setUserType('regular');
+                  // Keep showLoginForm flags set so form can be reopened by clicking sign-in again
+                  // Only clear flags if user is authenticated
+                  const isAuth = localStorage.getItem('cvBuilderAuth') === 'true';
+                  if (!isAuth) {
+                    // User closed without signing in - keep flags so form can be shown again
+                    localStorage.setItem('showLoginForm', 'true');
+                    sessionStorage.setItem('showLoginForm', 'true');
+                  }
                 }}
                 aria-label="Close"
               >

@@ -98,20 +98,46 @@ const LeftNavbar = ({ isAuthenticated, onLogout }) => {
     sessionStorage.removeItem('navigateToCVBuilder');
     sessionStorage.removeItem('navigateToIDCardPrint');
     
-    // Navigate to homepage without reload - use hash and custom event
-    window.location.hash = '';
-    window.history.replaceState(null, '', '/');
-    // Trigger navigation event for App.js to handle
-    window.dispatchEvent(new CustomEvent('navigateToHomePage'));
+    // Use React Router navigation instead of window.location manipulation
+    // This preserves authentication state and avoids full page reload
+    navigate('/');
+    
+    // Restore auth state after navigation (in case it was cleared during navigation)
+    if (wasAuthenticated) {
+      setTimeout(() => {
+        localStorage.setItem('cvBuilderAuth', 'true');
+      }, 100);
+    }
   };
 
   const navigateToMarketplace = () => {
-    // Facebook-style: Instant navigation using localStorage
+    // Preserve authentication state before navigation
+    const wasAuthenticated = isAuthenticated || localStorage.getItem('cvBuilderAuth') === 'true';
+    
+    // Set navigation flag to prevent auth clearing during navigation
+    sessionStorage.setItem('isNavigating', 'true');
+    sessionStorage.setItem('navigationTimestamp', Date.now().toString());
+    
     localStorage.setItem('selectedApp', 'marketplace');
-    localStorage.setItem('showProductsPage', 'true');
-    sessionStorage.setItem('showProductsPage', 'true');
-    // Trigger navigation event for App.js to handle
+    // Clear any login flags that might be set from previous actions
+    sessionStorage.removeItem('showLoginForm');
+    localStorage.removeItem('showLoginForm');
+    sessionStorage.removeItem('showProductsPage');
+    localStorage.removeItem('showProductsPage');
+    // Don't set any login flags - marketplace is public
+    // Dispatch event to set explicitlyClickedMarketplaceRef in App.js
     window.dispatchEvent(new CustomEvent('navigateToSection', { detail: 'marketplace' }));
+    
+    // Use React Router navigation instead of window.location.href to avoid full page reload
+    // This preserves authentication state
+    navigate('/marketplace');
+    
+    // Restore auth state after navigation (in case it was cleared during navigation)
+    if (wasAuthenticated) {
+      setTimeout(() => {
+        localStorage.setItem('cvBuilderAuth', 'true');
+      }, 100);
+    }
   };
 
   const navigateToCVBuilder = () => {
@@ -121,17 +147,26 @@ const LeftNavbar = ({ isAuthenticated, onLogout }) => {
       localStorage.setItem('selectedApp', 'cv-builder');
       localStorage.setItem('navigateToCVBuilder', 'true');
       sessionStorage.setItem('navigateToCVBuilder', 'true');
-      // Navigate to marketplace to show login
-      navigateToMarketplace();
+      // Show login form on homepage
+      localStorage.setItem('showLoginForm', 'true');
+      sessionStorage.setItem('showLoginForm', 'true');
+      navigate('/');
       return;
     }
     
-    // Facebook-style: Instant navigation
+    // User is authenticated - navigate to CV Builder
+    // Set navigation flags FIRST to prevent logout on page reload
+    sessionStorage.setItem('isNavigating', 'true');
+    sessionStorage.setItem('navigationTimestamp', Date.now().toString());
+    sessionStorage.setItem('navigateToCVBuilder', 'true');
+    localStorage.setItem('navigateToCVBuilder', 'true');
     localStorage.setItem('selectedApp', 'cv-builder');
+    localStorage.setItem('cvView', 'dashboard');
+    // Clear any marketplace flags
     localStorage.removeItem('showProductsPage');
     sessionStorage.removeItem('showProductsPage');
-    // Trigger navigation event for App.js to handle
-    window.dispatchEvent(new CustomEvent('navigateToSection', { detail: 'cv-builder' }));
+    // Navigate to /cv-builder route using React Router
+    navigate('/cv-builder');
   };
 
   const navigateToIDCardPrinter = () => {
@@ -142,48 +177,54 @@ const LeftNavbar = ({ isAuthenticated, onLogout }) => {
       localStorage.setItem('idCardView', 'dashboard');
       localStorage.setItem('navigateToIDCardPrint', 'true');
       sessionStorage.setItem('navigateToIDCardPrint', 'true');
-      // Navigate to marketplace to show login
-      navigateToMarketplace();
+      // Show login form on homepage
+      localStorage.setItem('showLoginForm', 'true');
+      sessionStorage.setItem('showLoginForm', 'true');
+      navigate('/');
       return;
     }
     
-    // Facebook-style: Instant navigation
+    // User is authenticated - navigate to ID Card Dashboard
+    // Set navigation flags FIRST to prevent logout on page reload
+    sessionStorage.setItem('isNavigating', 'true');
+    sessionStorage.setItem('navigationTimestamp', Date.now().toString());
+    sessionStorage.setItem('navigateToIDCardPrint', 'true');
+    localStorage.setItem('navigateToIDCardPrint', 'true');
     localStorage.setItem('selectedApp', 'id-card-print');
     localStorage.setItem('idCardView', 'dashboard');
+    // Clear any marketplace flags
     localStorage.removeItem('showProductsPage');
     sessionStorage.removeItem('showProductsPage');
-    // Trigger navigation event for App.js to handle
-    window.dispatchEvent(new CustomEvent('navigateToSection', { detail: 'id-card-print' }));
+    // Navigate to /id-card-print route using React Router
+    navigate('/id-card-print');
   };
 
   const handleSignIn = () => {
-    // Set flag for login form - Marketplace component will check this on mount
-    // Set in both storages to ensure it's available immediately
+    // Simple: Always show the login form
+    // Set flag in both storages to ensure it's available immediately
     localStorage.setItem('showLoginForm', 'true');
     sessionStorage.setItem('showLoginForm', 'true');
-    // Clear any navigation flags that might interfere
-    sessionStorage.removeItem('navigateToCVBuilder');
-    sessionStorage.removeItem('navigateToIDCardPrint');
-    localStorage.removeItem('navigateToCVBuilder');
-    localStorage.removeItem('navigateToIDCardPrint');
-    // Clear justAuthenticated flag to allow login form to show
-    sessionStorage.removeItem('justAuthenticated');
     
-    // If already on marketplace, try to show login form immediately
-    if (location.pathname === '/marketplace') {
-      // Try to show login form directly if Marketplace component is mounted
+    // If on homepage, show login form on homepage
+    if (location.pathname === '/') {
+      // Try to show login form directly if HomePage component is mounted
+      if (window.showLoginFormHomepage) {
+        window.showLoginFormHomepage();
+      } else {
+        // Dispatch event to trigger form display
+        window.dispatchEvent(new CustomEvent('showLoginFormHomepage'));
+      }
+    } else if (location.pathname === '/marketplace') {
+      // If already on marketplace, show login form immediately
       if (window.showLoginForm) {
         window.showLoginForm();
       } else {
-        // Marketplace component not mounted - dispatch event to trigger re-render
+        // Dispatch event to trigger form display
         window.dispatchEvent(new CustomEvent('showLoginForm'));
       }
     } else {
-      // Not on marketplace - navigate to marketplace with login form flag
-      // The showLoginForm flag will be checked by Marketplace component on mount
-      // Dispatch event immediately so it's ready when component mounts
-      window.dispatchEvent(new CustomEvent('showLoginForm'));
-      navigate('/marketplace');
+      // Navigate to homepage where login form will be shown
+      navigate('/');
     }
   };
 

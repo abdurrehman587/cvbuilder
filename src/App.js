@@ -1376,13 +1376,18 @@ function App() {
             setIsAuthenticated(true);
             localStorage.setItem('cvBuilderAuth', 'true');
             
-            // Set a flag to prevent logout immediately after login (for 10 seconds)
+            // Set flags to prevent logout immediately after login (for 10 seconds)
+            // Set both flags for compatibility with all auth checks
             const loginTimestamp = Date.now();
             sessionStorage.setItem('justLoggedIn', loginTimestamp.toString());
-            // Clear this flag after 10 seconds
+            sessionStorage.setItem('justAuthenticated', 'true');
+            // Clear these flags after 10 seconds
             setTimeout(() => {
               sessionStorage.removeItem('justLoggedIn');
             }, 10000);
+            setTimeout(() => {
+              sessionStorage.removeItem('justAuthenticated');
+            }, 5000);
             
             // Check if this is an OAuth callback (Google login)
             // IMPORTANT: Only check for actual OAuth tokens in URL, not the flag
@@ -1443,18 +1448,37 @@ function App() {
             // Trigger auth event for other components
             window.dispatchEvent(new CustomEvent('userAuthenticated'));
           } else if (event === 'SIGNED_OUT') {
-            // User explicitly signed out
-            setIsAuthenticated(false);
-            localStorage.removeItem('cvBuilderAuth');
-            sessionStorage.removeItem('justLoggedIn');
+            // User explicitly signed out - but check if this is a false positive
+            // Sometimes SIGNED_OUT can fire during login if there's a race condition
+            const justLoggedIn = sessionStorage.getItem('justLoggedIn');
+            const justAuthenticated = sessionStorage.getItem('justAuthenticated') === 'true';
+            
+            // Only clear auth if user didn't just log in (prevent race conditions)
+            if (!justLoggedIn && !justAuthenticated) {
+              setIsAuthenticated(false);
+              localStorage.removeItem('cvBuilderAuth');
+            } else {
+              // User just logged in - this might be a false SIGNED_OUT event
+              // Keep auth state and wait for SIGNED_IN event
+              console.log('SIGNED_OUT event ignored - user just logged in');
+            }
+            // Don't remove justLoggedIn here - let it expire naturally
           } else if (event === 'TOKEN_REFRESHED' && !session) {
             // Token refresh failed - but don't clear auth if user just logged in
             // This prevents race conditions where session hasn't propagated yet
             const justLoggedIn = sessionStorage.getItem('justLoggedIn');
-            if (!justLoggedIn) {
-              // Only clear auth if user didn't just log in
+            const justAuthenticated = sessionStorage.getItem('justAuthenticated') === 'true';
+            const isAuthInStorage = localStorage.getItem('cvBuilderAuth') === 'true';
+            
+            // Only clear auth if user didn't just log in AND there's no auth in storage
+            // This prevents clearing auth for admin users or during race conditions
+            if (!justLoggedIn && !justAuthenticated && !isAuthInStorage) {
               setIsAuthenticated(false);
               localStorage.removeItem('cvBuilderAuth');
+            } else if (isAuthInStorage || justLoggedIn || justAuthenticated) {
+              // User is authenticated - ensure auth state is set
+              setIsAuthenticated(true);
+              localStorage.setItem('cvBuilderAuth', 'true');
             }
             // Don't remove justLoggedIn here - let it expire naturally
           } else if (event === 'TOKEN_REFRESHED' && session?.user) {
@@ -1870,7 +1894,63 @@ function App() {
   
   if (isAuthenticated && !isLoading) {
     
+    // PRIORITY 0: Check pathname FIRST - before any other routing logic
+    // This ensures that when user navigates to /cv-builder, we show CV Builder regardless of localStorage
+    const pathname = location.pathname;
+    let routingApp = null;
+    
+    // PRIORITY: If pathname is "/", check for navigation flags FIRST
+    if (pathname === '/') {
+      const navigateToCVBuilderCheck = sessionStorage.getItem('navigateToCVBuilder') === 'true' ||
+                                       localStorage.getItem('navigateToCVBuilder') === 'true';
+      const navigateToIDCardPrintCheck = sessionStorage.getItem('navigateToIDCardPrint') === 'true' ||
+                                         localStorage.getItem('navigateToIDCardPrint') === 'true';
+      const hasNavFlags = navigateToCVBuilderCheck || navigateToIDCardPrintCheck;
+      
+      // If navigation flags are set, set routingApp accordingly
+      if (navigateToIDCardPrintCheck) {
+        routingApp = 'id-card-print';
+        localStorage.setItem('selectedApp', 'id-card-print');
+        localStorage.setItem('idCardView', 'dashboard');
+        console.log('PRIORITY: pathname is "/" with navigateToIDCardPrint flag - routing to ID Card Dashboard');
+      } else if (navigateToCVBuilderCheck) {
+        routingApp = 'cv-builder';
+        localStorage.setItem('selectedApp', 'cv-builder');
+        console.log('PRIORITY: pathname is "/" with navigateToCVBuilder flag - routing to CV Builder');
+      } else if (!hasNavFlags) {
+        // If no navigation flags, force homepage
+        routingApp = null;
+        localStorage.removeItem('selectedApp');
+        // Clear refs to prevent restoring previous app
+        lastKnownAppRef.current = null;
+        explicitlyClickedMarketplaceRef.current = false;
+        console.log('PRIORITY: pathname is "/" - forcing homepage');
+      }
+    }
+    
+    if (pathname === '/cv-builder') {
+      // User navigated to CV Builder URL - force CV Builder routing
+      routingApp = 'cv-builder';
+      localStorage.setItem('selectedApp', 'cv-builder');
+      // Clear any navigation flags
+      sessionStorage.removeItem('navigateToCVBuilder');
+      localStorage.removeItem('navigateToCVBuilder');
+      console.log('PRIORITY 0: /cv-builder pathname detected - forcing CV Builder routing');
+    }
+    
+    if (pathname === '/id-card-print') {
+      // User navigated to ID Card Print URL - force ID Card Print routing
+      routingApp = 'id-card-print';
+      localStorage.setItem('selectedApp', 'id-card-print');
+      localStorage.setItem('idCardView', 'dashboard');
+      // Clear any navigation flags
+      sessionStorage.removeItem('navigateToIDCardPrint');
+      localStorage.removeItem('navigateToIDCardPrint');
+      console.log('PRIORITY 0: /id-card-print pathname detected - forcing ID Card Print routing');
+    }
+    
     // Get current route from routing utility (reads from localStorage)
+    // Only use this if pathname didn't force a routing decision
     const route = getRoute();
     const cvView = route.cvView;
     
@@ -1895,13 +1975,16 @@ function App() {
     
     // Check for specific routes FIRST before determining routingApp
     // This prevents routingApp from overriding specific routes like cart, checkout, etc.
-    const pathname = location.pathname;
     if (pathname === '/cart' || pathname === '/checkout' || pathname.startsWith('/order/') || pathname === '/orders') {
       // These routes are handled above, but if we reach here, let routingApp be determined normally
       // The route checks above should have caught these, but this is a safety check
     }
     
-    let routingApp = route.app;
+    // If pathname didn't force routingApp, use route.app
+    // BUT: If pathname is "/", don't use route.app - keep routingApp as null for homepage
+    if (!routingApp && pathname !== '/') {
+      routingApp = route.app;
+    }
     
     // Check if hash contains product detail route - if so, ensure marketplace routing
     const productHashCheck = window.location.hash;
@@ -1916,9 +1999,55 @@ function App() {
     // DEBUG: Log initial routing state
     console.log('App.js routing - Initial route.app:', route.app, 'localStorage selectedApp:', localStorage.getItem('selectedApp'), 'explicitlyClickedMarketplace:', explicitlyClickedMarketplaceRef.current, 'lastKnownApp:', lastKnownAppRef.current);
     
+    // Check for CV Builder flags and pathname (needed for all checks below)
+    const navigateToCVBuilderFlag = sessionStorage.getItem('navigateToCVBuilder') === 'true' ||
+                                     localStorage.getItem('navigateToCVBuilder') === 'true';
+    const selectedAppIsCVBuilder = localStorage.getItem('selectedApp') === 'cv-builder';
+    const isCVBuilderPathname = pathname === '/cv-builder';
+    
+    // Check for ID Card Print flags and pathname (needed for all checks below)
+    const navigateToIDCardPrintFlag = sessionStorage.getItem('navigateToIDCardPrint') === 'true' ||
+                                      localStorage.getItem('navigateToIDCardPrint') === 'true';
+    const selectedAppIsIDCardPrint = localStorage.getItem('selectedApp') === 'id-card-print';
+    const isIDCardPrintPathname = pathname === '/id-card-print';
+    
+    // PRIORITY 0: Check for navigateToCVBuilder flag FIRST (before homepage check)
+    // This ensures CV Builder is accessible when user clicks on it
+    // BUT: Only if pathname is not already /cv-builder (already handled above)
+    // AND: Only if routingApp is not already set (to avoid overriding earlier decisions)
+    if (!routingApp && !isCVBuilderPathname && (navigateToCVBuilderFlag || selectedAppIsCVBuilder)) {
+      // User wants CV Builder - set routingApp and clear flag
+      routingApp = 'cv-builder';
+      localStorage.setItem('selectedApp', 'cv-builder');
+      // Clear the flag after using it (but keep selectedApp)
+      if (navigateToCVBuilderFlag) {
+        sessionStorage.removeItem('navigateToCVBuilder');
+        localStorage.removeItem('navigateToCVBuilder');
+      }
+      console.log('PRIORITY 0: navigateToCVBuilder flag or selectedApp=cv-builder detected - routing to CV Builder');
+    }
+    
+    // PRIORITY 0: Check for navigateToIDCardPrint flag (similar to CV Builder)
+    // This ensures ID Card Dashboard is accessible when user clicks on it
+    // BUT: Only if pathname is not already /id-card-print (already handled above)
+    // AND: Only if routingApp is not already set (to avoid overriding earlier decisions)
+    if (!routingApp && !isIDCardPrintPathname && (navigateToIDCardPrintFlag || selectedAppIsIDCardPrint)) {
+      // User wants ID Card Dashboard - set routingApp and clear flag
+      routingApp = 'id-card-print';
+      localStorage.setItem('selectedApp', 'id-card-print');
+      // Set idCardView to dashboard
+      localStorage.setItem('idCardView', 'dashboard');
+      // Clear the flag after using it (but keep selectedApp)
+      if (navigateToIDCardPrintFlag) {
+        sessionStorage.removeItem('navigateToIDCardPrint');
+        localStorage.removeItem('navigateToIDCardPrint');
+      }
+      console.log('PRIORITY 0: navigateToIDCardPrint flag or selectedApp=id-card-print detected - routing to ID Card Dashboard');
+    }
+    
     // PRIORITY: Check for homepage navigation flag BEFORE any default logic
     const navigateToHomePageFlag = sessionStorage.getItem('navigateToHomePage') === 'true';
-    if (navigateToHomePageFlag) {
+    if (navigateToHomePageFlag && !isCVBuilderPathname && !isIDCardPrintPathname && !navigateToCVBuilderFlag && !selectedAppIsCVBuilder && !navigateToIDCardPrintFlag && !selectedAppIsIDCardPrint) {
       // User wants homepage - clear the flag and force homepage
       sessionStorage.removeItem('navigateToHomePage');
       // Clear lastKnownAppRef to prevent restoring CV Builder
@@ -1930,8 +2059,9 @@ function App() {
     }
     
     // CRITICAL: If routingApp is 'marketplace', check if user was actually on it
-    // Preserve marketplace if user was on it (ref has marketplace) OR explicitly clicked it
-    if (routingApp === 'marketplace') {
+    // BUT: Don't override if user wants CV Builder (pathname is /cv-builder or flags are set)
+    
+    if (routingApp === 'marketplace' && !isCVBuilderPathname && !isIDCardPrintPathname && !navigateToCVBuilderFlag && !selectedAppIsCVBuilder && !navigateToIDCardPrintFlag && !selectedAppIsIDCardPrint) {
       // Only redirect away if user was NOT on marketplace (ref doesn't have it) AND didn't explicitly click it
       if (lastKnownAppRef.current !== 'marketplace' && !explicitlyClickedMarketplaceRef.current) {
         // User was NOT on marketplace - restore their actual section
@@ -1946,10 +2076,15 @@ function App() {
           explicitlyClickedMarketplaceRef.current = false;
         }
       }
-    } else if (!routingApp && !navigateToHomePageFlag) {
+    } else if (!routingApp && !navigateToHomePageFlag && !isCVBuilderPathname && !isIDCardPrintPathname && !navigateToCVBuilderFlag && !selectedAppIsCVBuilder && !navigateToIDCardPrintFlag && !selectedAppIsIDCardPrint) {
       // routingApp is null/empty - use last known app or show homepage
       // BUT: Don't default if user wants homepage (flag was already checked above)
-      if (lastKnownAppRef.current === 'marketplace') {
+      // CRITICAL: If pathname is "/", always show homepage regardless of last known app
+      if (pathname === '/') {
+        routingApp = null;
+        localStorage.removeItem('selectedApp');
+        lastKnownAppRef.current = null;
+      } else if (lastKnownAppRef.current === 'marketplace') {
         // User was on marketplace - restore it
         routingApp = 'marketplace';
         setCurrentApp('marketplace');
@@ -2313,7 +2448,9 @@ function App() {
     if (routingApp === 'id-card-print') {
       // Check if user wants to see the print page
       // This takes priority over showing the dashboard
-      if (idCardView === 'print') {
+      // Read from localStorage directly to avoid state sync issues
+      const currentIdCardView = localStorage.getItem('idCardView') || 'dashboard';
+      if (currentIdCardView === 'print') {
         const handleBackToIDCardDashboard = () => {
           setIdCardView('dashboard');
           localStorage.setItem('idCardView', 'dashboard');

@@ -11,52 +11,6 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
   const [isAdmin, setIsAdmin] = useState(false);
   const [isOnAdminPage, setIsOnAdminPage] = useState(false);
   const [cartItemCount, setCartItemCount] = useState(0);
-  const [showInstallButton, setShowInstallButton] = useState(false);
-  const [isInstalled, setIsInstalled] = useState(false);
-
-  // Check if PWA is already installed and handle install button visibility
-  useEffect(() => {
-    const checkInstallState = () => {
-      // Check if running as installed PWA
-      const installed = window.isPWA ? window.isPWA() : false;
-      setIsInstalled(installed);
-      
-      // Check if should show install button
-      const shouldShow = window.shouldShowInstall ? window.shouldShowInstall() : false;
-      setShowInstallButton(shouldShow && !installed);
-    };
-    
-    checkInstallState();
-    
-    // Listen for install availability
-    const handleInstallAvailable = () => {
-      checkInstallState();
-    };
-    
-    // Listen for successful installation
-    const handleInstalled = () => {
-      setShowInstallButton(false);
-      setIsInstalled(true);
-    };
-    
-    window.addEventListener('pwaInstallAvailable', handleInstallAvailable);
-    window.addEventListener('pwaInstalled', handleInstalled);
-    
-    return () => {
-      window.removeEventListener('pwaInstallAvailable', handleInstallAvailable);
-      window.removeEventListener('pwaInstalled', handleInstalled);
-    };
-  }, []);
-
-  const handleInstallClick = async () => {
-    if (window.installPWA) {
-      const installed = await window.installPWA();
-      if (installed) {
-        setShowInstallButton(false);
-        setIsInstalled(true);
-      }
-    }
-  };
 
   // Check if user is admin
   useEffect(() => {
@@ -171,33 +125,31 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
   };
 
   const handleSignIn = () => {
-    // Set flag for login form - Marketplace component will check this on mount
-    // Set in both storages to ensure it's available immediately
+    // Simple: Always show the login form
+    // Set flag in both storages to ensure it's available immediately
     localStorage.setItem('showLoginForm', 'true');
     sessionStorage.setItem('showLoginForm', 'true');
-    // Clear any navigation flags that might interfere
-    sessionStorage.removeItem('navigateToCVBuilder');
-    sessionStorage.removeItem('navigateToIDCardPrint');
-    localStorage.removeItem('navigateToCVBuilder');
-    localStorage.removeItem('navigateToIDCardPrint');
-    // Clear justAuthenticated flag to allow login form to show
-    sessionStorage.removeItem('justAuthenticated');
     
-    // If already on marketplace, try to show login form immediately
-    if (location.pathname === '/marketplace') {
-      // Try to show login form directly if Marketplace component is mounted
+    // If on homepage, show login form on homepage
+    if (location.pathname === '/') {
+      // Try to show login form directly if HomePage component is mounted
+      if (window.showLoginFormHomepage) {
+        window.showLoginFormHomepage();
+      } else {
+        // Dispatch event to trigger form display
+        window.dispatchEvent(new CustomEvent('showLoginFormHomepage'));
+      }
+    } else if (location.pathname === '/marketplace') {
+      // If already on marketplace, show login form immediately
       if (window.showLoginForm) {
         window.showLoginForm();
       } else {
-        // Marketplace component not mounted - dispatch event to trigger re-render
+        // Dispatch event to trigger form display
         window.dispatchEvent(new CustomEvent('showLoginForm'));
       }
     } else {
-      // Not on marketplace - navigate to marketplace with login form flag
-      // The showLoginForm flag will be checked by Marketplace component on mount
-      // Dispatch event immediately so it's ready when component mounts
-      window.dispatchEvent(new CustomEvent('showLoginForm'));
-      navigate('/marketplace');
+      // Navigate to homepage where login form will be shown
+      navigate('/');
     }
   };
 
@@ -205,13 +157,14 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
     if (!isAuthenticated) {
       // User is not signed in: Show login form
       sessionStorage.setItem('navigateToCVBuilder', 'true');
+      localStorage.setItem('navigateToCVBuilder', 'true');
       localStorage.setItem('selectedApp', 'cv-builder');
       if (showProductsOnHeader && window.showLoginForm) {
         window.showLoginForm();
       } else {
-        localStorage.setItem('showProductsPage', 'true');
-        sessionStorage.setItem('showProductsPage', 'true');
-        window.location.href = '/marketplace';
+        localStorage.setItem('showLoginForm', 'true');
+        sessionStorage.setItem('showLoginForm', 'true');
+        navigate('/marketplace');
       }
     } else {
       // User is signed in: Navigate directly to CV Builder dashboard
@@ -220,14 +173,14 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
       sessionStorage.setItem('navigationTimestamp', Date.now().toString());
       localStorage.setItem('selectedApp', 'cv-builder');
       sessionStorage.setItem('navigateToCVBuilder', 'true');
+      localStorage.setItem('navigateToCVBuilder', 'true');
       localStorage.removeItem('showProductsPage');
       sessionStorage.removeItem('showProductsPage');
       if (window.resetProductsPageFlag) {
         window.resetProductsPageFlag();
       }
-      // Use hash-based navigation instead of page reload
-      window.location.hash = '';
-      window.dispatchEvent(new CustomEvent('navigateToCVBuilder'));
+      // Navigate to /cv-builder route using React Router
+      navigate('/cv-builder');
     }
   };
 
@@ -373,17 +326,6 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
           </div>
 
           <div className="header-right">
-            {/* Install App Button */}
-            {showInstallButton && !isInstalled && (
-              <button
-                onClick={handleInstallClick}
-                className="install-btn-header"
-                title="Install Get Glory App"
-              >
-                Install App
-              </button>
-            )}
-            
             {/* Cart Button - Show on products page */}
             {showProductsOnHeader && (
               <button

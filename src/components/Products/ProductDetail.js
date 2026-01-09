@@ -324,7 +324,7 @@ const ProductDetail = ({ productId }) => {
                 >
                   <img 
                     src={images[currentImageIndex]} 
-                    alt={`${product.name} - Image ${currentImageIndex + 1}`}
+                    alt={`${product.name} - ${product.description || 'Professional product'} - Image ${currentImageIndex + 1}`}
                     className="product-detail-main-image"
                   />
                   {images.length > 1 && (
@@ -356,7 +356,7 @@ const ProductDetail = ({ productId }) => {
                       <img
                         key={index}
                         src={url}
-                        alt={`${product.name} thumbnail ${index + 1}`}
+                        alt={`${product.name} - ${product.description || 'Professional product'} thumbnail ${index + 1}`}
                         className={`product-detail-thumbnail ${index === currentImageIndex ? 'active' : ''}`}
                         onClick={() => setCurrentImageIndex(index)}
                       />
@@ -440,7 +440,7 @@ const ProductDetail = ({ productId }) => {
                         {relatedImages.length > 0 ? (
                           <img
                             src={relatedImages[0]}
-                            alt={relatedProduct.name}
+                            alt={`${relatedProduct.name} - ${relatedProduct.description || 'Related professional product'}`}
                             className="related-product-image"
                             onError={(e) => {
                               e.target.style.display = 'none';
