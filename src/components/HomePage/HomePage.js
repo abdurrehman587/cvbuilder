@@ -426,55 +426,142 @@ const HomePage = ({ onProductSelect }) => {
           </h2>
         </div>
 
-        {/* Homepage Header */}
-        <div className="homepage-header">
-          <h1 className="homepage-title">Online CV Builder in Pakistan | Free Resume Maker</h1>
-          <p className="homepage-subtitle">Create professional CVs online in Pakistan. Free resume builder with modern templates. Download PDF and print your CV instantly. Get Glory offers the best CV builder and resume maker tools for job seekers in Pakistan.</p>
-        </div>
-
-        {/* Digital Tools Category */}
+        {/* Digital Tools Section */}
         <div className="category-section">
-          <h2 className="category-title">Free Resume Builder and CV Maker Tools</h2>
-          <div className="category-items">
-            <div 
-              className="category-item"
-              onClick={() => handleGetStarted('cv-builder')}
-            >
-              <div className="category-item-icon">📄</div>
-              <div className="category-item-content">
-                <h3 className="category-item-title">Online CV Builder - Free Resume Maker</h3>
-                <p className="category-item-description">Create professional CVs online in Pakistan with our free resume builder. Choose from multiple modern templates and download your CV as PDF.</p>
+          <h2 className="category-title">Digital Tools</h2>
+          
+          {/* CV Builder Section */}
+          <div className="tool-section">
+          <div className="tool-section-content">
+            <div className="tool-section-text">
+              <h2 className="tool-section-title">CV Builder</h2>
+              <p className="tool-section-description">
+                Create professional CVs online in Pakistan with our free resume builder. 
+                Choose from multiple modern templates and download your CV as PDF. 
+                Build your perfect resume in minutes without any design experience.
+              </p>
+              
+              <div className="tool-features-list">
+                <div className="tool-feature-item">
+                  <span className="tool-feature-icon">⚡</span>
+                  <span className="tool-feature-text">Fill the form and get your CV ready in minutes.</span>
+                </div>
+                <div className="tool-feature-item">
+                  <span className="tool-feature-icon">🎨</span>
+                  <span className="tool-feature-text">No designing skills required.</span>
+                </div>
+                <div className="tool-feature-item">
+                  <span className="tool-feature-icon">📋</span>
+                  <span className="tool-feature-text">Multiple professional templates.</span>
+                </div>
+                <div className="tool-feature-item">
+                  <span className="tool-feature-icon">💾</span>
+                  <span className="tool-feature-text">Your data saved automatically, access anytime.</span>
+                </div>
+                <div className="tool-feature-item">
+                  <span className="tool-feature-icon">📥</span>
+                  <span className="tool-feature-text">High quality PDF Downloads.</span>
+                </div>
               </div>
-              <div className="category-item-arrow">→</div>
+
+              <button 
+                className="tool-section-button"
+                onClick={() => handleGetStarted('cv-builder')}
+              >
+                Get Started →
+              </button>
             </div>
-            <div 
-              className="category-item"
-              onClick={() => handleGetStarted('id-card-print')}
-            >
-              <div className="category-item-icon">🪪</div>
-              <div className="category-item-content">
-                <h3 className="category-item-title">ID Card Printing Utility</h3>
-                <p className="category-item-description">Design and print professional ID cards</p>
+            <div className="tool-section-image">
+              <img 
+                src="https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=800&h=600&fit=crop&q=90"
+                alt="CV Builder - Professional Resume Maker"
+                className="tool-image"
+                loading="lazy"
+              />
+            </div>
+          </div>
+          </div>
+
+          {/* ID Card Printing Utility Section */}
+          <div className="tool-section">
+          <div className="tool-section-content">
+            <div className="tool-section-image">
+              <img 
+                src="/images/id-card-printer.jpg"
+                alt="ID Card Printing Utility"
+                className="tool-image"
+                loading="lazy"
+              />
+            </div>
+            <div className="tool-section-text">
+              <h2 className="tool-section-title">ID Card Printing Utility</h2>
+              
+              <div className="tool-features-list">
+                <div className="tool-feature-item">
+                  <span className="tool-feature-icon">🖨️</span>
+                  <span className="tool-feature-text">Get ID Card Print Front and Back Exactly.</span>
+                </div>
+                <div className="tool-feature-item">
+                  <span className="tool-feature-icon">📄</span>
+                  <span className="tool-feature-text">Support 08 ID Cards on A4 Size Page.</span>
+                </div>
+                <div className="tool-feature-item">
+                  <span className="tool-feature-icon">📋</span>
+                  <span className="tool-feature-text">You can get Multiple ID Cards on a single page.</span>
+                </div>
               </div>
-              <div className="category-item-arrow">→</div>
+
+              <button 
+                className="tool-section-button"
+                onClick={() => handleGetStarted('id-card-print')}
+              >
+                Get Started →
+              </button>
             </div>
+          </div>
           </div>
         </div>
 
         {/* Products Category */}
         <div className="category-section">
           <h2 className="category-title">Professional Services and Resources</h2>
-          <div className="category-items">
-            <div 
-              className="category-item"
-              onClick={() => handleGetStarted('marketplace')}
-            >
-              <div className="category-item-icon">🛒</div>
-              <div className="category-item-content">
-                <h3 className="category-item-title">Marketplace</h3>
-                <p className="category-item-description">Discover professional services, templates, and resources</p>
+          
+          {/* Marketplace Section */}
+          <div className="tool-section">
+            <div className="tool-section-content">
+              <div className="tool-section-text">
+                <h2 className="tool-section-title">Marketplace</h2>
+                
+                <div className="tool-features-list">
+                  <div className="tool-feature-item">
+                    <span className="tool-feature-icon">⭐</span>
+                    <span className="tool-feature-text">High Quality Products at Best Prices.</span>
+                  </div>
+                  <div className="tool-feature-item">
+                    <span className="tool-feature-icon">📝</span>
+                    <span className="tool-feature-text">Complete Description of Products.</span>
+                  </div>
+                  <div className="tool-feature-item">
+                    <span className="tool-feature-icon">🛒</span>
+                    <span className="tool-feature-text">Buy instantly or add to cart for later purchase.</span>
+                  </div>
+                </div>
+
+                <button 
+                  className="tool-section-button"
+                  onClick={() => handleGetStarted('marketplace')}
+                >
+                  Get Started →
+                </button>
               </div>
-              <div className="category-item-arrow">→</div>
+              <div className="tool-section-image">
+                <img 
+                  src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&h=600&fit=crop&q=90"
+                  alt="Marketplace - Professional Services and Resources"
+                  className="tool-image"
+                  loading="lazy"
+                />
+              </div>
             </div>
           </div>
         </div>

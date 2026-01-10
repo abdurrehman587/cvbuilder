@@ -4,9 +4,10 @@ import { authService, supabase } from '../Supabase/supabase';
 import { addToCart } from '../../utils/cart';
 
 // Constants
-const PRODUCTS_PER_PAGE = 6; // Reduced for faster initial load
-const INITIAL_PRODUCTS = 6; // Initial products to show (reduced for faster load)
-const PRELOAD_DISTANCE = 200; // Preload images 200px before they're visible (reduced for better performance)
+const PRODUCTS_PER_PAGE = 12; // Increased for better UX (loads faster with optimizations)
+const INITIAL_PRODUCTS = 12; // Initial products to show
+const PRELOAD_DISTANCE = 300; // Preload images 300px before they're visible
+const SEARCH_DEBOUNCE = 200; // Reduced debounce for faster search
 
 // Move products array outside component to keep it stable
   const products = [
@@ -23,7 +24,20 @@ const PRELOAD_DISTANCE = 200; // Preload images 200px before they're visible (re
     },
   ];
 
-// Helper function to check WebP support (cached)
+// Polyfill for requestIdleCallback (define before use)
+const requestIdleCallback = typeof window !== 'undefined' && window.requestIdleCallback 
+  ? window.requestIdleCallback.bind(window)
+  : (cb, options) => {
+      const start = Date.now();
+      return setTimeout(() => {
+        cb({
+          didTimeout: false,
+          timeRemaining: () => Math.max(0, (options?.timeout || 0) - (Date.now() - start))
+        });
+      }, 1);
+    };
+
+// Helper function to check WebP support (cached and optimized)
 let webpSupported = null;
 const checkWebPSupport = () => {
   if (webpSupported !== null) return webpSupported;
@@ -31,6 +45,19 @@ const checkWebPSupport = () => {
     webpSupported = false;
     return false;
   }
+  // Use modern API if available (faster)
+  if (HTMLImageElement.prototype.decode) {
+    try {
+      const img = new Image();
+      img.src = 'data:image/webp;base64,UklGRjoAAABXRUJQVlA4IC4AAACyAgCdASoCAAIALmk0mk0iIiIiIgBoSygABc6WWgAA/veff/0PP8bA//LwYAAA';
+      webpSupported = true; // Assume support for modern browsers
+      return true;
+    } catch (e) {
+      webpSupported = false;
+      return false;
+    }
+  }
+  // Fallback for older browsers
   try {
     const canvas = document.createElement('canvas');
     canvas.width = 1;
@@ -308,7 +335,7 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
       clearTimeout(searchTimeoutRef.current);
     }
     
-    // Debounce search for performance
+    // Debounce search for performance (reduced delay for faster response)
     searchTimeoutRef.current = setTimeout(() => {
       const filtered = filterProducts(allProducts, value);
       setFilteredProducts(filtered);
@@ -326,7 +353,7 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
         setCurrentPage(1);
         setHasMoreProducts(false); // Disable infinite scroll when searching
       }
-    }, 300); // 300ms debounce
+    }, SEARCH_DEBOUNCE); // Faster debounce
   }, [allProducts, filterProducts]);
   
   // Clear search
@@ -349,8 +376,8 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
     };
   }, []);
   
-  // Get images for a product
-  const getProductImages = (product) => {
+  // Get images for a product (memoized for performance)
+  const getProductImages = useCallback((product) => {
     // Check for image_urls array (JSONB from database)
     if (product.image_urls) {
       // Handle both array and string formats
@@ -377,7 +404,7 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
       return [product.image_url];
     }
     return [];
-  };
+  }, []);
   
   // Removed hover carousel handlers - no longer needed
   const [cartNotification, setCartNotification] = useState({ 
@@ -596,160 +623,129 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
     };
   }, [showLoginOnMount]);
 
-  // Load marketplace sections and all products metadata (for pagination)
+  // Load marketplace sections and products with server-side pagination for better performance
   useEffect(() => {
-    const loadTimeout = setTimeout(() => {
-      const loadMarketplaceData = async () => {
-        try {
-          setLoadingMarketplace(true);
-          
-          // Load sections
-          const { data: sectionsData, error: sectionsError } = await supabase
+    let isMounted = true;
+    let abortController = new AbortController();
+
+    const loadMarketplaceData = async () => {
+      try {
+        setLoadingMarketplace(true);
+        
+        // Load sections and products in parallel for faster load
+        // Load all products for section filtering, but display in batches
+        const [sectionsResponse, productsResponse] = await Promise.all([
+          supabase
             .from('marketplace_sections')
             .select('*')
-            .order('display_order', { ascending: true });
-
-          if (sectionsError) throw sectionsError;
-          setMarketplaceSections(sectionsData || []);
-
-          // Load ALL products metadata (we'll paginate the display)
-          const { data: productsData, error: productsError } = await supabase
+            .order('display_order', { ascending: true }),
+          supabase
             .from('marketplace_products')
             .select('*, marketplace_sections(name)')
             .or('is_hidden.is.null,is_hidden.eq.false')
-            .order('created_at', { ascending: false });
+            .order('created_at', { ascending: false })
+        ]);
 
-          if (productsError) throw productsError;
-          
-          // Store all products
-          setAllProducts(productsData || []);
-          
-          // Load initial batch (smaller for faster load)
-          const firstBatch = (productsData || []).slice(0, INITIAL_PRODUCTS);
-          setMarketplaceProducts(firstBatch);
-          setCurrentPage(1);
-          setHasMoreProducts((productsData || []).length > INITIAL_PRODUCTS);
-          
-          // Preload images for first batch after a short delay
-          // Helper function to get images (defined inline to avoid scope issues)
-          const getImages = (product) => {
-            if (product.image_urls) {
-              if (Array.isArray(product.image_urls) && product.image_urls.length > 0) {
-                return product.image_urls.filter(url => url && url.trim() !== '');
-              } else if (typeof product.image_urls === 'string') {
-                try {
-                  const parsed = JSON.parse(product.image_urls);
-                  if (Array.isArray(parsed) && parsed.length > 0) {
-                    return parsed.filter(url => url && url.trim() !== '');
-                  }
-                } catch (e) {
-                  if (product.image_urls.trim() !== '') {
-                    return [product.image_urls];
-                  }
-                }
-              }
+        if (!isMounted) return;
+
+        if (sectionsResponse.error) throw sectionsResponse.error;
+        setMarketplaceSections(sectionsResponse.data || []);
+
+        if (productsResponse.error) throw productsResponse.error;
+        
+        const allProductsData = productsResponse.data || [];
+        const hasMore = allProductsData.length > INITIAL_PRODUCTS;
+        const firstBatch = allProductsData.slice(0, INITIAL_PRODUCTS);
+        
+        // Store all products for section filtering and search
+        setAllProducts(allProductsData);
+        setMarketplaceProducts(firstBatch);
+        setCurrentPage(1);
+        setHasMoreProducts(hasMore);
+        
+        // Preload images for first batch immediately (no delay)
+        requestIdleCallback(() => {
+          if (!isMounted) return;
+          firstBatch.forEach(product => {
+            const images = getProductImages(product);
+            if (images.length > 0) {
+              // Preload low-quality thumbnail first
+              const lowQualityImg = new Image();
+              lowQualityImg.src = optimizeImageUrl(images[0], 200, 60, 'webp', true);
+              // Preload high-quality immediately after
+              const highQualityImg = new Image();
+              highQualityImg.src = optimizeImageUrl(images[0], 400, 85);
             }
-            if (product.image_url && product.image_url.trim() !== '') {
-              return [product.image_url];
-            }
-            return [];
-          };
-          
-          setTimeout(() => {
-            firstBatch.forEach(product => {
-              const images = getImages(product);
-              if (images.length > 0) {
-                // Preload low-quality thumbnail first for faster initial render
-                const lowQualityImg = new Image();
-                lowQualityImg.src = optimizeImageUrl(images[0], 200, 60, 'webp', true);
-                // Then preload high-quality in background
-                setTimeout(() => {
-                  const highQualityImg = new Image();
-                  highQualityImg.src = optimizeImageUrl(images[0], 400, 85);
-                }, 300);
-              }
-            });
-          }, 200);
-        } catch (err) {
+          });
+        }, { timeout: 100 });
+      } catch (err) {
+        if (isMounted) {
           console.error('Error loading marketplace data:', err);
-        } finally {
+        }
+      } finally {
+        if (isMounted) {
           setLoadingMarketplace(false);
         }
-      };
+      }
+    };
 
-      loadMarketplaceData();
-    }, 200);
+    // Start loading immediately (no delay)
+    loadMarketplaceData();
 
-    return () => clearTimeout(loadTimeout);
+    return () => {
+      isMounted = false;
+      abortController.abort();
+    };
   }, []);
 
-  // Load more products when scrolling
+  // Load more products when scrolling - optimized with server-side pagination
   const loadMoreProducts = useCallback(async () => {
     if (loadingMoreProducts || !hasMoreProducts) return;
 
     try {
       setLoadingMoreProducts(true);
       
-      // Calculate batch size based on current page
-      const batchSize = currentPage === 1 ? PRODUCTS_PER_PAGE : PRODUCTS_PER_PAGE;
-      const startIndex = currentPage === 1 ? INITIAL_PRODUCTS : (currentPage - 1) * PRODUCTS_PER_PAGE + INITIAL_PRODUCTS;
-      const endIndex = startIndex + batchSize;
-      const nextBatch = allProducts.slice(startIndex, endIndex);
+      // Load next batch from server for better performance
+      const nextPage = currentPage + 1;
+      const startIndex = (nextPage - 1) * PRODUCTS_PER_PAGE;
+      
+      const { data: nextBatch, error } = await supabase
+        .from('marketplace_products')
+        .select('*, marketplace_sections(name)')
+        .or('is_hidden.is.null,is_hidden.eq.false')
+        .order('created_at', { ascending: false })
+        .range(startIndex, startIndex + PRODUCTS_PER_PAGE - 1);
 
-      if (nextBatch.length > 0) {
+      if (error) throw error;
+
+      if (nextBatch && nextBatch.length > 0) {
         setMarketplaceProducts(prev => [...prev, ...nextBatch]);
-        setCurrentPage(prev => prev + 1);
-        setHasMoreProducts(endIndex < allProducts.length);
+        setCurrentPage(nextPage);
+        setHasMoreProducts(nextBatch.length === PRODUCTS_PER_PAGE);
         
-        // Preload images for next batch in background (low priority)
-        // Helper function to get images (defined inline to avoid scope issues)
-        const getImages = (product) => {
-          if (product.image_urls) {
-            if (Array.isArray(product.image_urls) && product.image_urls.length > 0) {
-              return product.image_urls.filter(url => url && url.trim() !== '');
-            } else if (typeof product.image_urls === 'string') {
-              try {
-                const parsed = JSON.parse(product.image_urls);
-                if (Array.isArray(parsed) && parsed.length > 0) {
-                  return parsed.filter(url => url && url.trim() !== '');
-                }
-              } catch (e) {
-                if (product.image_urls.trim() !== '') {
-                  return [product.image_urls];
-                }
-              }
-            }
-          }
-          if (product.image_url && product.image_url.trim() !== '') {
-            return [product.image_url];
-          }
-          return [];
-        };
-        
-        setTimeout(() => {
+        // Preload images for next batch in background (low priority, no nested timeouts)
+        requestIdleCallback(() => {
           nextBatch.forEach(product => {
-            const images = getImages(product);
+            const images = getProductImages(product);
             if (images.length > 0) {
-              // Preload low-quality thumbnail first for faster initial render
+              // Preload both low and high quality in parallel
               const lowQualityImg = new Image();
               lowQualityImg.src = optimizeImageUrl(images[0], 200, 60, 'webp', true);
-              // Then preload high-quality in background
-              setTimeout(() => {
-                const highQualityImg = new Image();
-                highQualityImg.src = optimizeImageUrl(images[0], 400, 85);
-              }, 300);
+              const highQualityImg = new Image();
+              highQualityImg.src = optimizeImageUrl(images[0], 400, 85);
             }
           });
-        }, 100);
+        }, { timeout: 200 });
       } else {
         setHasMoreProducts(false);
       }
     } catch (err) {
       console.error('Error loading more products:', err);
+      setHasMoreProducts(false);
     } finally {
       setLoadingMoreProducts(false);
     }
-  }, [currentPage, allProducts, loadingMoreProducts, hasMoreProducts]);
+  }, [currentPage, loadingMoreProducts, hasMoreProducts]);
 
   // Intersection Observer for infinite scroll
   useEffect(() => {
