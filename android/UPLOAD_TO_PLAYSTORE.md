@@ -1,17 +1,32 @@
 # Upload AAB to Google Play Store
 
-## ✅ Your AAB is Ready!
+## 📦 Build Release AAB
 
-**File Location:**
+Before uploading, you need to build the release AAB file:
+
+### Build Command:
+```bash
+npm run android:build
 ```
-C:\Users\GLORY\cvbuilder\cvbuilder-main\android\app\build\outputs\bundle\release\app-release.aab
+
+Or manually:
+```bash
+npm run build
+npx cap sync android
+cd android
+gradlew bundleRelease
+```
+
+**Output Location:**
+```
+android/app/build/outputs/bundle/release/app-release.aab
 ```
 
 **File Details:**
-- Size: 8.41 MB
+- Size: ~8-10 MB (will be generated after build)
 - Signed with: New keystore (Pakistan123@)
-- Version: 2.0.2 (versionCode: 12)
-- Last Modified: December 14, 2025
+- Version: 2.1.0 (versionCode: 18)
+- Last Modified: [Will be updated after build]
 
 ---
 
@@ -42,14 +57,22 @@ C:\Users\GLORY\cvbuilder\cvbuilder-main\android\app\build\outputs\bundle\release
 
 1. Scroll down to **"Release notes"** section
 2. Add release notes describing what's new in this version
-   - Example: "Updated app signing key. Bug fixes and improvements."
+   - Example: 
+     ```
+     Version 2.1.0 - What's New:
+     • Redesigned homepage with improved CV Builder and ID Card sections
+     • Enhanced marketplace with faster loading and better performance
+     • Added feature highlights for all main sections
+     • Improved user experience and navigation
+     • Performance optimizations for smoother app experience
+     ```
 3. You can add notes in multiple languages if needed
 
 ### Step 5: Review and Publish
 
 1. Review all the information:
    - ✅ AAB file uploaded
-   - ✅ Version number (2.0.2)
+   - ✅ Version number (2.1.0)
    - ✅ Release notes added
    - ✅ App signing key matches your new keystore
 
@@ -71,7 +94,7 @@ C:\Users\GLORY\cvbuilder\cvbuilder-main\android\app\build\outputs\bundle\release
 
 ✅ **AAB is signed correctly** - The AAB is signed with your new keystore (Pakistan123@)
 
-✅ **Version code incremented** - Current version: 12 (versionName: 2.0.2)
+✅ **Version code incremented** - Current version: 18 (versionName: 2.1.0)
 
 ⚠️ **If you get an error about signing:**
 - Make sure your upload key reset request was fully approved
@@ -85,7 +108,7 @@ C:\Users\GLORY\cvbuilder\cvbuilder-main\android\app\build\outputs\bundle\release
 Before uploading, verify:
 - [x] AAB file exists and is accessible
 - [x] Upload key reset was approved in Play Console
-- [x] Version code is incremented (current: 12)
+- [x] Version code is incremented (current: 18)
 - [ ] Release notes are prepared
 - [ ] You're ready to publish
 
