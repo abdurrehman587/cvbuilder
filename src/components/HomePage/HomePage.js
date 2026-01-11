@@ -432,7 +432,18 @@ const HomePage = ({ onProductSelect }) => {
           
           {/* CV Builder Section */}
           <div className="tool-section">
-          <div className="tool-section-content">
+          <div className="tool-section-content tool-section-cv-layout">
+            {/* Main Image at Top */}
+            <div className="tool-section-image-top">
+              <img 
+                src="https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=800&h=600&fit=crop&q=90"
+                alt="CV Builder - Professional Resume Maker"
+                className="tool-image"
+                loading="lazy"
+              />
+            </div>
+            
+            {/* Content Below Image */}
             <div className="tool-section-text">
               <h2 className="tool-section-title">CV Builder</h2>
               <p className="tool-section-description">
@@ -471,13 +482,47 @@ const HomePage = ({ onProductSelect }) => {
                 Get Started →
               </button>
             </div>
-            <div className="tool-section-image">
-              <img 
-                src="https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=800&h=600&fit=crop&q=90"
-                alt="CV Builder - Professional Resume Maker"
-                className="tool-image"
-                loading="lazy"
-              />
+
+            {/* Template Previews - Full Width */}
+            <div className="template-previews">
+              <div className="template-previews-grid">
+                <div className="template-preview-item">
+                  <img 
+                    src="/images/templates/Template 1.jpg"
+                    alt="CV Template 1"
+                    className="template-preview-image"
+                    loading="lazy"
+                  />
+                  <span className="template-preview-label">Template 1</span>
+                </div>
+                <div className="template-preview-item">
+                  <img 
+                    src="/images/templates/Template 2.jpg"
+                    alt="CV Template 2"
+                    className="template-preview-image"
+                    loading="lazy"
+                  />
+                  <span className="template-preview-label">Template 2</span>
+                </div>
+                <div className="template-preview-item">
+                  <img 
+                    src="/images/templates/Template 3.jpg"
+                    alt="CV Template 3"
+                    className="template-preview-image"
+                    loading="lazy"
+                  />
+                  <span className="template-preview-label">Template 3</span>
+                </div>
+                <div className="template-preview-item">
+                  <img 
+                    src="/images/templates/Template 4.jpg"
+                    alt="CV Template 4"
+                    className="template-preview-image"
+                    loading="lazy"
+                  />
+                  <span className="template-preview-label">Template 4</span>
+                </div>
+              </div>
             </div>
           </div>
           </div>

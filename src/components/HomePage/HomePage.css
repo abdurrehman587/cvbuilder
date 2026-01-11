@@ -181,6 +181,25 @@
   border: 2px solid transparent;
 }
 
+/* CV Builder Special Layout - Image on top, templates full width */
+.tool-section-cv-layout {
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+.tool-section-image-top {
+  width: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tool-section-cv-layout:hover .tool-section-image-top {
+  transform: scale(1.01);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+}
+
 .tool-section-content:hover {
   box-shadow: 0 20px 60px rgba(59, 130, 246, 0.15);
   border-color: rgba(59, 130, 246, 0.2);
@@ -280,6 +299,63 @@
 
 .tool-section-button:active {
   transform: translateY(-1px) scale(1.02);
+}
+
+/* Template Previews */
+.template-previews {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 2px solid #e2e8f0;
+  width: 100%;
+}
+
+.tool-section-cv-layout .template-previews {
+  grid-column: 1 / -1;
+}
+
+.template-previews-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.template-preview-item {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  background: #ffffff;
+  min-height: 350px;
+}
+
+.template-preview-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.2);
+}
+
+.template-preview-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.template-preview-item:hover .template-preview-image {
+  transform: scale(1.05);
+}
+
+.template-preview-label {
+  display: block;
+  padding: 0.5rem;
+  text-align: center;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #475569;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-top: 1px solid #e2e8f0;
 }
 
 .tool-section-image {
@@ -701,6 +777,21 @@
     width: 100%;
   }
 
+  .template-previews {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+  }
+
+  .template-previews-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .template-preview-label {
+    font-size: 0.8125rem;
+    padding: 0.375rem;
+  }
+
   .features-grid {
     grid-template-columns: 1fr;
     gap: 1rem;
@@ -843,6 +934,21 @@
     padding: 0.75rem 1.5rem;
     font-size: 0.95rem;
     width: 100%;
+  }
+
+  .template-previews {
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+  }
+
+  .template-previews-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .template-preview-label {
+    font-size: 0.75rem;
+    padding: 0.375rem;
   }
 
   .features-grid {
