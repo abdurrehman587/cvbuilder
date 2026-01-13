@@ -904,10 +904,18 @@ function App() {
           console.log('Referral processing result:', result);
           
           if (result.success) {
-            console.log('✅ Referral credit added successfully! Referrer got 1 credit.');
-            // Show notification if possible
-            if (window.showNotification) {
-              window.showNotification('Referral processed! The referrer earned 1 credit.');
+            if (result.isNewUser && result.visitorCredits !== null) {
+              console.log('✅ Referral credit added successfully! Both referrer and new user got 1 credit each.');
+              // Show notification if possible
+              if (window.showNotification) {
+                window.showNotification('🎉 Welcome! You earned 1 free credit for signing up via referral link!');
+              }
+            } else {
+              console.log('✅ Referral credit added successfully! Referrer got 1 credit.');
+              // Show notification if possible
+              if (window.showNotification) {
+                window.showNotification('Referral processed! The referrer earned 1 credit.');
+              }
             }
             // Clear pending referral
             sessionStorage.removeItem('pendingReferral');

@@ -424,18 +424,56 @@ export const cvCreditsService = {
         return { success: false, message: 'This referral was already processed.' };
       }
 
+      // Check if visitor is a new user (created within last 10 minutes)
+      let isNewUser = false;
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const userCreatedAt = new Date(user.created_at);
+          const now = new Date();
+          const minutesSinceCreation = (now - userCreatedAt) / (1000 * 60);
+          // Consider user "new" if account was created within last 10 minutes
+          isNewUser = minutesSinceCreation < 10;
+          console.log('User account age:', minutesSinceCreation.toFixed(2), 'minutes. Is new user:', isNewUser);
+        }
+      } catch (userCheckError) {
+        console.log('Could not check user creation date, assuming not new user');
+      }
+
       // Add 1 credit for the referrer
-      const newCredits = await this.addCredits(referrerUserId, 1);
+      const referrerCredits = await this.addCredits(referrerUserId, 1);
       
-      // Only mark as processed if credit was successfully added
-      if (newCredits !== null && newCredits !== undefined) {
+      // Add 1 credit for the new user (visitor) if they're a new user
+      let visitorCredits = null;
+      if (isNewUser) {
+        try {
+          visitorCredits = await this.addCredits(visitorUserId, 1);
+          console.log('✅ New user also received 1 credit!');
+        } catch (visitorCreditError) {
+          console.error('Error adding credit to new user:', visitorCreditError);
+          // Don't fail the whole process if visitor credit fails
+        }
+      }
+      
+      // Only mark as processed if referrer credit was successfully added
+      if (referrerCredits !== null && referrerCredits !== undefined) {
         // Mark referral as processed
         localStorage.setItem(referralKey, 'true');
         
         // Dispatch event to update UI
         window.dispatchEvent(new CustomEvent('cvCreditsUpdated'));
         
-        return { success: true, credits: newCredits, message: '✅ Referral credit added!' };
+        const message = isNewUser && visitorCredits !== null
+          ? '✅ Referral processed! Both you and the referrer earned 1 credit each!'
+          : '✅ Referral credit added! The referrer earned 1 credit.';
+        
+        return { 
+          success: true, 
+          referrerCredits: referrerCredits,
+          visitorCredits: visitorCredits,
+          isNewUser: isNewUser,
+          message: message
+        };
       } else {
         return { success: false, message: 'Failed to add credits. Please try again.' };
       }
