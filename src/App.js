@@ -844,6 +844,79 @@ function App() {
 
     // Listen for authentication events from Login component
     window.addEventListener('userAuthenticated', handleAuth);
+
+    // Check for referral codes and process referrals
+    const checkReferralCode = async () => {
+      try {
+        // Check URL for referral parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const refCode = urlParams.get('ref');
+        
+        if (!refCode) return;
+
+        // Get current user
+        const { authService, cvCreditsService } = await import('./components/Supabase/supabase');
+        const user = await authService.getCurrentUser();
+        
+        if (!user) {
+          // User not logged in yet - store referral code to process after login
+          sessionStorage.setItem('pendingReferral', refCode);
+          return;
+        }
+
+        // Decode referral code to get referrer user ID
+        try {
+          // Decode the referral code (base64 with URL-safe characters)
+          // Replace URL-safe characters back to base64 format
+          const base64Code = refCode.replace(/-/g, '+').replace(/_/g, '/');
+          // Add padding if needed
+          let paddedCode = base64Code;
+          while (paddedCode.length % 4) {
+            paddedCode += '=';
+          }
+          const referrerUserId = atob(paddedCode);
+          
+          // Process referral
+          const result = await cvCreditsService.addCreditsForReferral(referrerUserId, user.id);
+          
+          if (result.success) {
+            console.log('Referral credit added successfully');
+            // Show notification if possible
+            if (window.showNotification) {
+              window.showNotification('You earned 1 credit from a referral!');
+            }
+          }
+          
+          // Remove referral code from URL to prevent reprocessing
+          urlParams.delete('ref');
+          const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
+          window.history.replaceState({}, '', newUrl);
+        } catch (decodeError) {
+          console.error('Error decoding referral code:', decodeError);
+        }
+      } catch (err) {
+        console.error('Error processing referral:', err);
+      }
+    };
+
+    // Check referral on initial load
+    checkReferralCode();
+
+    // Also check referral after authentication
+    const handleReferralAfterAuth = async () => {
+      const pendingRef = sessionStorage.getItem('pendingReferral');
+      if (pendingRef) {
+        sessionStorage.removeItem('pendingReferral');
+        // Add ref back to URL temporarily
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.set('ref', pendingRef);
+        window.history.replaceState({}, '', window.location.pathname + '?' + urlParams.toString());
+        // Process referral
+        setTimeout(checkReferralCode, 1000);
+      }
+    };
+    
+    window.addEventListener('userAuthenticated', handleReferralAfterAuth);
     
     // Listen for Facebook-style navigation events from LeftNavbar
     const handleSectionNavigation = (e) => {

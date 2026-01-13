@@ -389,23 +389,39 @@ export const cvCreditsService = {
     }
   },
 
-  // Add credits for sharing the app (1 credit per share - no daily limit)
-  async addCreditsForShare(userId) {
+  // Add credits for referral (when someone visits via shared link)
+  async addCreditsForReferral(referrerUserId, visitorUserId) {
     try {
-      // Add 1 credit for sharing
-      const newCredits = await this.addCredits(userId, 1);
+      // Prevent self-referral
+      if (referrerUserId === visitorUserId) {
+        return { success: false, message: 'Cannot refer yourself.' };
+      }
+
+      // Check if this referral was already processed (prevent duplicate credits)
+      const referralKey = `cv_referral_${referrerUserId}_${visitorUserId}`;
+      const alreadyProcessed = localStorage.getItem(referralKey) === 'true';
       
-      // Only return success if credit was successfully added
+      if (alreadyProcessed) {
+        return { success: false, message: 'This referral was already processed.' };
+      }
+
+      // Add 1 credit for the referrer
+      const newCredits = await this.addCredits(referrerUserId, 1);
+      
+      // Only mark as processed if credit was successfully added
       if (newCredits !== null && newCredits !== undefined) {
+        // Mark referral as processed
+        localStorage.setItem(referralKey, 'true');
+        
         // Dispatch event to update UI
         window.dispatchEvent(new CustomEvent('cvCreditsUpdated'));
         
-        return { success: true, credits: newCredits, message: '✅ You earned 1 credit for sharing!' };
+        return { success: true, credits: newCredits, message: '✅ Referral credit added!' };
       } else {
         return { success: false, message: 'Failed to add credits. Please try again.' };
       }
     } catch (err) {
-      console.error('Error adding credits for share:', err);
+      console.error('Error adding credits for referral:', err);
       return { success: false, message: 'Failed to add credits. Please try again.' };
     }
   }

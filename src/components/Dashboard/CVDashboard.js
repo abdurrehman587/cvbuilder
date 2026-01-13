@@ -23,36 +23,45 @@ const ShareAppSection = ({ onShareSuccess }) => {
         return;
       }
 
-      // Prepare share content
+      // Generate unique referral link for this user
+      // Encode user ID as base64 and make it URL-safe
+      const referralCode = btoa(user.id).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+      const shareUrl = `${window.location.origin}?ref=${referralCode}`;
       const shareText = 'Check out this amazing CV Builder app! Create professional CVs in minutes.';
-      const shareUrl = window.location.origin;
       const shareTitle = 'Get Glory - CV Builder';
 
       // Try Capacitor Share first (for mobile apps)
       try {
         if (window.Capacitor && Share) {
-          await Share.share({
+          const shareResult = await Share.share({
             title: shareTitle,
             text: shareText,
             url: shareUrl,
             dialogTitle: 'Share Get Glory App'
           });
           
-          // Mark as shared and add credit
-          const result = await cvCreditsService.addCreditsForShare(user.id);
-          if (result.success) {
-            setShareMessage('✅ You earned 1 credit!');
-            if (onShareSuccess) {
-              onShareSuccess();
-            }
+          // Share dialog opened - show message that credit will be given when link is visited
+          if (shareResult && shareResult.activityType && shareResult.activityType !== 'cancel') {
+            setShareMessage('✅ Link shared! You will earn 1 credit when someone visits your link.');
+          } else if (shareResult && !shareResult.activityType) {
+            setShareMessage('✅ Link shared! You will earn 1 credit when someone visits your link.');
           } else {
-            setShareMessage(result.message || 'Failed to add credit.');
+            setShareMessage('Share was cancelled. Please share to earn credit.');
           }
           setIsSharing(false);
           return;
         }
       } catch (capError) {
-        console.log('Capacitor Share not available, trying Web Share API');
+        // Capacitor Share throws error if user cancels or share fails
+        if (capError.message && (capError.message.includes('cancel') || capError.message.includes('dismiss'))) {
+          setShareMessage('Share was cancelled. Please share to earn credit.');
+        } else {
+          console.log('Capacitor Share error:', capError);
+          setShareMessage('Share failed. Please try again.');
+        }
+        setIsSharing(false);
+        // Don't continue to fallback - user needs to try again
+        return;
       }
 
       // Fallback to Web Share API
@@ -64,41 +73,26 @@ const ShareAppSection = ({ onShareSuccess }) => {
             url: shareUrl
           });
           
-          // Mark as shared and add credit
-          const result = await cvCreditsService.addCreditsForShare(user.id);
-          if (result.success) {
-            setShareMessage('✅ You earned 1 credit!');
-            if (onShareSuccess) {
-              onShareSuccess();
-            }
-          } else {
-            setShareMessage(result.message || 'Failed to add credit.');
-          }
+          // If we reach here, share was successful (not aborted)
+          // Credit will be given when someone visits the link
+          setShareMessage('✅ Link shared! You will earn 1 credit when someone visits your link.');
         } catch (shareError) {
-          if (shareError.name !== 'AbortError') {
+          // AbortError means user cancelled the share dialog
+          if (shareError.name === 'AbortError') {
+            setShareMessage('Share was cancelled. Please share to earn credit.');
+          } else {
             console.error('Error sharing:', shareError);
             setShareMessage('Failed to share. Please try again.');
           }
         }
       } else {
-        // Fallback: Copy to clipboard
+        // Fallback: Copy to clipboard - require user confirmation
         const fullText = `${shareText}\n${shareUrl}`;
         try {
           await navigator.clipboard.writeText(fullText);
-          setShareMessage('Link copied! Paste it anywhere to share.');
           
-          // Mark as shared and add credit
-          const result = await cvCreditsService.addCreditsForShare(user.id);
-          if (result.success) {
-            setTimeout(() => {
-              setShareMessage('✅ You earned 1 credit!');
-              if (onShareSuccess) {
-                onShareSuccess();
-              }
-            }, 2000);
-          } else {
-            setShareMessage(result.message || 'Failed to add credit.');
-          }
+          // Link copied - credit will be given when someone visits the link
+          setShareMessage('✅ Link copied! Share it and you will earn 1 credit when someone visits your link.');
         } catch (clipError) {
           setShareMessage('Unable to copy. Please share manually.');
         }
@@ -119,20 +113,27 @@ const ShareAppSection = ({ onShareSuccess }) => {
       borderRadius: '12px',
       border: '2px solid #3b82f6',
       width: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
       textAlign: 'center'
     }}>
       <p style={{
         fontSize: '16px',
         fontWeight: '600',
         color: '#1e40af',
-        margin: '0 0 12px 0'
+        margin: '0 0 12px 0',
+        textAlign: 'center',
+        width: '100%'
       }}>
         📤 Share App & Earn Credits
       </p>
       <p style={{
         fontSize: '14px',
         color: '#475569',
-        margin: '0 0 16px 0'
+        margin: '0 0 16px 0',
+        textAlign: 'center',
+        width: '100%'
       }}>
         Share the app and get 1 credit for each successful share
       </p>
@@ -149,7 +150,9 @@ const ShareAppSection = ({ onShareSuccess }) => {
           borderRadius: '8px',
           cursor: isSharing ? 'not-allowed' : 'pointer',
           transition: 'all 0.3s ease',
-          boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)'
+          boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
+          display: 'block',
+          margin: '0 auto'
         }}
         onMouseEnter={(e) => {
           if (!isSharing) {
@@ -173,7 +176,9 @@ const ShareAppSection = ({ onShareSuccess }) => {
           fontSize: '14px',
           color: shareMessage.includes('✅') ? '#059669' : shareMessage.includes('already') ? '#f59e0b' : '#dc2626',
           margin: '12px 0 0 0',
-          fontWeight: '500'
+          fontWeight: '500',
+          textAlign: 'center',
+          width: '100%'
         }}>
           {shareMessage}
         </p>
