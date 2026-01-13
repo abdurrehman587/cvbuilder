@@ -3,6 +3,184 @@ import './CVDashboard.css';
 import SearchCV from './SearchCV';
 import { setCurrentApp, setCVView } from '../../utils/routing';
 import { authService, cvCreditsService, supabase } from '../Supabase/supabase';
+import { Share } from '@capacitor/share';
+
+// Share App Component for getting free credit
+const ShareAppSection = ({ onShareSuccess }) => {
+  const [isSharing, setIsSharing] = useState(false);
+  const [shareMessage, setShareMessage] = useState('');
+
+  const handleShare = async () => {
+    try {
+      setIsSharing(true);
+      setShareMessage('');
+
+      // Get current user
+      const user = await authService.getCurrentUser();
+      if (!user) {
+        setShareMessage('Please login to share and earn credits.');
+        setIsSharing(false);
+        return;
+      }
+
+      // Prepare share content
+      const shareText = 'Check out this amazing CV Builder app! Create professional CVs in minutes.';
+      const shareUrl = window.location.origin;
+      const shareTitle = 'Get Glory - CV Builder';
+
+      // Try Capacitor Share first (for mobile apps)
+      try {
+        if (window.Capacitor && Share) {
+          await Share.share({
+            title: shareTitle,
+            text: shareText,
+            url: shareUrl,
+            dialogTitle: 'Share Get Glory App'
+          });
+          
+          // Mark as shared and add credit
+          const result = await cvCreditsService.addCreditsForShare(user.id);
+          if (result.success) {
+            setShareMessage('✅ You earned 1 credit!');
+            if (onShareSuccess) {
+              onShareSuccess();
+            }
+          } else {
+            setShareMessage(result.message || 'Failed to add credit.');
+          }
+          setIsSharing(false);
+          return;
+        }
+      } catch (capError) {
+        console.log('Capacitor Share not available, trying Web Share API');
+      }
+
+      // Fallback to Web Share API
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: shareTitle,
+            text: shareText,
+            url: shareUrl
+          });
+          
+          // Mark as shared and add credit
+          const result = await cvCreditsService.addCreditsForShare(user.id);
+          if (result.success) {
+            setShareMessage('✅ You earned 1 credit!');
+            if (onShareSuccess) {
+              onShareSuccess();
+            }
+          } else {
+            setShareMessage(result.message || 'Failed to add credit.');
+          }
+        } catch (shareError) {
+          if (shareError.name !== 'AbortError') {
+            console.error('Error sharing:', shareError);
+            setShareMessage('Failed to share. Please try again.');
+          }
+        }
+      } else {
+        // Fallback: Copy to clipboard
+        const fullText = `${shareText}\n${shareUrl}`;
+        try {
+          await navigator.clipboard.writeText(fullText);
+          setShareMessage('Link copied! Paste it anywhere to share.');
+          
+          // Mark as shared and add credit
+          const result = await cvCreditsService.addCreditsForShare(user.id);
+          if (result.success) {
+            setTimeout(() => {
+              setShareMessage('✅ You earned 1 credit!');
+              if (onShareSuccess) {
+                onShareSuccess();
+              }
+            }, 2000);
+          } else {
+            setShareMessage(result.message || 'Failed to add credit.');
+          }
+        } catch (clipError) {
+          setShareMessage('Unable to copy. Please share manually.');
+        }
+      }
+    } catch (err) {
+      console.error('Error in share process:', err);
+      setShareMessage('An error occurred. Please try again.');
+    } finally {
+      setIsSharing(false);
+    }
+  };
+
+  return (
+    <div style={{
+      marginTop: '16px',
+      padding: '16px',
+      backgroundColor: '#f0f9ff',
+      borderRadius: '12px',
+      border: '2px solid #3b82f6',
+      width: '100%',
+      textAlign: 'center'
+    }}>
+      <p style={{
+        fontSize: '16px',
+        fontWeight: '600',
+        color: '#1e40af',
+        margin: '0 0 12px 0'
+      }}>
+        📤 Share App & Earn Credits
+      </p>
+      <p style={{
+        fontSize: '14px',
+        color: '#475569',
+        margin: '0 0 16px 0'
+      }}>
+        Share the app and get 1 credit for each successful share
+      </p>
+      <button
+        onClick={handleShare}
+        disabled={isSharing}
+        style={{
+          padding: '12px 24px',
+          fontSize: '16px',
+          fontWeight: '600',
+          color: 'white',
+          backgroundColor: isSharing ? '#94a3b8' : '#3b82f6',
+          border: 'none',
+          borderRadius: '8px',
+          cursor: isSharing ? 'not-allowed' : 'pointer',
+          transition: 'all 0.3s ease',
+          boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)'
+        }}
+        onMouseEnter={(e) => {
+          if (!isSharing) {
+            e.target.style.backgroundColor = '#2563eb';
+            e.target.style.transform = 'translateY(-2px)';
+            e.target.style.boxShadow = '0 6px 16px rgba(59, 130, 246, 0.4)';
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!isSharing) {
+            e.target.style.backgroundColor = '#3b82f6';
+            e.target.style.transform = 'translateY(0)';
+            e.target.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.3)';
+          }
+        }}
+      >
+        {isSharing ? 'Sharing...' : '📤 Share App & Get Credit'}
+      </button>
+      {shareMessage && (
+        <p style={{
+          fontSize: '14px',
+          color: shareMessage.includes('✅') ? '#059669' : shareMessage.includes('already') ? '#f59e0b' : '#dc2626',
+          margin: '12px 0 0 0',
+          fontWeight: '500'
+        }}>
+          {shareMessage}
+        </p>
+      )}
+    </div>
+  );
+};
 
 /**
  * Fresh CV Dashboard - Rebuilt from scratch
@@ -163,15 +341,35 @@ const CVDashboard = ({ onTemplateSelect, onLogout, onEditCV, onCreateNewCV }) =>
               }}>
                 {cvCredits}
               </span>
-              <span style={{ 
-                fontSize: '14px', 
-                color: '#333',
-                textAlign: 'center',
-                marginTop: '8px'
-              }}>
-                To get more CV Download Credits Contact Administrator : 0315-3338612
-              </span>
+              {cvCredits > 0 && (
+                <span style={{ 
+                  fontSize: '14px', 
+                  color: '#333',
+                  textAlign: 'center',
+                  marginTop: '8px'
+                }}>
+                  To get more CV Download Credits Contact Administrator : 0315-3338612
+                </span>
+              )}
             </div>
+          )}
+
+          {/* Share App Section - Always Visible */}
+          {cvCredits !== null && (
+            <ShareAppSection 
+              onShareSuccess={async () => {
+                // Reload credits after successful share
+                try {
+                  const user = await authService.getCurrentUser();
+                  if (user) {
+                    const credits = await cvCreditsService.getCredits(user.id);
+                    setCvCredits(credits);
+                  }
+                } catch (err) {
+                  console.error('Error reloading credits:', err);
+                }
+              }}
+            />
           )}
         </div>
       </div>

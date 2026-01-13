@@ -387,6 +387,27 @@ export const cvCreditsService = {
       console.error('Error checking download permission:', err)
       return false
     }
+  },
+
+  // Add credits for sharing the app (1 credit per share - no daily limit)
+  async addCreditsForShare(userId) {
+    try {
+      // Add 1 credit for sharing
+      const newCredits = await this.addCredits(userId, 1);
+      
+      // Only return success if credit was successfully added
+      if (newCredits !== null && newCredits !== undefined) {
+        // Dispatch event to update UI
+        window.dispatchEvent(new CustomEvent('cvCreditsUpdated'));
+        
+        return { success: true, credits: newCredits, message: '✅ You earned 1 credit for sharing!' };
+      } else {
+        return { success: false, message: 'Failed to add credits. Please try again.' };
+      }
+    } catch (err) {
+      console.error('Error adding credits for share:', err);
+      return { success: false, message: 'Failed to add credits. Please try again.' };
+    }
   }
 }
 
