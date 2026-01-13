@@ -182,6 +182,16 @@ export const authService = {
 
   // Sign in with Google OAuth
   async signInWithGoogle() {
+    // Preserve referral code before OAuth redirect
+    const urlParams = new URLSearchParams(window.location.search);
+    const refCode = urlParams.get('ref');
+    if (refCode) {
+      // Store referral code in localStorage (persists across redirects)
+      localStorage.setItem('pendingReferral', refCode);
+      sessionStorage.setItem('pendingReferral', refCode);
+      console.log('Preserving referral code before OAuth redirect:', refCode);
+    }
+    
     // Check if running on Capacitor (mobile app)
     const isNative = Capacitor.isNativePlatform();
     console.log('Google Sign-In - isNative:', isNative);
@@ -206,12 +216,21 @@ export const authService = {
     window.dispatchEvent(new CustomEvent('googleSignInStarted'));
     
     try {
+      // Include referral code in redirect URL if present
+      let redirectUrl = mobileRedirectUrl;
+      if (refCode) {
+        // Append referral code to redirect URL
+        const separator = redirectUrl.includes('?') ? '&' : '?';
+        redirectUrl = `${redirectUrl}${separator}ref=${refCode}`;
+        console.log('Including referral code in OAuth redirect URL');
+      }
+      
       // On mobile, we MUST use skipBrowserRedirect to prevent WebView
       // Then manually open in system browser
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: mobileRedirectUrl,
+          redirectTo: redirectUrl,
           // CRITICAL: On mobile, skip browser redirect to prevent WebView
           skipBrowserRedirect: isNative,
           // Optimize query parameters for faster processing

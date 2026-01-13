@@ -848,11 +848,25 @@ function App() {
     // Check for referral codes and process referrals
     const checkReferralCode = async () => {
       try {
-        // Check URL for referral parameter
+        // Check URL for referral parameter (both query string and hash)
         const urlParams = new URLSearchParams(window.location.search);
-        const refCode = urlParams.get('ref');
+        let refCode = urlParams.get('ref');
+        
+        // Also check hash for referral code (in case it's in the hash)
+        if (!refCode) {
+          const hash = window.location.hash;
+          const hashParams = new URLSearchParams(hash.split('?')[1] || '');
+          refCode = hashParams.get('ref');
+        }
+        
+        // Check sessionStorage for pending referral (from OAuth redirect)
+        if (!refCode) {
+          refCode = sessionStorage.getItem('pendingReferral');
+        }
         
         if (!refCode) return;
+
+        console.log('Referral code found:', refCode);
 
         // Get current user
         const { authService, cvCreditsService } = await import('./components/Supabase/supabase');
@@ -860,9 +874,14 @@ function App() {
         
         if (!user) {
           // User not logged in yet - store referral code to process after login
+          console.log('User not authenticated, storing referral code for later');
           sessionStorage.setItem('pendingReferral', refCode);
+          // Also store in localStorage as backup
+          localStorage.setItem('pendingReferral', refCode);
           return;
         }
+
+        console.log('User authenticated, processing referral. Visitor ID:', user.id);
 
         // Decode referral code to get referrer user ID
         try {
@@ -876,15 +895,25 @@ function App() {
           }
           const referrerUserId = atob(paddedCode);
           
+          console.log('Decoded referrer user ID:', referrerUserId);
+          console.log('Visitor user ID:', user.id);
+          
           // Process referral
           const result = await cvCreditsService.addCreditsForReferral(referrerUserId, user.id);
           
+          console.log('Referral processing result:', result);
+          
           if (result.success) {
-            console.log('Referral credit added successfully');
+            console.log('✅ Referral credit added successfully! Referrer got 1 credit.');
             // Show notification if possible
             if (window.showNotification) {
-              window.showNotification('You earned 1 credit from a referral!');
+              window.showNotification('Referral processed! The referrer earned 1 credit.');
             }
+            // Clear pending referral
+            sessionStorage.removeItem('pendingReferral');
+            localStorage.removeItem('pendingReferral');
+          } else {
+            console.warn('Referral processing failed:', result.message);
           }
           
           // Remove referral code from URL to prevent reprocessing
@@ -893,6 +922,7 @@ function App() {
           window.history.replaceState({}, '', newUrl);
         } catch (decodeError) {
           console.error('Error decoding referral code:', decodeError);
+          console.error('Referral code that failed:', refCode);
         }
       } catch (err) {
         console.error('Error processing referral:', err);
@@ -904,19 +934,39 @@ function App() {
 
     // Also check referral after authentication
     const handleReferralAfterAuth = async () => {
-      const pendingRef = sessionStorage.getItem('pendingReferral');
+      console.log('User authenticated event received, checking for pending referral...');
+      // Check both sessionStorage and localStorage for pending referral
+      const pendingRef = sessionStorage.getItem('pendingReferral') || localStorage.getItem('pendingReferral');
       if (pendingRef) {
+        console.log('Pending referral found, processing...');
         sessionStorage.removeItem('pendingReferral');
-        // Add ref back to URL temporarily
-        const urlParams = new URLSearchParams(window.location.search);
-        urlParams.set('ref', pendingRef);
-        window.history.replaceState({}, '', window.location.pathname + '?' + urlParams.toString());
-        // Process referral
-        setTimeout(checkReferralCode, 1000);
+        localStorage.removeItem('pendingReferral');
+        // Wait a bit for auth to fully complete, then process
+        setTimeout(() => {
+          checkReferralCode();
+        }, 2000);
+      } else {
+        // Also check URL in case referral code is still there
+        checkReferralCode();
       }
     };
     
     window.addEventListener('userAuthenticated', handleReferralAfterAuth);
+    
+    // Also check on auth state change (for Supabase auth)
+    const checkReferralOnAuthChange = async () => {
+      const { authService } = await import('./components/Supabase/supabase');
+      const user = await authService.getCurrentUser();
+      if (user) {
+        // User is authenticated, check for referral
+        setTimeout(() => {
+          checkReferralCode();
+        }, 1000);
+      }
+    };
+    
+    // Check referral when auth state might have changed
+    setTimeout(checkReferralOnAuthChange, 3000);
     
     // Listen for Facebook-style navigation events from LeftNavbar
     const handleSectionNavigation = (e) => {
