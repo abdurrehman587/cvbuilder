@@ -418,11 +418,22 @@ export const cvCreditsService = {
 
       // Check if this referral was already processed (prevent duplicate credits)
       const referralKey = `cv_referral_${referrerUserId}_${visitorUserId}`;
-      const alreadyProcessed = localStorage.getItem(referralKey) === 'true';
+      const processingKey = `cv_referral_processing_${referrerUserId}_${visitorUserId}`;
       
+      // Check if already processed
+      const alreadyProcessed = localStorage.getItem(referralKey) === 'true';
       if (alreadyProcessed) {
         return { success: false, message: 'This referral was already processed.' };
       }
+      
+      // Check if currently processing (prevent race conditions)
+      const isProcessing = sessionStorage.getItem(processingKey) === 'true';
+      if (isProcessing) {
+        return { success: false, message: 'Referral is already being processed. Please wait.' };
+      }
+      
+      // Mark as processing immediately (synchronously) to prevent duplicate calls
+      sessionStorage.setItem(processingKey, 'true');
 
       // Check if visitor is a new user (created within last 10 minutes)
       let isNewUser = false;
@@ -457,8 +468,11 @@ export const cvCreditsService = {
       
       // Only mark as processed if referrer credit was successfully added
       if (referrerCredits !== null && referrerCredits !== undefined) {
-        // Mark referral as processed
+        // Mark referral as processed (prevent future duplicate processing)
         localStorage.setItem(referralKey, 'true');
+        
+        // Clear processing flag
+        sessionStorage.removeItem(processingKey);
         
         // Dispatch event to update UI
         window.dispatchEvent(new CustomEvent('cvCreditsUpdated'));
@@ -475,10 +489,15 @@ export const cvCreditsService = {
           message: message
         };
       } else {
+        // Clear processing flag on failure
+        sessionStorage.removeItem(processingKey);
         return { success: false, message: 'Failed to add credits. Please try again.' };
       }
     } catch (err) {
       console.error('Error adding credits for referral:', err);
+      // Clear processing flag on error
+      const processingKey = `cv_referral_processing_${referrerUserId}_${visitorUserId}`;
+      sessionStorage.removeItem(processingKey);
       return { success: false, message: 'Failed to add credits. Please try again.' };
     }
   }
