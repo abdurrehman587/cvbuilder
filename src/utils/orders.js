@@ -64,6 +64,7 @@ export const orderService = {
   // Get a specific order by ID or order_number
   async getOrder(orderId) {
     try {
+      // eslint-disable-next-line no-unused-vars
       const { data: { user } } = await supabase.auth.getUser();
       
       // Try to get by order_number first (sequential ID like "01")

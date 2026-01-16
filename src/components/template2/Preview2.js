@@ -1,4 +1,5 @@
-﻿import React, { useEffect, useState, useRef, useMemo } from 'react';
+﻿/* eslint-disable unicode-bom */
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import usePreviewHandler from './PreviewHandler2';
 import generatePDF from './pdf2';
 import { setCVView } from '../../utils/routing';

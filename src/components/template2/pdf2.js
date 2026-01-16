@@ -1,4 +1,5 @@
-﻿import jsPDF from 'jspdf';
+﻿/* eslint-disable unicode-bom */
+import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { Capacitor } from '@capacitor/core';
 import FileDownload from '../../utils/fileDownload';

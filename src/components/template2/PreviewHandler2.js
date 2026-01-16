@@ -1,4 +1,5 @@
-﻿import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+﻿/* eslint-disable unicode-bom */
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 
 const usePreviewHandler = (passedFormData = null) => {
   const [formData, setFormData] = useState({
