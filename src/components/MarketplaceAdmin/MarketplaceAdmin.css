@@ -443,6 +443,7 @@
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 1rem;
   margin-top: 1rem;
+  align-items: start;
 }
 
 /* This definition is overridden below - keeping for reference */
@@ -472,7 +473,7 @@
 }
 
 .remove-image-btn:hover {
-  background: #dc2626;
+  background: #dc2626 !important;
 }
 
 .image-upload label {
@@ -593,9 +594,11 @@
   border-radius: 8px;
   padding: 0.5rem;
   background: white;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.5rem !important;
+  align-items: stretch !important;
+  overflow: visible !important;
 }
 
 .image-preview-item:hover {
