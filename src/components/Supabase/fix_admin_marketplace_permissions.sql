@@ -17,22 +17,33 @@ DROP FUNCTION IF EXISTS public.is_admin_user();
 
 -- Step 3: Create or replace the is_admin_user() function
 -- This function runs with elevated privileges (SECURITY DEFINER) to bypass RLS
+-- We use SET search_path and explicitly qualify the table to avoid issues
 CREATE OR REPLACE FUNCTION public.is_admin_user()
 RETURNS boolean
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public, pg_temp
+SET search_path = public
 STABLE
 AS $$
+DECLARE
+  user_is_admin boolean;
 BEGIN
   -- Check if current user is admin in public.users table
   -- SECURITY DEFINER allows this to bypass RLS on public.users
-  RETURN EXISTS (
-    SELECT 1 FROM public.users 
-    WHERE id = auth.uid() AND is_admin = TRUE
-  );
+  -- We use a subquery with explicit schema qualification
+  SELECT EXISTS (
+    SELECT 1 
+    FROM public.users 
+    WHERE id = auth.uid() 
+      AND is_admin = TRUE
+  ) INTO user_is_admin;
+  
+  RETURN COALESCE(user_is_admin, false);
 END;
 $$;
+
+-- Ensure the function is owned by postgres (or service_role) for proper permissions
+ALTER FUNCTION public.is_admin_user() OWNER TO postgres;
 
 -- Step 4: Grant execute permission to authenticated users
 GRANT EXECUTE ON FUNCTION public.is_admin_user() TO authenticated;
