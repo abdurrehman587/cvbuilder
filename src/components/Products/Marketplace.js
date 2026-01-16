@@ -334,7 +334,7 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
   // Handle product selection from header
   React.useEffect(() => {
     const handleProductChange = (productId) => {
-      setSelectedCarouselProduct(productId);
+      // setSelectedCarouselProduct(productId); // Removed unused state
       localStorage.setItem('selectedApp', productId);
     };
 
@@ -347,7 +347,7 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
   // This function is called from Header component
   const handleProductSelect = useCallback((productId) => {
     localStorage.setItem('selectedApp', productId);
-    setSelectedCarouselProduct(productId);
+    // setSelectedCarouselProduct(productId); // Removed unused state
   }, []);
 
   // Expose handler to window for Header to call
