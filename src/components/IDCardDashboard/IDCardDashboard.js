@@ -12,6 +12,7 @@ import { authService, idCardCreditsService, supabase } from '../Supabase/supabas
 const IDCardDashboard = ({ onCreateNewIDCard }) => {
   const navigate = useNavigate();
   const [idCardCredits, setIdCardCredits] = useState(null);
+  // eslint-disable-next-line no-unused-vars
   const [userType, setUserType] = useState(null);
 
   // Fresh handler for creating new ID card

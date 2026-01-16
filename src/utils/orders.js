@@ -237,7 +237,7 @@ Thank you for shopping with Glory Marketplace! 🎉`
     }
 
     // Clean phone number - remove spaces, dashes, etc.
-    let phone = order.customer_phone.replace(/[\s\-\(\)]/g, '');
+    let phone = order.customer_phone.replace(/[\s\-()]/g, '');
     
     // Add Pakistan country code if not present
     if (phone.startsWith('0')) {

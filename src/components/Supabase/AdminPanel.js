@@ -7,6 +7,7 @@ const AdminPanel = ({ initialView = 'marketplace' }) => {
   const [isAdmin, setIsAdmin] = useState(false)
   const [allUsers, setAllUsers] = useState([])
   const [loading, setLoading] = useState(false)
+  // eslint-disable-next-line no-unused-vars
   const [currentView, setCurrentView] = useState(initialView)
   const [stats, setStats] = useState({
     totalUsers: 0

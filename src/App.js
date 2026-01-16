@@ -11,7 +11,7 @@ import generatePDF1 from './components/template1/pdf1';
 import generatePDF2 from './components/template2/pdf2';
 import generatePDF3 from './components/template3/pdf3';
 import generatePDF4 from './components/template4/pdf4';
-import { getCurrentApp, setCurrentApp, getCVView, setCVView, getIDCardView, setIDCardView, getRoute } from './utils/routing';
+import { getCurrentApp, setCurrentApp, getCVView, setCVView, setIDCardView, getRoute } from './utils/routing';
 import { pathToApp, getProductIdFromPath, getOrderIdFromPath } from './utils/routeMapping';
 import { setNavigate } from './utils/navigation';
 
@@ -73,6 +73,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   
   // Support both hash-based (legacy) and clean URL routing
+  // eslint-disable-next-line no-unused-vars
   const getCurrentPath = () => {
     // If using clean URLs, use pathname
     if (location.pathname && location.pathname !== '/') {
@@ -269,7 +270,8 @@ function App() {
       window.removeEventListener('hashchange', handleHashChange);
       window.removeEventListener('navigateToHomePage', handleHomePageNavigation);
     };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // navigate is stable from useNavigate hook
 
   // Load saved draft on component mount - CRITICAL: Load BEFORE form renders
   // Load formData from localStorage when returning from preview page
@@ -399,6 +401,7 @@ function App() {
         return () => clearTimeout(retryTimeout);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run ONLY on mount - page reload will trigger this
 
   // Removed localStorage saving on page unload - form data will reset on page reload
@@ -1000,6 +1003,7 @@ function App() {
     
     // Handle page unload (tab/window close) - logout user
     // Use multiple events to reliably detect tab/window close
+    // eslint-disable-next-line no-unused-vars
     let isNavigating = false;
     let navigationTimestamp = 0;
     

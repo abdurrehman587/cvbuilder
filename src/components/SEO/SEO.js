@@ -7,6 +7,7 @@ import { useLocation } from 'react-router-dom';
  */
 const SEO = ({ title, description, keywords, ogImage, ogType = 'website' }) => {
   const location = useLocation();
+  // eslint-disable-next-line no-unused-vars
   const baseTitle = 'GetGlory';
   // If title is provided, use it as-is (should already be in format: "Main Title | Secondary - Brand")
   // Otherwise, use default homepage title

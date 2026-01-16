@@ -6,6 +6,7 @@ import { authService } from '../Supabase/supabase';
 
 const HomePage = ({ onProductSelect }) => {
   const navigate = useNavigate();
+  // eslint-disable-next-line no-unused-vars
   const location = useLocation();
   
   // Login form state
@@ -177,7 +178,7 @@ const HomePage = ({ onProductSelect }) => {
 
     try {
       if (isLogin) {
-        const { data, error } = await authService.signIn(email, password);
+        const { error } = await authService.signIn(email, password);
         
         if (error) {
           setError('Login failed: ' + error.message);
@@ -278,7 +279,7 @@ const HomePage = ({ onProductSelect }) => {
           return;
         }
         
-        const { data, error } = await authService.signUp(email, password, {
+        const { error } = await authService.signUp(email, password, {
           full_name: email.split('@')[0],
           user_type: userType
         });
