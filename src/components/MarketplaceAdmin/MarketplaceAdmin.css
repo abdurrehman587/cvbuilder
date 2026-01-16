@@ -456,20 +456,24 @@
 .remove-image-btn {
   background: #ef4444 !important;
   color: white !important;
-  border: none !important;
-  padding: 0.5rem 1rem !important;
-  border-radius: 4px !important;
+  border: 2px solid #dc2626 !important;
+  padding: 0.625rem 1rem !important;
+  border-radius: 6px !important;
   cursor: pointer !important;
   font-size: 0.875rem !important;
-  transition: background 0.2s !important;
+  font-weight: 600 !important;
+  transition: all 0.2s !important;
   width: 100% !important;
-  margin-top: 0.5rem !important;
+  margin-top: 0.75rem !important;
+  margin-bottom: 0 !important;
   z-index: 10 !important;
   position: relative !important;
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
   flex-shrink: 0 !important;
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3) !important;
+  order: 10 !important;
 }
 
 .remove-image-btn:hover {
@@ -599,6 +603,8 @@
   gap: 0.5rem !important;
   align-items: stretch !important;
   overflow: visible !important;
+  min-height: auto !important;
+  height: auto !important;
 }
 
 .image-preview-item:hover {
