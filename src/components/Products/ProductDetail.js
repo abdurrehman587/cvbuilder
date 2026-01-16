@@ -322,7 +322,7 @@ const ProductDetail = ({ productId }) => {
                 <div 
                   className="product-detail-main-image-container"
                 >
-                  {/* eslint-disable-next-line jsx-a11y/img-redundant-alt */}
+                  {/* eslint-disable jsx-a11y/img-redundant-alt */}
                   <img 
                     src={images[currentImageIndex]} 
                     alt={`${product.name} - ${product.description || 'Professional product'} - Image ${currentImageIndex + 1}`}
