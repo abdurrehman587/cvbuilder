@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './Marketplace.css';
 import { authService, supabase } from '../Supabase/supabase';
 import { addToCart } from '../../utils/cart';
@@ -28,25 +28,10 @@ const safeGetCurrentUser = async () => {
 // Constants - Optimized for slow internet and devices
 const PRODUCTS_PER_PAGE = 8; // Reduced for faster initial load
 const INITIAL_PRODUCTS = 6; // Reduced initial products for slow connections
-const PRELOAD_DISTANCE = 200; // Reduced preload distance
+// const PRELOAD_DISTANCE = 200; // Reduced preload distance - not currently used
 const SEARCH_DEBOUNCE = 300; // Increased debounce for better performance
 const IMAGE_WIDTH = 300; // Reduced image size for faster loading
 const IMAGE_QUALITY = 75; // Balanced quality/size
-
-// Move products array outside component to keep it stable
-  const products = [
-    {
-      id: 'marketplace',
-      name: 'Market Place',
-      description: 'Discover and explore a wide range of professional services, templates, and resources for your career needs.',
-      icon: '🛒',
-      color: '#f59e0b',
-      textColor: '#f59e0b',
-      gradient: 'linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%)',
-      image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1920&h=1080&fit=crop&q=90',
-      overlay: 'rgba(255, 255, 255, 0.85)'
-    },
-  ];
 
 // Removed requestIdleCallback polyfill - not needed for simplified approach
 
@@ -341,10 +326,10 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
     position: { top: 0, left: 0 }
   });
 
-  const [selectedCarouselProduct, setSelectedCarouselProduct] = useState(() => {
-    // Initialize from localStorage or default to marketplace
-    return localStorage.getItem('selectedApp') || 'marketplace';
-  });
+  // const [selectedCarouselProduct, setSelectedCarouselProduct] = useState(() => {
+  //   // Initialize from localStorage or default to marketplace
+  //   return localStorage.getItem('selectedApp') || 'marketplace';
+  // });
 
   // Handle product selection from header
   React.useEffect(() => {
@@ -736,8 +721,9 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
   }, [showLogin]);
 
   // Handle product click
+  // eslint-disable-next-line no-unused-vars
   const handleProductClick = (productId) => {
-    setSelectedCarouselProduct(productId);
+    // setSelectedCarouselProduct(productId);
     localStorage.setItem('selectedApp', productId);
     if (window.handleProductSelect) {
       window.handleProductSelect(productId);
@@ -765,6 +751,7 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
     });
   };
 
+  // eslint-disable-next-line no-unused-vars
   const handleGetStarted = (productId) => {
     // Check if user is authenticated - check both authService and localStorage
     const checkAuth = async () => {
@@ -912,6 +899,7 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
     checkAuth();
   };
 
+  // eslint-disable-next-line no-unused-vars
   const handleTemplateClick = (templateNumber) => {
     // Check if user is authenticated - check both authService and localStorage
     const checkAuth = async () => {
@@ -989,7 +977,7 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
     try {
       if (isLogin) {
         // Real Supabase login
-        const { data, error } = await authService.signIn(email, password);
+        const { error } = await authService.signIn(email, password);
         
         if (error) {
           console.error('Login error:', error);
@@ -1085,7 +1073,7 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
           return;
         }
         
-        const { data, error } = await authService.signUp(email, password, {
+        const { error } = await authService.signUp(email, password, {
           full_name: email.split('@')[0], // Use email prefix as name
           user_type: userType // 'regular' or 'shopkeeper'
         });

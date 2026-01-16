@@ -195,7 +195,7 @@ const ShopkeeperProductManager = ({ onProductAdded }) => {
 
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('marketplace_products')
         .insert([{
           ...productForm,
@@ -203,9 +203,7 @@ const ShopkeeperProductManager = ({ onProductAdded }) => {
           price: parseFloat(productForm.price),
           original_price: productForm.original_price ? parseFloat(productForm.original_price) : null,
           description: productForm.description || ''
-        }])
-        .select()
-        .single();
+        }]);
 
       if (error) throw error;
       
