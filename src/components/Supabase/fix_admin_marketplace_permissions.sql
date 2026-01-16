@@ -6,10 +6,16 @@
 -- when running this script. The function will be created with SECURITY DEFINER,
 -- which means it runs with the privileges of the function owner (postgres by default).
 
--- Step 1: Drop the function if it exists (to ensure clean creation)
+-- Step 1: Drop existing admin policies first (they depend on the function)
+DROP POLICY IF EXISTS "Admins can view all marketplace products" ON public.marketplace_products;
+DROP POLICY IF EXISTS "Admins can insert marketplace products" ON public.marketplace_products;
+DROP POLICY IF EXISTS "Admins can update all marketplace products" ON public.marketplace_products;
+DROP POLICY IF EXISTS "Admins can delete all marketplace products" ON public.marketplace_products;
+
+-- Step 2: Now drop the function if it exists (to ensure clean creation)
 DROP FUNCTION IF EXISTS public.is_admin_user();
 
--- Step 2: Create or replace the is_admin_user() function
+-- Step 3: Create or replace the is_admin_user() function
 -- This function runs with elevated privileges (SECURITY DEFINER) to bypass RLS
 CREATE OR REPLACE FUNCTION public.is_admin_user()
 RETURNS boolean
@@ -28,19 +34,13 @@ BEGIN
 END;
 $$;
 
--- Step 3: Grant execute permission to authenticated users
+-- Step 4: Grant execute permission to authenticated users
 GRANT EXECUTE ON FUNCTION public.is_admin_user() TO authenticated;
 
--- Step 4: Grant usage on the schema (if needed)
+-- Step 5: Grant usage on the schema (if needed)
 GRANT USAGE ON SCHEMA public TO authenticated;
 
--- Step 3: Drop existing admin policies if they exist
-DROP POLICY IF EXISTS "Admins can view all marketplace products" ON public.marketplace_products;
-DROP POLICY IF EXISTS "Admins can insert marketplace products" ON public.marketplace_products;
-DROP POLICY IF EXISTS "Admins can update all marketplace products" ON public.marketplace_products;
-DROP POLICY IF EXISTS "Admins can delete all marketplace products" ON public.marketplace_products;
-
--- Step 4: Create new admin policies using the helper function
+-- Step 6: Create new admin policies using the helper function
 -- Policy: Admins can view all products (including hidden ones)
 CREATE POLICY "Admins can view all marketplace products" ON public.marketplace_products
   FOR SELECT USING (public.is_admin_user());
@@ -57,5 +57,12 @@ CREATE POLICY "Admins can update all marketplace products" ON public.marketplace
 CREATE POLICY "Admins can delete all marketplace products" ON public.marketplace_products
   FOR DELETE USING (public.is_admin_user());
 
--- Verification: You can test the function with:
+-- Step 7: Verification
+-- After running this script, you can test the function with:
 -- SELECT public.is_admin_user();
+-- 
+-- If you're logged in as an admin, it should return 'true'
+-- If you're not an admin, it should return 'false'
+--
+-- To verify the policies were created, run:
+-- SELECT * FROM pg_policies WHERE tablename = 'marketplace_products' AND policyname LIKE '%Admin%';
