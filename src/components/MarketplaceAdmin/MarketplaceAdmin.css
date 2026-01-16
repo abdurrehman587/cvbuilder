@@ -430,8 +430,12 @@
 .image-preview {
   max-width: 200px;
   max-height: 200px;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
   border-radius: 6px;
   border: 1px solid #d1d5db;
+  flex-shrink: 0;
 }
 
 .image-preview-grid {
@@ -449,18 +453,22 @@
 } */
 
 .remove-image-btn {
-  background: #ef4444;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.875rem;
-  transition: background 0.2s;
-  width: 100%;
-  margin-top: 0.5rem;
-  z-index: 10;
-  position: relative;
+  background: #ef4444 !important;
+  color: white !important;
+  border: none !important;
+  padding: 0.5rem 1rem !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+  font-size: 0.875rem !important;
+  transition: background 0.2s !important;
+  width: 100% !important;
+  margin-top: 0.5rem !important;
+  z-index: 10 !important;
+  position: relative !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  flex-shrink: 0 !important;
 }
 
 .remove-image-btn:hover {
