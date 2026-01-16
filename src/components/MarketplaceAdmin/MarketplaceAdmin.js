@@ -81,7 +81,7 @@ const MarketplaceAdmin = () => {
   const loadSections = async () => {
     try {
       setLoading(true);
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('marketplace_sections')
         .select('*')
         .order('display_order', { ascending: true });
