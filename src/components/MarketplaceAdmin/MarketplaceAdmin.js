@@ -871,8 +871,14 @@ const MarketplaceAdmin = () => {
                           type="button"
                           onClick={() => handleRemoveImage(index)}
                           className="remove-image-btn"
+                          style={{ 
+                            display: 'block',
+                            visibility: 'visible',
+                            opacity: 1,
+                            marginTop: '0.75rem'
+                          }}
                         >
-                          Remove
+                          🗑️ Remove Picture
                         </button>
                         <input
                           type="file"
