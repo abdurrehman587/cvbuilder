@@ -457,6 +457,10 @@
   cursor: pointer;
   font-size: 0.875rem;
   transition: background 0.2s;
+  width: 100%;
+  margin-top: 0.5rem;
+  z-index: 10;
+  position: relative;
 }
 
 .remove-image-btn:hover {
@@ -581,6 +585,9 @@
   border-radius: 8px;
   padding: 0.5rem;
   background: white;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .image-preview-item:hover {
