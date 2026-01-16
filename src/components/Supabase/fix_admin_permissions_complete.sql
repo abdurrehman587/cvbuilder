@@ -8,11 +8,20 @@
 
 -- First, ensure there's a policy on users table that allows reading admin status
 -- This is needed for the SECURITY DEFINER function to work
+-- Note: We use a permissive policy that allows the function owner (postgres) to read
 DROP POLICY IF EXISTS "Function can check admin status" ON public.users;
 
+-- Create a policy that allows reading is_admin field for the current user
+-- This works because users can view their own profile, and the function runs as postgres
 CREATE POLICY "Function can check admin status" ON public.users
   FOR SELECT 
-  USING (true);  -- Allow function to read any user's admin status
+  USING (
+    -- Allow if it's the current user's own row (for self-check)
+    id = auth.uid()
+    -- OR allow if the function is being called (SECURITY DEFINER context)
+    -- In practice, SECURITY DEFINER should bypass RLS, but this ensures it works
+    OR current_setting('request.jwt.claims', true)::json->>'role' = 'service_role'
+  );
 
 -- ============================================
 -- PART 2: Create/Update the admin check function
