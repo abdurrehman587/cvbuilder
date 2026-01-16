@@ -441,11 +441,12 @@
   margin-top: 1rem;
 }
 
-.image-preview-item {
+/* This definition is overridden below - keeping for reference */
+/* .image-preview-item {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-}
+} */
 
 .remove-image-btn {
   background: #ef4444;
