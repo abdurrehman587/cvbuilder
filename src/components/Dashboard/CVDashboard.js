@@ -27,7 +27,7 @@ const ShareAppSection = ({ onShareSuccess }) => {
       // Encode user ID as base64 and make it URL-safe
       const referralCode = btoa(user.id).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
       const shareUrl = `${window.location.origin}?ref=${referralCode}`;
-      const shareText = 'Check out this amazing CV Builder app! Create professional CVs in minutes.';
+      const shareText = 'Sign in the app and get free credits.';
       const shareTitle = 'Get Glory - CV Builder';
 
       // Try Capacitor Share first (for mobile apps)
@@ -169,7 +169,7 @@ const ShareAppSection = ({ onShareSuccess }) => {
           }
         }}
       >
-        {isSharing ? 'Sharing...' : '📤 Share App & Get Credit'}
+        {isSharing ? 'Sharing...' : '📤 Share App & Get Free Credit'}
       </button>
       {shareMessage && (
         <p style={{

@@ -175,9 +175,26 @@ export const authService = {
 
   // Get current user
   async getCurrentUser() {
-    const { data: { user }, error } = await supabase.auth.getUser()
-    if (error) throw error
-    return user
+    try {
+      const { data: { user }, error } = await supabase.auth.getUser()
+      // Silently handle "Auth session missing" - it's expected when user is not logged in
+      if (error) {
+        // Check if it's the expected "no session" error
+        if (error.message === 'Auth session missing!' || error.name === 'AuthSessionMissingError') {
+          return null
+        }
+        // Only throw unexpected errors
+        throw error
+      }
+      return user
+    } catch (error) {
+      // Handle any other errors gracefully
+      if (error?.message === 'Auth session missing!' || error?.name === 'AuthSessionMissingError') {
+        return null
+      }
+      // Re-throw unexpected errors
+      throw error
+    }
   },
 
   // Sign in with Google OAuth

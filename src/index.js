@@ -37,6 +37,27 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
+// Global error handler to suppress expected auth session errors
+window.addEventListener('unhandledrejection', (event) => {
+  const error = event.reason;
+  // Silently handle expected "Auth session missing" errors
+  if (error?.message === 'Auth session missing!' || error?.name === 'AuthSessionMissingError') {
+    event.preventDefault(); // Prevent console error
+    return;
+  }
+  // Let other errors through normally
+});
+
+// Also handle general errors
+window.addEventListener('error', (event) => {
+  // Silently handle expected "Auth session missing" errors
+  if (event.error?.message === 'Auth session missing!' || event.error?.name === 'AuthSessionMissingError') {
+    event.preventDefault(); // Prevent console error
+    return;
+  }
+  // Let other errors through normally
+});
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 // Use startTransition for initial render to prevent blocking main thread
 root.render(

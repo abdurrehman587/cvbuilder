@@ -22,14 +22,26 @@ export const SupabaseProvider = ({ children }) => {
   useEffect(() => {
     // Get initial session
     const getInitialSession = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession()
-      if (error) {
-        console.error('Error getting session:', error)
-      } else {
-        setSession(session)
-        setUser(session?.user ?? null)
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession()
+        // Silently handle "Auth session missing" - it's expected when user is not logged in
+        if (error) {
+          // Only log unexpected errors
+          if (error.message !== 'Auth session missing!' && error.name !== 'AuthSessionMissingError') {
+            console.error('Error getting session:', error)
+          }
+        } else {
+          setSession(session)
+          setUser(session?.user ?? null)
+        }
+      } catch (err) {
+        // Silently handle auth session errors
+        if (err?.message !== 'Auth session missing!' && err?.name !== 'AuthSessionMissingError') {
+          console.error('Unexpected error getting session:', err)
+        }
+      } finally {
+        setLoading(false)
       }
-      setLoading(false)
     }
 
     getInitialSession()
@@ -37,9 +49,17 @@ export const SupabaseProvider = ({ children }) => {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        setSession(session)
-        setUser(session?.user ?? null)
-        setLoading(false)
+        try {
+          setSession(session)
+          setUser(session?.user ?? null)
+        } catch (err) {
+          // Silently handle auth errors
+          if (err?.message !== 'Auth session missing!' && err?.name !== 'AuthSessionMissingError') {
+            console.error('Error in auth state change:', err)
+          }
+        } finally {
+          setLoading(false)
+        }
       }
     )
 

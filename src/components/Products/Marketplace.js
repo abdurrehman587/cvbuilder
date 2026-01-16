@@ -2,12 +2,36 @@ import React, { useState, useEffect, useRef, useCallback, useMemo, memo } from '
 import './Marketplace.css';
 import { authService, supabase } from '../Supabase/supabase';
 import { addToCart } from '../../utils/cart';
+import ShopkeeperProductManager from './ShopkeeperProductManager';
 
-// Constants
-const PRODUCTS_PER_PAGE = 12; // Increased for better UX (loads faster with optimizations)
-const INITIAL_PRODUCTS = 12; // Initial products to show
-const PRELOAD_DISTANCE = 300; // Preload images 300px before they're visible
-const SEARCH_DEBOUNCE = 200; // Reduced debounce for faster search
+// Helper function to safely get current user without throwing errors
+const safeGetCurrentUser = async () => {
+  try {
+    // Check localStorage first to avoid unnecessary API calls
+    const isAuthInStorage = localStorage.getItem('cvBuilderAuth') === 'true';
+    if (!isAuthInStorage) {
+      return null;
+    }
+    const user = await authService.getCurrentUser();
+    return user;
+  } catch (error) {
+    // Silently handle AuthSessionMissingError - it's expected when user is not logged in
+    if (error?.name === 'AuthSessionMissingError' || error?.message === 'Auth session missing!') {
+      return null;
+    }
+    // Only log unexpected errors
+    console.error('Unexpected auth error:', error);
+    return null;
+  }
+};
+
+// Constants - Optimized for slow internet and devices
+const PRODUCTS_PER_PAGE = 8; // Reduced for faster initial load
+const INITIAL_PRODUCTS = 6; // Reduced initial products for slow connections
+const PRELOAD_DISTANCE = 200; // Reduced preload distance
+const SEARCH_DEBOUNCE = 300; // Increased debounce for better performance
+const IMAGE_WIDTH = 300; // Reduced image size for faster loading
+const IMAGE_QUALITY = 75; // Balanced quality/size
 
 // Move products array outside component to keep it stable
   const products = [
@@ -24,18 +48,7 @@ const SEARCH_DEBOUNCE = 200; // Reduced debounce for faster search
     },
   ];
 
-// Polyfill for requestIdleCallback (define before use)
-const requestIdleCallback = typeof window !== 'undefined' && window.requestIdleCallback 
-  ? window.requestIdleCallback.bind(window)
-  : (cb, options) => {
-      const start = Date.now();
-      return setTimeout(() => {
-        cb({
-          didTimeout: false,
-          timeRemaining: () => Math.max(0, (options?.timeout || 0) - (Date.now() - start))
-        });
-      }, 1);
-    };
+// Removed requestIdleCallback polyfill - not needed for simplified approach
 
 // Helper function to check WebP support (cached and optimized)
 let webpSupported = null;
@@ -70,155 +83,69 @@ const checkWebPSupport = () => {
   }
 };
 
-// Helper function to optimize image URL (add compression/transformation if available)
-const optimizeImageUrl = (url, width = 400, quality = 80, format = 'webp', blur = false) => {
+// Helper function to optimize image URL (simplified for better performance)
+const optimizeImageUrl = (url, width = IMAGE_WIDTH, quality = IMAGE_QUALITY, format = 'webp') => {
   if (!url) return url;
   
   // If Supabase storage URL, we can add transformations
   if (url.includes('supabase.co') || url.includes('supabase')) {
-    // Supabase storage supports image transformations
     const useWebP = format === 'webp' && checkWebPSupport();
     const imageFormat = useWebP ? 'webp' : 'auto';
-    let optimizedUrl = `${url}${url.includes('?') ? '&' : '?'}width=${width}&quality=${quality}&format=${imageFormat}`;
-    // Add blur for low-quality placeholders
-    if (blur) {
-      optimizedUrl += '&blur=20';
-    }
-    return optimizedUrl;
+    return `${url}${url.includes('?') ? '&' : '?'}width=${width}&quality=${quality}&format=${imageFormat}`;
   }
   
   // For external URLs (like Unsplash), try to use their optimization APIs
   if (url.includes('unsplash.com')) {
     const useWebP = format === 'webp' && checkWebPSupport();
     const imageFormat = useWebP ? 'fm=webp&' : '';
-    let optimizedUrl = `${url}${url.includes('?') ? '&' : '?'}${imageFormat}w=${width}&q=${quality}`;
-    // Add blur for low-quality placeholders
-    if (blur) {
-      optimizedUrl += '&blur=20';
-    }
-    return optimizedUrl;
+    return `${url}${url.includes('?') ? '&' : '?'}${imageFormat}w=${width}&q=${quality}`;
   }
   
-  // For other URLs, return as-is (can be enhanced with image CDN)
+  // For other URLs, return as-is
   return url;
 };
 
-// Memoized Product Card Component for better performance
-const ProductCard = memo(({ 
+// Simple Product Card Component - No complex optimizations
+const ProductCard = ({ 
   product, 
   productImages, 
   onProductClick, 
   onAddToCart, 
   onBuyNow
 }) => {
-  const imageRef = useRef(null);
-  const [isInView, setIsInView] = useState(false);
-  const [firstImageLoaded, setFirstImageLoaded] = useState(false);
-  const [firstImageHighQualityLoaded, setFirstImageHighQualityLoaded] = useState(false);
-
-  // Intersection Observer for lazy loading with better rootMargin
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setIsInView(true);
-            observer.disconnect();
-          }
-        });
-      },
-      { rootMargin: `${PRELOAD_DISTANCE}px` } // Start loading earlier
-    );
-
-    if (imageRef.current) {
-      observer.observe(imageRef.current);
-    }
-
-    return () => {
-      if (imageRef.current) {
-        observer.disconnect();
-      }
-    };
-  }, [productImages.length]);
-
-  // No need to preload additional images - only showing first image
-
-  const handleFirstImageLoad = (e) => {
-    setFirstImageLoaded(true);
-    // After low-quality loads, immediately start loading high-quality version
-    if (!firstImageHighQualityLoaded && productImages.length > 0) {
-      const highQualityImg = new Image();
-      highQualityImg.onload = () => {
-        setFirstImageHighQualityLoaded(true);
-        // Swap the src of the main image to high-quality
-        if (e && e.target) {
-          e.target.src = optimizeImageUrl(productImages[0], 400, 85, 'webp', false);
-        }
-      };
-      highQualityImg.src = optimizeImageUrl(productImages[0], 400, 85, 'webp', false);
-    }
-  };
-
-  // Only render the first image - no carousel
   const firstImage = productImages.length > 0 ? productImages[0] : null;
+  const imageSrc = firstImage ? optimizeImageUrl(firstImage, IMAGE_WIDTH, IMAGE_QUALITY, 'webp') : null;
 
   return (
     <div 
-      ref={imageRef}
       className="product-card-fresh" 
       data-product-id={product.id}
       onClick={onProductClick}
     >
       <div className="product-card-image-wrapper">
-        {/* Skeleton loader - shown while low-quality image is loading */}
-        {isInView && firstImage && !firstImageLoaded && (
-          <div className="product-card-skeleton">
-            <div className="skeleton-shimmer"></div>
+        {imageSrc ? (
+          <img 
+            src={imageSrc}
+            alt={product.name || 'Product image'}
+            className="product-card-image first-image"
+            onError={(e) => {
+              e.target.style.display = 'none';
+            }}
+            loading="lazy"
+            decoding="async"
+            style={{ 
+              width: '100%', 
+              height: '100%', 
+              objectFit: 'contain',
+              objectPosition: 'center',
+              display: 'block'
+            }}
+          />
+        ) : (
+          <div className="product-card-placeholder">
+            <span className="product-placeholder-icon-fresh">📦</span>
           </div>
         )}
-        
-        {isInView && firstImage ? (
-          <>
-            {/* Low-quality thumbnail first, then high-quality */}
-            {(() => {
-              const useLowQuality = !firstImageHighQualityLoaded;
-              const imageWidth = useLowQuality ? 200 : 400;
-              const imageQuality = useLowQuality ? 60 : 85;
-              const imageSrc = optimizeImageUrl(firstImage, imageWidth, imageQuality, 'webp', useLowQuality);
-              
-              return (
-                <img 
-                  key={`${product.id}-0`}
-                  src={imageSrc}
-                  alt={`${product.name} - ${product.description || 'Professional product image'}`}
-                  className={`product-card-image first-image ${!firstImageHighQualityLoaded ? 'loading-high-quality' : ''}`}
-                  style={{ 
-                    opacity: firstImageLoaded ? (firstImageHighQualityLoaded ? 1 : 0.8) : 0, 
-                    zIndex: 1, 
-                    transform: 'translate(-50%, -50%)', 
-                    transition: 'opacity 0.4s ease',
-                    filter: useLowQuality ? 'blur(8px)' : 'none'
-                  }}
-                  onError={(e) => {
-                    e.target.style.display = 'none';
-                  }}
-                  onLoad={handleFirstImageLoad}
-                  loading="lazy"
-                  decoding="async"
-                  width="400"
-                  height="400"
-                  fetchPriority="high"
-                />
-              );
-            })()}
-          </>
-        ) : null}
-        <div className="product-card-placeholder" style={{ 
-          display: (isInView && productImages.length > 0 && firstImageLoaded) ? 'none' : 'flex' 
-        }}>
-          <span className="product-placeholder-icon-fresh">📦</span>
-        </div>
-        <div className="product-card-overlay"></div>
       </div>
       <div className="product-card-body">
         <h4 className="product-card-name">{product.name}</h4>
@@ -253,7 +180,7 @@ const ProductCard = memo(({
       </div>
     </div>
   );
-});
+};
 
 ProductCard.displayName = 'ProductCard';
 
@@ -515,32 +442,20 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
       }
       
       // Flag is not set and user is not authenticated in storage - proceed with auth check
-      try {
-        // Check with authService (only if not authenticated in storage)
-        const user = await authService.getCurrentUser();
-        if (user) {
-          // User is authenticated via Supabase - update localStorage
-          localStorage.setItem('cvBuilderAuth', 'true');
-          setShowLogin(false);
-          // Clear any login flags
-          sessionStorage.removeItem('showLoginForm');
-          localStorage.removeItem('showLoginForm');
-          // Set justAuthenticated flag to prevent other checks from clearing auth
-          sessionStorage.setItem('justAuthenticated', 'true');
-          setTimeout(() => {
-            sessionStorage.removeItem('justAuthenticated');
-          }, 5000);
-          return;
-        }
-      } catch (err) {
-        // AuthSessionMissingError is expected when user is not authenticated
-        // Only log actual errors, not expected auth state
-        if (err?.name !== 'AuthSessionMissingError' && err?.message !== 'Auth session missing!') {
-          console.error('Error checking auth:', err);
-        }
-        // CRITICAL: Don't clear cvBuilderAuth on error - preserve existing auth state
-        // This is especially important for admin users who might have valid sessions
-        // but the check might fail due to timing or network issues
+      const user = await safeGetCurrentUser();
+      if (user) {
+        // User is authenticated via Supabase - update localStorage
+        localStorage.setItem('cvBuilderAuth', 'true');
+        setShowLogin(false);
+        // Clear any login flags
+        sessionStorage.removeItem('showLoginForm');
+        localStorage.removeItem('showLoginForm');
+        // Set justAuthenticated flag to prevent other checks from clearing auth
+        sessionStorage.setItem('justAuthenticated', 'true');
+        setTimeout(() => {
+          sessionStorage.removeItem('justAuthenticated');
+        }, 5000);
+        return;
       }
       
       // Check for navigation flags on mount and when prop changes
@@ -663,21 +578,7 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
         setCurrentPage(1);
         setHasMoreProducts(hasMore);
         
-        // Preload images for first batch immediately (no delay)
-        requestIdleCallback(() => {
-          if (!isMounted) return;
-          firstBatch.forEach(product => {
-            const images = getProductImages(product);
-            if (images.length > 0) {
-              // Preload low-quality thumbnail first
-              const lowQualityImg = new Image();
-              lowQualityImg.src = optimizeImageUrl(images[0], 200, 60, 'webp', true);
-              // Preload high-quality immediately after
-              const highQualityImg = new Image();
-              highQualityImg.src = optimizeImageUrl(images[0], 400, 85);
-            }
-          });
-        }, { timeout: 100 });
+        // No preloading - let browser handle it naturally
       } catch (err) {
         if (isMounted) {
           console.error('Error loading marketplace data:', err);
@@ -723,19 +624,7 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
         setCurrentPage(nextPage);
         setHasMoreProducts(nextBatch.length === PRODUCTS_PER_PAGE);
         
-        // Preload images for next batch in background (low priority, no nested timeouts)
-        requestIdleCallback(() => {
-          nextBatch.forEach(product => {
-            const images = getProductImages(product);
-            if (images.length > 0) {
-              // Preload both low and high quality in parallel
-              const lowQualityImg = new Image();
-              lowQualityImg.src = optimizeImageUrl(images[0], 200, 60, 'webp', true);
-              const highQualityImg = new Image();
-              highQualityImg.src = optimizeImageUrl(images[0], 400, 85);
-            }
-          });
-        }, { timeout: 200 });
+        // No preloading - let browser handle it naturally
       } else {
         setHasMoreProducts(false);
       }
@@ -747,25 +636,27 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
     }
   }, [currentPage, loadingMoreProducts, hasMoreProducts]);
 
-  // Intersection Observer for infinite scroll
+  // Simple Intersection Observer for infinite scroll - optimized to prevent scroll jank
   useEffect(() => {
+    if (!loadMoreRef.current || !hasMoreProducts || loadingMoreProducts) return;
+    
+    let ticking = false;
+    
     const observer = new IntersectionObserver(
       (entries) => {
-        const target = entries[0];
-        if (target.isIntersecting && hasMoreProducts && !loadingMoreProducts) {
-          loadMoreProducts();
+        if (!ticking && entries[0].isIntersecting && hasMoreProducts && !loadingMoreProducts) {
+          ticking = true;
+          // Use requestAnimationFrame to prevent blocking scroll
+          requestAnimationFrame(() => {
+            loadMoreProducts();
+            ticking = false;
+          });
         }
       },
-      {
-        root: null,
-        rootMargin: `${PRELOAD_DISTANCE}px`, // Start loading earlier for smoother experience
-        threshold: 0.1
-      }
+      { rootMargin: '300px', threshold: 0.01 }
     );
 
-    if (loadMoreRef.current) {
-      observer.observe(loadMoreRef.current);
-    }
+    observer.observe(loadMoreRef.current);
 
     return () => {
       if (loadMoreRef.current) {
@@ -881,8 +772,8 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
         // First check localStorage for quick auth status
         const isAuthInStorage = localStorage.getItem('cvBuilderAuth') === 'true';
         
-        // Then check with authService
-        const user = await authService.getCurrentUser();
+        // Then check with authService (safely)
+        const user = await safeGetCurrentUser();
         const isAuthenticated = user !== null || isAuthInStorage;
         
         if (isAuthenticated) {
@@ -1012,11 +903,8 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
           }
         }
       } catch (error) {
-        // AuthSessionMissingError is expected when user is not authenticated
-        // Only log actual errors, not expected auth state
-        if (error?.name !== 'AuthSessionMissingError' && error?.message !== 'Auth session missing!') {
-          console.error('Error checking auth:', error);
-        }
+        // Only log unexpected errors
+        console.error('Unexpected error in handleGetStarted:', error);
         // On error, show login form
         setShowLogin(true);
       }
@@ -1031,8 +919,8 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
         // First check localStorage for quick auth status
         const isAuthInStorage = localStorage.getItem('cvBuilderAuth') === 'true';
         
-        // Then check with authService
-        const user = await authService.getCurrentUser();
+        // Then check with authService (safely)
+        const user = await safeGetCurrentUser();
         const isAuthenticated = user !== null || isAuthInStorage;
         
         // Set template selection and navigation flags FIRST (for both authenticated and unauthenticated)
@@ -1079,11 +967,8 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
           setShowLogin(true);
         }
       } catch (error) {
-        // AuthSessionMissingError is expected when user is not authenticated
-        // Only log actual errors, not expected auth state
-        if (error?.name !== 'AuthSessionMissingError' && error?.message !== 'Auth session missing!') {
-          console.error('Error checking auth:', error);
-        }
+        // Only log unexpected errors
+        console.error('Unexpected error in handleTemplateClick:', error);
         // On error, show login form and set flags
         sessionStorage.setItem('navigateToCVBuilder', 'true');
         localStorage.setItem('navigateToCVBuilder', 'true');
@@ -1346,6 +1231,49 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
         {/* Market Place Detailed View - Fresh Design */}
             <div id="marketplace-section" className="product-section-fresh">
               <div className="product-content-wrapper">
+                {/* Shopkeeper Product Manager */}
+                <ShopkeeperProductManager 
+                  onProductAdded={() => {
+                    // Reload marketplace data when a product is added
+                    const loadMarketplaceData = async () => {
+                      try {
+                        setLoadingMarketplace(true);
+                        
+                        const [sectionsResponse, productsResponse] = await Promise.all([
+                          supabase
+                            .from('marketplace_sections')
+                            .select('*')
+                            .order('display_order', { ascending: true }),
+                          supabase
+                            .from('marketplace_products')
+                            .select('*, marketplace_sections(name)')
+                            .or('is_hidden.is.null,is_hidden.eq.false')
+                            .order('created_at', { ascending: false })
+                        ]);
+
+                        if (sectionsResponse.error) throw sectionsResponse.error;
+                        setMarketplaceSections(sectionsResponse.data || []);
+
+                        if (productsResponse.error) throw productsResponse.error;
+                        
+                        const allProductsData = productsResponse.data || [];
+                        const hasMore = allProductsData.length > INITIAL_PRODUCTS;
+                        const firstBatch = allProductsData.slice(0, INITIAL_PRODUCTS);
+                        
+                        setAllProducts(allProductsData);
+                        setMarketplaceProducts(firstBatch);
+                        setCurrentPage(1);
+                        setHasMoreProducts(hasMore);
+                      } catch (err) {
+                        console.error('Error reloading marketplace data:', err);
+                      } finally {
+                        setLoadingMarketplace(false);
+                      }
+                    };
+                    loadMarketplaceData();
+                  }}
+                />
+                
                 {/* Search Bar */}
                 <div className="marketplace-search-container">
                   <div className="marketplace-search-wrapper">

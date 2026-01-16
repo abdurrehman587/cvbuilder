@@ -156,6 +156,10 @@ const useAutoSave = (formData, saveInterval = 10000) => {
         const user = await authService.getCurrentUser();
         setIsAuthenticated(!!user);
       } catch (error) {
+        // Silently handle auth session errors
+        if (error?.message !== 'Auth session missing!' && error?.name !== 'AuthSessionMissingError') {
+          console.error('Unexpected auth error in useAutoSave:', error);
+        }
         setIsAuthenticated(false);
       }
     };

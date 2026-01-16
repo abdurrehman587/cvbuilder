@@ -4,6 +4,8 @@ import generatePDF1 from '../template1/pdf1';
 import generatePDF2 from '../template2/pdf2';
 import generatePDF3 from '../template3/pdf3';
 import generatePDF4 from '../template4/pdf4';
+import { Share } from '@capacitor/share';
+import { authService } from '../Supabase/supabase';
 import './PreviewPage.css';
 
 // Import all preview components
@@ -222,6 +224,63 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
     }
   };
 
+  const handleShareApp = async () => {
+    try {
+      const user = await authService.getCurrentUser();
+      if (!user) {
+        alert('Please login to share and earn credits.');
+        return;
+      }
+
+      // Generate unique referral link for this user
+      const referralCode = btoa(user.id).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+      const shareUrl = `${window.location.origin}?ref=${referralCode}`;
+      const shareText = 'Sign in the app and get free credits.';
+      const shareTitle = 'Get Glory - CV Builder';
+
+      try {
+        if (window.Capacitor && Share) {
+          await Share.share({
+            title: shareTitle,
+            text: shareText,
+            url: shareUrl,
+            dialogTitle: 'Share Get Glory App'
+          });
+          return;
+        }
+      } catch (capError) {
+        if (capError.message && (capError.message.includes('cancel') || capError.message.includes('dismiss'))) {
+          return;
+        }
+        console.log('Capacitor Share error:', capError);
+      }
+
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: shareTitle,
+            text: shareText,
+            url: shareUrl
+          });
+        } catch (shareError) {
+          if (shareError.name !== 'AbortError') {
+            console.error('Error sharing:', shareError);
+          }
+        }
+      } else {
+        const fullText = `${shareText}\n${shareUrl}`;
+        try {
+          await navigator.clipboard.writeText(fullText);
+          alert('Link copied to clipboard!');
+        } catch (clipError) {
+          alert('Unable to copy. Please share manually.');
+        }
+      }
+    } catch (err) {
+      console.error('Error in share process:', err);
+    }
+  };
+
   return (
     <div className="preview-page-container">
       {/* Loading Overlay */}
@@ -288,6 +347,29 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
             </div>
           </div>
         )}
+
+        {/* Share Button */}
+        <button 
+          className="preview-page-share-button"
+          onClick={handleShareApp}
+          title="Share App & Get Free Credit"
+          style={{
+            padding: '8px 16px',
+            fontSize: '14px',
+            fontWeight: '600',
+            color: 'white',
+            backgroundColor: '#3b82f6',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            marginRight: '8px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px'
+          }}
+        >
+          📤 Share App & Get Free Credit
+        </button>
 
         {/* Download PDF Button */}
         <button 

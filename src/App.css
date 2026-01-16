@@ -122,11 +122,8 @@ html {
   /* Hide scrollbars */
   scrollbar-width: none !important; /* Firefox */
   -ms-overflow-style: none !important; /* IE and Edge */
-  /* Optimize scroll performance */
-  will-change: auto !important;
-  transform: none !important;
-  backface-visibility: visible !important;
-  -webkit-backface-visibility: visible !important;
+  /* Optimize scroll performance - removed aggressive optimizations that cause jank */
+  /* will-change, transform, and backface-visibility removed for smoother scrolling */
 }
 
 .app-content-with-navbar::-webkit-scrollbar,

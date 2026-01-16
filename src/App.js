@@ -3,9 +3,14 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import './App.css';
 import { SupabaseProvider } from './components/Supabase';
 import useAutoSave from './components/Supabase/useAutoSave';
-import { authService, supabase } from './components/Supabase/supabase';
+import { authService, supabase, cvCreditsService } from './components/Supabase/supabase';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
+import { Share } from '@capacitor/share';
+import generatePDF1 from './components/template1/pdf1';
+import generatePDF2 from './components/template2/pdf2';
+import generatePDF3 from './components/template3/pdf3';
+import generatePDF4 from './components/template4/pdf4';
 import { getCurrentApp, setCurrentApp, getCVView, setCVView, getIDCardView, setIDCardView, getRoute } from './utils/routing';
 import { pathToApp, pathToCVView, getProductIdFromPath, getOrderIdFromPath } from './utils/routeMapping';
 import { setNavigate } from './utils/navigation';
@@ -1698,6 +1703,124 @@ function App() {
     }, 50);
   };
 
+  // Handle share app
+  const handleShareApp = async () => {
+    try {
+      const user = await authService.getCurrentUser();
+      if (!user) {
+        alert('Please login to share and earn credits.');
+        return;
+      }
+
+      // Generate unique referral link for this user
+      const referralCode = btoa(user.id).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+      const shareUrl = `${window.location.origin}?ref=${referralCode}`;
+      const shareText = 'Sign in the app and get free credits.';
+      const shareTitle = 'Get Glory - CV Builder';
+
+      try {
+        if (window.Capacitor && Share) {
+          await Share.share({
+            title: shareTitle,
+            text: shareText,
+            url: shareUrl,
+            dialogTitle: 'Share Get Glory App'
+          });
+          return;
+        }
+      } catch (capError) {
+        if (capError.message && (capError.message.includes('cancel') || capError.message.includes('dismiss'))) {
+          return;
+        }
+        console.log('Capacitor Share error:', capError);
+      }
+
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: shareTitle,
+            text: shareText,
+            url: shareUrl
+          });
+        } catch (shareError) {
+          if (shareError.name !== 'AbortError') {
+            console.error('Error sharing:', shareError);
+          }
+        }
+      } else {
+        const fullText = `${shareText}\n${shareUrl}`;
+        try {
+          await navigator.clipboard.writeText(fullText);
+          alert('Link copied to clipboard!');
+        } catch (clipError) {
+          alert('Unable to copy. Please share manually.');
+        }
+      }
+    } catch (err) {
+      console.error('Error in share process:', err);
+    }
+  };
+
+  // Handle download PDF
+  const handleDownloadPDF = async () => {
+    try {
+      // Check CV credits before allowing download
+      const user = await authService.getCurrentUser();
+      if (user) {
+        const canDownload = await cvCreditsService.canDownloadCV(user.id);
+        if (!canDownload) {
+          const credits = await cvCreditsService.getCredits(user.id);
+          alert(`You have no CV download credits remaining (${credits} credits). To get more CV Download Credits Contact Administrator : 0315-3338612`);
+          return;
+        }
+      }
+
+      // Get formData from state or localStorage
+      let dataForFileName = formData;
+      if (!dataForFileName || !dataForFileName.name) {
+        const storedData = localStorage.getItem('cvFormData');
+        if (storedData) {
+          try {
+            dataForFileName = JSON.parse(storedData);
+          } catch (e) {
+            console.error('Error parsing stored data for filename:', e);
+          }
+        }
+      }
+
+      // Get the correct PDF generator based on selected template
+      let generatePDF;
+      switch (selectedTemplate) {
+        case 'template1':
+          generatePDF = generatePDF1;
+          break;
+        case 'template2':
+          generatePDF = generatePDF2;
+          break;
+        case 'template3':
+          generatePDF = generatePDF3;
+          break;
+        case 'template4':
+          generatePDF = generatePDF4;
+          break;
+        default:
+          generatePDF = generatePDF1;
+      }
+
+      // Call the PDF generation function
+      if (generatePDF) {
+        if (selectedTemplate === 'template1' || selectedTemplate === 'template2' || selectedTemplate === 'template3' || selectedTemplate === 'template4') {
+          generatePDF(dataForFileName);
+        } else {
+          generatePDF();
+        }
+      }
+    } catch (err) {
+      console.error('Error downloading PDF:', err);
+      alert('Error downloading PDF. Please try again.');
+    }
+  };
+
   // Handle template switching without resetting form data
   const handleTemplateSwitch = (templateId) => {
     setSelectedTemplate(templateId);
@@ -2412,6 +2535,42 @@ function App() {
                       </div>
                     )}
                   </div>
+                  <button 
+                    onClick={handleShareApp} 
+                    className="share-button-header"
+                    style={{ 
+                      padding: '8px 16px',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      color: 'white',
+                      backgroundColor: '#3b82f6',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      marginRight: '8px'
+                    }}
+                    title="Share App & Get Free Credit"
+                  >
+                    📤 Share App & Get Free Credit
+                  </button>
+                  <button 
+                    onClick={handleDownloadPDF} 
+                    className="download-pdf-button-header"
+                    style={{ 
+                      padding: '8px 16px',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      color: 'white',
+                      backgroundColor: '#10b981',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      marginRight: '8px'
+                    }}
+                    title="Download CV as PDF"
+                  >
+                    📥 Download PDF
+                  </button>
                   <button 
                     onClick={handleBackToDashboard} 
                     className="back-to-dashboard-button"
