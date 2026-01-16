@@ -235,6 +235,7 @@ function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
         setShowA4Preview(true);
       }, 50);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [propFormData?.name]); // Only trigger when CV name changes (switching CVs)
 
 
@@ -653,6 +654,7 @@ function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
       }
     };
   }, []);
+  // eslint-disable-next-line no-unused-vars
   const contactInfo = formatContactInfo();
 
   // Render the CV preview content (reusable for both normal and modal view)

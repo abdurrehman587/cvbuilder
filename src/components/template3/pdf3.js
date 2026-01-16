@@ -2,7 +2,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { Capacitor } from '@capacitor/core';
 import FileDownload from '../../utils/fileDownload';
-import { supabase, cvCreditsService, authService } from '../Supabase/supabase';
+import { cvCreditsService, authService } from '../Supabase/supabase';
 
 // PDF Generation Configuration
 const PDF_CONFIG = {

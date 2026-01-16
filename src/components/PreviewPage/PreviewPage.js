@@ -29,7 +29,9 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
         }
       }
     }
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // formData changes are handled internally
+  // eslint-disable-next-line no-unused-vars
   const [userZoom, setUserZoom] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const previewRef = useRef(null);

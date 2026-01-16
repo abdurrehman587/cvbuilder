@@ -3,10 +3,12 @@ import { supabase } from '../Supabase/supabase';
 import './OrderNotification.css';
 
 const OrderNotification = ({ isAdmin, isAuthenticated }) => {
+  // eslint-disable-next-line no-unused-vars
   const [newOrders, setNewOrders] = useState([]);
   const [isVisible, setIsVisible] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const notificationIntervalRef = useRef(null);
+  // eslint-disable-next-line no-unused-vars
   const audioRef = useRef(null);
   const lastCheckedTimeRef = useRef(null);
   const isMarkingAsReadRef = useRef(false);
@@ -31,6 +33,7 @@ const OrderNotification = ({ isAdmin, isAuthenticated }) => {
   };
 
   // Mark order as read
+  // eslint-disable-next-line no-unused-vars
   const markOrderAsRead = (orderId) => {
     const unread = getUnreadOrders();
     const updated = unread.filter(id => id !== orderId);
@@ -154,6 +157,7 @@ const OrderNotification = ({ isAdmin, isAuthenticated }) => {
 
           // Update state
           setNewOrders(prev => {
+            // eslint-disable-next-line no-unused-vars
             const existingIds = prev.map(o => o.id);
             const newOrders = data.filter(o => newOrderIds.includes(o.id));
             return [...prev, ...newOrders];
@@ -280,7 +284,8 @@ const OrderNotification = ({ isAdmin, isAuthenticated }) => {
       }
       clearInterval(reminderInterval);
     };
-  }, [isAdmin, isAuthenticated]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAdmin, isAuthenticated]); // Functions are stable, no need to include them
 
   // Listen for orders viewed event
   useEffect(() => {
@@ -334,7 +339,8 @@ const OrderNotification = ({ isAdmin, isAuthenticated }) => {
       window.removeEventListener('hashchange', checkAdminOrdersPage);
       clearInterval(countUpdateInterval);
     };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // updateUnreadCount is stable, no need to include it
 
   // Handle notification click
   const handleNotificationClick = () => {

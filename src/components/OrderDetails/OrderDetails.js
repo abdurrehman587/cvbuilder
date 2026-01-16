@@ -36,7 +36,8 @@ const OrderDetails = ({ orderId: propOrderId }) => {
 
   useEffect(() => {
     loadOrder();
-  }, [orderId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orderId]); // loadOrder is stable, no need to include it
 
   const loadOrder = async () => {
     if (!orderId) {

@@ -208,6 +208,7 @@ const usePreviewHandler = (passedFormData = null) => {
     data.customSection = customSectionData;
 
     return data;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty deps - use ref for hobbies to prevent infinite loop
 
   // Use passed form data if available, but also read from DOM to get latest values

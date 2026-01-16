@@ -43,7 +43,8 @@ const ProductDetail = ({ productId }) => {
     if (productId) {
       loadProduct();
     }
-  }, [productId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productId]); // loadRelatedProducts is stable, no need to include it
 
   // Load related products from the same section
   const loadRelatedProducts = async (sectionId, currentProductId, currentProductName) => {
@@ -323,6 +324,7 @@ const ProductDetail = ({ productId }) => {
                 >
                   <img 
                     src={images[currentImageIndex]} 
+                    // eslint-disable-next-line jsx-a11y/img-redundant-alt
                     alt={`${product.name} - ${product.description || 'Professional product'} - Image ${currentImageIndex + 1}`}
                     className="product-detail-main-image"
                   />

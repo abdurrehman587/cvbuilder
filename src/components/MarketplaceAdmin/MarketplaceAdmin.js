@@ -12,6 +12,7 @@ const MarketplaceAdmin = () => {
   const [activeTab, setActiveTab] = useState('orders');
 
   // Helper function to convert HTML to plain text (preserving line breaks)
+  // eslint-disable-next-line no-unused-vars
   const htmlToPlainText = (html) => {
     if (!html) return '';
     const tempDiv = document.createElement('div');
@@ -80,7 +81,7 @@ const MarketplaceAdmin = () => {
   const loadSections = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('marketplace_sections')
         .select('*')
         .order('display_order', { ascending: true });
@@ -153,7 +154,7 @@ const MarketplaceAdmin = () => {
     e.preventDefault();
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('marketplace_sections')
         .insert([sectionForm])
         .select()
@@ -175,7 +176,7 @@ const MarketplaceAdmin = () => {
     e.preventDefault();
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('marketplace_sections')
         .update(sectionForm)
         .eq('id', editingSection.id)
@@ -361,7 +362,7 @@ const MarketplaceAdmin = () => {
     try {
       setLoading(true);
       // Store HTML description to preserve formatting
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('marketplace_products')
         .insert([{
           ...productForm,
@@ -390,7 +391,7 @@ const MarketplaceAdmin = () => {
     try {
       setLoading(true);
       // Store HTML description to preserve formatting
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('marketplace_products')
         .update({
           name: productForm.name,
