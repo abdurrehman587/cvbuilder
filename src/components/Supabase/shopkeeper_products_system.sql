@@ -26,6 +26,25 @@ END $$;
 -- Enable RLS on marketplace_products if not already enabled
 ALTER TABLE public.marketplace_products ENABLE ROW LEVEL SECURITY;
 
+-- Create a SECURITY DEFINER function to check if current user is admin
+-- This function runs with elevated privileges, bypassing RLS on public.users
+CREATE OR REPLACE FUNCTION public.is_admin_user()
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+STABLE
+AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM public.users 
+    WHERE id = auth.uid() AND is_admin = TRUE
+  );
+END;
+$$;
+
+-- Grant execute permission to authenticated users
+GRANT EXECUTE ON FUNCTION public.is_admin_user() TO authenticated;
+
 -- Drop existing policies if they exist (to recreate them)
 DROP POLICY IF EXISTS "Shopkeepers can view their own products" ON public.marketplace_products;
 DROP POLICY IF EXISTS "Shopkeepers can insert their own products" ON public.marketplace_products;
@@ -84,3 +103,23 @@ CREATE POLICY "Shopkeepers can delete their own products" ON public.marketplace_
 -- Policy: Public can view non-hidden products (this should already exist, but ensure it works with shopkeeper products)
 -- Note: This policy allows everyone (including shopkeepers) to view products that are not hidden
 -- Shopkeepers' products will be visible to everyone unless is_hidden = true
+CREATE POLICY "Public can view non-hidden products" ON public.marketplace_products
+  FOR SELECT USING (is_hidden IS DISTINCT FROM TRUE);
+
+-- Admin Policies: Allow admins to manage all marketplace products
+-- Using the is_admin_user() function which bypasses RLS on public.users
+-- Policy: Admins can view all products (including hidden ones)
+CREATE POLICY "Admins can view all marketplace products" ON public.marketplace_products
+  FOR SELECT USING (public.is_admin_user());
+
+-- Policy: Admins can insert products (shopkeeper_id will be NULL for admin-created products)
+CREATE POLICY "Admins can insert marketplace products" ON public.marketplace_products
+  FOR INSERT WITH CHECK (public.is_admin_user());
+
+-- Policy: Admins can update all products
+CREATE POLICY "Admins can update all marketplace products" ON public.marketplace_products
+  FOR UPDATE USING (public.is_admin_user());
+
+-- Policy: Admins can delete all products
+CREATE POLICY "Admins can delete all marketplace products" ON public.marketplace_products
+  FOR DELETE USING (public.is_admin_user());
