@@ -32,6 +32,10 @@ DROP POLICY IF EXISTS "Shopkeepers can insert their own products" ON public.mark
 DROP POLICY IF EXISTS "Shopkeepers can update their own products" ON public.marketplace_products;
 DROP POLICY IF EXISTS "Shopkeepers can delete their own products" ON public.marketplace_products;
 DROP POLICY IF EXISTS "Public can view non-hidden products" ON public.marketplace_products;
+DROP POLICY IF EXISTS "Admins can view all marketplace products" ON public.marketplace_products;
+DROP POLICY IF EXISTS "Admins can insert marketplace products" ON public.marketplace_products;
+DROP POLICY IF EXISTS "Admins can update all marketplace products" ON public.marketplace_products;
+DROP POLICY IF EXISTS "Admins can delete all marketplace products" ON public.marketplace_products;
 
 -- Policy: Shopkeepers can view their own products (including hidden ones)
 CREATE POLICY "Shopkeepers can view their own products" ON public.marketplace_products
