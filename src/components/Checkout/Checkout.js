@@ -10,6 +10,7 @@ const Checkout = () => {
   const [loading, setLoading] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [orderId, setOrderId] = useState(null);
+  // eslint-disable-next-line no-unused-vars
   const [currentUser, setCurrentUser] = useState(null);
   
   const [formData, setFormData] = useState({

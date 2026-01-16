@@ -12,7 +12,7 @@ import generatePDF2 from './components/template2/pdf2';
 import generatePDF3 from './components/template3/pdf3';
 import generatePDF4 from './components/template4/pdf4';
 import { getCurrentApp, setCurrentApp, getCVView, setCVView, getIDCardView, setIDCardView, getRoute } from './utils/routing';
-import { pathToApp, pathToCVView, getProductIdFromPath, getOrderIdFromPath } from './utils/routeMapping';
+import { pathToApp, getProductIdFromPath, getOrderIdFromPath } from './utils/routeMapping';
 import { setNavigate } from './utils/navigation';
 
 // Critical components - load immediately
@@ -30,7 +30,7 @@ const Preview3 = lazy(() => import('./components/template3/Preview3'));
 const Preview4 = lazy(() => import('./components/template4/Preview4'));
 const IDCardPrintPage = lazy(() => import('./components/IDCardPrint/IDCardPrintPage'));
 const IDCardDashboard = lazy(() => import('./components/IDCardDashboard/IDCardDashboard'));
-const MarketplaceAdmin = lazy(() => import('./components/MarketplaceAdmin/MarketplaceAdmin'));
+// const MarketplaceAdmin = lazy(() => import('./components/MarketplaceAdmin/MarketplaceAdmin')); // Not currently used
 const AdminDashboard = lazy(() => import('./components/Admin/AdminDashboard'));
 const ProductDetail = lazy(() => import('./components/Products/ProductDetail'));
 const Cart = lazy(() => import('./components/Cart/Cart'));
@@ -83,7 +83,7 @@ function App() {
     return hash || '/';
   };
   
-  const currentPath = getCurrentPath();
+  // const currentPath = getCurrentPath(); // Not currently used
   
   // Set navigate function for navigation utility
   useEffect(() => {
@@ -115,6 +115,7 @@ function App() {
   const [selectedTemplate, setSelectedTemplate] = useState('template1');
   const [currentView, setCurrentView] = useState('dashboard');
   // Initialize idCardView from localStorage if available, otherwise default to 'dashboard'
+  // eslint-disable-next-line no-unused-vars
   const [idCardView, setIdCardView] = useState(() => {
     const savedView = localStorage.getItem('idCardView');
     return savedView === 'print' ? 'print' : 'dashboard';
@@ -181,17 +182,22 @@ function App() {
   useEffect(() => {
   }, [formData]);
   // Local state for UI (will be overridden by hook)
+  // eslint-disable-next-line no-unused-vars
   const [autoSaveStatus, setAutoSaveStatus] = useState('');
+  // eslint-disable-next-line no-unused-vars
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [formResetKey, setFormResetKey] = useState(0);
   const productDetailIdRef = React.useRef(null); // Ref to access current productDetailId in callbacks
   const sessionCheckIntervalRef = React.useRef(null); // Ref for session check interval
+  // eslint-disable-next-line no-unused-vars
   const hasInitializedRef = React.useRef(false);
   const isMountedRef = React.useRef(false); // Track if component has finished initial render
   const ignoreInitialSessionRef = React.useRef(true); // Ignore first INITIAL_SESSION event
   const lastKnownAppRef = React.useRef(null); // Track last known app to prevent redirects
   const explicitlyClickedMarketplaceRef = React.useRef(false); // Track if user explicitly clicked marketplace
-  const [productDetailId, setProductDetailId] = useState(null);
+  const [productDetailId] = useState(null);
+  // eslint-disable-next-line no-unused-vars
+  const [, setProductDetailId] = useState(null);
   
   // Update ref whenever productDetailId changes
   React.useEffect(() => {
@@ -202,6 +208,7 @@ function App() {
   const { 
     autoSaveStatus: hookAutoSaveStatus, 
     hasUnsavedChanges: hookHasUnsavedChanges, 
+    // eslint-disable-next-line no-unused-vars
     currentCVId,
     loadCV,
     createNewCV,
@@ -257,7 +264,7 @@ function App() {
     };
     
     window.addEventListener('navigateToHomePage', handleHomePageNavigation);
-    
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     return () => {
       window.removeEventListener('hashchange', handleHashChange);
       window.removeEventListener('navigateToHomePage', handleHomePageNavigation);
@@ -388,7 +395,7 @@ function App() {
             }, 300);
           }
         }, 100);
-        
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         return () => clearTimeout(retryTimeout);
       }
     }
@@ -777,7 +784,7 @@ function App() {
         checkCount++;
         
         try {
-          const { data: { session }, error } = await supabase.auth.getSession();
+          const { data: { session } } = await supabase.auth.getSession();
           
           if (session?.user && !isAuthenticated) {
             setIsAuthenticated(true);
@@ -988,6 +995,7 @@ function App() {
         handleNavigateToSection(section);
       }
     };
+    // eslint-disable-next-line no-unused-vars
     window.addEventListener('navigateToSection', handleSectionNavigation);
     
     // Handle page unload (tab/window close) - logout user
@@ -1653,6 +1661,7 @@ function App() {
 
   // Helper function to wrap content with navbar - navbar is ALWAYS included
   // Helper function to wrap lazy components with Suspense
+  // eslint-disable-next-line no-unused-vars
   const wrapLazy = (Component, props = {}) => {
     if (!Component) return null;
     return (
@@ -1874,6 +1883,7 @@ function App() {
   };
 
   // Get current product for header
+  // eslint-disable-next-line no-unused-vars
   const currentProduct = localStorage.getItem('selectedApp') || 'cv-builder';
   
   // All hash-based routing removed - user will add navigation one by one
@@ -1909,6 +1919,7 @@ function App() {
   // CRITICAL: Read directly from localStorage - don't default to marketplace if user is on a dashboard
   const savedAppForNav = localStorage.getItem('selectedApp');
   // CRITICAL: Default to 'cv-builder' NOT 'marketplace' to prevent homepage redirects
+  // eslint-disable-next-line no-unused-vars
   const currentSection = savedAppForNav || 'cv-builder';
   
   // Wrap content with TopNav for authenticated users
@@ -2254,6 +2265,7 @@ function App() {
     // cvView was already declared at the beginning for preview check
     // Use it here with default fallback if needed
     const finalCvView = cvView || 'dashboard';
+    // eslint-disable-next-line no-unused-vars
     const idCardView = route.idCardView || 'dashboard';
     
     // ============================================

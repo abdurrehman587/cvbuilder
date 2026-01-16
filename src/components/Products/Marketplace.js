@@ -644,10 +644,12 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
     observer.observe(loadMoreRef.current);
 
     return () => {
-      if (loadMoreRef.current) {
-        observer.unobserve(loadMoreRef.current);
+      const currentRef = loadMoreRef.current;
+      if (currentRef) {
+        observer.unobserve(currentRef);
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasMoreProducts, loadingMoreProducts, loadMoreProducts]);
 
 

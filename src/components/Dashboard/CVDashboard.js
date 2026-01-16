@@ -195,6 +195,7 @@ const ShareAppSection = ({ onShareSuccess }) => {
 const CVDashboard = ({ onTemplateSelect, onLogout, onEditCV, onCreateNewCV }) => {
   const [currentView, setCurrentView] = React.useState('dashboard');
   const [cvCredits, setCvCredits] = useState(null);
+  // eslint-disable-next-line no-unused-vars
   const [userType, setUserType] = useState(null);
 
   // Fresh handler for creating new CV

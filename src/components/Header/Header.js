@@ -9,6 +9,7 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
   const navigate = useNavigate();
   const location = useLocation();
   const [isAdmin, setIsAdmin] = useState(false);
+  // eslint-disable-next-line no-unused-vars
   const [isOnAdminPage, setIsOnAdminPage] = useState(false);
   const [cartItemCount, setCartItemCount] = useState(0);
 
@@ -84,6 +85,7 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
       window.removeEventListener('cartUpdated', updateCartCount);
     };
   }, []);
+  // eslint-disable-next-line no-unused-vars
   const handleLogout = async () => {
     try {
       await authService.signOut();
@@ -102,6 +104,7 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
     }
   };
 
+  // eslint-disable-next-line no-unused-vars
   const goToProducts = () => {
     // Navigate to products page without logging out
     // Always preserve authentication state first
@@ -124,6 +127,7 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
     }
   };
 
+  // eslint-disable-next-line no-unused-vars
   const handleSignIn = () => {
     // Simple: Always show the login form
     // Set flag in both storages to ensure it's available immediately
@@ -153,6 +157,7 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
     }
   };
 
+  // eslint-disable-next-line no-unused-vars
   const navigateToCVBuilder = () => {
     if (!isAuthenticated) {
       // User is not signed in: Show login form
@@ -216,6 +221,7 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
     window.dispatchEvent(new CustomEvent('navigateToHomePage'));
   };
 
+  // eslint-disable-next-line no-unused-vars
   const navigateToIDCardDashboard = () => {
     if (!isAuthenticated) {
       // User is not signed in: Show login form
@@ -248,6 +254,7 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
   };
 
   // Handle navigation to sections on products page
+  // eslint-disable-next-line no-unused-vars
   const scrollToSection = (sectionId) => {
     setTimeout(() => {
     const element = document.getElementById(sectionId);
@@ -256,6 +263,7 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
         const productsPage = document.querySelector('.products-page');
         if (productsPage) {
           // Get the header height for offset calculation
+          // eslint-disable-next-line no-unused-vars
           const header = document.querySelector('.app-header');
           const headerOffset = 20; // Extra spacing from top of container
           

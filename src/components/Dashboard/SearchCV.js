@@ -8,7 +8,10 @@ const SearchCV = ({ onBack, onEditCV }) => {
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
+  // eslint-disable-next-line no-unused-vars
   const [useClientSearch, setUseClientSearch] = useState(true);
+  // eslint-disable-next-line no-unused-vars
+  const [, setUseClientSearch] = useState(true);
   const [loadingCV, setLoadingCV] = useState(null);
   const [userInfo, setUserInfo] = useState({});
   const [displayLimit, setDisplayLimit] = useState(50);

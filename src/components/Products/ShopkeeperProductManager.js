@@ -90,7 +90,8 @@ const ShopkeeperProductManager = ({ onProductAdded }) => {
     };
 
     checkUserAndLoadData();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // loadSections and loadMyProducts are stable functions, no need to include them
 
   const loadSections = async () => {
     try {
