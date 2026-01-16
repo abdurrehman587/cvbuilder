@@ -13,15 +13,12 @@ DROP POLICY IF EXISTS "Function can check admin status" ON public.users;
 
 -- Create a policy that allows reading is_admin field for the current user
 -- This works because users can view their own profile, and the function runs as postgres
+-- Create a permissive policy that allows reading is_admin for any user
+-- This is needed because SECURITY DEFINER functions in Supabase still respect RLS
+-- We make it permissive so it works alongside other policies
 CREATE POLICY "Function can check admin status" ON public.users
   FOR SELECT 
-  USING (
-    -- Allow if it's the current user's own row (for self-check)
-    id = auth.uid()
-    -- OR allow if the function is being called (SECURITY DEFINER context)
-    -- In practice, SECURITY DEFINER should bypass RLS, but this ensures it works
-    OR current_setting('request.jwt.claims', true)::json->>'role' = 'service_role'
-  );
+  USING (true);  -- Allow reading any user's admin status (needed for function)
 
 -- ============================================
 -- PART 2: Create/Update the admin check function
