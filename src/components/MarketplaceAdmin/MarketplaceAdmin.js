@@ -415,57 +415,40 @@ const MarketplaceAdmin = () => {
         console.warn('Could not check admin status:', adminCheckErr);
       }
       
-      // If admin, try RPC function first
-      if (isAdmin) {
-        try {
-          const { data: rpcData, error: rpcError } = await supabase
-            .rpc('admin_update_product', {
-              product_id: editingProduct.id,
-              product_name: productForm.name,
-              product_price: parseFloat(productForm.price),
-              product_original_price: productForm.original_price ? parseFloat(productForm.original_price) : null,
-              product_image_urls: productForm.image_urls.length > 0 ? productForm.image_urls : null,
-              product_section_id: productForm.section_id || null,
-              product_description: descriptionHtml || null,
-              verify_admin: true
-            });
+      // Always try RPC function first (it will check admin status internally)
+      // This bypasses RLS completely
+      try {
+        const { data: rpcData, error: rpcError } = await supabase
+          .rpc('admin_update_product', {
+            product_id: editingProduct.id,
+            product_name: productForm.name,
+            product_price: parseFloat(productForm.price),
+            product_original_price: productForm.original_price ? parseFloat(productForm.original_price) : null,
+            product_image_urls: productForm.image_urls.length > 0 ? productForm.image_urls : null,
+            product_section_id: productForm.section_id || null,
+            product_description: descriptionHtml || null
+          });
 
-          if (!rpcError && rpcData) {
-            // RPC call succeeded
-            await loadProducts();
-            setEditingProduct(null);
-            setProductForm({ name: '', price: '', original_price: '', image_urls: [], section_id: '', description: '' });
-            setDescriptionHtml('');
-            alert('Product updated successfully!');
-            return;
-          }
-          
-          // If RPC fails, fall back to direct update
-          if (rpcError) {
-            console.warn('RPC update failed, trying direct update:', rpcError);
-          }
-        } catch (rpcErr) {
-          console.warn('RPC update failed, trying direct update:', rpcErr);
+        if (!rpcError && rpcData) {
+          // RPC call succeeded
+          await loadProducts();
+          setEditingProduct(null);
+          setProductForm({ name: '', price: '', original_price: '', image_urls: [], section_id: '', description: '' });
+          setDescriptionHtml('');
+          alert('Product updated successfully!');
+          return;
         }
+        
+        // If RPC fails with permission error, don't fall back to direct update
+        // The direct update will also fail with the same RLS error
+        if (rpcError) {
+          console.error('RPC update failed:', rpcError);
+          throw rpcError;
+        }
+      } catch (rpcErr) {
+        console.error('RPC update error:', rpcErr);
+        throw rpcErr;
       }
-      
-      // Fallback: Direct update (for shopkeepers or if RPC doesn't exist)
-      const { error } = await supabase
-        .from('marketplace_products')
-        .update({
-          name: productForm.name,
-          price: parseFloat(productForm.price),
-          original_price: productForm.original_price ? parseFloat(productForm.original_price) : null,
-          image_urls: productForm.image_urls.length > 0 ? productForm.image_urls : null,
-          image_url: productForm.image_urls.length > 0 ? productForm.image_urls[0] : null,
-          section_id: productForm.section_id,
-          description: descriptionHtml || null
-        })
-        .eq('id', editingProduct.id)
-        .select()
-        .single();
-
-      if (error) throw error;
       await loadProducts();
       setEditingProduct(null);
       setProductForm({ name: '', price: '', original_price: '', image_urls: [], section_id: '', description: '' });
