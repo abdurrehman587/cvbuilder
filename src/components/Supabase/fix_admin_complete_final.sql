@@ -88,12 +88,15 @@ BEGIN
   END IF;
   
   -- Update the product (bypassing RLS because we're SECURITY DEFINER)
+  -- Convert text[] array to jsonb for image_urls column
   UPDATE public.marketplace_products
   SET
     name = product_name,
     price = product_price,
     original_price = product_original_price,
-    image_urls = product_image_urls,
+    image_urls = CASE WHEN product_image_urls IS NOT NULL 
+                     THEN to_jsonb(product_image_urls)
+                     ELSE NULL END,
     image_url = CASE WHEN product_image_urls IS NOT NULL AND array_length(product_image_urls, 1) > 0 
                      THEN product_image_urls[1] 
                      ELSE NULL END,
