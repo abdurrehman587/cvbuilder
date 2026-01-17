@@ -390,7 +390,40 @@ const MarketplaceAdmin = () => {
     e.preventDefault();
     try {
       setLoading(true);
-      // Store HTML description to preserve formatting
+      
+      // First, try using the RPC function (for admins)
+      // This bypasses RLS issues
+      try {
+        const { data: rpcData, error: rpcError } = await supabase
+          .rpc('admin_update_product', {
+            product_id: editingProduct.id,
+            product_name: productForm.name,
+            product_price: parseFloat(productForm.price),
+            product_original_price: productForm.original_price ? parseFloat(productForm.original_price) : null,
+            product_image_urls: productForm.image_urls.length > 0 ? productForm.image_urls : null,
+            product_section_id: productForm.section_id || null,
+            product_description: descriptionHtml || null
+          });
+
+        if (!rpcError && rpcData) {
+          // RPC call succeeded
+          await loadProducts();
+          setEditingProduct(null);
+          setProductForm({ name: '', price: '', original_price: '', image_urls: [], section_id: '', description: '' });
+          setDescriptionHtml('');
+          alert('Product updated successfully!');
+          return;
+        }
+        
+        // If RPC fails, fall back to direct update
+        if (rpcError) {
+          console.warn('RPC update failed, trying direct update:', rpcError);
+        }
+      } catch (rpcErr) {
+        console.warn('RPC update failed, trying direct update:', rpcErr);
+      }
+      
+      // Fallback: Direct update (for shopkeepers or if RPC doesn't exist)
       const { error } = await supabase
         .from('marketplace_products')
         .update({
