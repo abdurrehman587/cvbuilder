@@ -392,21 +392,23 @@ const MarketplaceAdmin = () => {
       setLoading(true);
       
       // First, check if user is admin in the frontend
-      // Then try using the RPC function (for admins)
-      // This bypasses RLS issues
+      // Check from auth metadata (no RLS issues) instead of users table
       let isAdmin = false;
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
-          // Check admin status from users table (this should work for own profile)
-          const { data: userData, error: userError } = await supabase
-            .from('users')
-            .select('is_admin')
-            .eq('id', user.id)
-            .single();
+          // Check admin status from auth metadata (no RLS restrictions)
+          // This is stored in user.user_metadata.is_admin
+          isAdmin = user.user_metadata?.is_admin === true || false;
           
-          if (!userError && userData) {
-            isAdmin = userData.is_admin || false;
+          // If not in metadata, try RPC function as fallback
+          if (!isAdmin) {
+            try {
+              const { data: rpcAdminCheck } = await supabase.rpc('is_admin_user');
+              isAdmin = rpcAdminCheck === true;
+            } catch (rpcErr) {
+              console.warn('Could not check admin via RPC:', rpcErr);
+            }
           }
         }
       } catch (adminCheckErr) {
