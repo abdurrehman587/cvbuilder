@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getCart, getCartTotal, clearCart } from '../../utils/cart';
 import { orderService } from '../../utils/orders';
 import { authService } from '../Supabase/supabase';
 import './Checkout.css';
 
 const Checkout = () => {
+  const navigate = useNavigate();
   const [cartItems, setCartItems] = useState([]);
   const [cartTotal, setCartTotal] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -178,13 +180,21 @@ const Checkout = () => {
             <div className="order-confirmation-actions">
               <button 
                 className="btn-primary"
-                onClick={() => window.location.href = '/marketplace'}
+                onClick={() => {
+                  navigate('/marketplace');
+                  localStorage.setItem('selectedApp', 'marketplace');
+                }}
               >
                 Continue Shopping
               </button>
               <button 
                 className="btn-secondary"
-                onClick={() => window.location.href = `/order/${orderId}`}
+                onClick={() => {
+                  // Navigate to order details using React Router
+                  sessionStorage.setItem('isNavigating', 'true');
+                  sessionStorage.setItem('navigationTimestamp', Date.now().toString());
+                  navigate(`/order/${orderId}`);
+                }}
               >
                 View Order Details
               </button>
@@ -336,20 +346,6 @@ const Checkout = () => {
               </div>
             </div>
 
-            <div className="checkout-section">
-              <h2>Additional Notes (Optional)</h2>
-              <div className="form-group">
-                <textarea
-                  id="notes"
-                  name="notes"
-                  value={formData.notes}
-                  onChange={handleInputChange}
-                  placeholder="Any special instructions or notes for your order..."
-                  rows="3"
-                />
-              </div>
-            </div>
-
             <div className="checkout-summary">
               <h2>Order Summary</h2>
               <div className="checkout-items">
@@ -378,6 +374,20 @@ const Checkout = () => {
             >
               {loading ? 'Placing Order...' : 'Place Order'}
             </button>
+
+            <div className="checkout-section">
+              <h2>Additional Notes (Optional)</h2>
+              <div className="form-group">
+                <textarea
+                  id="notes"
+                  name="notes"
+                  value={formData.notes}
+                  onChange={handleInputChange}
+                  placeholder="Any special instructions or notes for your order..."
+                  rows="3"
+                />
+              </div>
+            </div>
           </form>
         </div>
       </div>

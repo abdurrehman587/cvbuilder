@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Marketplace.css';
 import { authService, supabase } from '../Supabase/supabase';
 import { addToCart } from '../../utils/cart';
@@ -169,6 +170,8 @@ const ProductCard = ({
 ProductCard.displayName = 'ProductCard';
 
 const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
+  const navigate = useNavigate();
+  
   // Check for showLoginForm flag immediately on initialization
   // This must be synchronous to ensure login form shows on first click
   const checkShowLoginFlag = () => {
@@ -1349,8 +1352,21 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
                                   e.stopPropagation();
                                   // Add product to cart first
                                   addToCart(product);
-                                  // Navigate directly to checkout
-                                  window.location.href = '/checkout';
+                                  // Navigate directly to checkout using React Router
+                                  // Preserve authentication state
+                                  const wasAuthenticated = localStorage.getItem('cvBuilderAuth') === 'true';
+                                  sessionStorage.setItem('isNavigating', 'true');
+                                  sessionStorage.setItem('navigationTimestamp', Date.now().toString());
+                                  // Set routing flags to prevent homepage redirect
+                                  localStorage.setItem('routingApp', 'checkout');
+                                  // Navigate to checkout
+                                  navigate('/checkout');
+                                  // Restore auth state after navigation
+                                  if (wasAuthenticated) {
+                                    setTimeout(() => {
+                                      localStorage.setItem('cvBuilderAuth', 'true');
+                                    }, 100);
+                                  }
                                 };
                                 
                                 const productImages = getProductImages(product);
@@ -1452,8 +1468,21 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
                                   e.stopPropagation();
                                   // Add product to cart first
                                   addToCart(product);
-                                  // Navigate directly to checkout
-                                  window.location.href = '/checkout';
+                                  // Navigate directly to checkout using React Router
+                                  // Preserve authentication state
+                                  const wasAuthenticated = localStorage.getItem('cvBuilderAuth') === 'true';
+                                  sessionStorage.setItem('isNavigating', 'true');
+                                  sessionStorage.setItem('navigationTimestamp', Date.now().toString());
+                                  // Set routing flags to prevent homepage redirect
+                                  localStorage.setItem('routingApp', 'checkout');
+                                  // Navigate to checkout
+                                  navigate('/checkout');
+                                  // Restore auth state after navigation
+                                  if (wasAuthenticated) {
+                                    setTimeout(() => {
+                                      localStorage.setItem('cvBuilderAuth', 'true');
+                                    }, 100);
+                                  }
                                 };
                                 
                                 const productImages = getProductImages(product);

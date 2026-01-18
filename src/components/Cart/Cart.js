@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getCart, removeFromCart, updateCartQuantity, clearCart, getCartTotal } from '../../utils/cart';
 import { authService } from '../Supabase/supabase';
 import './Cart.css';
 
 const Cart = () => {
+  const navigate = useNavigate();
   const [cartItems, setCartItems] = useState([]);
   const [cartTotal, setCartTotal] = useState(0);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -199,7 +201,15 @@ const Cart = () => {
             </div>
             <button 
               className="cart-checkout-button"
-              onClick={() => window.location.href = '/checkout'}
+              onClick={() => {
+                // Navigate to checkout using React Router
+                // Clear any routing flags that might interfere
+                sessionStorage.setItem('isNavigating', 'true');
+                sessionStorage.setItem('navigationTimestamp', Date.now().toString());
+                // Don't set routingApp - let the route check handle it
+                // Navigate to checkout
+                navigate('/checkout', { replace: false });
+              }}
             >
               Proceed to Checkout
             </button>

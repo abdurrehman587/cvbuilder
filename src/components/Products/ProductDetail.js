@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../Supabase/supabase';
 import { addToCart, isInCart } from '../../utils/cart';
 import './ProductDetail.css';
 
 const ProductDetail = ({ productId }) => {
+  const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -183,7 +185,21 @@ const ProductDetail = ({ productId }) => {
     e.preventDefault();
     e.stopPropagation();
     addToCart(relatedProduct);
-    window.location.href = '/checkout';
+    // Navigate directly to checkout using React Router
+    // Preserve authentication state
+    const wasAuthenticated = localStorage.getItem('cvBuilderAuth') === 'true';
+    sessionStorage.setItem('isNavigating', 'true');
+    sessionStorage.setItem('navigationTimestamp', Date.now().toString());
+    // Set routing flags to prevent homepage redirect
+    localStorage.setItem('routingApp', 'checkout');
+    // Navigate to checkout
+    navigate('/checkout');
+    // Restore auth state after navigation
+    if (wasAuthenticated) {
+      setTimeout(() => {
+        localStorage.setItem('cvBuilderAuth', 'true');
+      }, 100);
+    }
   };
 
   // Keyboard navigation
@@ -259,8 +275,21 @@ const ProductDetail = ({ productId }) => {
     addToCart(product);
     setInCart(true);
     
-    // Navigate directly to checkout
-    window.location.href = '/checkout';
+    // Navigate directly to checkout using React Router
+    // Preserve authentication state
+    const wasAuthenticated = localStorage.getItem('cvBuilderAuth') === 'true';
+    sessionStorage.setItem('isNavigating', 'true');
+    sessionStorage.setItem('navigationTimestamp', Date.now().toString());
+    // Set routing flags to prevent homepage redirect
+    localStorage.setItem('routingApp', 'checkout');
+    // Navigate to checkout
+    navigate('/checkout');
+    // Restore auth state after navigation
+    if (wasAuthenticated) {
+      setTimeout(() => {
+        localStorage.setItem('cvBuilderAuth', 'true');
+      }, 100);
+    }
   };
 
   // Helper function to render description (HTML or plain text)

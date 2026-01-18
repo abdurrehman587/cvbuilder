@@ -91,6 +91,36 @@ const ShopkeeperDashboard = () => {
     localStorage.setItem('selectedApp', 'marketplace');
   };
 
+  const handleBackToProducts = () => {
+    // Navigate to marketplace/products page
+    // Preserve authentication state before navigation
+    const wasAuthenticated = localStorage.getItem('cvBuilderAuth') === 'true';
+    
+    // Set navigation flag to prevent auth clearing during navigation
+    sessionStorage.setItem('isNavigating', 'true');
+    sessionStorage.setItem('navigationTimestamp', Date.now().toString());
+    
+    localStorage.setItem('selectedApp', 'marketplace');
+    localStorage.setItem('routingApp', 'marketplace');
+    
+    // Clear any login flags
+    sessionStorage.removeItem('showLoginForm');
+    localStorage.removeItem('showLoginForm');
+    
+    // Dispatch event to set explicitlyClickedMarketplaceRef in App.js
+    window.dispatchEvent(new CustomEvent('navigateToSection', { detail: 'marketplace' }));
+    
+    // Navigate to marketplace using React Router
+    navigate('/marketplace');
+    
+    // Restore auth state after navigation
+    if (wasAuthenticated) {
+      setTimeout(() => {
+        localStorage.setItem('cvBuilderAuth', 'true');
+      }, 100);
+    }
+  };
+
   if (loading) {
     return (
       <div className="shopkeeper-dashboard-loading">
@@ -126,11 +156,20 @@ const ShopkeeperDashboard = () => {
           <button 
             className="shopkeeper-back-button"
             onClick={handleBack}
-            title="Go Back"
+            title="Go Back to Home"
           >
             ← Back
           </button>
           <h1>Shopkeeper Panel</h1>
+        </div>
+        <div className="shopkeeper-header-actions">
+          <button 
+            className="shopkeeper-products-button"
+            onClick={handleBackToProducts}
+            title="View Products in Marketplace"
+          >
+            📦 Back to Products
+          </button>
         </div>
       </div>
 

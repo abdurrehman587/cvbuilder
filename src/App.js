@@ -1130,6 +1130,12 @@ function App() {
     // Preserve selectedApp when window regains focus - CRITICAL for tab switching
     // ULTRA-AGGRESSIVE: NEVER allow marketplace unless user explicitly clicked it
     const handleVisibilityChange = () => {
+      // Don't interfere with checkout, cart, or order routes
+      const currentPath = location.pathname;
+      if (currentPath === '/checkout' || currentPath === '/cart' || currentPath.startsWith('/order/') || currentPath.startsWith('/product/')) {
+        return; // Don't interfere with checkout/cart/order/product flows
+      }
+      
       if (!document.hidden && isAuthenticated) {
         // Tab regained focus - IMMEDIATELY preserve current state
         // Priority 1: Check localStorage
@@ -2327,46 +2333,13 @@ function App() {
     const idCardView = route.idCardView || 'dashboard';
     
     // ============================================
-    // HOMEPAGE SECTION - CHECK FIRST when routingApp is null
-    // ============================================
-    if (!routingApp || routingApp === null) {
-      return wrapWithNavbar(
-        <>
-          <Header 
-            isAuthenticated={isAuthenticated} 
-            currentProduct="home"
-            showProductsOnHeader={false}
-            onLogout={isAuthenticated ? handleLogout : undefined}
-          />
-          <HomePage />
-        </>
-      );
-    }
-    
-    // ============================================
-    // CHECKOUT, ORDER DETAILS, RESET PASSWORD - CHECK BEFORE MARKETPLACE
+    // CHECKOUT, ORDER DETAILS, RESET PASSWORD - CHECK BEFORE HOMEPAGE
     // (Cart is checked above, before authentication check)
     // ============================================
     const currentHash = window.location.hash;
     
-    // Check for password reset route
-    if (currentHash === '#reset-password' || currentHash.startsWith('#reset-password') || currentHash.includes('type=recovery')) {
-      return wrapWithTopNav(
-        wrapWithNavbar(
-          <>
-            <Header 
-              isAuthenticated={isAuthenticated} 
-              currentProduct="home"
-              showProductsOnHeader={false}
-              onLogout={isAuthenticated ? handleLogout : undefined}
-            />
-            <Login />
-          </>
-        )
-      );
-    }
-    
-    // Check for checkout route - support both clean URLs and hash
+    // Check for checkout route FIRST - support both clean URLs and hash
+    // This must be before homepage check to prevent redirect
     if (location.pathname === '/checkout' || currentHash === '#checkout') {
       return wrapWithTopNav(
         wrapWithNavbar(
@@ -2385,7 +2358,8 @@ function App() {
       );
     }
     
-    // Check for order details route - support both clean URLs and hash
+    // Check for order details route BEFORE homepage - support both clean URLs and hash
+    // This must be before homepage check to prevent redirect
     const orderIdFromParams = params.orderId;
     const orderIdFromPath = getOrderIdFromPath(location.pathname);
     const orderHash = window.location.hash;
@@ -2407,6 +2381,40 @@ function App() {
             </Suspense>
           </>
         )
+      );
+    }
+    
+    // Check for password reset route
+    if (currentHash === '#reset-password' || currentHash.startsWith('#reset-password') || currentHash.includes('type=recovery')) {
+      return wrapWithTopNav(
+        wrapWithNavbar(
+          <>
+            <Header 
+              isAuthenticated={isAuthenticated} 
+              currentProduct="home"
+              showProductsOnHeader={false}
+              onLogout={isAuthenticated ? handleLogout : undefined}
+            />
+            <Login />
+          </>
+        )
+      );
+    }
+    
+    // ============================================
+    // HOMEPAGE SECTION - CHECK when routingApp is null
+    // ============================================
+    if (!routingApp || routingApp === null) {
+      return wrapWithNavbar(
+        <>
+          <Header 
+            isAuthenticated={isAuthenticated} 
+            currentProduct="home"
+            showProductsOnHeader={false}
+            onLogout={isAuthenticated ? handleLogout : undefined}
+          />
+          <HomePage />
+        </>
       );
     }
     

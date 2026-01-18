@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { orderService } from '../../utils/orders';
 import { addToCart } from '../../utils/cart';
 import { supabase } from '../Supabase/supabase';
 import './OrderHistory.css';
 
 const OrderHistory = () => {
+  const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -122,7 +124,10 @@ const OrderHistory = () => {
   };
 
   const handleViewOrder = (orderId) => {
-    window.location.href = `/order/${orderId}`;
+    // Navigate to order details using React Router
+    sessionStorage.setItem('isNavigating', 'true');
+    sessionStorage.setItem('navigationTimestamp', Date.now().toString());
+    navigate(`/order/${orderId}`);
   };
 
   if (loading) {
