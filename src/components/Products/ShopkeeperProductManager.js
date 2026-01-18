@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { supabase, authService } from '../Supabase/supabase';
-import { orderService } from '../../utils/orders';
 import './ShopkeeperProductManager.css';
 import RichTextEditor from '../MarketplaceAdmin/RichTextEditor';
 
@@ -15,32 +14,33 @@ const ShopkeeperProductManager = ({ onProductAdded }) => {
   const [isCheckingUser, setIsCheckingUser] = useState(true);
 
   // Helper function to convert HTML to plain text (preserving line breaks)
-  const htmlToPlainText = (html) => {
-    if (!html) return '';
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = html;
-    
-    // Replace block elements with newlines
-    const blockElements = tempDiv.querySelectorAll('p, div, li, br');
-    blockElements.forEach(el => {
-      if (el.tagName.toLowerCase() === 'br') {
-        el.replaceWith('\n');
-      } else {
-        if (el.textContent.trim()) {
-          el.textContent = el.textContent.trim() + '\n';
-        }
-      }
-    });
-    
-    // Get text content and clean up
-    let text = tempDiv.textContent || tempDiv.innerText || '';
-    // Remove extra newlines (more than 2 consecutive)
-    text = text.replace(/\n{3,}/g, '\n\n');
-    // Trim each line
-    text = text.split('\n').map(line => line.trim()).join('\n');
-    
-    return text.trim();
-  };
+  // Note: Currently unused but kept for potential future use
+  // const htmlToPlainText = (html) => {
+  //   if (!html) return '';
+  //   const tempDiv = document.createElement('div');
+  //   tempDiv.innerHTML = html;
+  //   
+  //   // Replace block elements with newlines
+  //   const blockElements = tempDiv.querySelectorAll('p, div, li, br');
+  //   blockElements.forEach(el => {
+  //     if (el.tagName.toLowerCase() === 'br') {
+  //       el.replaceWith('\n');
+  //     } else {
+  //       if (el.textContent.trim()) {
+  //         el.textContent = el.textContent.trim() + '\n';
+  //       }
+  //     }
+  //   });
+  //   
+  //   // Get text content and clean up
+  //   let text = tempDiv.textContent || tempDiv.innerText || '';
+  //   // Remove extra newlines (more than 2 consecutive)
+  //   text = text.replace(/\n{3,}/g, '\n\n');
+  //   // Trim each line
+  //   text = text.split('\n').map(line => line.trim()).join('\n');
+  //   
+  //   return text.trim();
+  // };
 
   // Helper function to convert plain text to HTML for editing
   const plainTextToHtml = (text) => {

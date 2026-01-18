@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { supabase, authService } from '../Supabase/supabase';
 import ShopkeeperProductManager from '../Products/ShopkeeperProductManager';
 import './ShopkeeperDashboard.css';
 
 const ShopkeeperDashboard = () => {
-  const location = useLocation();
   const navigate = useNavigate();
   const [isShopkeeper, setIsShopkeeper] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
