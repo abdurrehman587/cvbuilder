@@ -13,9 +13,12 @@ body {
   max-width: 100vw !important;
   height: auto !important;
   min-height: 100vh !important;
-  scroll-behavior: smooth !important;
+  /* Removed scroll-behavior: smooth to prevent mouse wheel stuttering */
+  /* Smooth scrolling will be applied only to programmatic scrolls (anchor links) via JS */
   -webkit-overflow-scrolling: touch !important;
-  overscroll-behavior: none !important;
+  overscroll-behavior: auto !important;
+  /* Ensure mouse wheel scrolling works */
+  pointer-events: auto !important;
   /* Smooth scrolling for anchor links */
   scroll-padding-top: 70px;
 }
@@ -45,7 +48,7 @@ html {
   overflow-y: visible !important;
   max-width: 100vw !important;
   height: auto !important;
-  scroll-behavior: smooth !important;
+  /* Removed scroll-behavior: smooth to prevent mouse wheel stuttering */
   -webkit-overflow-scrolling: touch !important;
   /* Smooth scrolling for anchor links */
   scroll-padding-top: 70px;

@@ -397,9 +397,40 @@
   box-shadow: 0 2px 6px rgba(245, 158, 11, 0.3);
 }
 
+.shopkeeper-btn-header {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  padding: 0.6rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
+}
+
+.shopkeeper-btn-header:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
 /* Mobile Admin Button - Compact */
 @media (max-width: 768px) {
   .admin-btn-header {
+    padding: 0.25rem 0.6rem !important;
+    height: 28px !important;
+    font-size: 0.75rem !important;
+    border-radius: 5px !important;
+    font-weight: 600 !important;
+  }
+
+  .shopkeeper-btn-header {
     padding: 0.25rem 0.6rem !important;
     height: 28px !important;
     font-size: 0.75rem !important;

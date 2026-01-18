@@ -117,15 +117,17 @@ body {
   overflow-y: auto !important;
   min-height: 100vh;
   height: auto;
-  scroll-behavior: smooth;
+  /* Removed scroll-behavior: smooth to prevent mouse wheel stuttering */
   -webkit-overflow-scrolling: touch;
-  overscroll-behavior: none;
+  overscroll-behavior: auto;
+  /* Ensure mouse wheel scrolling works */
+  pointer-events: auto !important;
 }
 
 html {
   overflow-x: hidden;
   min-height: 100vh;
-  scroll-behavior: smooth;
+  /* Removed scroll-behavior: smooth to prevent mouse wheel stuttering */
   -webkit-overflow-scrolling: touch;
 }
 

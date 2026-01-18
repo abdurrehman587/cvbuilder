@@ -20,6 +20,12 @@ export const getCurrentApp = () => {
  */
 export const setCurrentApp = (app) => {
   if (app && ['marketplace', 'cv-builder', 'id-card-print'].includes(app)) {
+    const previousApp = localStorage.getItem('selectedApp');
+    // If navigating away from ID Card Print, clear saved card designs
+    if (previousApp === 'id-card-print' && app !== 'id-card-print') {
+      localStorage.removeItem('idCardDesigns');
+      sessionStorage.removeItem('idCardPrintSessionActive');
+    }
     localStorage.setItem('selectedApp', app);
   }
 };
@@ -54,6 +60,12 @@ export const getIDCardView = () => {
  */
 export const setIDCardView = (view) => {
   if (view && ['dashboard', 'print'].includes(view)) {
+    const previousView = localStorage.getItem('idCardView');
+    // If switching from print to dashboard, clear saved card designs
+    if (previousView === 'print' && view === 'dashboard') {
+      localStorage.removeItem('idCardDesigns');
+      sessionStorage.removeItem('idCardPrintSessionActive');
+    }
     localStorage.setItem('idCardView', view);
   }
 };

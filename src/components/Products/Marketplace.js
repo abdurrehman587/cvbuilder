@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './Marketplace.css';
 import { authService, supabase } from '../Supabase/supabase';
 import { addToCart } from '../../utils/cart';
-import ShopkeeperProductManager from './ShopkeeperProductManager';
 
 // Helper function to safely get current user without throwing errors
 const safeGetCurrentUser = async () => {
@@ -1220,49 +1219,6 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
         {/* Market Place Detailed View - Fresh Design */}
             <div id="marketplace-section" className="product-section-fresh">
               <div className="product-content-wrapper">
-                {/* Shopkeeper Product Manager */}
-                <ShopkeeperProductManager 
-                  onProductAdded={() => {
-                    // Reload marketplace data when a product is added
-                    const loadMarketplaceData = async () => {
-                      try {
-                        setLoadingMarketplace(true);
-                        
-                        const [sectionsResponse, productsResponse] = await Promise.all([
-                          supabase
-                            .from('marketplace_sections')
-                            .select('*')
-                            .order('display_order', { ascending: true }),
-                          supabase
-                            .from('marketplace_products')
-                            .select('*, marketplace_sections(name)')
-                            .or('is_hidden.is.null,is_hidden.eq.false')
-                            .order('created_at', { ascending: false })
-                        ]);
-
-                        if (sectionsResponse.error) throw sectionsResponse.error;
-                        setMarketplaceSections(sectionsResponse.data || []);
-
-                        if (productsResponse.error) throw productsResponse.error;
-                        
-                        const allProductsData = productsResponse.data || [];
-                        const hasMore = allProductsData.length > INITIAL_PRODUCTS;
-                        const firstBatch = allProductsData.slice(0, INITIAL_PRODUCTS);
-                        
-                        setAllProducts(allProductsData);
-                        setMarketplaceProducts(firstBatch);
-                        setCurrentPage(1);
-                        setHasMoreProducts(hasMore);
-                      } catch (err) {
-                        console.error('Error reloading marketplace data:', err);
-                      } finally {
-                        setLoadingMarketplace(false);
-                      }
-                    };
-                    loadMarketplaceData();
-                  }}
-                />
-                
                 {/* Search Bar */}
                 <div className="marketplace-search-container">
                   <div className="marketplace-search-wrapper">

@@ -15,9 +15,10 @@
   /* Ensure no nested scrollbars */
   overflow-y: visible !important;
   overflow-x: hidden !important;
-  /* Smooth scrolling */
-  scroll-behavior: smooth;
+  /* Clean scroll setup - body handles scrolling */
+  scroll-behavior: auto;
   -webkit-overflow-scrolling: touch;
+  pointer-events: auto;
 }
 
 .products-page::before {
@@ -7073,5 +7074,47 @@
     height: 28px;
     max-width: 100px;
   }
+}
+
+
+
+/* ============================================
+   FINAL SCROLL FIX: Rebuild scrolling from scratch
+   ============================================ */
+
+/* CRITICAL: Ensure body can scroll */
+html {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  height: 100% !important;
+}
+
+body {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  height: 100% !important;
+  min-height: 100vh !important;
+  position: relative !important;
+  scroll-behavior: auto !important;
+  pointer-events: auto !important;
+  touch-action: auto !important;
+  overscroll-behavior: auto !important;
+}
+
+/* Ensure products page doesn't interfere */
+.products-page {
+  overflow: visible !important;
+  height: auto !important;
+  min-height: 100vh !important;
+  position: relative !important;
+  pointer-events: auto !important;
+  touch-action: auto !important;
+  overscroll-behavior: auto !important;
+}
+
+/* Remove ALL restrictions on child elements */
+.products-page * {
+  touch-action: auto !important;
+  overscroll-behavior: auto !important;
 }
 

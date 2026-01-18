@@ -9,15 +9,17 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
   const navigate = useNavigate();
   const location = useLocation();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isShopkeeper, setIsShopkeeper] = useState(false);
   // eslint-disable-next-line no-unused-vars
   const [isOnAdminPage, setIsOnAdminPage] = useState(false);
   const [cartItemCount, setCartItemCount] = useState(0);
 
-  // Check if user is admin
+  // Check if user is admin or shopkeeper
   useEffect(() => {
-    const checkAdminStatus = async () => {
+    const checkUserStatus = async () => {
       if (!isAuthenticated) {
         setIsAdmin(false);
+        setIsShopkeeper(false);
         return;
       }
 
@@ -25,24 +27,56 @@ const Header = ({ isAuthenticated, onLogout, currentProduct, onProductSelect, sh
         const user = await authService.getCurrentUser();
         if (!user) {
           setIsAdmin(false);
+          setIsShopkeeper(false);
           return;
         }
 
-        const { data, error } = await supabase
+        // Check admin status
+        const { data: userData, error: userError } = await supabase
           .from('users')
           .select('is_admin')
           .eq('email', user.email)
           .single();
 
-        if (error) throw error;
-        setIsAdmin(data?.is_admin || false);
+        if (userError) throw userError;
+        const adminStatus = userData?.is_admin || false;
+        setIsAdmin(adminStatus);
+
+        // Check shopkeeper status via RPC (gets user_type from auth metadata)
+        if (!adminStatus) {
+          try {
+            const { data: rpcData, error: rpcError } = await supabase
+              .rpc('get_users_with_type');
+            
+            if (!rpcError && rpcData) {
+              const dbUser = rpcData.find(u => u.email === user.email);
+              if (dbUser && dbUser.user_type === 'shopkeeper') {
+                setIsShopkeeper(true);
+              } else {
+                setIsShopkeeper(false);
+              }
+            } else {
+              // Fallback: check user_metadata
+              const userType = user.user_metadata?.user_type;
+              setIsShopkeeper(userType === 'shopkeeper');
+            }
+          } catch (rpcErr) {
+            console.error('Error checking shopkeeper status:', rpcErr);
+            // Fallback: check user_metadata
+            const userType = user.user_metadata?.user_type;
+            setIsShopkeeper(userType === 'shopkeeper');
+          }
+        } else {
+          setIsShopkeeper(false); // Admins are not shopkeepers
+        }
       } catch (err) {
-        console.error('Error checking admin status:', err);
+        console.error('Error checking user status:', err);
         setIsAdmin(false);
+        setIsShopkeeper(false);
       }
     };
 
-    checkAdminStatus();
+    checkUserStatus();
   }, [isAuthenticated]);
 
 
@@ -356,6 +390,30 @@ Cart
                 title="Open Admin Dashboard"
               >
                 Admin Panel
+              </button>
+            )}
+            
+            {isAuthenticated && isShopkeeper && !isAdmin && location.pathname !== '/shopkeeper' && !location.pathname.startsWith('/shopkeeper/') && (
+              <button 
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  // Clear any navigation flags that might interfere
+                  sessionStorage.removeItem('navigateToCVBuilder');
+                  sessionStorage.removeItem('navigateToIDCardPrint');
+                  localStorage.removeItem('navigateToCVBuilder');
+                  localStorage.removeItem('navigateToIDCardPrint');
+                  // Clear any app selection that might interfere
+                  localStorage.removeItem('selectedApp');
+                  // Navigate to shopkeeper dashboard using direct URL (like cart button)
+                  console.log('Navigating to shopkeeper panel...');
+                  window.location.href = '/shopkeeper';
+                }}
+                className="shopkeeper-btn-header"
+                title="Open Shopkeeper Panel"
+              >
+                Shopkeeper Panel
               </button>
             )}
           </div>

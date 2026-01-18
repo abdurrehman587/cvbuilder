@@ -32,6 +32,7 @@ const IDCardPrintPage = lazy(() => import('./components/IDCardPrint/IDCardPrintP
 const IDCardDashboard = lazy(() => import('./components/IDCardDashboard/IDCardDashboard'));
 // const MarketplaceAdmin = lazy(() => import('./components/MarketplaceAdmin/MarketplaceAdmin')); // Not currently used
 const AdminDashboard = lazy(() => import('./components/Admin/AdminDashboard'));
+const ShopkeeperDashboard = lazy(() => import('./components/Shopkeeper/ShopkeeperDashboard'));
 const ProductDetail = lazy(() => import('./components/Products/ProductDetail'));
 const Cart = lazy(() => import('./components/Cart/Cart'));
 const Checkout = lazy(() => import('./components/Checkout/Checkout'));
@@ -93,9 +94,11 @@ function App() {
   
   // Sync URL path to internal routing system
   useEffect(() => {
-    // Don't sync for cart, checkout, orders, or order details - these are handled separately
+    // Don't sync for cart, checkout, orders, order details, admin, or shopkeeper - these are handled separately
     const pathname = location.pathname;
-    if (pathname === '/cart' || pathname === '/checkout' || pathname === '/orders' || pathname.startsWith('/order/')) {
+    if (pathname === '/cart' || pathname === '/checkout' || pathname === '/orders' || 
+        pathname.startsWith('/order/') || pathname === '/admin' || pathname.startsWith('/admin/') ||
+        pathname === '/shopkeeper' || pathname.startsWith('/shopkeeper/')) {
       // These routes are handled by specific route checks, don't override with routingApp
       return;
     }
@@ -1138,9 +1141,12 @@ function App() {
           appToPreserve = 'id-card-print';
           setCurrentApp('id-card-print');
           // Restore idCardView from localStorage
+          // CRITICAL: If printing is in progress, always stay on print page
+          const printingInProgress = localStorage.getItem('idCardPrintingInProgress') === 'true';
           const savedIdCardView = localStorage.getItem('idCardView');
-          if (savedIdCardView === 'print') {
+          if (printingInProgress || savedIdCardView === 'print') {
             setIdCardView('print');
+            localStorage.setItem('idCardView', 'print'); // Ensure it's set
           } else if (savedIdCardView === 'dashboard') {
             setIdCardView('dashboard');
           }
@@ -1255,12 +1261,25 @@ function App() {
     window.addEventListener('beforeunload', handleBeforeUnload);
     window.addEventListener('pagehide', handlePageHide);
     
+    // Listen for ID Card print completion to ensure we stay on print page
+    const handleIDCardPrintCompleted = (event) => {
+      if (event.detail && event.detail.stayOnPrintPage) {
+        localStorage.setItem('idCardView', 'print');
+        localStorage.setItem('selectedApp', 'id-card-print');
+        setCurrentApp('id-card-print');
+        setIdCardView('print');
+      }
+    };
+    
+    window.addEventListener('idCardPrintCompleted', handleIDCardPrintCompleted);
+    
     return () => {
       window.removeEventListener('userAuthenticated', handleAuth);
       window.removeEventListener('navigateToSection', handleSectionNavigation);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('beforeunload', handleBeforeUnload);
       window.removeEventListener('pagehide', handlePageHide);
+      window.removeEventListener('idCardPrintCompleted', handleIDCardPrintCompleted);
       delete window.navigateToDashboard;
       // Clear loading timeout if it exists
       if (loadingTimeout) {
@@ -2021,6 +2040,33 @@ function App() {
     );
   }
 
+  // Check for shopkeeper panel route (both hash-based and clean URL routing)
+  // This must take priority over other routing logic (except order-details and admin above)
+  const isShopkeeperRoute = location.pathname === '/shopkeeper' || 
+                             location.pathname.startsWith('/shopkeeper/') ||
+                             hashToCheck === '#shopkeeper' || 
+                             hashToCheck.startsWith('#shopkeeper/') || 
+                             hashToCheck.includes('#shopkeeper?');
+  
+  if (isShopkeeperRoute) {
+    console.log('Shopkeeper route detected:', { pathname: location.pathname, hash: hashToCheck });
+    // Show shopkeeper dashboard - it will handle authentication check internally
+    // DO NOT wrap with TopNav - shopkeeper panel should be full screen
+    return (
+      <>
+        <Header 
+          isAuthenticated={isAuthenticated} 
+          currentProduct="products"
+          showProductsOnHeader={false}
+          onLogout={isAuthenticated ? handleLogout : undefined}
+        />
+        <Suspense fallback={<LoadingFallback />}>
+          <ShopkeeperDashboard />
+        </Suspense>
+      </>
+    );
+  }
+
   // Check for cart, checkout, and orders routes FIRST (before authentication check)
   // These routes should be accessible to everyone
   const currentHash = window.location.hash;
@@ -2047,9 +2093,17 @@ function App() {
     // PRIORITY 0: Check pathname FIRST - before any other routing logic
     // This ensures that when user navigates to /cv-builder, we show CV Builder regardless of localStorage
     const pathname = location.pathname;
+    
+    // Early return for shopkeeper routes - these are handled earlier but double-check here
+    if (pathname === '/shopkeeper' || pathname.startsWith('/shopkeeper/')) {
+      // This should not happen as shopkeeper routes are handled earlier, but just in case
+      return null;
+    }
+    
     let routingApp = null;
     
     // PRIORITY: If pathname is "/", check for navigation flags FIRST
+    // Note: Admin and shopkeeper routes are handled earlier in routing, so they won't reach here
     if (pathname === '/') {
       const navigateToCVBuilderCheck = sessionStorage.getItem('navigateToCVBuilder') === 'true' ||
                                        localStorage.getItem('navigateToCVBuilder') === 'true';
@@ -2633,9 +2687,14 @@ function App() {
       // Check if user wants to see the print page
       // This takes priority over showing the dashboard
       // Read from localStorage directly to avoid state sync issues
+      // CRITICAL: If printing is in progress, always show print page
+      const printingInProgress = localStorage.getItem('idCardPrintingInProgress') === 'true';
       const currentIdCardView = localStorage.getItem('idCardView') || 'dashboard';
-      if (currentIdCardView === 'print') {
+      if (printingInProgress || currentIdCardView === 'print') {
         const handleBackToIDCardDashboard = () => {
+          // Clear saved ID card designs when navigating back to dashboard
+          localStorage.removeItem('idCardDesigns');
+          sessionStorage.removeItem('idCardPrintSessionActive');
           setIdCardView('dashboard');
           localStorage.setItem('idCardView', 'dashboard');
         };

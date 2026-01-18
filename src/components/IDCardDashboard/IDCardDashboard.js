@@ -17,6 +17,10 @@ const IDCardDashboard = ({ onCreateNewIDCard }) => {
 
   // Fresh handler for creating new ID card
   const handleCreateNewIDCard = React.useCallback(() => {
+    // Clear any previously saved ID card designs to start fresh
+    localStorage.removeItem('idCardDesigns');
+    sessionStorage.removeItem('idCardPrintSessionActive');
+    
     // Set navigation flags FIRST to prevent logout on page reload
     sessionStorage.setItem('isNavigating', 'true');
     sessionStorage.setItem('navigationTimestamp', Date.now().toString());

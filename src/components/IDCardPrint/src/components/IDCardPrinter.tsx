@@ -32,21 +32,113 @@ const IDCardPrinter: React.FC = () => {
     processedImage: null
   };
 
-  const [cardDesigns, setCardDesigns] = useState<CardDesign[]>([
-    { 
-      id: '1', 
-      frontImage: null, 
-      backImage: null, 
-      frontSettings: { ...defaultSettings },
-      backSettings: { ...defaultSettings },
-      copies: 1
+  // Load card designs from localStorage on mount, or use default
+  // Only load if we're continuing the same session (not navigating back)
+  const loadCardDesignsFromStorage = (): CardDesign[] => {
+    try {
+      // Check if we have a session flag indicating we're continuing the same session
+      const isContinuingSession = sessionStorage.getItem('idCardPrintSessionActive') === 'true';
+      const saved = localStorage.getItem('idCardDesigns');
+      
+      // Only load saved cards if we're continuing the same session
+      // If user navigated away and came back, start fresh
+      if (isContinuingSession && saved) {
+        const parsed = JSON.parse(saved);
+        // Validate and return parsed data, or default if invalid
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      } else {
+        // New session or no saved data - clear any old data and start fresh
+        localStorage.removeItem('idCardDesigns');
+      }
+    } catch (error) {
+      console.error('Error loading card designs from localStorage:', error);
+      localStorage.removeItem('idCardDesigns');
     }
-  ]);
+    // Return default if nothing saved or error
+    return [
+      { 
+        id: '1', 
+        frontImage: null, 
+        backImage: null, 
+        frontSettings: { ...defaultSettings },
+        backSettings: { ...defaultSettings },
+        copies: 1
+      }
+    ];
+  };
+
+  const [cardDesigns, setCardDesigns] = useState<CardDesign[]>(loadCardDesignsFromStorage);
   const [cropDialogOpen, setCropDialogOpen] = useState(false);
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
   const [cropCardId, setCropCardId] = useState<string | null>(null);
   const [cropSide, setCropSide] = useState<'front' | 'back' | null>(null);
   const { toast } = useToast();
+
+  // Mark session as active when component mounts
+  React.useEffect(() => {
+    sessionStorage.setItem('idCardPrintSessionActive', 'true');
+    
+    return () => {
+      // Clear session flag when component unmounts (user navigated away)
+      sessionStorage.removeItem('idCardPrintSessionActive');
+    };
+  }, []);
+
+  // Save card designs to localStorage whenever they change
+  React.useEffect(() => {
+    try {
+      const serialized = JSON.stringify(cardDesigns);
+      // Check if data is too large for localStorage (usually 5-10MB limit)
+      if (serialized.length > 4 * 1024 * 1024) { // 4MB threshold
+        console.warn('Card designs data is too large for localStorage, some data may not be saved');
+        // Still try to save, but it might fail
+      }
+      localStorage.setItem('idCardDesigns', serialized);
+    } catch (error: any) {
+      console.error('Error saving card designs to localStorage:', error);
+      // If quota exceeded, try to clear old data and retry
+      if (error.name === 'QuotaExceededError' || error.code === 22) {
+        console.warn('localStorage quota exceeded, attempting to clear old data');
+        try {
+          // Clear only if we can't save - but keep current session data
+          localStorage.removeItem('idCardDesigns');
+          localStorage.setItem('idCardDesigns', JSON.stringify(cardDesigns));
+        } catch (retryError) {
+          console.error('Failed to save card designs even after clearing:', retryError);
+        }
+      }
+    }
+  }, [cardDesigns]);
+
+  // Ensure we stay on the print page (not dashboard) when component mounts and on focus
+  // Also clear saved cards when component unmounts (user navigated away)
+  React.useEffect(() => {
+    const ensurePrintPage = () => {
+      localStorage.setItem('idCardView', 'print');
+      localStorage.setItem('selectedApp', 'id-card-print');
+    };
+    
+    // Set immediately
+    ensurePrintPage();
+    
+    // Also set when window regains focus (e.g., after print window closes)
+    const handleFocus = () => {
+      ensurePrintPage();
+    };
+    
+    window.addEventListener('focus', handleFocus);
+    
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      // Clear saved cards when component unmounts (user navigated away)
+      // Only clear if not currently printing
+      if (localStorage.getItem('idCardPrintingInProgress') !== 'true') {
+        localStorage.removeItem('idCardDesigns');
+      }
+    };
+  }, []);
 
   const handleImageUpload = (file: File, cardId: string, side: 'front' | 'back') => {
     if (!file.type.startsWith('image/')) {
@@ -400,6 +492,11 @@ const IDCardPrinter: React.FC = () => {
       return;
     }
 
+    // Set flag to indicate printing is in progress - this prevents navigation to dashboard
+    localStorage.setItem('idCardPrintingInProgress', 'true');
+    localStorage.setItem('idCardView', 'print');
+    localStorage.setItem('selectedApp', 'id-card-print');
+
     // Check ID Card credits before allowing print
     try {
       const user = await authService.getCurrentUser();
@@ -687,6 +784,55 @@ const IDCardPrinter: React.FC = () => {
       console.error('Error decrementing ID Card credits:', creditError);
       // Don't block the print if credit decrement fails
     }
+
+    // After printing, ensure we stay on the print page (not navigate to dashboard)
+    // The card designs are already preserved in localStorage via useEffect
+    // Just ensure idCardView stays as 'print'
+    localStorage.setItem('idCardView', 'print');
+    localStorage.setItem('selectedApp', 'id-card-print');
+    
+    // Keep the printing flag for a bit longer to prevent any navigation
+    setTimeout(() => {
+      localStorage.setItem('idCardPrintingInProgress', 'false');
+    }, 2000); // Keep flag for 2 seconds after print
+    
+    // Also listen for when print window closes to ensure we stay on print page
+    const handlePrintWindowClose = () => {
+      localStorage.setItem('idCardView', 'print');
+      localStorage.setItem('selectedApp', 'id-card-print');
+      // Force a small delay to ensure localStorage is written
+      setTimeout(() => {
+        // Trigger a custom event to notify App.js to stay on print page
+        window.dispatchEvent(new CustomEvent('idCardPrintCompleted', {
+          detail: { stayOnPrintPage: true }
+        }));
+      }, 100);
+    };
+    
+    // Listen for when main window regains focus (print window closed)
+    const handleWindowFocus = () => {
+      // Only handle if we just printed
+      if (localStorage.getItem('idCardPrintingInProgress') === 'true') {
+        handlePrintWindowClose();
+      }
+    };
+    
+    window.addEventListener('focus', handleWindowFocus);
+    
+    // Also set up a one-time listener for afterprint event on the main window
+    // (though this might not fire if print window is separate)
+    const handleAfterPrint = () => {
+      handlePrintWindowClose();
+      window.removeEventListener('afterprint', handleAfterPrint);
+    };
+    
+    window.addEventListener('afterprint', handleAfterPrint);
+    
+    // Cleanup after a delay
+    setTimeout(() => {
+      window.removeEventListener('focus', handleWindowFocus);
+      localStorage.setItem('idCardPrintingInProgress', 'false');
+    }, 5000); // Remove listener after 5 seconds
   };
 
   const totalCards = cardDesigns.reduce((sum, design) => sum + design.copies, 0);

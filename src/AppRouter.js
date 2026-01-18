@@ -169,6 +169,30 @@ const AppRouter = () => {
           } 
         />
         
+        {/* Shopkeeper Routes */}
+        <Route 
+          path="/shopkeeper" 
+          element={
+            <RouteWrapper 
+              title="Shopkeeper Panel" 
+              description="Shopkeeper dashboard for managing products."
+            >
+              <App />
+            </RouteWrapper>
+          } 
+        />
+        <Route 
+          path="/shopkeeper/*" 
+          element={
+            <RouteWrapper 
+              title="Shopkeeper Panel" 
+              description="Shopkeeper dashboard for managing products."
+            >
+              <App />
+            </RouteWrapper>
+          } 
+        />
+        
         {/* Catch all - redirect to home */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
