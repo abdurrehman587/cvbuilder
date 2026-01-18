@@ -13,7 +13,8 @@ const config: CapacitorConfig = {
     host: 'oauth-callback'
   },
   android: {
-    allowMixedContent: true,
+    // Disable mixed content for production security
+    allowMixedContent: false,
     buildOptions: {
       keystorePath: undefined,
       keystoreAlias: undefined,
