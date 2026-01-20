@@ -134,6 +134,13 @@ const ProductCard = ({
       </div>
       <div className="product-card-body">
         <h4 className="product-card-name">{product.name}</h4>
+        <div className="product-card-shop-name">
+          {product.shopkeeper_id && product.shopkeeper?.shop_name 
+            ? `Product uploaded by: ${product.shopkeeper.shop_name}`
+            : product.shopkeeper_id 
+              ? 'Product uploaded by: Shop' 
+              : 'Product uploaded by: Glory'}
+        </div>
         <div className="product-card-footer">
           <div className="product-card-price-container">
             {product.original_price && product.original_price > product.price ? (
@@ -168,6 +175,85 @@ const ProductCard = ({
 };
 
 ProductCard.displayName = 'ProductCard';
+
+// Helper function to normalize text for fuzzy matching
+const normalizeText = (text) => {
+  if (!text) return '';
+  return text
+    .toLowerCase()
+    .replace(/[-\s_]/g, '') // Remove hyphens, spaces, underscores
+    .replace(/[^\w\s]/g, '') // Remove special characters
+    .trim();
+};
+
+// Helper function to calculate similarity score (simple fuzzy matching)
+const calculateSimilarity = (str1, str2) => {
+  if (!str1 || !str2) return 0;
+  
+  const normalized1 = normalizeText(str1);
+  const normalized2 = normalizeText(str2);
+  
+  // Exact match after normalization
+  if (normalized1 === normalized2) return 1.0;
+  
+  // Check if one contains the other
+  if (normalized1.includes(normalized2) || normalized2.includes(normalized1)) {
+    return 0.8;
+  }
+  
+  // Word-based matching - try to split compound words intelligently
+  // For example: "powerbank" should match "power bank" or "power-bank"
+  const tryWordMatching = (text, search) => {
+    // If search term is a single word, check if it appears in text (handles compound words)
+    if (search.length >= 4) {
+      // Try to find the search term as a substring in the text
+      if (text.includes(search)) {
+        return 0.75;
+      }
+      
+      // Try splitting search term into common word patterns (e.g., "powerbank" -> "power" + "bank")
+      // This is a simple heuristic - check if text contains parts of the search term
+      const minWordLength = 3;
+      for (let i = minWordLength; i < search.length - minWordLength; i++) {
+        const part1 = search.substring(0, i);
+        const part2 = search.substring(i);
+        if (text.includes(part1) && text.includes(part2)) {
+          return 0.7;
+        }
+      }
+    }
+    return 0;
+  };
+  
+  const wordMatchScore = tryWordMatching(normalized1, normalized2);
+  if (wordMatchScore > 0) {
+    return wordMatchScore;
+  }
+  
+  // Character-based similarity (simple Levenshtein-like approach)
+  let matches = 0;
+  const minLength = Math.min(normalized1.length, normalized2.length);
+  const maxLength = Math.max(normalized1.length, normalized2.length);
+  
+  if (minLength === 0) return 0;
+  
+  // Count matching characters in sequence
+  let i = 0, j = 0;
+  while (i < normalized1.length && j < normalized2.length) {
+    if (normalized1[i] === normalized2[j]) {
+      matches++;
+      i++;
+      j++;
+    } else if (normalized1.length < normalized2.length) {
+      j++;
+    } else {
+      i++;
+    }
+  }
+  
+  const similarity = matches / maxLength;
+  return similarity >= 0.6 ? similarity : 0; // Only return if similarity is reasonable
+};
 
 const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
   const navigate = useNavigate();
@@ -214,28 +300,92 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
   const [filteredProducts, setFilteredProducts] = useState([]); // Filtered products based on search
   const searchTimeoutRef = useRef(null);
   const loadMoreRef = useRef(null);
-  
-  // Search/filter products function
+
+  // Search/filter products function with fuzzy matching
   const filterProducts = useCallback((products, query) => {
     if (!query || query.trim() === '') {
       return products;
     }
     
     const searchTerm = query.toLowerCase().trim();
+    const normalizedSearch = normalizeText(searchTerm);
+    
     return products.filter(product => {
-      // Search in product name
-      const nameMatch = product.name?.toLowerCase().includes(searchTerm);
+      // Get all searchable text fields
+      const name = product.name || '';
+      const description = product.description || '';
+      const sectionName = product.marketplace_sections?.name || '';
+      const price = product.price?.toString() || '';
       
-      // Search in product description
-      const descriptionMatch = product.description?.toLowerCase().includes(searchTerm);
+      // Combine all text for comprehensive search
+      const allText = `${name} ${description} ${sectionName}`.toLowerCase();
       
-      // Search in section name
-      const sectionMatch = product.marketplace_sections?.name?.toLowerCase().includes(searchTerm);
+      // 1. Exact substring match (highest priority)
+      if (allText.includes(searchTerm) || name.toLowerCase().includes(searchTerm)) {
+        return true;
+      }
       
-      // Search in price (if user types numbers)
-      const priceMatch = product.price?.toString().includes(searchTerm);
+      // 2. Normalized exact match (handles spaces, hyphens, etc.)
+      const normalizedName = normalizeText(name);
+      const normalizedDescription = normalizeText(description);
+      const normalizedSection = normalizeText(sectionName);
       
-      return nameMatch || descriptionMatch || sectionMatch || priceMatch;
+      if (normalizedName.includes(normalizedSearch) || 
+          normalizedDescription.includes(normalizedSearch) ||
+          normalizedSection.includes(normalizedSearch)) {
+        return true;
+      }
+      
+      // 3. Word-based matching - check if all search words appear in product
+      const searchWords = searchTerm.split(/\s+/).filter(w => w.length > 0);
+      if (searchWords.length > 1) {
+        const allWordsMatch = searchWords.every(word => {
+          const normalizedWord = normalizeText(word);
+          return normalizedName.includes(normalizedWord) ||
+                 normalizedDescription.includes(normalizedWord) ||
+                 normalizedSection.includes(normalizedWord);
+        });
+        if (allWordsMatch) return true;
+      }
+      
+      // 3.5. Compound word matching - if search is a single word, try to split it
+      // Example: "powerbank" should match products with "power bank" or "power-bank"
+      if (normalizedSearch.length >= 6 && !normalizedSearch.includes(' ')) {
+        // Try to find if the search term can be split and both parts exist in the product
+        const minPartLength = 3;
+        for (let i = minPartLength; i <= normalizedSearch.length - minPartLength; i++) {
+          const part1 = normalizedSearch.substring(0, i);
+          const part2 = normalizedSearch.substring(i);
+          
+          // Check if both parts appear in the product text (in any order)
+          const hasPart1 = normalizedName.includes(part1) || 
+                          normalizedDescription.includes(part1) ||
+                          normalizedSection.includes(part1);
+          const hasPart2 = normalizedName.includes(part2) || 
+                          normalizedDescription.includes(part2) ||
+                          normalizedSection.includes(part2);
+          
+          if (hasPart1 && hasPart2) {
+            return true;
+          }
+        }
+      }
+      
+      // 4. Fuzzy similarity matching
+      const nameSimilarity = calculateSimilarity(name, searchTerm);
+      const descSimilarity = calculateSimilarity(description, searchTerm);
+      const sectionSimilarity = calculateSimilarity(sectionName, searchTerm);
+      
+      if (nameSimilarity >= 0.6 || descSimilarity >= 0.6 || sectionSimilarity >= 0.6) {
+        return true;
+      }
+      
+      // 5. Price matching (exact match only)
+      if (price.includes(searchTerm)) {
+        return true;
+      }
+      
+      return false;
     });
   }, []);
   
@@ -543,7 +693,11 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
             .order('display_order', { ascending: true }),
           supabase
             .from('marketplace_products')
-            .select('*, marketplace_sections(name)')
+            .select(`
+              *, 
+              marketplace_sections(name),
+              shopkeeper:users!shopkeeper_id(shop_name)
+            `)
             .or('is_hidden.is.null,is_hidden.eq.false')
             .order('created_at', { ascending: false })
         ]);
@@ -599,7 +753,11 @@ const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
       
       const { data: nextBatch, error } = await supabase
         .from('marketplace_products')
-        .select('*, marketplace_sections(name)')
+        .select(`
+          *, 
+          marketplace_sections(name),
+          shopkeeper:users!shopkeeper_id(shop_name)
+        `)
         .or('is_hidden.is.null,is_hidden.eq.false')
         .order('created_at', { ascending: false })
         .range(startIndex, startIndex + PRODUCTS_PER_PAGE - 1);

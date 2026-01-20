@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { supabase, authService } from '../Supabase/supabase';
 import './ShopkeeperProductManager.css';
 import RichTextEditor from '../MarketplaceAdmin/RichTextEditor';
+import { getLocationWithAddress } from '../../utils/geolocation';
 
 const ShopkeeperProductManager = ({ onProductAdded }) => {
   const [sections, setSections] = useState([]);
@@ -58,13 +59,28 @@ const ShopkeeperProductManager = ({ onProductAdded }) => {
     original_price: '',
     image_urls: [],
     section_id: '',
-    description: ''
+    description: '',
+    stock: 1
   });
   const [descriptionHtml, setDescriptionHtml] = useState('');
   const [editingProduct, setEditingProduct] = useState(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadingImageIndex, setUploadingImageIndex] = useState(null);
   const [draggedImageIndex, setDraggedImageIndex] = useState(null);
+  const [shopName, setShopName] = useState('');
+  const [isUpdatingShopName, setIsUpdatingShopName] = useState(false);
+  const [location, setLocation] = useState({
+    latitude: null,
+    longitude: null,
+    address: '',
+    city: ''
+  });
+  const [isUpdatingLocation, setIsUpdatingLocation] = useState(false);
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const [stockInputs, setStockInputs] = useState({});
+  const [updatingStock, setUpdatingStock] = useState({});
+  const updatingVisibilityRef = useRef(new Set());
+  const pendingVisibilityUpdatesRef = useRef({});
 
   // Check if user is shopkeeper (not admin) and load data
   useEffect(() => {
@@ -153,6 +169,8 @@ const ShopkeeperProductManager = ({ onProductAdded }) => {
         if (type === 'shopkeeper' && !adminStatus) {
           loadSections();
           loadProducts();
+          loadShopName();
+          loadLocation();
         }
       } catch (err) {
         console.error('Error checking user:', err);
@@ -182,7 +200,137 @@ const ShopkeeperProductManager = ({ onProductAdded }) => {
     }
   };
 
-  const loadProducts = async () => {
+  const loadShopName = async () => {
+    if (!currentUser) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('shop_name')
+        .eq('id', currentUser.id)
+        .single();
+
+      if (error) throw error;
+      setShopName(data?.shop_name || '');
+    } catch (err) {
+      console.error('Error loading shop name:', err);
+    }
+  };
+
+  const loadLocation = async () => {
+    if (!currentUser) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('latitude, longitude, address, city')
+        .eq('id', currentUser.id)
+        .single();
+
+      if (error) throw error;
+      setLocation({
+        latitude: data?.latitude || null,
+        longitude: data?.longitude || null,
+        address: data?.address || '',
+        city: data?.city || ''
+      });
+    } catch (err) {
+      console.error('Error loading location:', err);
+    }
+  };
+
+  const handleGetCurrentLocation = async () => {
+    setIsGettingLocation(true);
+    try {
+      const locationData = await getLocationWithAddress();
+      
+      if (locationData.error) {
+        alert('Error getting location: ' + locationData.error);
+        return;
+      }
+
+      // Show accuracy information to user
+      let accuracyMessage = '';
+      if (locationData.accuracy) {
+        if (locationData.accuracy > 100) {
+          accuracyMessage = `\n\n⚠️ Location accuracy: ${Math.round(locationData.accuracy)} meters. This may not be very precise.`;
+        } else if (locationData.accuracy > 50) {
+          accuracyMessage = `\n\n📍 Location accuracy: ${Math.round(locationData.accuracy)} meters.`;
+        } else {
+          accuracyMessage = `\n\n✅ Location accuracy: ${Math.round(locationData.accuracy)} meters (very accurate).`;
+        }
+      }
+
+      const confirmed = window.confirm(
+        `Location found!\n\nCoordinates: ${locationData.latitude.toFixed(6)}, ${locationData.longitude.toFixed(6)}${accuracyMessage}\n\nAddress: ${locationData.address || 'Not available'}\nCity: ${locationData.city || 'Not available'}\n\nIs this location correct? Click OK to use it, or Cancel to try again.`
+      );
+
+      if (confirmed) {
+        setLocation({
+          latitude: locationData.latitude,
+          longitude: locationData.longitude,
+          address: locationData.address || '',
+          city: locationData.city || ''
+        });
+      }
+    } catch (err) {
+      console.error('Error getting location:', err);
+      alert('Error getting location: ' + err.message);
+    } finally {
+      setIsGettingLocation(false);
+    }
+  };
+
+  const handleUpdateLocation = async () => {
+    if (!currentUser) return;
+
+    try {
+      setIsUpdatingLocation(true);
+      const { error } = await supabase
+        .from('users')
+        .update({
+          latitude: location.latitude,
+          longitude: location.longitude,
+          address: location.address,
+          city: location.city,
+          location_updated_at: new Date().toISOString()
+        })
+        .eq('id', currentUser.id);
+
+      if (error) throw error;
+      alert('Location updated successfully!');
+    } catch (err) {
+      console.error('Error updating location:', err);
+      alert('Error updating location: ' + err.message);
+    } finally {
+      setIsUpdatingLocation(false);
+    }
+  };
+
+  const handleUpdateShopName = async () => {
+    if (!currentUser || !shopName.trim()) {
+      alert('Please enter a shop name');
+      return;
+    }
+
+    try {
+      setIsUpdatingShopName(true);
+      const { error } = await supabase
+        .from('users')
+        .update({ shop_name: shopName.trim() })
+        .eq('id', currentUser.id);
+
+      if (error) throw error;
+      alert('Shop name updated successfully!');
+    } catch (err) {
+      console.error('Error updating shop name:', err);
+      alert('Error updating shop name: ' + err.message);
+    } finally {
+      setIsUpdatingShopName(false);
+    }
+  };
+
+  const loadProducts = async (preserveVisibilityUpdates = {}) => {
     if (!currentUser) return;
     
     try {
@@ -198,7 +346,18 @@ const ShopkeeperProductManager = ({ onProductAdded }) => {
         throw error;
       }
       
-      setProducts(data || []);
+      // If we have pending visibility updates, preserve them
+      if (Object.keys(preserveVisibilityUpdates).length > 0) {
+        const updatedData = (data || []).map(product => {
+          if (preserveVisibilityUpdates[product.id] !== undefined) {
+            return { ...product, is_hidden: preserveVisibilityUpdates[product.id] };
+          }
+          return product;
+        });
+        setProducts(updatedData);
+      } else {
+        setProducts(data || []);
+      }
     } catch (err) {
       console.error('Error loading products:', err);
       alert('Error loading products: ' + err.message);
@@ -407,6 +566,7 @@ const ShopkeeperProductManager = ({ onProductAdded }) => {
           shopkeeper_id: currentUser.id,
           price: parseFloat(productForm.price),
           original_price: productForm.original_price ? parseFloat(productForm.original_price) : null,
+          stock: parseInt(productForm.stock) || 1,
           description: descriptionHtml || ''
         }])
         .select()
@@ -414,7 +574,7 @@ const ShopkeeperProductManager = ({ onProductAdded }) => {
 
       if (error) throw error;
       await loadProducts();
-      setProductForm({ name: '', price: '', original_price: '', image_urls: [], section_id: '', description: '' });
+      setProductForm({ name: '', price: '', original_price: '', image_urls: [], section_id: '', description: '', stock: 1 });
       setDescriptionHtml('');
       alert('Product added successfully!');
       
@@ -444,6 +604,7 @@ const ShopkeeperProductManager = ({ onProductAdded }) => {
           original_price: productForm.original_price ? parseFloat(productForm.original_price) : null,
           image_urls: productForm.image_urls.length > 0 ? productForm.image_urls : null,
           section_id: productForm.section_id || null,
+          stock: parseInt(productForm.stock) || 1,
           description: descriptionHtml || null
         })
         .eq('id', editingProduct.id)
@@ -453,7 +614,7 @@ const ShopkeeperProductManager = ({ onProductAdded }) => {
       
       await loadProducts();
       setEditingProduct(null);
-      setProductForm({ name: '', price: '', original_price: '', image_urls: [], section_id: '', description: '' });
+      setProductForm({ name: '', price: '', original_price: '', image_urls: [], section_id: '', description: '', stock: 1 });
       setDescriptionHtml('');
       alert('Product updated successfully!');
       
@@ -469,7 +630,13 @@ const ShopkeeperProductManager = ({ onProductAdded }) => {
   };
 
   const handleHideProduct = async (product) => {
+    // Prevent double-clicks or concurrent updates
+    if (updatingVisibilityRef.current.has(product.id)) {
+      return;
+    }
+    
     const isCurrentlyHidden = product.is_hidden || false;
+    const newHiddenState = !isCurrentlyHidden;
     const action = isCurrentlyHidden ? 'show' : 'hide';
     
     if (!window.confirm(`Are you sure you want to ${action} this product? ${isCurrentlyHidden ? 'It will be visible to customers.' : 'It will be hidden from customers.'}`)) {
@@ -477,16 +644,40 @@ const ShopkeeperProductManager = ({ onProductAdded }) => {
     }
 
     try {
+      updatingVisibilityRef.current.add(product.id);
       setLoading(true);
       const { error } = await supabase
         .from('marketplace_products')
-        .update({ is_hidden: !isCurrentlyHidden })
+        .update({ is_hidden: newHiddenState })
         .eq('id', product.id)
         .eq('shopkeeper_id', currentUser.id); // Ensure shopkeeper can only hide/show their own products
 
       if (error) throw error;
-      await loadProducts();
+      
+      // Track this visibility update
+      pendingVisibilityUpdatesRef.current[product.id] = newHiddenState;
+      
+      // Update local state immediately for better UX
+      setProducts(prevProducts => 
+        prevProducts.map(p => 
+          p.id === product.id ? { ...p, is_hidden: newHiddenState } : p
+        )
+      );
+      
       alert(`Product ${isCurrentlyHidden ? 'shown' : 'hidden'} successfully!`);
+      
+      // Reload products in the background after a delay, preserving ALL pending visibility updates
+      // This ensures database consistency while maintaining the UI state
+      setTimeout(() => {
+        const updatesToPreserve = { ...pendingVisibilityUpdatesRef.current };
+        loadProducts(updatesToPreserve).catch(err => {
+          console.error('Background reload error:', err);
+          // If reload fails, our state update is still correct
+        });
+        updatingVisibilityRef.current.delete(product.id);
+        // Clear this product's pending update after reload
+        delete pendingVisibilityUpdatesRef.current[product.id];
+      }, 1500);
       
       if (onProductAdded) {
         onProductAdded();
@@ -494,6 +685,9 @@ const ShopkeeperProductManager = ({ onProductAdded }) => {
     } catch (err) {
       console.error('Error toggling product visibility:', err);
       alert('Error toggling product visibility: ' + err.message);
+      // Reload products on error to ensure UI is in sync
+      await loadProducts();
+      updatingVisibilityRef.current.delete(product.id);
     } finally {
       setLoading(false);
     }
@@ -621,6 +815,185 @@ const ShopkeeperProductManager = ({ onProductAdded }) => {
         </div>
       </div>
 
+      <div className="shop-name-section" style={{ 
+        marginBottom: '2rem', 
+        padding: '1.5rem', 
+        backgroundColor: '#f8fafc', 
+        borderRadius: '8px',
+        border: '1px solid #e2e8f0'
+      }}>
+        <h3 style={{ marginTop: 0, marginBottom: '1rem' }}>Shop Name</h3>
+        <p style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '1rem' }}>
+          Your shop name will be displayed on all products you upload. This helps customers identify your products.
+        </p>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <input
+            type="text"
+            placeholder="Enter your shop name"
+            value={shopName}
+            onChange={(e) => setShopName(e.target.value)}
+            style={{
+              flex: 1,
+              padding: '0.75rem',
+              border: '1px solid #d1d5db',
+              borderRadius: '6px',
+              fontSize: '1rem'
+            }}
+          />
+          <button
+            type="button"
+            onClick={handleUpdateShopName}
+            disabled={isUpdatingShopName || !shopName.trim()}
+            style={{
+              padding: '0.75rem 1.5rem',
+              backgroundColor: '#10b981',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: isUpdatingShopName || !shopName.trim() ? 'not-allowed' : 'pointer',
+              opacity: isUpdatingShopName || !shopName.trim() ? 0.6 : 1,
+              fontWeight: '600'
+            }}
+          >
+            {isUpdatingShopName ? 'Updating...' : 'Update Shop Name'}
+          </button>
+        </div>
+      </div>
+
+      <div className="location-section" style={{ 
+        marginBottom: '2rem', 
+        padding: '1.5rem', 
+        backgroundColor: '#f8fafc', 
+        borderRadius: '8px',
+        border: '1px solid #e2e8f0'
+      }}>
+        <h3 style={{ marginTop: 0, marginBottom: '1rem' }}>Shop Location</h3>
+        <p style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '1rem' }}>
+          Set your shop location to help customers find you. You can use your current location or enter it manually.
+        </p>
+        
+        <div style={{ marginBottom: '1rem' }}>
+          <button
+            type="button"
+            onClick={handleGetCurrentLocation}
+            disabled={isGettingLocation}
+            style={{
+              padding: '0.75rem 1.5rem',
+              backgroundColor: '#3b82f6',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: isGettingLocation ? 'not-allowed' : 'pointer',
+              opacity: isGettingLocation ? 0.6 : 1,
+              fontWeight: '600',
+              marginBottom: '1rem'
+            }}
+          >
+            {isGettingLocation ? 'Getting Location...' : '📍 Use Current Location'}
+          </button>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <input
+              type="number"
+              step="any"
+              placeholder="Latitude"
+              value={location.latitude || ''}
+              onChange={(e) => setLocation({ ...location, latitude: e.target.value ? parseFloat(e.target.value) : null })}
+              style={{
+                flex: 1,
+                padding: '0.75rem',
+                border: '1px solid #d1d5db',
+                borderRadius: '6px',
+                fontSize: '1rem'
+              }}
+            />
+            <input
+              type="number"
+              step="any"
+              placeholder="Longitude"
+              value={location.longitude || ''}
+              onChange={(e) => setLocation({ ...location, longitude: e.target.value ? parseFloat(e.target.value) : null })}
+              style={{
+                flex: 1,
+                padding: '0.75rem',
+                border: '1px solid #d1d5db',
+                borderRadius: '6px',
+                fontSize: '1rem'
+              }}
+            />
+          </div>
+          <input
+            type="text"
+            placeholder="Address (will be auto-filled if using current location)"
+            value={location.address}
+            onChange={(e) => setLocation({ ...location, address: e.target.value })}
+            style={{
+              padding: '0.75rem',
+              border: '1px solid #d1d5db',
+              borderRadius: '6px',
+              fontSize: '1rem'
+            }}
+          />
+          <input
+            type="text"
+            placeholder="City (will be auto-filled if using current location)"
+            value={location.city}
+            onChange={(e) => setLocation({ ...location, city: e.target.value })}
+            style={{
+              padding: '0.75rem',
+              border: '1px solid #d1d5db',
+              borderRadius: '6px',
+              fontSize: '1rem'
+            }}
+          />
+          <button
+            type="button"
+            onClick={handleUpdateLocation}
+            disabled={isUpdatingLocation || (!location.latitude || !location.longitude)}
+            style={{
+              padding: '0.75rem 1.5rem',
+              backgroundColor: '#10b981',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: isUpdatingLocation || (!location.latitude || !location.longitude) ? 'not-allowed' : 'pointer',
+              opacity: isUpdatingLocation || (!location.latitude || !location.longitude) ? 0.6 : 1,
+              fontWeight: '600'
+            }}
+          >
+            {isUpdatingLocation ? 'Updating...' : 'Update Location'}
+          </button>
+        </div>
+
+        {location.latitude && location.longitude && (
+          <div style={{ marginTop: '1rem', padding: '0.75rem', backgroundColor: '#dbeafe', borderRadius: '6px', fontSize: '0.875rem' }}>
+            <div style={{ marginBottom: '0.5rem' }}>
+              <strong>Coordinates:</strong> {location.latitude.toFixed(6)}, {location.longitude.toFixed(6)}
+              <a 
+                href={`https://www.google.com/maps?q=${location.latitude},${location.longitude}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ 
+                  marginLeft: '0.5rem', 
+                  color: '#2563eb', 
+                  textDecoration: 'underline',
+                  fontSize: '0.8rem'
+                }}
+              >
+                📍 View on Map
+              </a>
+            </div>
+            {location.city && <div style={{ marginTop: '0.25rem' }}><strong>City:</strong> {location.city}</div>}
+            {location.address && <div style={{ marginTop: '0.25rem' }}><strong>Address:</strong> {location.address}</div>}
+            <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#64748b' }}>
+              💡 Tip: Click "View on Map" to verify the location is correct. You can manually adjust the coordinates if needed.
+            </div>
+          </div>
+        )}
+      </div>
+
       <div className="admin-tabs">
         <button
           type="button"
@@ -628,6 +1001,13 @@ const ShopkeeperProductManager = ({ onProductAdded }) => {
           onClick={() => setActiveTab('products')}
         >
           Products
+        </button>
+        <button
+          type="button"
+          className={activeTab === 'inventory' ? 'active' : ''}
+          onClick={() => setActiveTab('inventory')}
+        >
+          Inventory
         </button>
       </div>
 
@@ -662,6 +1042,15 @@ const ShopkeeperProductManager = ({ onProductAdded }) => {
               onChange={(e) => setProductForm({ ...productForm, original_price: e.target.value })}
               min="0"
               step="0.01"
+            />
+            <input
+              type="number"
+              placeholder="Stock Quantity"
+              value={productForm.stock}
+              onChange={(e) => setProductForm({ ...productForm, stock: e.target.value })}
+              required
+              min="0"
+              step="1"
             />
             <select
               value={productForm.section_id}
@@ -770,7 +1159,7 @@ const ShopkeeperProductManager = ({ onProductAdded }) => {
             {editingProduct && (
               <button type="button" onClick={() => {
                 setEditingProduct(null);
-                setProductForm({ name: '', price: '', original_price: '', image_urls: [], section_id: '', description: '' });
+                setProductForm({ name: '', price: '', original_price: '', image_urls: [], section_id: '', description: '', stock: 1 });
                 setDescriptionHtml('');
               }}>
                 Cancel
@@ -844,7 +1233,8 @@ const ShopkeeperProductManager = ({ onProductAdded }) => {
                               ? product.image_urls 
                               : (product.image_url ? [product.image_url] : []),
                             section_id: product.section_id || '',
-                            description: description
+                            description: description,
+                            stock: product.stock?.toString() || '1'
                           });
                           // Check if description is HTML (contains tags) or plain text
                           const isHtml = description && /<[a-z][\s\S]*>/i.test(description);
@@ -883,6 +1273,151 @@ const ShopkeeperProductManager = ({ onProductAdded }) => {
               </tbody>
             </table>
           </div>
+        </div>
+      )}
+
+      {activeTab === 'inventory' && (
+        <div className="admin-section">
+          <h2>Manage Inventory</h2>
+          <p style={{ color: '#6b7280', marginBottom: '1.5rem' }}>
+            View and update stock quantities for your products.
+          </p>
+          
+          {loading && products.length === 0 ? (
+            <div className="loading-message">Loading inventory...</div>
+          ) : (
+            <div className="admin-table-container">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Image</th>
+                    <th>Product Name</th>
+                    <th>Current Stock</th>
+                    <th>Status</th>
+                    <th>Update Stock</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {products.length === 0 ? (
+                    <tr>
+                      <td colSpan="5" style={{ textAlign: 'center', padding: '2rem' }}>
+                        No products found. Add your first product in the Products tab.
+                      </td>
+                    </tr>
+                  ) : (
+                    products.map((product) => {
+                      const productStock = stockInputs[product.id] !== undefined 
+                        ? stockInputs[product.id] 
+                        : (product.stock?.toString() || '1');
+                      
+                      return (
+                        <tr key={product.id}>
+                          <td>
+                            {(product.image_urls && Array.isArray(product.image_urls) && product.image_urls.length > 0) 
+                              ? (
+                                <img src={product.image_urls[0]} alt={product.name} className="product-thumb" />
+                              ) 
+                              : product.image_url ? (
+                                <img src={product.image_url} alt={product.name} className="product-thumb" />
+                              ) : (
+                                <span className="no-image">No Image</span>
+                              )}
+                          </td>
+                          <td style={{ fontWeight: '600' }}>{product.name}</td>
+                          <td>
+                            <span style={{
+                              padding: '0.25rem 0.75rem',
+                              borderRadius: '4px',
+                              fontSize: '0.875rem',
+                              fontWeight: '600',
+                              backgroundColor: (product.stock || 0) > 10 ? '#d1fae5' : (product.stock || 0) > 0 ? '#fef3c7' : '#fee2e2',
+                              color: (product.stock || 0) > 10 ? '#065f46' : (product.stock || 0) > 0 ? '#92400e' : '#991b1b'
+                            }}>
+                              {product.stock || 0}
+                            </span>
+                          </td>
+                          <td>
+                            <span style={{
+                              padding: '0.25rem 0.5rem',
+                              borderRadius: '4px',
+                              fontSize: '0.875rem',
+                              fontWeight: '500',
+                              backgroundColor: (product.stock || 0) > 10 ? '#d1fae5' : (product.stock || 0) > 0 ? '#fef3c7' : '#fee2e2',
+                              color: (product.stock || 0) > 10 ? '#065f46' : (product.stock || 0) > 0 ? '#92400e' : '#991b1b'
+                            }}>
+                              {(product.stock || 0) > 10 ? '✅ In Stock' : (product.stock || 0) > 0 ? '⚠️ Low Stock' : '❌ Out of Stock'}
+                            </span>
+                          </td>
+                          <td>
+                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                              <input
+                                type="number"
+                                value={productStock}
+                                onChange={(e) => setStockInputs({ ...stockInputs, [product.id]: e.target.value })}
+                                min="0"
+                                step="1"
+                                style={{
+                                  width: '80px',
+                                  padding: '0.5rem',
+                                  border: '1px solid #d1d5db',
+                                  borderRadius: '4px'
+                                }}
+                                disabled={updatingStock[product.id]}
+                              />
+                              <button
+                                onClick={async () => {
+                                  const stockValue = parseInt(productStock);
+                                  if (isNaN(stockValue) || stockValue < 0) {
+                                    alert('Please enter a valid stock quantity (0 or greater)');
+                                    return;
+                                  }
+                                  
+                                  if (!window.confirm(`Update stock for "${product.name}" to ${stockValue}?`)) {
+                                    return;
+                                  }
+                                  
+                                  try {
+                                    setUpdatingStock({ ...updatingStock, [product.id]: true });
+                                    const { error } = await supabase
+                                      .from('marketplace_products')
+                                      .update({ stock: stockValue })
+                                      .eq('id', product.id)
+                                      .eq('shopkeeper_id', currentUser.id);
+                                    
+                                    if (error) throw error;
+                                    await loadProducts();
+                                    setStockInputs({ ...stockInputs, [product.id]: stockValue.toString() });
+                                    alert('Stock updated successfully!');
+                                  } catch (err) {
+                                    console.error('Error updating stock:', err);
+                                    alert('Error updating stock: ' + err.message);
+                                  } finally {
+                                    setUpdatingStock({ ...updatingStock, [product.id]: false });
+                                  }
+                                }}
+                                disabled={updatingStock[product.id] || parseInt(productStock) === product.stock}
+                                style={{
+                                  padding: '0.5rem 1rem',
+                                  backgroundColor: '#3b82f6',
+                                  color: 'white',
+                                  border: 'none',
+                                  borderRadius: '4px',
+                                  cursor: updatingStock[product.id] || parseInt(productStock) === product.stock ? 'not-allowed' : 'pointer',
+                                  opacity: updatingStock[product.id] || parseInt(productStock) === product.stock ? 0.6 : 1
+                                }}
+                              >
+                                {updatingStock[product.id] ? 'Updating...' : 'Update'}
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
     </div>

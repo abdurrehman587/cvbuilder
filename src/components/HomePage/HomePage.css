@@ -57,6 +57,15 @@
   z-index: 1;
 }
 
+/* Category subtitle */
+.category-subtitle {
+  margin: -0.5rem 0 1.5rem 0;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #475569;
+}
+
 /* Welcome Banner */
 .welcome-banner {
   text-align: center;
@@ -181,24 +190,6 @@
   border: 2px solid transparent;
 }
 
-/* CV Builder Special Layout - Image on top, templates full width */
-.tool-section-cv-layout {
-  grid-template-columns: 1fr;
-  gap: 2rem;
-}
-
-.tool-section-image-top {
-  width: 100%;
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.tool-section-cv-layout:hover .tool-section-image-top {
-  transform: scale(1.01);
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
-}
 
 .tool-section-content:hover {
   box-shadow: 0 20px 60px rgba(59, 130, 246, 0.15);
@@ -307,10 +298,9 @@
   padding-top: 2rem;
   border-top: 2px solid #e2e8f0;
   width: 100%;
-}
-
-.tool-section-cv-layout .template-previews {
-  grid-column: 1 / -1;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .template-previews-grid {

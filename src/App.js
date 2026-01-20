@@ -30,6 +30,7 @@ const Preview3 = lazy(() => import('./components/template3/Preview3'));
 const Preview4 = lazy(() => import('./components/template4/Preview4'));
 const IDCardPrintPage = lazy(() => import('./components/IDCardPrint/IDCardPrintPage'));
 const IDCardDashboard = lazy(() => import('./components/IDCardDashboard/IDCardDashboard'));
+const UserProfile = lazy(() => import('./components/UserProfile/UserProfile'));
 // const MarketplaceAdmin = lazy(() => import('./components/MarketplaceAdmin/MarketplaceAdmin')); // Not currently used
 const AdminDashboard = lazy(() => import('./components/Admin/AdminDashboard'));
 const ShopkeeperDashboard = lazy(() => import('./components/Shopkeeper/ShopkeeperDashboard'));
@@ -2415,6 +2416,29 @@ function App() {
           />
           <HomePage />
         </>
+      );
+    }
+    
+    // Check for profile route
+    if (location.pathname === '/profile') {
+      if (!isAuthenticated) {
+        navigate('/');
+        return null;
+      }
+      return wrapWithTopNav(
+        wrapWithNavbar(
+          <>
+            <Header 
+              isAuthenticated={isAuthenticated} 
+              currentProduct="home"
+              showProductsOnHeader={false}
+              onLogout={isAuthenticated ? handleLogout : undefined}
+            />
+            <Suspense fallback={<LoadingFallback />}>
+              <UserProfile />
+            </Suspense>
+          </>
+        )
       );
     }
     

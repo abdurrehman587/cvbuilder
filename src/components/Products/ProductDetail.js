@@ -20,7 +20,11 @@ const ProductDetail = ({ productId }) => {
         setLoading(true);
         const { data, error } = await supabase
           .from('marketplace_products')
-          .select('*, marketplace_sections(name)')
+          .select(`
+            *, 
+            marketplace_sections(name),
+            shopkeeper:users!shopkeeper_id(shop_name)
+          `)
           .eq('id', productId)
           .or('is_hidden.is.null,is_hidden.eq.false')
           .single();
@@ -417,6 +421,17 @@ const ProductDetail = ({ productId }) => {
                 <span className="product-detail-category-name">{product.marketplace_sections.name}</span>
               </div>
             )}
+
+            <div className="product-detail-uploader">
+              <span className="product-detail-uploader-label">Product uploaded by:</span>
+              <span className="product-detail-uploader-name">
+                {product.shopkeeper_id && product.shopkeeper?.shop_name 
+                  ? product.shopkeeper.shop_name 
+                  : product.shopkeeper_id 
+                    ? 'Shop' 
+                    : 'Glory'}
+              </span>
+            </div>
 
             {product.description && (
               <div className="product-detail-description">

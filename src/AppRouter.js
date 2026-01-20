@@ -193,6 +193,19 @@ const AppRouter = () => {
           } 
         />
         
+        {/* User Profile Route */}
+        <Route 
+          path="/profile" 
+          element={
+            <RouteWrapper 
+              title="My Profile" 
+              description="View and manage your profile information and location."
+            >
+              <App />
+            </RouteWrapper>
+          } 
+        />
+        
         {/* Catch all - redirect to home */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

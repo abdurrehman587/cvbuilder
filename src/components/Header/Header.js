@@ -416,6 +416,27 @@ Cart
                 Shopkeeper Panel
               </button>
             )}
+            
+            {isAuthenticated && location.pathname !== '/profile' && (
+              <button 
+                type="button"
+                onClick={() => navigate('/profile')}
+                className="profile-btn-header"
+                title="View My Profile"
+                style={{
+                  padding: '0.5rem 1rem',
+                  backgroundColor: '#6366f1',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontWeight: '500',
+                  fontSize: '0.875rem'
+                }}
+              >
+                Profile
+              </button>
+            )}
           </div>
         </div>
       </header>

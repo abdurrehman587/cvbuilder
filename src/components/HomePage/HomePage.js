@@ -427,15 +427,58 @@ const HomePage = ({ onProductSelect }) => {
           </h2>
         </div>
 
+        {/* Products and Professional Services (Top) */}
+        <div className="category-section">
+          <h2 className="category-title">Products and Professional Services</h2>
+          
+          {/* Marketplace Section */}
+          <div className="tool-section">
+            <div className="tool-section-content">
+              <div className="tool-section-text">
+                <h2 className="tool-section-title">Marketplace</h2>
+                
+                <div className="tool-features-list">
+                  <div className="tool-feature-item">
+                    <span className="tool-feature-icon">⭐</span>
+                    <span className="tool-feature-text">High Quality Products at Best Prices.</span>
+                  </div>
+                  <div className="tool-feature-item">
+                    <span className="tool-feature-icon">📝</span>
+                    <span className="tool-feature-text">Complete Description of Products.</span>
+                  </div>
+                  <div className="tool-feature-item">
+                    <span className="tool-feature-icon">🛒</span>
+                    <span className="tool-feature-text">Buy instantly or add to cart for later purchase.</span>
+                  </div>
+                </div>
+
+                <button 
+                  className="tool-section-button"
+                  onClick={() => handleGetStarted('marketplace')}
+                >
+                  Get Started →
+                </button>
+              </div>
+              <div className="tool-section-image">
+                <img 
+                  src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&h=600&fit=crop&q=90"
+                  alt="Marketplace - Products and Professional Services"
+                  className="tool-image"
+                  loading="lazy"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Digital Tools Section */}
         <div className="category-section">
           <h2 className="category-title">Digital Tools</h2>
           
           {/* CV Builder Section */}
           <div className="tool-section">
-          <div className="tool-section-content tool-section-cv-layout">
-            {/* Main Image at Top */}
-            <div className="tool-section-image-top">
+          <div className="tool-section-content">
+            <div className="tool-section-image">
               <img 
                 src="https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=800&h=600&fit=crop&q=90"
                 alt="CV Builder - Professional Resume Maker"
@@ -443,8 +486,6 @@ const HomePage = ({ onProductSelect }) => {
                 loading="lazy"
               />
             </div>
-            
-            {/* Content Below Image */}
             <div className="tool-section-text">
               <h2 className="tool-section-title">CV Builder</h2>
               <p className="tool-section-description">
@@ -483,46 +524,46 @@ const HomePage = ({ onProductSelect }) => {
                 Get Started →
               </button>
             </div>
-
-            {/* Template Previews - Full Width */}
-            <div className="template-previews">
-              <div className="template-previews-grid">
-                <div className="template-preview-item">
-                  <img 
-                    src="/images/templates/Template 1.jpg"
-                    alt="CV Template 1"
-                    className="template-preview-image"
-                    loading="lazy"
-                  />
-                  <span className="template-preview-label">Template 1</span>
-                </div>
-                <div className="template-preview-item">
-                  <img 
-                    src="/images/templates/Template 2.jpg"
-                    alt="CV Template 2"
-                    className="template-preview-image"
-                    loading="lazy"
-                  />
-                  <span className="template-preview-label">Template 2</span>
-                </div>
-                <div className="template-preview-item">
-                  <img 
-                    src="/images/templates/Template 3.jpg"
-                    alt="CV Template 3"
-                    className="template-preview-image"
-                    loading="lazy"
-                  />
-                  <span className="template-preview-label">Template 3</span>
-                </div>
-                <div className="template-preview-item">
-                  <img 
-                    src="/images/templates/Template 4.jpg"
-                    alt="CV Template 4"
-                    className="template-preview-image"
-                    loading="lazy"
-                  />
-                  <span className="template-preview-label">Template 4</span>
-                </div>
+          </div>
+          
+          {/* Template Previews - Below the main section */}
+          <div className="template-previews">
+            <div className="template-previews-grid">
+              <div className="template-preview-item">
+                <img 
+                  src="/images/templates/Template 1.jpg"
+                  alt="CV Template 1"
+                  className="template-preview-image"
+                  loading="lazy"
+                />
+                <span className="template-preview-label">Template 1</span>
+              </div>
+              <div className="template-preview-item">
+                <img 
+                  src="/images/templates/Template 2.jpg"
+                  alt="CV Template 2"
+                  className="template-preview-image"
+                  loading="lazy"
+                />
+                <span className="template-preview-label">Template 2</span>
+              </div>
+              <div className="template-preview-item">
+                <img 
+                  src="/images/templates/Template 3.jpg"
+                  alt="CV Template 3"
+                  className="template-preview-image"
+                  loading="lazy"
+                />
+                <span className="template-preview-label">Template 3</span>
+              </div>
+              <div className="template-preview-item">
+                <img 
+                  src="/images/templates/Template 4.jpg"
+                  alt="CV Template 4"
+                  className="template-preview-image"
+                  loading="lazy"
+                />
+                <span className="template-preview-label">Template 4</span>
               </div>
             </div>
           </div>
@@ -565,50 +606,6 @@ const HomePage = ({ onProductSelect }) => {
               </button>
             </div>
           </div>
-          </div>
-        </div>
-
-        {/* Products Category */}
-        <div className="category-section">
-          <h2 className="category-title">Professional Services and Resources</h2>
-          
-          {/* Marketplace Section */}
-          <div className="tool-section">
-            <div className="tool-section-content">
-              <div className="tool-section-text">
-                <h2 className="tool-section-title">Marketplace</h2>
-                
-                <div className="tool-features-list">
-                  <div className="tool-feature-item">
-                    <span className="tool-feature-icon">⭐</span>
-                    <span className="tool-feature-text">High Quality Products at Best Prices.</span>
-                  </div>
-                  <div className="tool-feature-item">
-                    <span className="tool-feature-icon">📝</span>
-                    <span className="tool-feature-text">Complete Description of Products.</span>
-                  </div>
-                  <div className="tool-feature-item">
-                    <span className="tool-feature-icon">🛒</span>
-                    <span className="tool-feature-text">Buy instantly or add to cart for later purchase.</span>
-                  </div>
-                </div>
-
-                <button 
-                  className="tool-section-button"
-                  onClick={() => handleGetStarted('marketplace')}
-                >
-                  Get Started →
-                </button>
-              </div>
-              <div className="tool-section-image">
-                <img 
-                  src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&h=600&fit=crop&q=90"
-                  alt="Marketplace - Professional Services and Resources"
-                  className="tool-image"
-                  loading="lazy"
-                />
-              </div>
-            </div>
           </div>
         </div>
       </div>

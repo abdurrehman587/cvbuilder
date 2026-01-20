@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../Supabase/supabase';
 import { orderService } from '../../utils/orders';
 import './MarketplaceAdmin.css';
@@ -63,13 +63,18 @@ const MarketplaceAdmin = () => {
     original_price: '',
     image_urls: [],
     section_id: '',
-    description: ''
+    description: '',
+    stock: 1
   });
   const [descriptionHtml, setDescriptionHtml] = useState('');
   const [editingProduct, setEditingProduct] = useState(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadingImageIndex, setUploadingImageIndex] = useState(null);
   const [draggedImageIndex, setDraggedImageIndex] = useState(null);
+  const [stockInputs, setStockInputs] = useState({});
+  const [updatingStock, setUpdatingStock] = useState({});
+  const updatingVisibilityRef = useRef(new Set());
+  const pendingVisibilityUpdatesRef = useRef({});
 
   // Load sections, products, and orders on mount
   useEffect(() => {
@@ -96,12 +101,16 @@ const MarketplaceAdmin = () => {
     }
   };
 
-  const loadProducts = async () => {
+  const loadProducts = async (preserveVisibilityUpdates = {}) => {
     try {
       setLoading(true);
       const { data, error } = await supabase
         .from('marketplace_products')
-        .select('*, marketplace_sections(name)')
+        .select(`
+          *, 
+          marketplace_sections(name),
+          shopkeeper:users!shopkeeper_id(shop_name, email, full_name)
+        `)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -109,7 +118,18 @@ const MarketplaceAdmin = () => {
         throw error;
       }
       
-      setProducts(data || []);
+      // If we have pending visibility updates, preserve them
+      if (Object.keys(preserveVisibilityUpdates).length > 0) {
+        const updatedData = (data || []).map(product => {
+          if (preserveVisibilityUpdates[product.id] !== undefined) {
+            return { ...product, is_hidden: preserveVisibilityUpdates[product.id] };
+          }
+          return product;
+        });
+        setProducts(updatedData);
+      } else {
+        setProducts(data || []);
+      }
     } catch (err) {
       console.error('Error loading products:', err);
       alert('Error loading products: ' + err.message);
@@ -368,6 +388,7 @@ const MarketplaceAdmin = () => {
           ...productForm,
           price: parseFloat(productForm.price),
           original_price: productForm.original_price ? parseFloat(productForm.original_price) : null,
+          stock: parseInt(productForm.stock) || 1,
           description: descriptionHtml || ''
         }])
         .select()
@@ -375,7 +396,7 @@ const MarketplaceAdmin = () => {
 
       if (error) throw error;
       await loadProducts();
-      setProductForm({ name: '', price: '', original_price: '', image_urls: [], section_id: '', description: '' });
+      setProductForm({ name: '', price: '', original_price: '', image_urls: [], section_id: '', description: '', stock: 1 });
       setDescriptionHtml('');
       alert('Product added successfully!');
     } catch (err) {
@@ -426,14 +447,15 @@ const MarketplaceAdmin = () => {
             product_original_price: productForm.original_price ? parseFloat(productForm.original_price) : null,
             product_image_urls: productForm.image_urls.length > 0 ? productForm.image_urls : null,
             product_section_id: productForm.section_id || null,
-            product_description: descriptionHtml || null
+            product_description: descriptionHtml || null,
+            product_stock: parseInt(productForm.stock) || 1
           });
 
         if (!rpcError && rpcData) {
           // RPC call succeeded
           await loadProducts();
           setEditingProduct(null);
-          setProductForm({ name: '', price: '', original_price: '', image_urls: [], section_id: '', description: '' });
+          setProductForm({ name: '', price: '', original_price: '', image_urls: [], section_id: '', description: '', stock: 1 });
           setDescriptionHtml('');
           alert('Product updated successfully!');
           return;
@@ -451,7 +473,7 @@ const MarketplaceAdmin = () => {
       }
       await loadProducts();
       setEditingProduct(null);
-      setProductForm({ name: '', price: '', original_price: '', image_urls: [], section_id: '', description: '' });
+      setProductForm({ name: '', price: '', original_price: '', image_urls: [], section_id: '', description: '', stock: 1 });
       setDescriptionHtml('');
       alert('Product updated successfully!');
     } catch (err) {
@@ -463,7 +485,13 @@ const MarketplaceAdmin = () => {
   };
 
   const handleHideProduct = async (product) => {
+    // Prevent double-clicks or concurrent updates
+    if (updatingVisibilityRef.current.has(product.id)) {
+      return;
+    }
+    
     const isCurrentlyHidden = product.is_hidden || false;
+    const newHiddenState = !isCurrentlyHidden;
     const action = isCurrentlyHidden ? 'show' : 'hide';
     
     if (!window.confirm(`Are you sure you want to ${action} this product? ${isCurrentlyHidden ? 'It will be visible to customers.' : 'It will be hidden from customers.'}`)) {
@@ -471,18 +499,45 @@ const MarketplaceAdmin = () => {
     }
 
     try {
+      updatingVisibilityRef.current.add(product.id);
       setLoading(true);
       const { error } = await supabase
         .from('marketplace_products')
-        .update({ is_hidden: !isCurrentlyHidden })
+        .update({ is_hidden: newHiddenState })
         .eq('id', product.id);
 
       if (error) throw error;
-      await loadProducts();
+      
+      // Track this visibility update
+      pendingVisibilityUpdatesRef.current[product.id] = newHiddenState;
+      
+      // Update local state immediately for better UX
+      setProducts(prevProducts => 
+        prevProducts.map(p => 
+          p.id === product.id ? { ...p, is_hidden: newHiddenState } : p
+        )
+      );
+      
       alert(`Product ${isCurrentlyHidden ? 'shown' : 'hidden'} successfully!`);
+      
+      // Reload products in the background after a delay, preserving ALL pending visibility updates
+      // This ensures database consistency while maintaining the UI state
+      setTimeout(() => {
+        const updatesToPreserve = { ...pendingVisibilityUpdatesRef.current };
+        loadProducts(updatesToPreserve).catch(err => {
+          console.error('Background reload error:', err);
+          // If reload fails, our state update is still correct
+        });
+        updatingVisibilityRef.current.delete(product.id);
+        // Clear this product's pending update after reload
+        delete pendingVisibilityUpdatesRef.current[product.id];
+      }, 1500);
     } catch (err) {
       console.error('Error toggling product visibility:', err);
       alert('Error toggling product visibility: ' + err.message);
+      // Reload products on error to ensure UI is in sync
+      await loadProducts();
+      updatingVisibilityRef.current.delete(product.id);
     } finally {
       setLoading(false);
     }
@@ -528,7 +583,7 @@ const MarketplaceAdmin = () => {
         if (hashParts.length > 1) {
           const urlParams = new URLSearchParams(hashParts[1]);
           const tabParam = urlParams.get('tab');
-          if (tabParam && ['products', 'sections', 'orders'].includes(tabParam)) {
+          if (tabParam && ['products', 'sections', 'orders', 'inventory'].includes(tabParam)) {
             setActiveTab(tabParam);
             if (tabParam === 'orders') {
               loadOrders();
@@ -706,6 +761,22 @@ const MarketplaceAdmin = () => {
         </button>
         <button
           type="button"
+          className={activeTab === 'inventory' ? 'active' : ''}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.nativeEvent?.stopImmediatePropagation();
+            handleTabChange('inventory');
+          }}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+        >
+          Inventory
+        </button>
+        <button
+          type="button"
           className={activeTab === 'sections' ? 'active' : ''}
           onClick={(e) => {
             e.preventDefault();
@@ -834,6 +905,15 @@ const MarketplaceAdmin = () => {
               min="0"
               step="0.01"
             />
+            <input
+              type="number"
+              placeholder="Stock Quantity"
+              value={productForm.stock}
+              onChange={(e) => setProductForm({ ...productForm, stock: e.target.value })}
+              required
+              min="0"
+              step="1"
+            />
             <select
               value={productForm.section_id}
               onChange={(e) => setProductForm({ ...productForm, section_id: e.target.value })}
@@ -941,7 +1021,7 @@ const MarketplaceAdmin = () => {
             {editingProduct && (
               <button type="button" onClick={() => {
                 setEditingProduct(null);
-                setProductForm({ name: '', price: '', original_price: '', image_urls: [], section_id: '', description: '' });
+                setProductForm({ name: '', price: '', original_price: '', image_urls: [], section_id: '', description: '', stock: 1 });
                 setDescriptionHtml('');
               }}>
                 Cancel
@@ -957,6 +1037,8 @@ const MarketplaceAdmin = () => {
                   <th>Name</th>
                   <th>Price</th>
                   <th>Section</th>
+                  <th>Shop/Source</th>
+                  <th>Stock</th>
                   <th>Status</th>
                   <th>Actions</th>
                 </tr>
@@ -964,7 +1046,7 @@ const MarketplaceAdmin = () => {
               <tbody>
                 {products.length === 0 && !loading ? (
                   <tr>
-                    <td colSpan="6" style={{ textAlign: 'center', padding: '2rem' }}>
+                    <td colSpan="8" style={{ textAlign: 'center', padding: '2rem' }}>
                       No products found. Add your first product above.
                       <br />
                       <small style={{ color: '#6b7280', marginTop: '0.5rem', display: 'block' }}>
@@ -974,7 +1056,7 @@ const MarketplaceAdmin = () => {
                   </tr>
                 ) : products.length === 0 && loading ? (
                   <tr>
-                    <td colSpan="6" style={{ textAlign: 'center', padding: '2rem' }}>
+                    <td colSpan="8" style={{ textAlign: 'center', padding: '2rem' }}>
                       Loading products...
                     </td>
                   </tr>
@@ -995,6 +1077,33 @@ const MarketplaceAdmin = () => {
                       <td>{product.name}</td>
                       <td>Rs. {product.price?.toLocaleString()}</td>
                       <td>{product.marketplace_sections?.name || 'N/A'}</td>
+                      <td>
+                        {product.shopkeeper_id && product.shopkeeper?.shop_name 
+                          ? (
+                            <span style={{
+                              padding: '0.25rem 0.5rem',
+                              borderRadius: '4px',
+                              fontSize: '0.875rem',
+                              fontWeight: '500',
+                              backgroundColor: '#dbeafe',
+                              color: '#1e40af'
+                            }}>
+                              Product uploaded by: {product.shopkeeper.shop_name}
+                            </span>
+                          )
+                          : (
+                            <span style={{
+                              padding: '0.25rem 0.5rem',
+                              borderRadius: '4px',
+                              fontSize: '0.875rem',
+                              fontWeight: '500',
+                              backgroundColor: '#f3f4f6',
+                              color: '#374151'
+                            }}>
+                              Product uploaded by: Glory
+                            </span>
+                          )}
+                      </td>
                       <td>
                         <span style={{
                           padding: '0.25rem 0.5rem',
@@ -1019,7 +1128,8 @@ const MarketplaceAdmin = () => {
                               ? product.image_urls 
                               : (product.image_url ? [product.image_url] : []),
                             section_id: product.section_id || '',
-                            description: description
+                            description: description,
+                            stock: product.stock?.toString() || '1'
                           });
                           // Check if description is HTML (contains tags) or plain text
                           const isHtml = description && /<[a-z][\s\S]*>/i.test(description);
@@ -1058,6 +1168,178 @@ const MarketplaceAdmin = () => {
               </tbody>
             </table>
           </div>
+        </div>
+      )}
+
+      {activeTab === 'inventory' && (
+        <div className="admin-section">
+          <h2>Manage Inventory</h2>
+          <p style={{ color: '#6b7280', marginBottom: '1.5rem' }}>
+            View and update stock quantities for all products. Admin can manage inventory for all products.
+          </p>
+          
+          {loading && products.length === 0 ? (
+            <div className="loading-message">Loading inventory...</div>
+          ) : (
+            <div className="admin-table-container">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Image</th>
+                    <th>Product Name</th>
+                    <th>Shop/Source</th>
+                    <th>Current Stock</th>
+                    <th>Status</th>
+                    <th>Update Stock</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {products.length === 0 ? (
+                    <tr>
+                      <td colSpan="6" style={{ textAlign: 'center', padding: '2rem' }}>
+                        No products found.
+                      </td>
+                    </tr>
+                  ) : (
+                    products.map((product) => {
+                      const productStock = stockInputs[product.id] !== undefined 
+                        ? stockInputs[product.id] 
+                        : (product.stock?.toString() || '1');
+                      
+                      return (
+                        <tr key={product.id}>
+                          <td>
+                            {(product.image_urls && Array.isArray(product.image_urls) && product.image_urls.length > 0) 
+                              ? (
+                                <img src={product.image_urls[0]} alt={product.name} className="product-thumb" />
+                              ) 
+                              : product.image_url ? (
+                                <img src={product.image_url} alt={product.name} className="product-thumb" />
+                              ) : (
+                                <span className="no-image">No Image</span>
+                              )}
+                          </td>
+                          <td style={{ fontWeight: '600' }}>{product.name}</td>
+                          <td>
+                            {product.shopkeeper_id && product.shopkeeper?.shop_name 
+                              ? (
+                                <span style={{
+                                  padding: '0.25rem 0.5rem',
+                                  borderRadius: '4px',
+                                  fontSize: '0.875rem',
+                                  fontWeight: '500',
+                                  backgroundColor: '#dbeafe',
+                                  color: '#1e40af'
+                                }}>
+                                  {product.shopkeeper.shop_name}
+                                </span>
+                              )
+                              : (
+                                <span style={{
+                                  padding: '0.25rem 0.5rem',
+                                  borderRadius: '4px',
+                                  fontSize: '0.875rem',
+                                  fontWeight: '500',
+                                  backgroundColor: '#f3f4f6',
+                                  color: '#374151'
+                                }}>
+                                  Glory
+                                </span>
+                              )}
+                          </td>
+                          <td>
+                            <span style={{
+                              padding: '0.25rem 0.75rem',
+                              borderRadius: '4px',
+                              fontSize: '0.875rem',
+                              fontWeight: '600',
+                              backgroundColor: product.stock > 10 ? '#d1fae5' : product.stock > 0 ? '#fef3c7' : '#fee2e2',
+                              color: product.stock > 10 ? '#065f46' : product.stock > 0 ? '#92400e' : '#991b1b'
+                            }}>
+                              {product.stock || 0}
+                            </span>
+                          </td>
+                          <td>
+                            <span style={{
+                              padding: '0.25rem 0.5rem',
+                              borderRadius: '4px',
+                              fontSize: '0.875rem',
+                              fontWeight: '500',
+                              backgroundColor: product.stock > 10 ? '#d1fae5' : product.stock > 0 ? '#fef3c7' : '#fee2e2',
+                              color: product.stock > 10 ? '#065f46' : product.stock > 0 ? '#92400e' : '#991b1b'
+                            }}>
+                              {product.stock > 10 ? '✅ In Stock' : product.stock > 0 ? '⚠️ Low Stock' : '❌ Out of Stock'}
+                            </span>
+                          </td>
+                          <td>
+                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                              <input
+                                type="number"
+                                value={productStock}
+                                onChange={(e) => setStockInputs({ ...stockInputs, [product.id]: e.target.value })}
+                                min="0"
+                                step="1"
+                                style={{
+                                  width: '80px',
+                                  padding: '0.5rem',
+                                  border: '1px solid #d1d5db',
+                                  borderRadius: '4px'
+                                }}
+                                disabled={updatingStock[product.id]}
+                              />
+                              <button
+                                onClick={async () => {
+                                  const stockValue = parseInt(productStock);
+                                  if (isNaN(stockValue) || stockValue < 0) {
+                                    alert('Please enter a valid stock quantity (0 or greater)');
+                                    return;
+                                  }
+                                  
+                                  if (!window.confirm(`Update stock for "${product.name}" to ${stockValue}?`)) {
+                                    return;
+                                  }
+                                  
+                                  try {
+                                    setUpdatingStock({ ...updatingStock, [product.id]: true });
+                                    const { error } = await supabase
+                                      .from('marketplace_products')
+                                      .update({ stock: stockValue })
+                                      .eq('id', product.id);
+                                    
+                                    if (error) throw error;
+                                    await loadProducts();
+                                    setStockInputs({ ...stockInputs, [product.id]: stockValue.toString() });
+                                    alert('Stock updated successfully!');
+                                  } catch (err) {
+                                    console.error('Error updating stock:', err);
+                                    alert('Error updating stock: ' + err.message);
+                                  } finally {
+                                    setUpdatingStock({ ...updatingStock, [product.id]: false });
+                                  }
+                                }}
+                                disabled={updatingStock[product.id] || parseInt(productStock) === product.stock}
+                                style={{
+                                  padding: '0.5rem 1rem',
+                                  backgroundColor: '#3b82f6',
+                                  color: 'white',
+                                  border: 'none',
+                                  borderRadius: '4px',
+                                  cursor: updatingStock[product.id] || parseInt(productStock) === product.stock ? 'not-allowed' : 'pointer',
+                                  opacity: updatingStock[product.id] || parseInt(productStock) === product.stock ? 0.6 : 1
+                                }}
+                              >
+                                {updatingStock[product.id] ? 'Updating...' : 'Update'}
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
 
