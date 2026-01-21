@@ -376,22 +376,43 @@ const ShopkeeperProductManager = ({ onProductAdded }) => {
       isReloadingRef.current = true;
       try {
         const updatesToPreserve = { ...pendingVisibilityUpdatesRef.current };
-        const fresh = await loadProducts(updatesToPreserve);
-        if (fresh && Object.keys(updatesToPreserve).length > 0) {
-          const byId = new Map(fresh.map(p => [p.id, p]));
-          Object.entries(updatesToPreserve).forEach(([id, desiredHidden]) => {
-            const p = byId.get(id);
-            if (p && p.is_hidden === desiredHidden) {
-              delete pendingVisibilityUpdatesRef.current[id];
-            }
-          });
+        if (Object.keys(updatesToPreserve).length === 0) {
+          isReloadingRef.current = false;
+          return;
         }
+        
+        // First, fetch raw DB data (without merging) to verify actual DB state
+        const { data: rawData, error } = await supabase
+          .from('marketplace_products')
+          .select('id, is_hidden')
+          .in('id', Object.keys(updatesToPreserve).map(id => id))
+          .eq('shopkeeper_id', currentUser.id);
+        
+        if (error) {
+          console.error('Error verifying DB state:', error);
+          // Don't clear pending updates on error
+          isReloadingRef.current = false;
+          return;
+        }
+        
+        // Verify which updates are actually persisted in DB
+        const rawById = new Map((rawData || []).map(p => [p.id, p]));
+        Object.entries(updatesToPreserve).forEach(([id, desiredHidden]) => {
+          const rawProduct = rawById.get(id);
+          // Only clear if DB actually matches desired state
+          if (rawProduct && rawProduct.is_hidden === desiredHidden) {
+            delete pendingVisibilityUpdatesRef.current[id];
+          }
+        });
+        
+        // Now reload with remaining pending updates (those not yet in DB)
+        await loadProducts();
       } catch (e) {
         console.error('Scheduled reload error:', e);
       } finally {
         isReloadingRef.current = false;
       }
-    }, 1500);
+    }, 2000); // Increased delay to give DB more time to propagate
   };
 
   // Product handlers
