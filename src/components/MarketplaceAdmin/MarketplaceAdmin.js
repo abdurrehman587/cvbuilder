@@ -120,9 +120,11 @@ const MarketplaceAdmin = () => {
         throw error;
       }
       
+      // Always merge with pending visibility updates to prevent reverting other products
+      const updatesToMerge = { ...pendingVisibilityUpdatesRef.current, ...preserveVisibilityUpdates };
       const merged = (data || []).map(product => {
-        if (preserveVisibilityUpdates[product.id] !== undefined) {
-          return { ...product, is_hidden: preserveVisibilityUpdates[product.id] };
+        if (updatesToMerge[product.id] !== undefined) {
+          return { ...product, is_hidden: updatesToMerge[product.id] };
         }
         return product;
       });
