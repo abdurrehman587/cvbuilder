@@ -140,7 +140,7 @@ const ProductCard = ({
         {/* Always show placeholder first for instant render */}
         {!imageLoaded && (
           <div className="product-card-placeholder product-card-skeleton">
-            <span className="product-placeholder-icon-fresh">📦</span>
+            <span className="product-placeholder-text">Loading...</span>
           </div>
         )}
         {imageSrc ? (
@@ -165,7 +165,7 @@ const ProductCard = ({
           />
         ) : !firstImage ? (
           <div className="product-card-placeholder">
-            <span className="product-placeholder-icon-fresh">📦</span>
+            <span className="product-placeholder-text">No Image</span>
           </div>
         ) : null}
       </div>

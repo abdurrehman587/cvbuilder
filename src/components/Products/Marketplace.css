@@ -5033,6 +5033,14 @@
   position: relative;
 }
 
+.product-placeholder-text {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #64748b;
+  opacity: 0.7;
+  text-align: center;
+}
+
 .product-placeholder-icon-fresh {
   font-size: 3rem;
   opacity: 0.4;
