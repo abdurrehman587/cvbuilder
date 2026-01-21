@@ -100,26 +100,40 @@ const ProductCard = ({
 }) => {
   const imageRef = useRef(null);
   const [imageLoaded, setImageLoaded] = useState(false);
-  const [imageSrc, setImageSrc] = useState(null);
+  const [shouldLoadImage, setShouldLoadImage] = useState(false);
   const firstImage = productImages.length > 0 ? productImages[0] : null;
   const optimizedImageSrc = firstImage ? optimizeImageUrl(firstImage, IMAGE_WIDTH, IMAGE_QUALITY, 'webp') : null;
 
-  // Use Intersection Observer to load images only when visible
+  // Use Intersection Observer to load images when visible, or load immediately if already visible
   useEffect(() => {
     if (!optimizedImageSrc || !imageRef.current) return;
 
+    // Check if element is already in viewport
+    const checkVisibility = () => {
+      if (!imageRef.current) return false;
+      const rect = imageRef.current.getBoundingClientRect();
+      const isVisible = rect.top < window.innerHeight + 100 && rect.bottom > -100;
+      return isVisible;
+    };
+
+    // If already visible, load immediately
+    if (checkVisibility()) {
+      setShouldLoadImage(true);
+      return;
+    }
+
+    // Otherwise, use Intersection Observer
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting && !imageSrc) {
-            // Image is in viewport, start loading
-            setImageSrc(optimizedImageSrc);
+          if (entry.isIntersecting) {
+            setShouldLoadImage(true);
             observer.disconnect();
           }
         });
       },
       {
-        rootMargin: '50px' // Start loading 50px before entering viewport
+        rootMargin: '100px' // Start loading 100px before entering viewport
       }
     );
 
@@ -128,7 +142,7 @@ const ProductCard = ({
     return () => {
       observer.disconnect();
     };
-  }, [optimizedImageSrc, imageSrc]);
+  }, [optimizedImageSrc]);
 
   return (
     <div 
@@ -137,37 +151,43 @@ const ProductCard = ({
       onClick={onProductClick}
     >
       <div className="product-card-image-wrapper" ref={imageRef}>
-        {/* Always show placeholder first for instant render */}
-        {!imageLoaded && (
-          <div className="product-card-placeholder product-card-skeleton">
-            <span className="product-placeholder-text">Loading...</span>
-          </div>
-        )}
-        {imageSrc ? (
-          <img 
-            src={imageSrc}
-            alt={product.name || 'Product image'}
-            className={`product-card-image first-image ${imageLoaded ? 'loaded' : 'loading'}`}
-            onLoad={() => setImageLoaded(true)}
-            onError={(e) => {
-              e.target.style.display = 'none';
-              setImageLoaded(true); // Hide placeholder even on error
-            }}
-            loading="lazy"
-            decoding="async"
-            style={{ 
-              width: '100%', 
-              height: '100%', 
-              objectFit: 'contain',
-              objectPosition: 'center',
-              display: imageLoaded ? 'block' : 'none'
-            }}
-          />
-        ) : !firstImage ? (
+        {!firstImage ? (
+          /* Show "No Image" if no image available */
           <div className="product-card-placeholder">
             <span className="product-placeholder-text">No Image</span>
           </div>
-        ) : null}
+        ) : (
+          <>
+            {/* Show placeholder while image is not loaded */}
+            {!imageLoaded && (
+              <div className="product-card-placeholder product-card-skeleton">
+                <span className="product-placeholder-text">Loading...</span>
+              </div>
+            )}
+            {/* Load image when shouldLoadImage is true */}
+            {shouldLoadImage && optimizedImageSrc && (
+              <img 
+                src={optimizedImageSrc}
+                alt={product.name || 'Product image'}
+                className={`product-card-image first-image ${imageLoaded ? 'loaded' : 'loading'}`}
+                onLoad={() => setImageLoaded(true)}
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  setImageLoaded(true); // Hide placeholder even on error
+                }}
+                loading="lazy"
+                decoding="async"
+                style={{ 
+                  width: '100%', 
+                  height: '100%', 
+                  objectFit: 'contain',
+                  objectPosition: 'center',
+                  display: imageLoaded ? 'block' : 'none'
+                }}
+              />
+            )}
+          </>
+        )}
       </div>
       <div className="product-card-body">
         <h4 className="product-card-name">{product.name}</h4>
