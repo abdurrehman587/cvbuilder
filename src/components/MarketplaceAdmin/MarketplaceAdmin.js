@@ -75,6 +75,8 @@ const MarketplaceAdmin = () => {
   const [updatingStock, setUpdatingStock] = useState({});
   const updatingVisibilityRef = useRef(new Set());
   const pendingVisibilityUpdatesRef = useRef({});
+  const pendingReloadTimeoutRef = useRef(null);
+  const isReloadingRef = useRef(false);
 
   // Load sections, products, and orders on mount
   useEffect(() => {
@@ -118,24 +120,50 @@ const MarketplaceAdmin = () => {
         throw error;
       }
       
-      // If we have pending visibility updates, preserve them
-      if (Object.keys(preserveVisibilityUpdates).length > 0) {
-        const updatedData = (data || []).map(product => {
-          if (preserveVisibilityUpdates[product.id] !== undefined) {
-            return { ...product, is_hidden: preserveVisibilityUpdates[product.id] };
-          }
-          return product;
-        });
-        setProducts(updatedData);
-      } else {
-        setProducts(data || []);
-      }
+      const merged = (data || []).map(product => {
+        if (preserveVisibilityUpdates[product.id] !== undefined) {
+          return { ...product, is_hidden: preserveVisibilityUpdates[product.id] };
+        }
+        return product;
+      });
+      setProducts(merged);
+      return merged;
     } catch (err) {
       console.error('Error loading products:', err);
       alert('Error loading products: ' + err.message);
+      return null;
     } finally {
       setLoading(false);
     }
+  };
+
+  const scheduleProductsReload = () => {
+    // Collapse multiple rapid toggles into one reload
+    if (pendingReloadTimeoutRef.current) {
+      clearTimeout(pendingReloadTimeoutRef.current);
+    }
+    pendingReloadTimeoutRef.current = setTimeout(async () => {
+      if (isReloadingRef.current) return;
+      isReloadingRef.current = true;
+      try {
+        const updatesToPreserve = { ...pendingVisibilityUpdatesRef.current };
+        const fresh = await loadProducts(updatesToPreserve);
+        if (fresh && Object.keys(updatesToPreserve).length > 0) {
+          // Only clear pending updates once DB reflects them (prevents other products reverting)
+          const byId = new Map(fresh.map(p => [p.id, p]));
+          Object.entries(updatesToPreserve).forEach(([id, desiredHidden]) => {
+            const p = byId.get(id);
+            if (p && p.is_hidden === desiredHidden) {
+              delete pendingVisibilityUpdatesRef.current[id];
+            }
+          });
+        }
+      } catch (e) {
+        console.error('Scheduled reload error:', e);
+      } finally {
+        isReloadingRef.current = false;
+      }
+    }, 1500);
   };
 
   const loadOrders = async () => {
@@ -520,18 +548,9 @@ const MarketplaceAdmin = () => {
       
       alert(`Product ${isCurrentlyHidden ? 'shown' : 'hidden'} successfully!`);
       
-      // Reload products in the background after a delay, preserving ALL pending visibility updates
-      // This ensures database consistency while maintaining the UI state
-      setTimeout(() => {
-        const updatesToPreserve = { ...pendingVisibilityUpdatesRef.current };
-        loadProducts(updatesToPreserve).catch(err => {
-          console.error('Background reload error:', err);
-          // If reload fails, our state update is still correct
-        });
-        updatingVisibilityRef.current.delete(product.id);
-        // Clear this product's pending update after reload
-        delete pendingVisibilityUpdatesRef.current[product.id];
-      }, 1500);
+      // Schedule a single background reload; keep pending updates until DB confirms them
+      scheduleProductsReload();
+      updatingVisibilityRef.current.delete(product.id);
     } catch (err) {
       console.error('Error toggling product visibility:', err);
       alert('Error toggling product visibility: ' + err.message);
