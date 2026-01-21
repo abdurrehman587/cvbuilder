@@ -1125,146 +1125,9 @@ function App() {
       }
     };
     
-    // Note: Removed visibilitychange handler - it was causing logout on tab switches
-    // Only beforeunload and pagehide are used to detect tab/window closes
+    // NOTE: We intentionally do NOT use a `visibilitychange` handler.
+    // It previously caused unwanted state resets on tab/window switching (including marketplace/admin UX issues).
     
-    // Preserve selectedApp when window regains focus - CRITICAL for tab switching
-    // ULTRA-AGGRESSIVE: NEVER allow marketplace unless user explicitly clicked it
-    const handleVisibilityChange = () => {
-      // Don't interfere with checkout, cart, or order routes
-      const currentPath = location.pathname;
-      if (currentPath === '/checkout' || currentPath === '/cart' || currentPath.startsWith('/order/') || currentPath.startsWith('/product/')) {
-        return; // Don't interfere with checkout/cart/order/product flows
-      }
-      
-      if (!document.hidden && isAuthenticated) {
-        // Tab regained focus - IMMEDIATELY preserve current state
-        // Priority 1: Check localStorage
-        let appToPreserve = localStorage.getItem('selectedApp');
-        
-        // CRITICAL: Check ID Card Printer FIRST to prevent redirect to CV Builder
-        if (appToPreserve === 'id-card-print' || lastKnownAppRef.current === 'id-card-print') {
-          // User is on ID Card Printer - preserve it
-          appToPreserve = 'id-card-print';
-          setCurrentApp('id-card-print');
-          // Restore idCardView from localStorage
-          // CRITICAL: If printing is in progress, always stay on print page
-          const printingInProgress = localStorage.getItem('idCardPrintingInProgress') === 'true';
-          const savedIdCardView = localStorage.getItem('idCardView');
-          if (printingInProgress || savedIdCardView === 'print') {
-            setIdCardView('print');
-            localStorage.setItem('idCardView', 'print'); // Ensure it's set
-          } else if (savedIdCardView === 'dashboard') {
-            setIdCardView('dashboard');
-          }
-          explicitlyClickedMarketplaceRef.current = false;
-        } else if (appToPreserve === 'marketplace') {
-          // Check if user was actually on marketplace
-          if (lastKnownAppRef.current === 'marketplace') {
-            // User was on marketplace - preserve it
-            // Update localStorage to ensure marketplace is preserved
-            setCurrentApp('marketplace');
-            // Keep explicitlyClickedMarketplaceRef.current as is (don't clear it)
-          } else {
-            // User was NOT on marketplace - restore their actual section
-            if (lastKnownAppRef.current && lastKnownAppRef.current !== 'marketplace') {
-              appToPreserve = lastKnownAppRef.current;
-            } else {
-              // Infer from React state
-              if (currentView === 'cv-builder') {
-                appToPreserve = 'cv-builder';
-              } else if (idCardView === 'print') {
-                appToPreserve = 'id-card-print';
-              } else {
-                // No evidence of any app - preserve homepage instead of defaulting to cv-builder
-                appToPreserve = null;
-              }
-            }
-            setCurrentApp(appToPreserve);
-            explicitlyClickedMarketplaceRef.current = false; // Clear flag
-          }
-        } else if (!appToPreserve) {
-          // Priority 2: If localStorage is empty, check if user is on homepage
-          // Only restore from lastKnownAppRef if it has a valid value
-          if (lastKnownAppRef.current === 'marketplace') {
-            // User was on marketplace - restore it
-            appToPreserve = 'marketplace';
-            setCurrentApp('marketplace');
-            // Keep explicitlyClickedMarketplaceRef.current as is if it was set
-          } else if (lastKnownAppRef.current && lastKnownAppRef.current !== 'marketplace') {
-            appToPreserve = lastKnownAppRef.current;
-            setCurrentApp(appToPreserve);
-          } else {
-            // Priority 3: Infer from React state only if there's evidence of active use
-            // Check ID Card Printer FIRST before CV Builder to prevent redirect
-            if (idCardView === 'print' || idCardView === 'dashboard') {
-              appToPreserve = 'id-card-print';
-              setCurrentApp(appToPreserve);
-              // Also ensure idCardView is preserved
-              if (idCardView === 'print') {
-                localStorage.setItem('idCardView', 'print');
-              } else if (idCardView === 'dashboard') {
-                localStorage.setItem('idCardView', 'dashboard');
-              }
-            } else if (currentView === 'cv-builder') {
-              appToPreserve = 'cv-builder';
-              setCurrentApp(appToPreserve);
-            }
-            // If no evidence of active use, keep appToPreserve as null/empty to preserve homepage
-            // DO NOT default to 'cv-builder' when on homepage
-          }
-        }
-        
-        // Update ref to track this as last known app
-        // Only update ref if appToPreserve has a valid value (not null/empty)
-        if (appToPreserve && appToPreserve !== 'marketplace') {
-          lastKnownAppRef.current = appToPreserve;
-        } else if (appToPreserve === 'marketplace') {
-          // Track marketplace if user was on it (ref already has it) or explicitly clicked it
-          if (lastKnownAppRef.current === 'marketplace' || explicitlyClickedMarketplaceRef.current) {
-            lastKnownAppRef.current = 'marketplace';
-          }
-        } else if (!appToPreserve) {
-          // If appToPreserve is null/empty (homepage), clear the ref to prevent restoring a previous app
-          lastKnownAppRef.current = null;
-        }
-        
-        // Sync React state - only update if appToPreserve has a value, otherwise preserve null/empty for homepage
-        startTransition(() => {
-          setSelectedApp(appToPreserve || '');
-        });
-      } else if (document.hidden && isAuthenticated) {
-        // Tab lost focus - save current app to ref
-        const currentApp = getCurrentApp();
-        // CRITICAL: Save ID Card Printer state if user is on it
-        if (currentApp === 'id-card-print') {
-          lastKnownAppRef.current = 'id-card-print';
-          // Preserve idCardView state
-          if (idCardView === 'print') {
-            localStorage.setItem('idCardView', 'print');
-          } else if (idCardView === 'dashboard') {
-            localStorage.setItem('idCardView', 'dashboard');
-          }
-          explicitlyClickedMarketplaceRef.current = false;
-        } else if (currentApp === 'marketplace') {
-          // User is on marketplace - always save it to ref to preserve state
-          lastKnownAppRef.current = 'marketplace';
-          // Keep explicitlyClickedMarketplaceRef.current as is (don't clear it)
-        } else if (currentApp && currentApp !== 'marketplace') {
-          lastKnownAppRef.current = currentApp;
-          explicitlyClickedMarketplaceRef.current = false; // Clear flag on tab switch
-        } else if (selectedApp && selectedApp !== 'marketplace') {
-          lastKnownAppRef.current = selectedApp;
-          explicitlyClickedMarketplaceRef.current = false;
-        } else if (!currentApp && !selectedApp) {
-          // User is on homepage - clear ref to prevent restoring a previous app
-          lastKnownAppRef.current = null;
-          explicitlyClickedMarketplaceRef.current = false;
-        }
-      }
-    };
-    
-    document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('beforeunload', handleBeforeUnload);
     window.addEventListener('pagehide', handlePageHide);
     
@@ -1283,7 +1146,6 @@ function App() {
     return () => {
       window.removeEventListener('userAuthenticated', handleAuth);
       window.removeEventListener('navigateToSection', handleSectionNavigation);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('beforeunload', handleBeforeUnload);
       window.removeEventListener('pagehide', handlePageHide);
       window.removeEventListener('idCardPrintCompleted', handleIDCardPrintCompleted);
