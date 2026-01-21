@@ -98,51 +98,12 @@ const ProductCard = ({
   onAddToCart, 
   onBuyNow
 }) => {
-  const imageRef = useRef(null);
   const [imageLoaded, setImageLoaded] = useState(false);
-  const [shouldLoadImage, setShouldLoadImage] = useState(false);
+  const imageRef = useRef(null);
   const firstImage = productImages.length > 0 ? productImages[0] : null;
   const optimizedImageSrc = firstImage ? optimizeImageUrl(firstImage, IMAGE_WIDTH, IMAGE_QUALITY, 'webp') : null;
 
-  // Use Intersection Observer to load images when visible, or load immediately if already visible
-  useEffect(() => {
-    if (!optimizedImageSrc || !imageRef.current) return;
-
-    // Check if element is already in viewport
-    const checkVisibility = () => {
-      if (!imageRef.current) return false;
-      const rect = imageRef.current.getBoundingClientRect();
-      const isVisible = rect.top < window.innerHeight + 100 && rect.bottom > -100;
-      return isVisible;
-    };
-
-    // If already visible, load immediately
-    if (checkVisibility()) {
-      setShouldLoadImage(true);
-      return;
-    }
-
-    // Otherwise, use Intersection Observer
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setShouldLoadImage(true);
-            observer.disconnect();
-          }
-        });
-      },
-      {
-        rootMargin: '100px' // Start loading 100px before entering viewport
-      }
-    );
-
-    observer.observe(imageRef.current);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [optimizedImageSrc]);
+  // No need for complex Intersection Observer - browser's native lazy loading handles it
 
   return (
     <div 
@@ -164,8 +125,8 @@ const ProductCard = ({
                 <span className="product-placeholder-text">Loading...</span>
               </div>
             )}
-            {/* Load image when shouldLoadImage is true */}
-            {shouldLoadImage && optimizedImageSrc && (
+            {/* Always render img tag - browser's native lazy loading handles when to load */}
+            {optimizedImageSrc && (
               <img 
                 src={optimizedImageSrc}
                 alt={product.name || 'Product image'}
