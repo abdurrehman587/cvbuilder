@@ -14,6 +14,35 @@ const AdminPanel = ({ initialView = 'marketplace' }) => {
   })
   const [searchTerm, setSearchTerm] = useState('')
 
+  const getUserTypeLabel = (type) => {
+    if (type === 'shopkeeper' || type === 'Shopkeeper') return 'Shopkeeper'
+    return 'Regular User'
+  }
+
+  const getLocationSummary = (u) => {
+    const lat = typeof u?.latitude === 'number' ? u.latitude : null
+    const lng = typeof u?.longitude === 'number' ? u.longitude : null
+    const city = (u?.city || '').trim()
+    const address = (u?.address || '').trim()
+
+    const hasCoords = lat !== null && lng !== null
+    const hasText = Boolean(city || address)
+
+    return {
+      hasLocation: hasCoords || hasText,
+      coords: hasCoords ? { lat, lng } : null,
+      city: city || null,
+      address: address || null,
+      updatedAt: u?.location_updated_at || null
+    }
+  }
+
+  const openMapForUser = (u) => {
+    const info = getLocationSummary(u)
+    if (!info.coords) return
+    window.open(`https://www.google.com/maps?q=${info.coords.lat},${info.coords.lng}`, '_blank', 'noopener,noreferrer')
+  }
+
   // Check if current user is admin
   useEffect(() => {
     const checkAdminStatus = async () => {
@@ -44,16 +73,16 @@ const AdminPanel = ({ initialView = 'marketplace' }) => {
     try {
       setLoading(true)
 
-      // Load users from public.users
+      // Load users from public.users (authoritative for profile + location fields)
       const { data: users, error: usersError } = await supabase
         .from('users')
-        .select('*')
+        .select('id, email, full_name, avatar_url, is_admin, created_at, updated_at, cv_credits, id_card_credits, latitude, longitude, address, city, location_updated_at')
 
       if (usersError) throw usersError
 
-      // Try to get user_type from auth.users metadata using RPC function
-      // If RPC function exists, it will return users with user_type
-      let usersWithType = []
+      // Try to get user_type from auth.users metadata using RPC function.
+      // IMPORTANT: RPC does not include location fields, so we MERGE user_type onto public.users rows.
+      let usersWithType = (users || []).map((u) => ({ ...u, user_type: null }))
       
       try {
         const { data: rpcData, error: rpcError } = await supabase
@@ -61,30 +90,17 @@ const AdminPanel = ({ initialView = 'marketplace' }) => {
         
         if (rpcError) {
           console.error('RPC function error:', rpcError)
-          // If RPC fails, use fallback
-          usersWithType = (users || []).map((user) => ({
-            ...user,
-            user_type: null
-          }))
         } else if (rpcData && rpcData.length > 0) {
-          console.log('RPC function returned data:', rpcData)
-          usersWithType = rpcData
+          const typeById = new Map(rpcData.map((r) => [r.id, r.user_type]))
+          usersWithType = (users || []).map((u) => ({
+            ...u,
+            user_type: typeById.get(u.id) || u.user_type || null
+          }))
         } else {
           console.warn('RPC function returned empty data')
-          // RPC function returned no data, use fallback
-          usersWithType = (users || []).map((user) => ({
-            ...user,
-            user_type: null
-          }))
         }
       } catch (rpcErr) {
         console.error('RPC function exception:', rpcErr)
-        // RPC function doesn't exist, use users from public.users
-        // user_type will be null, but we can still sort by is_admin
-        usersWithType = (users || []).map((user) => ({
-          ...user,
-          user_type: null
-        }))
       }
       
       console.log('Users with type:', usersWithType)
@@ -363,6 +379,7 @@ const AdminPanel = ({ initialView = 'marketplace' }) => {
                 <th>Email</th>
                 <th>Full Name</th>
                 <th>User Type</th>
+                <th>Location</th>
                 <th>CV Credits</th>
                 <th>ID Card Credits</th>
                 <th>Created</th>
@@ -403,6 +420,8 @@ const AdminPanel = ({ initialView = 'marketplace' }) => {
                   userTypeDisplay = 'Regular User'
                   badgeClass = 'user'
                 }
+
+                const loc = getLocationSummary(user)
                 
                 return (
                   <tr key={user.id}>
@@ -412,6 +431,41 @@ const AdminPanel = ({ initialView = 'marketplace' }) => {
                       <span className={`admin-badge ${badgeClass}`}>
                         {userTypeDisplay}
                       </span>
+                    </td>
+                    <td>
+                      {!loc.hasLocation ? (
+                        <span style={{ color: '#6b7280' }}>Not set</span>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <div style={{ fontSize: '12px', color: '#111827' }}>
+                            {loc.city ? <strong>{loc.city}</strong> : null}
+                            {loc.city && loc.address ? <span> — </span> : null}
+                            {loc.address ? <span>{loc.address}</span> : null}
+                          </div>
+                          {loc.coords ? (
+                            <div style={{ fontSize: '11px', color: '#6b7280' }}>
+                              {loc.coords.lat.toFixed(6)}, {loc.coords.lng.toFixed(6)}
+                            </div>
+                          ) : null}
+                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                            <button
+                              type="button"
+                              className="toggle-admin-button"
+                              style={{ padding: '4px 8px', fontSize: '11px' }}
+                              disabled={!loc.coords}
+                              onClick={() => openMapForUser(user)}
+                              title={!loc.coords ? 'Coordinates not available' : 'Open location in Google Maps'}
+                            >
+                              View on Map
+                            </button>
+                            {loc.updatedAt ? (
+                              <span style={{ fontSize: '11px', color: '#6b7280' }}>
+                                Updated: {new Date(loc.updatedAt).toLocaleString()}
+                              </span>
+                            ) : null}
+                          </div>
+                        </div>
+                      )}
                     </td>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

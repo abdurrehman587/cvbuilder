@@ -18,6 +18,7 @@ const UserProfile = () => {
     full_name: '',
     email: ''
   });
+  const [userType, setUserType] = useState(null);
 
   useEffect(() => {
     const loadUserData = async () => {
@@ -33,6 +34,27 @@ const UserProfile = () => {
           full_name: user.user_metadata?.full_name || '',
           email: user.email || ''
         });
+
+        // Get user type - first try metadata, then check database via RPC
+        let type = user.user_metadata?.user_type || 'regular';
+        
+        // Always check database via RPC to ensure we have the correct user type
+        try {
+          const { data: rpcData, error: rpcError } = await supabase
+            .rpc('get_users_with_type');
+          
+          if (!rpcError && rpcData) {
+            const dbUser = rpcData.find(u => u.email === user.email);
+            if (dbUser) {
+              type = dbUser.user_type || type;
+            }
+          }
+        } catch (dbErr) {
+          console.error('Error checking database for user type:', dbErr);
+          // Fall back to metadata type
+        }
+        
+        setUserType(type);
 
         // Load location from database
         const { data, error } = await supabase
@@ -154,6 +176,12 @@ const UserProfile = () => {
           <div className="info-item">
             <label>Email:</label>
             <span>{userData.email}</span>
+          </div>
+          <div className="info-item">
+            <label>User type:</label>
+            <span>
+              {userType === 'shopkeeper' ? 'Shopkeeper' : 'Regular Customer'}
+            </span>
           </div>
         </div>
       </div>
