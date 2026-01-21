@@ -90,7 +90,7 @@ const optimizeImageUrl = (url, width = IMAGE_WIDTH, quality = IMAGE_QUALITY, for
   return url;
 };
 
-// Simple Product Card Component - No complex optimizations
+// Simple Product Card Component - Optimized for fast initial render
 const ProductCard = ({ 
   product, 
   productImages, 
@@ -98,8 +98,37 @@ const ProductCard = ({
   onAddToCart, 
   onBuyNow
 }) => {
+  const imageRef = useRef(null);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageSrc, setImageSrc] = useState(null);
   const firstImage = productImages.length > 0 ? productImages[0] : null;
-  const imageSrc = firstImage ? optimizeImageUrl(firstImage, IMAGE_WIDTH, IMAGE_QUALITY, 'webp') : null;
+  const optimizedImageSrc = firstImage ? optimizeImageUrl(firstImage, IMAGE_WIDTH, IMAGE_QUALITY, 'webp') : null;
+
+  // Use Intersection Observer to load images only when visible
+  useEffect(() => {
+    if (!optimizedImageSrc || !imageRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !imageSrc) {
+            // Image is in viewport, start loading
+            setImageSrc(optimizedImageSrc);
+            observer.disconnect();
+          }
+        });
+      },
+      {
+        rootMargin: '50px' // Start loading 50px before entering viewport
+      }
+    );
+
+    observer.observe(imageRef.current);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [optimizedImageSrc, imageSrc]);
 
   return (
     <div 
@@ -107,14 +136,22 @@ const ProductCard = ({
       data-product-id={product.id}
       onClick={onProductClick}
     >
-      <div className="product-card-image-wrapper">
+      <div className="product-card-image-wrapper" ref={imageRef}>
+        {/* Always show placeholder first for instant render */}
+        {!imageLoaded && (
+          <div className="product-card-placeholder product-card-skeleton">
+            <span className="product-placeholder-icon-fresh">📦</span>
+          </div>
+        )}
         {imageSrc ? (
           <img 
             src={imageSrc}
             alt={product.name || 'Product image'}
-            className="product-card-image first-image"
+            className={`product-card-image first-image ${imageLoaded ? 'loaded' : 'loading'}`}
+            onLoad={() => setImageLoaded(true)}
             onError={(e) => {
               e.target.style.display = 'none';
+              setImageLoaded(true); // Hide placeholder even on error
             }}
             loading="lazy"
             decoding="async"
@@ -123,14 +160,14 @@ const ProductCard = ({
               height: '100%', 
               objectFit: 'contain',
               objectPosition: 'center',
-              display: 'block'
+              display: imageLoaded ? 'block' : 'none'
             }}
           />
-        ) : (
+        ) : !firstImage ? (
           <div className="product-card-placeholder">
             <span className="product-placeholder-icon-fresh">📦</span>
           </div>
-        )}
+        ) : null}
       </div>
       <div className="product-card-body">
         <h4 className="product-card-name">{product.name}</h4>

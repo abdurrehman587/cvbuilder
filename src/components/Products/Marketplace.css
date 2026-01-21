@@ -4956,6 +4956,8 @@
   flex-shrink: 0;
   /* Ensure consistent sizing */
   aspect-ratio: 1;
+  /* Ensure placeholder and image can overlay */
+  isolation: isolate;
 }
 
 /* Removed skeleton loader animations for simplicity */
@@ -4997,7 +4999,38 @@
   position: absolute;
   top: 0;
   left: 0;
-  z-index: -1;
+  z-index: 1;
+}
+
+.product-card-skeleton {
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 0%,
+    #f8f8f8 50%,
+    #f0f0f0 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.product-card-image.loading {
+  opacity: 0;
+  transition: opacity 0.3s ease-in;
+}
+
+.product-card-image.loaded {
+  opacity: 1;
+  z-index: 2;
+  position: relative;
 }
 
 .product-placeholder-icon-fresh {
