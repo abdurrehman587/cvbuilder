@@ -14,11 +14,6 @@ const AdminPanel = ({ initialView = 'marketplace' }) => {
   })
   const [searchTerm, setSearchTerm] = useState('')
 
-  const getUserTypeLabel = (type) => {
-    if (type === 'shopkeeper' || type === 'Shopkeeper') return 'Shopkeeper'
-    return 'Regular User'
-  }
-
   const getLocationSummary = (u) => {
     const lat = typeof u?.latitude === 'number' ? u.latitude : null
     const lng = typeof u?.longitude === 'number' ? u.longitude : null

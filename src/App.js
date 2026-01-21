@@ -11,7 +11,7 @@ import generatePDF1 from './components/template1/pdf1';
 import generatePDF2 from './components/template2/pdf2';
 import generatePDF3 from './components/template3/pdf3';
 import generatePDF4 from './components/template4/pdf4';
-import { getCurrentApp, setCurrentApp, getCVView, setCVView, setIDCardView, getRoute } from './utils/routing';
+import { setCurrentApp, getCVView, setCVView, setIDCardView, getRoute } from './utils/routing';
 import { pathToApp, getProductIdFromPath, getOrderIdFromPath } from './utils/routeMapping';
 import { setNavigate } from './utils/navigation';
 
