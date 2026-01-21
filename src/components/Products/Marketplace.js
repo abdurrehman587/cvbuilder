@@ -143,7 +143,12 @@ const ProductCard = ({
                   height: '100%', 
                   objectFit: 'contain',
                   objectPosition: 'center',
-                  display: imageLoaded ? 'block' : 'none'
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  opacity: imageLoaded ? 1 : 0,
+                  transition: 'opacity 0.3s ease-in',
+                  zIndex: imageLoaded ? 2 : 1
                 }}
               />
             )}
