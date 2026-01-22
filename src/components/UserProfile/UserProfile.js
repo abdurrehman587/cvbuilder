@@ -236,6 +236,25 @@ const UserProfile = () => {
             onChange={(e) => setLocation({ ...location, city: e.target.value })}
             className="form-input"
           />
+          {location.latitude && location.longitude && (
+            <button
+              type="button"
+              onClick={() => window.open(`https://www.google.com/maps?q=${location.latitude},${location.longitude}`, '_blank', 'noopener,noreferrer')}
+              className="btn btn-primary"
+              style={{
+                padding: '0.75rem 1.5rem',
+                fontSize: '1.2rem',
+                minWidth: '60px',
+                height: '60px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+              title="View on Map"
+            >
+              📍
+            </button>
+          )}
           <button
             type="button"
             onClick={handleUpdateLocation}
@@ -250,25 +269,9 @@ const UserProfile = () => {
           <div className="location-display">
             <div style={{ marginBottom: '0.5rem' }}>
               <strong>Coordinates:</strong> {location.latitude.toFixed(6)}, {location.longitude.toFixed(6)}
-              <a 
-                href={`https://www.google.com/maps?q=${location.latitude},${location.longitude}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ 
-                  marginLeft: '0.5rem', 
-                  color: '#2563eb', 
-                  textDecoration: 'underline',
-                  fontSize: '0.8rem'
-                }}
-              >
-                📍 View on Map
-              </a>
             </div>
             {location.city && <div style={{ marginTop: '0.25rem' }}><strong>City:</strong> {location.city}</div>}
             {location.address && <div className="address-display" style={{ marginTop: '0.25rem' }}><strong>Address:</strong> {location.address}</div>}
-            <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#64748b' }}>
-              💡 Tip: Click "View on Map" to verify the location is correct. You can manually adjust the coordinates if needed.
-            </div>
           </div>
         )}
       </div>
