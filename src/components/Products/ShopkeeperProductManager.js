@@ -998,18 +998,18 @@ const ShopkeeperProductManager = ({ onProductAdded }) => {
                 color: 'white',
                 border: 'none',
                 borderRadius: '6px',
-                fontSize: '1.2rem',
-                minWidth: '60px',
-                height: '60px',
+                fontSize: '1rem',
+                minWidth: 'auto',
+                height: 'auto',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                fontWeight: '600'
+                fontWeight: '600',
+                gap: '0.5rem'
               }}
-              title="View on Map"
             >
-              📍
+              📍 View on Map
             </button>
           )}
           <button

@@ -112,14 +112,57 @@ export const reverseGeocode = async (latitude, longitude) => {
 
     const addressParts = data.address || {};
     
+    // Get neighbourhood/suburb to avoid using it as city
+    const neighbourhood = addressParts.neighbourhood || addressParts.suburb || '';
+    
     // Try multiple fields for city name (different countries use different fields)
-    const city = addressParts.city || 
-                 addressParts.town || 
-                 addressParts.village || 
-                 addressParts.municipality ||
-                 addressParts.county || 
-                 addressParts.state_district ||
-                 '';
+    // Priority: city > town > municipality > county > state_district
+    let city = addressParts.city || 
+                addressParts.town || 
+                addressParts.municipality ||
+                '';
+    
+    // Check if the city we found is actually a neighbourhood (common issue in Pakistan/India)
+    // If city matches neighbourhood, it's likely wrong - neighbourhoods are smaller than cities
+    if (city && neighbourhood && city.toLowerCase() === neighbourhood.toLowerCase()) {
+      // The "city" field actually contains a neighbourhood - clear it and look elsewhere
+      city = '';
+    }
+    
+    // If no city yet, try county or state_district (these often contain city names in Pakistan)
+    if (!city) {
+      city = addressParts.county || addressParts.state_district || '';
+    }
+    
+    // If still no city, try parsing from display_name
+    // Format for Pakistan is usually: "Neighbourhood, City, District, Province, Country"
+    if (!city && data.display_name) {
+      const parts = data.display_name.split(',');
+      if (parts.length >= 2) {
+        // Skip neighbourhood (first part), then look for city
+        // City is usually the second or third part (before district/state)
+        for (let i = 1; i < Math.min(parts.length, 5); i++) {
+          const part = parts[i].trim();
+          // Skip if it's a number (postcode), very short, or matches neighbourhood
+          if (part.length > 2 && 
+              !/^\d+$/.test(part) && 
+              (!neighbourhood || part.toLowerCase() !== neighbourhood.toLowerCase()) &&
+              // Avoid administrative divisions
+              !part.toLowerCase().includes('district') &&
+              !part.toLowerCase().includes('province') &&
+              !part.toLowerCase().includes('division') &&
+              part.toLowerCase() !== 'pakistan') {
+            city = part;
+            break;
+          }
+        }
+      }
+    }
+    
+    // Final fallback: use state_district or county if we still don't have a city
+    if (!city || city.length < 2) {
+      city = addressParts.state_district || addressParts.county || addressParts.state || '';
+    }
     
     // Build a more structured address
     const street = addressParts.road || addressParts.street || '';

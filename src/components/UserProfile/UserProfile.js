@@ -243,16 +243,16 @@ const UserProfile = () => {
               className="btn btn-primary"
               style={{
                 padding: '0.75rem 1.5rem',
-                fontSize: '1.2rem',
-                minWidth: '60px',
-                height: '60px',
+                fontSize: '1rem',
+                minWidth: 'auto',
+                height: 'auto',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                gap: '0.5rem'
               }}
-              title="View on Map"
             >
-              📍
+              📍 View on Map
             </button>
           )}
           <button
