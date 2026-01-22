@@ -95,11 +95,11 @@ function App() {
   
   // Sync URL path to internal routing system
   useEffect(() => {
-    // Don't sync for cart, checkout, orders, order details, admin, or shopkeeper - these are handled separately
+    // Don't sync for cart, checkout, orders, order details, admin, shopkeeper, or profile - these are handled separately
     const pathname = location.pathname;
     if (pathname === '/cart' || pathname === '/checkout' || pathname === '/orders' || 
         pathname.startsWith('/order/') || pathname === '/admin' || pathname.startsWith('/admin/') ||
-        pathname === '/shopkeeper' || pathname.startsWith('/shopkeeper/')) {
+        pathname === '/shopkeeper' || pathname.startsWith('/shopkeeper/') || pathname === '/profile') {
       // These routes are handled by specific route checks, don't override with routingApp
       return;
     }
@@ -2053,15 +2053,19 @@ function App() {
     }
     
     // Check for specific routes FIRST before determining routingApp
-    // This prevents routingApp from overriding specific routes like cart, checkout, etc.
-    if (pathname === '/cart' || pathname === '/checkout' || pathname.startsWith('/order/') || pathname === '/orders') {
+    // This prevents routingApp from overriding specific routes like cart, checkout, profile, etc.
+    if (pathname === '/cart' || pathname === '/checkout' || pathname.startsWith('/order/') || pathname === '/orders' || pathname === '/profile') {
       // These routes are handled above, but if we reach here, let routingApp be determined normally
       // The route checks above should have caught these, but this is a safety check
+      // For profile, we want routingApp to remain null so it doesn't interfere
+      if (pathname === '/profile') {
+        routingApp = null;
+      }
     }
     
     // If pathname didn't force routingApp, use route.app
-    // BUT: If pathname is "/", don't use route.app - keep routingApp as null for homepage
-    if (!routingApp && pathname !== '/') {
+    // BUT: If pathname is "/" or "/profile", don't use route.app - keep routingApp as null
+    if (!routingApp && pathname !== '/' && pathname !== '/profile') {
       routingApp = route.app;
     }
     
@@ -2264,24 +2268,7 @@ function App() {
       );
     }
     
-    // ============================================
-    // HOMEPAGE SECTION - CHECK when routingApp is null
-    // ============================================
-    if (!routingApp || routingApp === null) {
-      return wrapWithNavbar(
-        <>
-          <Header 
-            isAuthenticated={isAuthenticated} 
-            currentProduct="home"
-            showProductsOnHeader={false}
-            onLogout={isAuthenticated ? handleLogout : undefined}
-          />
-          <HomePage />
-        </>
-      );
-    }
-    
-    // Check for profile route
+    // Check for profile route BEFORE homepage check - this must be early to prevent routingApp from interfering
     if (location.pathname === '/profile') {
       if (!isAuthenticated) {
         navigate('/');
@@ -2301,6 +2288,23 @@ function App() {
             </Suspense>
           </>
         )
+      );
+    }
+    
+    // ============================================
+    // HOMEPAGE SECTION - CHECK when routingApp is null
+    // ============================================
+    if (!routingApp || routingApp === null) {
+      return wrapWithNavbar(
+        <>
+          <Header 
+            isAuthenticated={isAuthenticated} 
+            currentProduct="home"
+            showProductsOnHeader={false}
+            onLogout={isAuthenticated ? handleLogout : undefined}
+          />
+          <HomePage />
+        </>
       );
     }
     
