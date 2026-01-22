@@ -120,11 +120,31 @@ const MarketplaceAdmin = () => {
         throw error;
       }
       
+      // Load saved visibility states from localStorage as backup
+      const savedVisibility = JSON.parse(localStorage.getItem('productVisibilityStates') || '{}');
+      
       // Always merge with pending visibility updates to prevent reverting other products
       const updatesToMerge = { ...pendingVisibilityUpdatesRef.current, ...preserveVisibilityUpdates };
       const merged = (data || []).map(product => {
+        // Check if we have a pending update for this product
         if (updatesToMerge[product.id] !== undefined) {
           return { ...product, is_hidden: updatesToMerge[product.id] };
+        }
+        // Check if we have a saved visibility state that differs from DB (DB might have been reset)
+        if (savedVisibility[product.id] !== undefined && savedVisibility[product.id] !== product.is_hidden) {
+          console.warn(`Product ${product.id} visibility mismatch: DB=${product.is_hidden}, Saved=${savedVisibility[product.id]}. Restoring saved state.`);
+          // Restore the saved state and update DB in background
+          setTimeout(async () => {
+            try {
+              await supabase
+                .from('marketplace_products')
+                .update({ is_hidden: savedVisibility[product.id] })
+                .eq('id', product.id);
+            } catch (restoreErr) {
+              console.error('Error restoring visibility state:', restoreErr);
+            }
+          }, 1000);
+          return { ...product, is_hidden: savedVisibility[product.id] };
         }
         return product;
       });
@@ -550,15 +570,47 @@ const MarketplaceAdmin = () => {
     try {
       updatingVisibilityRef.current.add(product.id);
       setLoading(true);
-      const { error } = await supabase
+      
+      // Update with select to verify the update actually happened
+      const { data: updatedData, error, count } = await supabase
         .from('marketplace_products')
         .update({ is_hidden: newHiddenState })
-        .eq('id', product.id);
+        .eq('id', product.id)
+        .select('id, is_hidden')
+        .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase update error:', error);
+        throw error;
+      }
+      
+      // Verify the update actually persisted
+      if (!updatedData) {
+        throw new Error('Update failed - no data returned from database');
+      }
+      
+      if (updatedData.is_hidden !== newHiddenState) {
+        console.error('Update verification failed:', {
+          expected: newHiddenState,
+          actual: updatedData.is_hidden,
+          productId: product.id
+        });
+        throw new Error(`Update verification failed - database state (${updatedData.is_hidden}) does not match expected value (${newHiddenState})`);
+      }
+      
+      console.log('Product visibility updated successfully:', {
+        productId: product.id,
+        is_hidden: newHiddenState,
+        verified: true
+      });
       
       // Track this visibility update
       pendingVisibilityUpdatesRef.current[product.id] = newHiddenState;
+      
+      // Also save to localStorage as backup
+      const savedVisibility = JSON.parse(localStorage.getItem('productVisibilityStates') || '{}');
+      savedVisibility[product.id] = newHiddenState;
+      localStorage.setItem('productVisibilityStates', JSON.stringify(savedVisibility));
       
       // Update local state immediately for better UX
       setProducts(prevProducts => 
@@ -569,8 +621,27 @@ const MarketplaceAdmin = () => {
       
       alert(`Product ${isCurrentlyHidden ? 'shown' : 'hidden'} successfully!`);
       
-      // Schedule a single background reload; keep pending updates until DB confirms them
-      scheduleProductsReload();
+      // Verify update persisted after a short delay, then clear pending update
+      setTimeout(async () => {
+        try {
+          const { data: verifyData, error: verifyError } = await supabase
+            .from('marketplace_products')
+            .select('id, is_hidden')
+            .eq('id', product.id)
+            .single();
+          
+          if (!verifyError && verifyData && verifyData.is_hidden === newHiddenState) {
+            // Update persisted correctly, clear from pending
+            delete pendingVisibilityUpdatesRef.current[product.id];
+            console.log(`Verified: Product ${product.id} visibility update persisted`);
+          } else {
+            console.warn(`Warning: Product ${product.id} visibility may not have persisted correctly`);
+          }
+        } catch (verifyErr) {
+          console.error('Error verifying update persistence:', verifyErr);
+        }
+      }, 3000); // Wait 3 seconds before verification
+      
       updatingVisibilityRef.current.delete(product.id);
     } catch (err) {
       console.error('Error toggling product visibility:', err);
