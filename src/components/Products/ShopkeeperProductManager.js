@@ -666,6 +666,10 @@ const ShopkeeperProductManager = ({ onProductAdded }) => {
     try {
       setLoading(true);
       
+      // Get current product state to preserve is_hidden
+      const currentProduct = products.find(p => p.id === editingProduct.id);
+      const preserveIsHidden = currentProduct?.is_hidden ?? false;
+      
       const { error } = await supabase
         .from('marketplace_products')
         .update({
@@ -675,12 +679,29 @@ const ShopkeeperProductManager = ({ onProductAdded }) => {
           image_urls: productForm.image_urls.length > 0 ? productForm.image_urls : null,
           section_id: productForm.section_id || null,
           stock: parseInt(productForm.stock) || 1,
-          description: descriptionHtml || null
+          description: descriptionHtml || null,
+          is_hidden: preserveIsHidden // CRITICAL: Preserve visibility state
         })
         .eq('id', editingProduct.id)
         .eq('shopkeeper_id', currentUser.id); // Ensure shopkeeper can only update their own products
 
       if (error) throw error;
+      
+      // Verify is_hidden was preserved
+      const { data: verifyData } = await supabase
+        .from('marketplace_products')
+        .select('id, is_hidden')
+        .eq('id', editingProduct.id)
+        .single();
+      
+      if (verifyData && verifyData.is_hidden !== preserveIsHidden) {
+        console.warn('is_hidden was not preserved, fixing...');
+        await supabase
+          .from('marketplace_products')
+          .update({ is_hidden: preserveIsHidden })
+          .eq('id', editingProduct.id)
+          .eq('shopkeeper_id', currentUser.id);
+      }
       
       await loadProducts();
       setEditingProduct(null);

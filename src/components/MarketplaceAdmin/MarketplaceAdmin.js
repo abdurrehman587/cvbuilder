@@ -507,44 +507,78 @@ const MarketplaceAdmin = () => {
       
       // Always try RPC function first (it will check admin status internally)
       // This bypasses RLS completely
+      // BUT: RPC might not preserve is_hidden, so we'll use direct update instead
+      // to ensure is_hidden is preserved
       try {
-        const { data: rpcData, error: rpcError } = await supabase
-          .rpc('admin_update_product', {
-            product_id: editingProduct.id,
-            product_name: productForm.name,
-            product_price: parseFloat(productForm.price),
-            product_original_price: productForm.original_price ? parseFloat(productForm.original_price) : null,
-            product_image_urls: productForm.image_urls.length > 0 ? productForm.image_urls : null,
-            product_section_id: productForm.section_id || null,
-            product_description: descriptionHtml || null,
-            product_stock: parseInt(productForm.stock) || 1
-          });
+        // Get current product state to preserve is_hidden
+        const currentProduct = products.find(p => p.id === editingProduct.id);
+        const preserveIsHidden = currentProduct?.is_hidden ?? false;
+        
+        // Use direct update to ensure is_hidden is preserved
+        const { data: updatedData, error: updateError } = await supabase
+          .from('marketplace_products')
+          .update({
+            name: productForm.name,
+            price: parseFloat(productForm.price),
+            original_price: productForm.original_price ? parseFloat(productForm.original_price) : null,
+            image_urls: productForm.image_urls.length > 0 ? productForm.image_urls : null,
+            section_id: productForm.section_id || null,
+            description: descriptionHtml || null,
+            stock: parseInt(productForm.stock) || 1,
+            is_hidden: preserveIsHidden // CRITICAL: Preserve visibility state
+          })
+          .eq('id', editingProduct.id)
+          .select('id, is_hidden')
+          .single();
 
-        if (!rpcError && rpcData) {
-          // RPC call succeeded
-          await loadProducts();
-          setEditingProduct(null);
-          setProductForm({ name: '', price: '', original_price: '', image_urls: [], section_id: '', description: '', stock: 1 });
-          setDescriptionHtml('');
-          alert('Product updated successfully!');
-          return;
+        if (updateError) {
+          console.error('Direct update failed, trying RPC:', updateError);
+          // Fall back to RPC if direct update fails
+          const { data: rpcData, error: rpcError } = await supabase
+            .rpc('admin_update_product', {
+              product_id: editingProduct.id,
+              product_name: productForm.name,
+              product_price: parseFloat(productForm.price),
+              product_original_price: productForm.original_price ? parseFloat(productForm.original_price) : null,
+              product_image_urls: productForm.image_urls.length > 0 ? productForm.image_urls : null,
+              product_section_id: productForm.section_id || null,
+              product_description: descriptionHtml || null,
+              product_stock: parseInt(productForm.stock) || 1
+            });
+
+          if (rpcError) {
+            console.error('RPC update also failed:', rpcError);
+            throw rpcError;
+          }
+          
+          // After RPC update, explicitly preserve is_hidden
+          if (rpcData) {
+            await supabase
+              .from('marketplace_products')
+              .update({ is_hidden: preserveIsHidden })
+              .eq('id', editingProduct.id);
+          }
+        } else {
+          // Verify is_hidden was preserved
+          if (updatedData && updatedData.is_hidden !== preserveIsHidden) {
+            console.warn('is_hidden was not preserved, fixing...');
+            await supabase
+              .from('marketplace_products')
+              .update({ is_hidden: preserveIsHidden })
+              .eq('id', editingProduct.id);
+          }
         }
         
-        // If RPC fails with permission error, don't fall back to direct update
-        // The direct update will also fail with the same RLS error
-        if (rpcError) {
-          console.error('RPC update failed:', rpcError);
-          throw rpcError;
-        }
+        await loadProducts();
+        setEditingProduct(null);
+        setProductForm({ name: '', price: '', original_price: '', image_urls: [], section_id: '', description: '', stock: 1 });
+        setDescriptionHtml('');
+        alert('Product updated successfully!');
+        return;
       } catch (rpcErr) {
-        console.error('RPC update error:', rpcErr);
+        console.error('Update error:', rpcErr);
         throw rpcErr;
       }
-      await loadProducts();
-      setEditingProduct(null);
-      setProductForm({ name: '', price: '', original_price: '', image_urls: [], section_id: '', description: '', stock: 1 });
-      setDescriptionHtml('');
-      alert('Product updated successfully!');
     } catch (err) {
       console.error('Error updating product:', err);
       alert('Error updating product: ' + err.message);
