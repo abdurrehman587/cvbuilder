@@ -1,2058 +1,422 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './Marketplace.css';
-import { authService, supabase } from '../Supabase/supabase';
+import { supabase } from '../Supabase/supabase';
 import { addToCart } from '../../utils/cart';
+import './Marketplace.css';
 
-// Helper function to safely get current user without throwing errors
-const safeGetCurrentUser = async () => {
-  try {
-    // Check localStorage first to avoid unnecessary API calls
-    const isAuthInStorage = localStorage.getItem('cvBuilderAuth') === 'true';
-    if (!isAuthInStorage) {
-      return null;
-    }
-    const user = await authService.getCurrentUser();
-    return user;
-  } catch (error) {
-    // Silently handle AuthSessionMissingError - it's expected when user is not logged in
-    if (error?.name === 'AuthSessionMissingError' || error?.message === 'Auth session missing!') {
-      return null;
-    }
-    // Only log unexpected errors
-    console.error('Unexpected auth error:', error);
-    return null;
-  }
-};
+// Constants
+const PRODUCTS_PER_PAGE = 20;
+const INITIAL_PAGE = 1;
 
-// Constants - Optimized for slow internet and devices
-const PRODUCTS_PER_PAGE = 8; // Reduced for faster initial load
-const INITIAL_PRODUCTS = 6; // Reduced initial products for slow connections
-// const PRELOAD_DISTANCE = 200; // Reduced preload distance - not currently used
-const SEARCH_DEBOUNCE = 300; // Increased debounce for better performance
-const IMAGE_WIDTH = 300; // Reduced image size for faster loading
-const IMAGE_QUALITY = 75; // Balanced quality/size
-
-// Removed requestIdleCallback polyfill - not needed for simplified approach
-
-// Helper function to check WebP support (cached and optimized)
-let webpSupported = null;
-const checkWebPSupport = () => {
-  if (webpSupported !== null) return webpSupported;
-  if (typeof window === 'undefined') {
-    webpSupported = false;
-    return false;
-  }
-  // Use modern API if available (faster)
-  if (HTMLImageElement.prototype.decode) {
-    try {
-      const img = new Image();
-      img.src = 'data:image/webp;base64,UklGRjoAAABXRUJQVlA4IC4AAACyAgCdASoCAAIALmk0mk0iIiIiIgBoSygABc6WWgAA/veff/0PP8bA//LwYAAA';
-      webpSupported = true; // Assume support for modern browsers
-      return true;
-    } catch (e) {
-      webpSupported = false;
-      return false;
-    }
-  }
-  // Fallback for older browsers
-  try {
-    const canvas = document.createElement('canvas');
-    canvas.width = 1;
-    canvas.height = 1;
-    webpSupported = canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0;
-    return webpSupported;
-  } catch (e) {
-    webpSupported = false;
-    return false;
-  }
-};
-
-// Helper function to optimize image URL (simplified for better performance)
-const optimizeImageUrl = (url, width = IMAGE_WIDTH, quality = IMAGE_QUALITY, format = 'webp') => {
-  if (!url) return url;
-  
-  // If Supabase storage URL, we can add transformations
-  if (url.includes('supabase.co') || url.includes('supabase')) {
-    const useWebP = format === 'webp' && checkWebPSupport();
-    const imageFormat = useWebP ? 'webp' : 'auto';
-    return `${url}${url.includes('?') ? '&' : '?'}width=${width}&quality=${quality}&format=${imageFormat}`;
-  }
-  
-  // For external URLs (like Unsplash), try to use their optimization APIs
-  if (url.includes('unsplash.com')) {
-    const useWebP = format === 'webp' && checkWebPSupport();
-    const imageFormat = useWebP ? 'fm=webp&' : '';
-    return `${url}${url.includes('?') ? '&' : '?'}${imageFormat}w=${width}&q=${quality}`;
-  }
-  
-  // For other URLs, return as-is
-  return url;
-};
-
-// Simple Product Card Component - Optimized for fast initial render
-const ProductCard = ({ 
+// Simple Product Card Component
+const ProductCard = React.memo(({ 
   product, 
-  productImages, 
   onProductClick, 
   onAddToCart, 
-  onBuyNow
+  onBuyNow,
+  adminShopName = 'Glory'
 }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
-  const imageRef = useRef(null);
-  const firstImage = productImages.length > 0 ? productImages[0] : null;
-  const optimizedImageSrc = firstImage ? optimizeImageUrl(firstImage, IMAGE_WIDTH, IMAGE_QUALITY, 'webp') : null;
+  const [imageError, setImageError] = useState(false);
+  const imgRef = useRef(null);
+  
+  // Get first image
+  const getFirstImage = () => {
+    if (product.image_urls && Array.isArray(product.image_urls) && product.image_urls.length > 0) {
+      return product.image_urls[0];
+    }
+    if (product.image_url) {
+      return product.image_url;
+    }
+    return null;
+  };
 
-  // No need for complex Intersection Observer - browser's native lazy loading handles it
+  const imageUrl = getFirstImage();
+  const isOutOfStock = (product.stock || 0) === 0;
+
+  // Intersection Observer for lazy loading
+  useEffect(() => {
+    if (!imgRef.current || !imageUrl) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const img = new Image();
+            img.onload = () => setImageLoaded(true);
+            img.onerror = () => setImageError(true);
+            img.src = imageUrl;
+            observer.disconnect();
+          }
+        });
+      },
+      { rootMargin: '50px' }
+    );
+
+    observer.observe(imgRef.current);
+    return () => observer.disconnect();
+  }, [imageUrl]);
+
+  const handleAddToCart = (e) => {
+    e.stopPropagation();
+    if (isOutOfStock) {
+      alert('This product is out of stock.');
+      return;
+    }
+    onAddToCart(e);
+  };
+
+  const handleBuyNow = (e) => {
+    e.stopPropagation();
+    if (isOutOfStock) {
+      alert('This product is out of stock.');
+      return;
+    }
+    onBuyNow(e);
+  };
 
   return (
-    <div 
-      className="product-card-fresh" 
-      data-product-id={product.id}
-      onClick={onProductClick}
-    >
-      <div className="product-card-image-wrapper" ref={imageRef}>
-        {!firstImage ? (
-          /* Show "No Image" if no image available */
-          <div className="product-card-placeholder">
-            <span className="product-placeholder-text">No Image</span>
-          </div>
-        ) : (
+    <div className="product-card" onClick={onProductClick}>
+      <div className="product-image-container">
+        {imageUrl && !imageError ? (
           <>
-            {/* Show placeholder while image is not loaded */}
             {!imageLoaded && (
-              <div className="product-card-placeholder product-card-skeleton">
-                <span className="product-placeholder-text">Loading...</span>
-              </div>
+              <div className="product-image-placeholder">Loading...</div>
             )}
-            {/* Always render img tag - browser's native lazy loading handles when to load */}
-            {optimizedImageSrc && (
-              <img 
-                src={optimizedImageSrc}
-                alt={product.name || 'Product image'}
-                className={`product-card-image first-image ${imageLoaded ? 'loaded' : 'loading'}`}
-                onLoad={() => setImageLoaded(true)}
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                  setImageLoaded(true); // Hide placeholder even on error
-                }}
-                loading="lazy"
-                decoding="async"
-                style={{ 
-                  width: '100%', 
-                  height: '100%', 
-                  objectFit: 'contain',
-                  objectPosition: 'center',
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  opacity: imageLoaded ? 1 : 0,
-                  transition: 'opacity 0.3s ease-in',
-                  zIndex: imageLoaded ? 2 : 1
-                }}
-              />
-            )}
+            <img
+              ref={imgRef}
+              src={imageLoaded ? imageUrl : undefined}
+              alt={product.name}
+              className={`product-image ${imageLoaded ? 'loaded' : ''}`}
+              loading="lazy"
+            />
           </>
+        ) : (
+          <div className="product-image-placeholder">No Image</div>
         )}
       </div>
-      <div className="product-card-body">
-        <h4 className="product-card-name">{product.name}</h4>
-        <div className="product-card-shop-name">
+      
+      <div className="product-info">
+        <h3 className="product-name">{product.name}</h3>
+        
+        <div className="product-shop">
           {product.shopkeeper_id && product.shopkeeper?.shop_name 
             ? `Product uploaded by: ${product.shopkeeper.shop_name}`
             : product.shopkeeper_id 
               ? 'Product uploaded by: Shop' 
-              : 'Product uploaded by: Glory'}
+              : `Product uploaded by: ${adminShopName}`}
         </div>
-        <div className="product-card-footer">
-          <div className="product-card-price-container">
-            {product.original_price && product.original_price > product.price ? (
-              <>
-                <span className="product-card-price-discounted">Rs. {product.price?.toLocaleString() || '0'}</span>
-                <span className="product-card-price-original">Rs. {product.original_price?.toLocaleString() || '0'}</span>
-              </>
-            ) : (
-              <span className="product-card-price">Rs. {product.price?.toLocaleString() || '0'}</span>
-            )}
-          </div>
-          <div className="product-card-action-buttons">
-            <button 
-              className="product-card-buy-now-btn"
-              onClick={onBuyNow}
-              title="Buy Now"
-            >
-              Buy Now
-            </button>
-            <button 
-              className="product-card-add-to-cart-btn"
-              onClick={onAddToCart}
-              title="Add to Cart"
-            >
-              Add to Cart
-            </button>
-          </div>
+
+        {isOutOfStock && (
+          <div className="product-stock-badge">❌ Out of Stock</div>
+        )}
+
+        <div className="product-price">
+          {product.original_price && product.original_price > product.price ? (
+            <>
+              <span className="price-current">Rs. {product.price?.toLocaleString() || '0'}</span>
+              <span className="price-original">Rs. {product.original_price?.toLocaleString() || '0'}</span>
+            </>
+          ) : (
+            <span className="price-current">Rs. {product.price?.toLocaleString() || '0'}</span>
+          )}
+        </div>
+
+        <div className="product-actions">
+          <button
+            className="btn-buy-now"
+            onClick={handleBuyNow}
+            disabled={isOutOfStock}
+          >
+            Buy Now
+          </button>
+          <button
+            className="btn-add-cart"
+            onClick={handleAddToCart}
+            disabled={isOutOfStock}
+          >
+            Add to Cart
+          </button>
         </div>
       </div>
     </div>
   );
-};
+});
 
 ProductCard.displayName = 'ProductCard';
 
-// Helper function to normalize text for fuzzy matching
-const normalizeText = (text) => {
-  if (!text) return '';
-  return text
-    .toLowerCase()
-    .replace(/[-\s_]/g, '') // Remove hyphens, spaces, underscores
-    .replace(/[^\w\s]/g, '') // Remove special characters
-    .trim();
-};
-
-// Helper function to calculate similarity score (simple fuzzy matching)
-const calculateSimilarity = (str1, str2) => {
-  if (!str1 || !str2) return 0;
-  
-  const normalized1 = normalizeText(str1);
-  const normalized2 = normalizeText(str2);
-  
-  // Exact match after normalization
-  if (normalized1 === normalized2) return 1.0;
-  
-  // Check if one contains the other
-  if (normalized1.includes(normalized2) || normalized2.includes(normalized1)) {
-    return 0.8;
-  }
-  
-  // Word-based matching - try to split compound words intelligently
-  // For example: "powerbank" should match "power bank" or "power-bank"
-  const tryWordMatching = (text, search) => {
-    // If search term is a single word, check if it appears in text (handles compound words)
-    if (search.length >= 4) {
-      // Try to find the search term as a substring in the text
-      if (text.includes(search)) {
-        return 0.75;
-      }
-      
-      // Try splitting search term into common word patterns (e.g., "powerbank" -> "power" + "bank")
-      // This is a simple heuristic - check if text contains parts of the search term
-      const minWordLength = 3;
-      for (let i = minWordLength; i < search.length - minWordLength; i++) {
-        const part1 = search.substring(0, i);
-        const part2 = search.substring(i);
-        if (text.includes(part1) && text.includes(part2)) {
-          return 0.7;
-        }
-      }
-    }
-    return 0;
-  };
-  
-  const wordMatchScore = tryWordMatching(normalized1, normalized2);
-  if (wordMatchScore > 0) {
-    return wordMatchScore;
-  }
-  
-  // Character-based similarity (simple Levenshtein-like approach)
-  let matches = 0;
-  const minLength = Math.min(normalized1.length, normalized2.length);
-  const maxLength = Math.max(normalized1.length, normalized2.length);
-  
-  if (minLength === 0) return 0;
-  
-  // Count matching characters in sequence
-  let i = 0, j = 0;
-  while (i < normalized1.length && j < normalized2.length) {
-    if (normalized1[i] === normalized2[j]) {
-      matches++;
-      i++;
-      j++;
-    } else if (normalized1.length < normalized2.length) {
-      j++;
-    } else {
-      i++;
-    }
-  }
-  
-  const similarity = matches / maxLength;
-  return similarity >= 0.6 ? similarity : 0; // Only return if similarity is reasonable
-};
-
-const ProductsPage = ({ onProductSelect, showLoginOnMount = false }) => {
+// Main Marketplace Component
+const Marketplace = ({ showLoginOnMount = false }) => {
   const navigate = useNavigate();
-  
-  // Check for showLoginForm flag immediately on initialization
-  // This must be synchronous to ensure login form shows on first click
-  const checkShowLoginFlag = () => {
-    if (showLoginOnMount) return true;
-    const sessionFlag = sessionStorage.getItem('showLoginForm') === 'true';
-    const localFlag = localStorage.getItem('showLoginForm') === 'true';
-    if (sessionFlag || localFlag) {
-      // Only show if user is not authenticated
-      const isAuth = localStorage.getItem('cvBuilderAuth') === 'true';
-      const justAuthenticated = sessionStorage.getItem('justAuthenticated') === 'true';
-      return !isAuth && !justAuthenticated;
-    }
-    return false;
-  };
-  const initialShowLogin = checkShowLoginFlag();
-  const [showLogin, setShowLogin] = useState(initialShowLogin);
-  const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [userType, setUserType] = useState('regular'); // 'regular' or 'shopkeeper'
-  const [error, setError] = useState('');
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
-  const [resetEmailSent, setResetEmailSent] = useState(false);
-  const [isGoogleSigningIn, setIsGoogleSigningIn] = useState(false);
-  const [showUserTypeModal, setShowUserTypeModal] = useState(false);
-  const [pendingGoogleSignIn, setPendingGoogleSignIn] = useState(false);
-  // Removed hover carousel - only showing first image for better performance
-  
-  // State declarations - must be before callbacks that use them
-  const [loginSuccess, setLoginSuccess] = useState(false);
-  const [marketplaceSections, setMarketplaceSections] = useState([]);
-  const [marketplaceProducts, setMarketplaceProducts] = useState([]);
-  const [loadingMarketplace, setLoadingMarketplace] = useState(false);
-  const [loadingMoreProducts, setLoadingMoreProducts] = useState(false);
-  const [hasMoreProducts, setHasMoreProducts] = useState(true);
-  const [currentPage, setCurrentPage] = useState(0);
-  const [allProducts, setAllProducts] = useState([]); // Store all products
-  const [searchQuery, setSearchQuery] = useState(''); // Search query
-  const [filteredProducts, setFilteredProducts] = useState([]); // Filtered products based on search
-  const searchTimeoutRef = useRef(null);
-  const loadMoreRef = useRef(null);
+  const [products, setProducts] = useState([]);
+  const [sections, setSections] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(INITIAL_PAGE);
+  const [hasMore, setHasMore] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedSection, setSelectedSection] = useState(null);
+  const [adminShopName, setAdminShopName] = useState('Glory');
+  const observerRef = useRef(null);
+  const loadingRef = useRef(false);
 
-  // Search/filter products function with fuzzy matching
-  const filterProducts = useCallback((products, query) => {
-    if (!query || query.trim() === '') {
-      return products;
-    }
-    
-    const searchTerm = query.toLowerCase().trim();
-    const normalizedSearch = normalizeText(searchTerm);
-    
-    return products.filter(product => {
-      // Get all searchable text fields
-      const name = product.name || '';
-      const description = product.description || '';
-      const sectionName = product.marketplace_sections?.name || '';
-      const price = product.price?.toString() || '';
-      
-      // Combine all text for comprehensive search
-      const allText = `${name} ${description} ${sectionName}`.toLowerCase();
-      
-      // 1. Exact substring match (highest priority)
-      if (allText.includes(searchTerm) || name.toLowerCase().includes(searchTerm)) {
-        return true;
-      }
-      
-      // 2. Normalized exact match (handles spaces, hyphens, etc.)
-      const normalizedName = normalizeText(name);
-      const normalizedDescription = normalizeText(description);
-      const normalizedSection = normalizeText(sectionName);
-      
-      if (normalizedName.includes(normalizedSearch) || 
-          normalizedDescription.includes(normalizedSearch) ||
-          normalizedSection.includes(normalizedSearch)) {
-        return true;
-      }
-      
-      // 3. Word-based matching - check if all search words appear in product
-      const searchWords = searchTerm.split(/\s+/).filter(w => w.length > 0);
-      if (searchWords.length > 1) {
-        const allWordsMatch = searchWords.every(word => {
-          const normalizedWord = normalizeText(word);
-          return normalizedName.includes(normalizedWord) ||
-                 normalizedDescription.includes(normalizedWord) ||
-                 normalizedSection.includes(normalizedWord);
-        });
-        if (allWordsMatch) return true;
-      }
-      
-      // 3.5. Compound word matching - if search is a single word, try to split it
-      // Example: "powerbank" should match products with "power bank" or "power-bank"
-      if (normalizedSearch.length >= 6 && !normalizedSearch.includes(' ')) {
-        // Try to find if the search term can be split and both parts exist in the product
-        const minPartLength = 3;
-        for (let i = minPartLength; i <= normalizedSearch.length - minPartLength; i++) {
-          const part1 = normalizedSearch.substring(0, i);
-          const part2 = normalizedSearch.substring(i);
-          
-          // Check if both parts appear in the product text (in any order)
-          const hasPart1 = normalizedName.includes(part1) || 
-                          normalizedDescription.includes(part1) ||
-                          normalizedSection.includes(part1);
-          const hasPart2 = normalizedName.includes(part2) || 
-                          normalizedDescription.includes(part2) ||
-                          normalizedSection.includes(part2);
-          
-          if (hasPart1 && hasPart2) {
-            return true;
-          }
-        }
-      }
-      
-      // 4. Fuzzy similarity matching
-      const nameSimilarity = calculateSimilarity(name, searchTerm);
-      const descSimilarity = calculateSimilarity(description, searchTerm);
-      const sectionSimilarity = calculateSimilarity(sectionName, searchTerm);
-      
-      if (nameSimilarity >= 0.6 || descSimilarity >= 0.6 || sectionSimilarity >= 0.6) {
-        return true;
-      }
-      
-      // 5. Price matching (exact match only)
-      if (price.includes(searchTerm)) {
-        return true;
-      }
-      
-      return false;
-    });
-  }, []);
-  
-  // Handle search input change with debouncing
-  const handleSearchChange = useCallback((e) => {
-    const value = e.target.value;
-    setSearchQuery(value);
-    
-    // Clear existing timeout
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-    
-    // Debounce search for performance (reduced delay for faster response)
-    searchTimeoutRef.current = setTimeout(() => {
-      const filtered = filterProducts(allProducts, value);
-      setFilteredProducts(filtered);
-      
-      // Update displayed products based on search
-      if (value.trim() === '') {
-        // If search is empty, show paginated products
-        const firstBatch = allProducts.slice(0, INITIAL_PRODUCTS);
-        setMarketplaceProducts(firstBatch);
-        setCurrentPage(1);
-        setHasMoreProducts(allProducts.length > INITIAL_PRODUCTS);
-      } else {
-        // If searching, show all filtered products
-        setMarketplaceProducts(filtered);
-        setCurrentPage(1);
-        setHasMoreProducts(false); // Disable infinite scroll when searching
-      }
-    }, SEARCH_DEBOUNCE); // Faster debounce
-  }, [allProducts, filterProducts]);
-  
-  // Clear search
-  const handleClearSearch = useCallback(() => {
-    setSearchQuery('');
-    setFilteredProducts([]);
-    // Reset to initial paginated view
-    const firstBatch = allProducts.slice(0, INITIAL_PRODUCTS);
-    setMarketplaceProducts(firstBatch);
-    setCurrentPage(1);
-    setHasMoreProducts(allProducts.length > INITIAL_PRODUCTS);
-  }, [allProducts]);
-  
-  // Cleanup search timeout on unmount
+  // Load admin shop name
   useEffect(() => {
-    return () => {
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current);
-      }
-    };
-  }, []);
-  
-  // Get images for a product (memoized for performance)
-  const getProductImages = useCallback((product) => {
-    // Check for image_urls array (JSONB from database)
-    if (product.image_urls) {
-      // Handle both array and string formats
-      if (Array.isArray(product.image_urls) && product.image_urls.length > 0) {
-        // Filter out empty/null/undefined URLs
-        return product.image_urls.filter(url => url && url.trim() !== '');
-      } else if (typeof product.image_urls === 'string') {
-        // If it's a string, try to parse it as JSON
-        try {
-          const parsed = JSON.parse(product.image_urls);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            return parsed.filter(url => url && url.trim() !== '');
-          }
-        } catch (e) {
-          // If parsing fails, treat as single URL
-          if (product.image_urls.trim() !== '') {
-            return [product.image_urls];
-          }
-        }
-      }
-    }
-    // Fallback to single image_url
-    if (product.image_url && product.image_url.trim() !== '') {
-      return [product.image_url];
-    }
-    return [];
-  }, []);
-  
-  // Removed hover carousel handlers - no longer needed
-  const [cartNotification, setCartNotification] = useState({ 
-    show: false, 
-    message: '', 
-    productName: '',
-    position: { top: 0, left: 0 }
-  });
-
-  // const [selectedCarouselProduct, setSelectedCarouselProduct] = useState(() => {
-  //   // Initialize from localStorage or default to marketplace
-  //   return localStorage.getItem('selectedApp') || 'marketplace';
-  // });
-
-  // Handle product selection from header
-  React.useEffect(() => {
-    const handleProductChange = (productId) => {
-      // setSelectedCarouselProduct(productId); // Removed unused state
-      localStorage.setItem('selectedApp', productId);
-    };
-
-    if (onProductSelect) {
-      // Expose the handler to parent
-      window.handleProductSelect = handleProductChange;
-    }
-  }, [onProductSelect]);
-
-  // This function is called from Header component
-  const handleProductSelect = useCallback((productId) => {
-    localStorage.setItem('selectedApp', productId);
-    // setSelectedCarouselProduct(productId); // Removed unused state
-  }, []);
-
-  // Expose handler to window for Header to call
-  React.useEffect(() => {
-    window.handleProductSelect = handleProductSelect;
-    // Expose function to show login form
-    window.showLoginForm = () => {
-      setShowLogin(true);
-    };
-    return () => {
-      delete window.handleProductSelect;
-      delete window.showLoginForm;
-    };
-  }, [handleProductSelect]);
-  
-  // Show login form on mount if showLoginOnMount is true (when navigation flags are set)
-  React.useEffect(() => {
-    // CRITICAL: Check flag synchronously FIRST, before any async operations
-    // This ensures the login form shows immediately on first click
-    const shouldShowLogin = sessionStorage.getItem('showLoginForm') === 'true' ||
-                            localStorage.getItem('showLoginForm') === 'true';
-    
-    // If flag is set OR showLoginOnMount prop is true, show login form immediately
-    // This must happen synchronously, before any async auth checks
-    if (shouldShowLogin || showLoginOnMount) {
-      const isAuth = localStorage.getItem('cvBuilderAuth') === 'true';
-      const justAuthenticated = sessionStorage.getItem('justAuthenticated') === 'true';
-      
-      // Only show login form if user is NOT authenticated and NOT just authenticated
-      if (!isAuth && !justAuthenticated) {
-        // Show login form immediately and keep it visible
-        // Use setTimeout with 0 delay to ensure this happens after render
-        // but before any async operations
-        setTimeout(() => {
-          setShowLogin(true);
-        }, 0);
-        // Don't clear the flag here - let it persist until login is complete or cancelled
-      }
-    }
-    
-    // Then check auth asynchronously (but don't hide login form if flag is set)
-    const checkAuth = async () => {
-      // CRITICAL: First check if user was just authenticated - if so, don't do anything
-      // This prevents the auth check from interfering with the login process
-      if (sessionStorage.getItem('justAuthenticated') === 'true') {
-        setShowLogin(false);
-        // Don't clear cvBuilderAuth - user is authenticated
-        return;
-      }
-      
-      // CRITICAL: If user is authenticated in localStorage, don't check further
-      // This prevents race conditions where Supabase session hasn't propagated yet
-      const isAuthInStorage = localStorage.getItem('cvBuilderAuth') === 'true';
-      if (isAuthInStorage) {
-        // User is authenticated - hide login form and don't check further
-        setShowLogin(false);
-        // Clear any login flags
-        sessionStorage.removeItem('showLoginForm');
-        localStorage.removeItem('showLoginForm');
-        // Don't proceed with async auth check - user is already authenticated
-        return;
-      }
-      
-      // Check if showLoginForm flag is still set - if so, keep login form visible
-      const flagStillSet = sessionStorage.getItem('showLoginForm') === 'true' ||
-                          localStorage.getItem('showLoginForm') === 'true';
-      
-      // If flag is set, ensure login form stays visible (don't hide it)
-      if (flagStillSet) {
-        const isAuth = localStorage.getItem('cvBuilderAuth') === 'true';
-        if (!isAuth && sessionStorage.getItem('justAuthenticated') !== 'true') {
-          // Keep login form visible if flag is set and user is not authenticated
-          setShowLogin(true);
-        }
-        // Don't proceed with auth check if flag is set - keep form visible
-        return;
-      }
-      
-      // Flag is not set and user is not authenticated in storage - proceed with auth check
-      const user = await safeGetCurrentUser();
-      if (user) {
-        // User is authenticated via Supabase - update localStorage
-        localStorage.setItem('cvBuilderAuth', 'true');
-        setShowLogin(false);
-        // Clear any login flags
-        sessionStorage.removeItem('showLoginForm');
-        localStorage.removeItem('showLoginForm');
-        // Set justAuthenticated flag to prevent other checks from clearing auth
-        sessionStorage.setItem('justAuthenticated', 'true');
-        setTimeout(() => {
-          sessionStorage.removeItem('justAuthenticated');
-        }, 5000);
-        return;
-      }
-      
-      // Check for navigation flags on mount and when prop changes
-      const hasNavIntent = sessionStorage.getItem('navigateToCVBuilder') === 'true' ||
-                           sessionStorage.getItem('navigateToIDCardPrint') === 'true' ||
-                           localStorage.getItem('navigateToCVBuilder') === 'true' ||
-                           localStorage.getItem('navigateToIDCardPrint') === 'true';
-      
-      // Check for showLoginForm flag again (in case it was set after initial check)
-      const shouldShowLoginAfterAuth = sessionStorage.getItem('showLoginForm') === 'true' ||
-                                       localStorage.getItem('showLoginForm') === 'true';
-      
-      if (showLoginOnMount || hasNavIntent || shouldShowLoginAfterAuth) {
-        // Double-check auth before showing login form
-        const isAuth = localStorage.getItem('cvBuilderAuth') === 'true';
-        if (!isAuth && sessionStorage.getItem('justAuthenticated') !== 'true') {
-          // Show login form if flag is set
-          setShowLogin(true);
-        } else if (isAuth) {
-          // User is authenticated, ensure login form is hidden
-          setShowLogin(false);
-          // Clear flags
-          sessionStorage.removeItem('showLoginForm');
-          localStorage.removeItem('showLoginForm');
-        }
-      }
-    };
-    
-    // Check auth asynchronously (but login form should already be shown if flag was set)
-    checkAuth();
-    
-    // Also listen for hash changes in case navigation flags are set after mount
-    const handleHashChange = () => {
-      checkAuth();
-    };
-    
-    // Listen for authentication events to hide login form
-    const handleUserAuthenticated = () => {
-      setShowLogin(false);
-      // Clear all login-related flags after successful authentication
-      sessionStorage.removeItem('navigateToCVBuilder');
-      sessionStorage.removeItem('navigateToIDCardPrint');
-      localStorage.removeItem('navigateToCVBuilder');
-      localStorage.removeItem('navigateToIDCardPrint');
-      sessionStorage.removeItem('showLoginForm');
-      localStorage.removeItem('showLoginForm');
-      sessionStorage.removeItem('showProductsPage');
-      localStorage.removeItem('showProductsPage');
-      // Set a flag to prevent checkAuth from showing login form again
-      // Keep this flag longer to prevent race conditions
-      sessionStorage.setItem('justAuthenticated', 'true');
-      // Clear this flag after a longer delay to ensure navigation completes
-      setTimeout(() => {
-        sessionStorage.removeItem('justAuthenticated');
-      }, 5000); // Increased from 2 seconds to 5 seconds
-    };
-    
-    window.addEventListener('hashchange', handleHashChange);
-    window.addEventListener('userAuthenticated', handleUserAuthenticated);
-    
-    // Listen for showLoginForm custom event (for when already on marketplace page)
-    const handleShowLoginForm = () => {
-      // Check flag again when event is received (in case it was just set)
-      const flagSet = sessionStorage.getItem('showLoginForm') === 'true' ||
-                      localStorage.getItem('showLoginForm') === 'true';
-      if (flagSet) {
-        const isAuth = localStorage.getItem('cvBuilderAuth') === 'true';
-        const justAuthenticated = sessionStorage.getItem('justAuthenticated') === 'true';
-        if (!isAuth && !justAuthenticated) {
-          setShowLogin(true);
-        }
-      }
-    };
-    window.addEventListener('showLoginForm', handleShowLoginForm);
-    
-    return () => {
-      window.removeEventListener('hashchange', handleHashChange);
-      window.removeEventListener('userAuthenticated', handleUserAuthenticated);
-      window.removeEventListener('showLoginForm', handleShowLoginForm);
-    };
-  }, [showLoginOnMount]);
-
-  // Load marketplace sections and products with server-side pagination for better performance
-  useEffect(() => {
-    let isMounted = true;
-    let abortController = new AbortController();
-
-    const loadMarketplaceData = async () => {
+    const loadAdminShopName = async () => {
       try {
-        setLoadingMarketplace(true);
+        const { data } = await supabase
+          .from('users')
+          .select('shop_name')
+          .eq('is_admin', true)
+          .limit(1)
+          .single();
         
-        // Load sections and products in parallel for faster load
-        // Load all products for section filtering, but display in batches
-        const [sectionsResponse, productsResponse] = await Promise.all([
-          supabase
-            .from('marketplace_sections')
-            .select('*')
-            .order('display_order', { ascending: true }),
-          supabase
-            .from('marketplace_products')
-            .select(`
-              *, 
-              marketplace_sections(name),
-              shopkeeper:users!shopkeeper_id(shop_name)
-            `)
-            .or('is_hidden.is.null,is_hidden.eq.false')
-            .order('created_at', { ascending: false })
-        ]);
-
-        if (!isMounted) return;
-
-        if (sectionsResponse.error) throw sectionsResponse.error;
-        setMarketplaceSections(sectionsResponse.data || []);
-
-        if (productsResponse.error) throw productsResponse.error;
-        
-        const allProductsData = productsResponse.data || [];
-        const hasMore = allProductsData.length > INITIAL_PRODUCTS;
-        const firstBatch = allProductsData.slice(0, INITIAL_PRODUCTS);
-        
-        // Store all products for section filtering and search
-        setAllProducts(allProductsData);
-        setMarketplaceProducts(firstBatch);
-        setCurrentPage(1);
-        setHasMoreProducts(hasMore);
-        
-        // No preloading - let browser handle it naturally
+        if (data?.shop_name) {
+          setAdminShopName(data.shop_name);
+        }
       } catch (err) {
-        if (isMounted) {
-          console.error('Error loading marketplace data:', err);
-        }
-      } finally {
-        if (isMounted) {
-          setLoadingMarketplace(false);
-        }
+        console.error('Error loading admin shop name:', err);
       }
     };
-
-    // Start loading immediately (no delay)
-    loadMarketplaceData();
-
-    return () => {
-      isMounted = false;
-      abortController.abort();
-    };
+    loadAdminShopName();
   }, []);
 
-  // Load more products when scrolling - optimized with server-side pagination
-  const loadMoreProducts = useCallback(async () => {
-    if (loadingMoreProducts || !hasMoreProducts) return;
+  // Load sections
+  useEffect(() => {
+    const loadSections = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('marketplace_sections')
+          .select('*')
+          .order('display_order', { ascending: true });
+
+        if (error) throw error;
+        setSections(data || []);
+      } catch (err) {
+        console.error('Error loading sections:', err);
+      }
+    };
+    loadSections();
+  }, []);
+
+  // Load products
+  const loadProducts = useCallback(async (page = 1, reset = false) => {
+    if (loadingRef.current) return;
+    loadingRef.current = true;
+    setLoading(reset);
 
     try {
-      setLoadingMoreProducts(true);
-      
-      // Load next batch from server for better performance
-      const nextPage = currentPage + 1;
-      const startIndex = (nextPage - 1) * PRODUCTS_PER_PAGE;
-      
-      const { data: nextBatch, error } = await supabase
+      let query = supabase
         .from('marketplace_products')
         .select(`
-          *, 
+          *,
           marketplace_sections(name),
           shopkeeper:users!shopkeeper_id(shop_name)
         `)
         .or('is_hidden.is.null,is_hidden.eq.false')
-        .order('created_at', { ascending: false })
-        .range(startIndex, startIndex + PRODUCTS_PER_PAGE - 1);
+        .order('created_at', { ascending: false });
+
+      // Apply section filter
+      if (selectedSection) {
+        query = query.eq('section_id', selectedSection);
+      }
+
+      // Apply pagination
+      const from = (page - 1) * PRODUCTS_PER_PAGE;
+      const to = from + PRODUCTS_PER_PAGE - 1;
+      query = query.range(from, to);
+
+      const { data, error } = await query;
 
       if (error) throw error;
 
-      if (nextBatch && nextBatch.length > 0) {
-        setMarketplaceProducts(prev => [...prev, ...nextBatch]);
-        setCurrentPage(nextPage);
-        setHasMoreProducts(nextBatch.length === PRODUCTS_PER_PAGE);
-        
-        // No preloading - let browser handle it naturally
+      if (reset) {
+        setProducts(data || []);
       } else {
-        setHasMoreProducts(false);
+        setProducts(prev => [...prev, ...(data || [])]);
       }
-    } catch (err) {
-      console.error('Error loading more products:', err);
-      setHasMoreProducts(false);
-    } finally {
-      setLoadingMoreProducts(false);
-    }
-  }, [currentPage, loadingMoreProducts, hasMoreProducts]);
 
-  // Simple Intersection Observer for infinite scroll - optimized to prevent scroll jank
+      setHasMore((data || []).length === PRODUCTS_PER_PAGE);
+      setCurrentPage(page);
+    } catch (err) {
+      console.error('Error loading products:', err);
+    } finally {
+      setLoading(false);
+      loadingRef.current = false;
+    }
+  }, [selectedSection]);
+
+  // Initial load
   useEffect(() => {
-    if (!loadMoreRef.current || !hasMoreProducts || loadingMoreProducts) return;
-    
-    let ticking = false;
-    
+    loadProducts(INITIAL_PAGE, true);
+  }, [selectedSection]);
+
+  // Listen for shop name updates
+  useEffect(() => {
+    const handleShopNameUpdate = async () => {
+      try {
+        const { data } = await supabase
+          .from('users')
+          .select('shop_name')
+          .eq('is_admin', true)
+          .limit(1)
+          .single();
+        
+        if (data?.shop_name) {
+          setAdminShopName(data.shop_name);
+        }
+      } catch (err) {
+        console.error('Error loading admin shop name:', err);
+      }
+      loadProducts(currentPage, true);
+    };
+
+    window.addEventListener('shopNameUpdated', handleShopNameUpdate);
+    return () => window.removeEventListener('shopNameUpdated', handleShopNameUpdate);
+  }, [currentPage, loadProducts]);
+
+  // Infinite scroll observer
+  useEffect(() => {
+    if (!hasMore || loading) return;
+
     const observer = new IntersectionObserver(
       (entries) => {
-        if (!ticking && entries[0].isIntersecting && hasMoreProducts && !loadingMoreProducts) {
-          ticking = true;
-          // Use requestAnimationFrame to prevent blocking scroll
-          requestAnimationFrame(() => {
-            loadMoreProducts();
-            ticking = false;
-          });
+        if (entries[0].isIntersecting && !loadingRef.current) {
+          loadProducts(currentPage + 1, false);
         }
       },
-      { rootMargin: '300px', threshold: 0.01 }
+      { threshold: 0.1 }
     );
 
-    observer.observe(loadMoreRef.current);
-
-    const currentRef = loadMoreRef.current;
-    return () => {
-      if (currentRef) {
-        observer.unobserve(currentRef);
-      }
-    };
-  }, [hasMoreProducts, loadingMoreProducts, loadMoreProducts]);
-
-
-  // Handle escape key to close login modal and mobile keyboard issues
-  useEffect(() => {
-    const handleEscape = (e) => {
-      if (e.key === 'Escape' && showLogin) {
-        setShowLogin(false);
-        setError('');
-        setEmail('');
-        setPassword('');
-        setConfirmPassword('');
-        setUserType('regular');
-        // Keep showLoginForm flags set so form can be reopened by clicking sign-in again
-        // Only clear flags if user is authenticated
-        const isAuth = localStorage.getItem('cvBuilderAuth') === 'true';
-        if (!isAuth) {
-          // User closed without signing in - keep flags so form can be shown again
-          localStorage.setItem('showLoginForm', 'true');
-          sessionStorage.setItem('showLoginForm', 'true');
-        }
-      }
-    };
-    
-    // Handle mobile viewport changes when keyboard appears
-    const handleViewportChange = () => {
-      if (showLogin) {
-        const modalContent = document.querySelector('.login-modal-content');
-        if (modalContent) {
-          // Scroll to top of modal when keyboard appears
-          const activeElement = document.activeElement;
-          if (activeElement && activeElement.tagName === 'INPUT') {
-            setTimeout(() => {
-              activeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }, 300);
-          }
-        }
-      }
-    };
-    
-    if (showLogin) {
-      // Prevent body scroll when modal is open
-      document.body.style.overflow = 'hidden';
-      // Fix for iOS Safari - prevent body from scrolling
-      document.body.style.position = 'fixed';
-      document.body.style.width = '100%';
-      window.addEventListener('keydown', handleEscape);
-      // Handle viewport changes (keyboard appearing)
-      window.addEventListener('resize', handleViewportChange);
-      window.addEventListener('orientationchange', handleViewportChange);
-      // Handle input focus for mobile
-      const inputs = document.querySelectorAll('.login-form-inline input');
-      inputs.forEach(input => {
-        input.addEventListener('focus', handleViewportChange);
-      });
-    } else {
-      // Restore body scroll when modal is closed
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.width = '';
+    if (observerRef.current) {
+      observer.observe(observerRef.current);
     }
-    
-    return () => {
-      window.removeEventListener('keydown', handleEscape);
-      window.removeEventListener('resize', handleViewportChange);
-      window.removeEventListener('orientationchange', handleViewportChange);
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.width = '';
-    };
-  }, [showLogin]);
 
-  // Handle product click
-  // eslint-disable-next-line no-unused-vars
-  const handleProductClick = (productId) => {
-    // setSelectedCarouselProduct(productId);
-    localStorage.setItem('selectedApp', productId);
-    if (window.handleProductSelect) {
-      window.handleProductSelect(productId);
-    }
-    
-    // Scroll to the product section (optimized to prevent conflicts)
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        const sectionId = 'marketplace-section';
-        const element = document.getElementById(sectionId);
-        if (element) {
-          const headerOffset = 100;
-          // Use requestAnimationFrame for smooth scroll
-          requestAnimationFrame(() => {
-            const elementPosition = element.getBoundingClientRect().top;
-            const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-            
-            window.scrollTo({
-              top: offsetPosition,
-              behavior: 'smooth'
-            });
-          });
-        }
-      }, 100);
+    return () => observer.disconnect();
+  }, [hasMore, currentPage, loadProducts]);
+
+  // Filter products by search
+  const filteredProducts = useMemo(() => {
+    if (!searchQuery.trim()) return products;
+
+    const query = searchQuery.toLowerCase();
+    return products.filter(product => {
+      const name = (product.name || '').toLowerCase();
+      const description = (product.description || '').toLowerCase();
+      const sectionName = (product.marketplace_sections?.name || '').toLowerCase();
+      
+      return name.includes(query) || 
+             description.includes(query) || 
+             sectionName.includes(query);
     });
+  }, [products, searchQuery]);
+
+  // Handlers
+  const handleProductClick = (product) => {
+    navigate(`/#product/${product.id}`);
   };
 
-  // eslint-disable-next-line no-unused-vars
-  const handleGetStarted = (productId) => {
-    // Check if user is authenticated - check both authService and localStorage
-    const checkAuth = async () => {
-      try {
-        // First check localStorage for quick auth status
-        const isAuthInStorage = localStorage.getItem('cvBuilderAuth') === 'true';
-        
-        // Then check with authService (safely)
-        const user = await safeGetCurrentUser();
-        const isAuthenticated = user !== null || isAuthInStorage;
-        
-        if (isAuthenticated) {
-          // User is authenticated - navigate to respective dashboard
-          // Clear products page flags
-          localStorage.removeItem('showProductsPage');
-          sessionStorage.removeItem('showProductsPage');
-          if (window.resetProductsPageFlag) {
-            window.resetProductsPageFlag();
-          }
-          
-          // Set selected product
-          localStorage.setItem('selectedApp', productId);
-          
-          if (productId === 'marketplace') {
-            // For marketplace, scroll to the section using the products-page container
-            setTimeout(() => {
-              const productsPage = document.querySelector('.products-page');
-              const element = document.getElementById('marketplace-section');
-              if (element && productsPage) {
-                const headerOffset = 20;
-                const containerRect = productsPage.getBoundingClientRect();
-                const elementRect = element.getBoundingClientRect();
-                const currentScrollTop = productsPage.scrollTop;
-                const elementTopInContainer = currentScrollTop + (elementRect.top - containerRect.top);
-                const offsetPosition = elementTopInContainer - headerOffset;
-                
-                productsPage.scrollTo({
-                  top: Math.max(0, offsetPosition),
-                  behavior: 'smooth'
-                });
-              } else if (element) {
-                // Fallback to window scroll
-                const headerOffset = 100;
-                const elementPosition = element.getBoundingClientRect().top;
-                const offsetPosition = elementPosition + (window.pageYOffset || window.scrollY || 0) - headerOffset;
-                window.scrollTo({
-                  top: offsetPosition,
-                  behavior: 'smooth'
-                });
-              }
-            }, 100);
-          } else if (productId === 'cv-builder') {
-            // Navigate to CV Builder dashboard
-            // Set navigation flags FIRST to prevent logout on page reload
-            sessionStorage.setItem('isNavigating', 'true');
-            sessionStorage.setItem('isReloading', 'true');
-            sessionStorage.setItem('navigationTimestamp', Date.now().toString());
-            sessionStorage.setItem('navigateToCVBuilder', 'true');
-            localStorage.setItem('navigateToCVBuilder', 'true'); // Backup in localStorage
-            localStorage.setItem('selectedApp', 'cv-builder');
-            
-            // Clear products page flags to ensure navigation works
-            localStorage.removeItem('showProductsPage');
-            sessionStorage.removeItem('showProductsPage');
-            if (window.resetProductsPageFlag) {
-              window.resetProductsPageFlag();
-            }
-            
-            // Ensure selectedApp is set to cv-builder (already set above, but ensure it's correct)
-            localStorage.setItem('selectedApp', 'cv-builder');
-            
-            // Clear hash if present - this ensures shouldShowProductsPage will be false
-            if (window.location.hash) {
-              window.history.replaceState(null, '', window.location.pathname);
-            }
-            
-            // Navigate to root - App.js will show CV Dashboard
-            // All flags are set in localStorage/sessionStorage before navigation
-            // The routing check at line 1006 in App.js will detect currentSelectedApp === 'cv-builder'
-            // and show the CV Dashboard
-            window.location.href = '/';
-          } else if (productId === 'id-card-print') {
-            // Navigate to ID Card Print dashboard
-            // Set navigation flags FIRST to prevent logout on page reload
-            sessionStorage.setItem('isNavigating', 'true');
-            sessionStorage.setItem('isReloading', 'true');
-            sessionStorage.setItem('navigateToIDCardPrint', 'true');
-            localStorage.setItem('navigateToIDCardPrint', 'true');
-            localStorage.setItem('selectedApp', 'id-card-print');
-            // Clear products page flags
-            localStorage.removeItem('showProductsPage');
-            sessionStorage.removeItem('showProductsPage');
-            // Navigate to root - App.js will show ID Card Print dashboard
-            window.location.href = '/';
-          }
-        } else {
-          // User is not authenticated - show login form
-          // Set flag to navigate to respective dashboard after login
-          if (productId === 'marketplace') {
-            // For marketplace, just scroll to section (no login required)
-            setTimeout(() => {
-              const productsPage = document.querySelector('.products-page');
-              const element = document.getElementById('marketplace-section');
-              if (element && productsPage) {
-                const headerOffset = 20;
-                const containerRect = productsPage.getBoundingClientRect();
-                const elementRect = element.getBoundingClientRect();
-                const currentScrollTop = productsPage.scrollTop;
-                const elementTopInContainer = currentScrollTop + (elementRect.top - containerRect.top);
-                const offsetPosition = elementTopInContainer - headerOffset;
-                
-                productsPage.scrollTo({
-                  top: Math.max(0, offsetPosition),
-                  behavior: 'smooth'
-                });
-              } else if (element) {
-                // Fallback to window scroll
-                const headerOffset = 100;
-                const elementPosition = element.getBoundingClientRect().top;
-                const offsetPosition = elementPosition + (window.pageYOffset || window.scrollY || 0) - headerOffset;
-                window.scrollTo({
-                  top: offsetPosition,
-                  behavior: 'smooth'
-                });
-              }
-            }, 100);
-          } else if (productId === 'id-card-print') {
-            sessionStorage.setItem('navigateToIDCardPrint', 'true');
-            localStorage.setItem('navigateToIDCardPrint', 'true');
-            localStorage.setItem('selectedApp', 'id-card-print');
-            setShowLogin(true);
-          } else if (productId === 'cv-builder') {
-            sessionStorage.setItem('navigateToCVBuilder', 'true');
-            localStorage.setItem('selectedApp', 'cv-builder');
-            setShowLogin(true);
-          }
-        }
-      } catch (error) {
-        // Only log unexpected errors
-        console.error('Unexpected error in handleGetStarted:', error);
-        // On error, show login form
-        setShowLogin(true);
-      }
-    };
-    checkAuth();
-  };
-
-  // eslint-disable-next-line no-unused-vars
-  const handleTemplateClick = (templateNumber) => {
-    // Check if user is authenticated - check both authService and localStorage
-    const checkAuth = async () => {
-      try {
-        // First check localStorage for quick auth status
-        const isAuthInStorage = localStorage.getItem('cvBuilderAuth') === 'true';
-        
-        // Then check with authService (safely)
-        const user = await safeGetCurrentUser();
-        const isAuthenticated = user !== null || isAuthInStorage;
-        
-        // Set template selection and navigation flags FIRST (for both authenticated and unauthenticated)
-        // This ensures navigation works correctly after login
-        sessionStorage.setItem('navigateToCVBuilder', 'true');
-        localStorage.setItem('navigateToCVBuilder', 'true');
-        localStorage.setItem('selectedTemplate', `template${templateNumber}`);
-        localStorage.setItem('selectedApp', 'cv-builder');
-        // Set a special flag to indicate template was clicked - this prevents handleAuth from clearing navigation flags
-        sessionStorage.setItem('templateClicked', 'true');
-        localStorage.setItem('templateClicked', 'true');
-        
-        if (isAuthenticated) {
-          // User is authenticated - navigate to CV Dashboard with selected template
-          // Set navigation flag to prevent logout on page reload
-          sessionStorage.setItem('isNavigating', 'true');
-          sessionStorage.setItem('isReloading', 'true');
-          sessionStorage.setItem('navigationTimestamp', Date.now().toString());
-          // Do NOT set goToCVForm - we want to go to Dashboard, not form
-          
-          // Clear products page flags to ensure navigation works
-          localStorage.removeItem('showProductsPage');
-          sessionStorage.removeItem('showProductsPage');
-          if (window.resetProductsPageFlag) {
-            window.resetProductsPageFlag();
-          }
-          
-          // Ensure selectedApp is set to cv-builder (already set above, but ensure it's correct)
-          localStorage.setItem('selectedApp', 'cv-builder');
-          
-          // Clear hash if present - this ensures shouldShowProductsPage will be false
-          if (window.location.hash) {
-            window.history.replaceState(null, '', window.location.pathname);
-          }
-          
-          // Navigate to root - App.js will show CV Dashboard
-          // All flags are set in localStorage/sessionStorage before navigation
-          // The routing check at line 1006 in App.js will detect currentSelectedApp === 'cv-builder'
-          // and show the CV Dashboard
-          window.location.href = '/';
-        } else {
-          // User is not authenticated - show login form
-          // Flags are already set above, so after login, user will be navigated to CV Dashboard
-          setShowLogin(true);
-        }
-      } catch (error) {
-        // Only log unexpected errors
-        console.error('Unexpected error in handleTemplateClick:', error);
-        // On error, show login form and set flags
-        sessionStorage.setItem('navigateToCVBuilder', 'true');
-        localStorage.setItem('navigateToCVBuilder', 'true');
-        localStorage.setItem('selectedTemplate', `template${templateNumber}`);
-        localStorage.setItem('selectedApp', 'cv-builder');
-        sessionStorage.setItem('templateClicked', 'true');
-        localStorage.setItem('templateClicked', 'true');
-        setShowLogin(true);
-      }
-    };
-    checkAuth();
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-
-    try {
-      if (isLogin) {
-        // Real Supabase login
-        const { error } = await authService.signIn(email, password);
-        
-        if (error) {
-          console.error('Login error:', error);
-          setError('Login failed: ' + error.message);
-          return;
-        }
-        localStorage.setItem('cvBuilderAuth', 'true');
-        // Set flags to prevent checkAuth and App.js from clearing auth state
-        // Set both flags to ensure compatibility with all auth checks
-        const loginTimestamp = Date.now();
-        sessionStorage.setItem('justAuthenticated', 'true');
-        sessionStorage.setItem('justLoggedIn', loginTimestamp.toString());
-        // Clear these flags after navigation completes (longer delay)
-        setTimeout(() => {
-          sessionStorage.removeItem('justAuthenticated');
-        }, 5000); // 5 seconds to ensure navigation completes
-        setTimeout(() => {
-          sessionStorage.removeItem('justLoggedIn');
-        }, 10000); // 10 seconds for App.js auth handler
-        // Show success message
-        setLoginSuccess(true);
-        setError('');
-        // Dispatch authentication event
-        window.dispatchEvent(new CustomEvent('userAuthenticated'));
-        
-        // Check if user wants to navigate to CV Builder or ID Card Print
-        const navigateToCVBuilder = sessionStorage.getItem('navigateToCVBuilder') === 'true' || localStorage.getItem('navigateToCVBuilder') === 'true';
-        const navigateToIDCardPrint = sessionStorage.getItem('navigateToIDCardPrint') === 'true' || localStorage.getItem('navigateToIDCardPrint') === 'true';
-        
-        // Ensure flags are set in both storages for persistence
-        if (navigateToIDCardPrint) {
-          sessionStorage.setItem('navigateToIDCardPrint', 'true');
-          localStorage.setItem('navigateToIDCardPrint', 'true');
-        }
-        if (navigateToCVBuilder) {
-          sessionStorage.setItem('navigateToCVBuilder', 'true');
-        }
-        
-        // Wait a moment to show success message, then proceed
-        setTimeout(() => {
-          // Close login modal
-          setShowLogin(false);
-          setLoginSuccess(false);
-          setEmail('');
-          setPassword('');
-          setConfirmPassword('');
-          setUserType('regular');
-          
-          if (navigateToCVBuilder || navigateToIDCardPrint) {
-            // User wants to navigate to a specific product after login
-            // Clear products page flags to allow navigation to specific product
-            localStorage.removeItem('showProductsPage');
-            sessionStorage.removeItem('showProductsPage');
-            // Clear login form flags
-            sessionStorage.removeItem('showLoginForm');
-            localStorage.removeItem('showLoginForm');
-            // Set flag to indicate this is a navigation, not a close
-            sessionStorage.setItem('isNavigating', 'true');
-            sessionStorage.setItem('navigationTimestamp', Date.now().toString());
-            // Clear hash to allow dashboard to show
-            window.location.hash = '';
-            // The auth state change event will trigger handleAuth in App.js, which will handle navigation
-            // No need to reload - the auth state change will trigger a re-render
-          } else {
-            // No navigation flags - user should land on homepage after login
-            // Clear selectedApp to show homepage
-            localStorage.removeItem('selectedApp');
-            // Clear all marketplace and login flags
-            sessionStorage.removeItem('showProductsPage');
-            localStorage.removeItem('showProductsPage');
-            sessionStorage.removeItem('showLoginForm');
-            localStorage.removeItem('showLoginForm');
-            // Navigate to homepage
-            if (window.location.pathname !== '/') {
-              window.location.href = '/';
-            }
-            // The auth state change will handle the UI update
-          }
-        }, 1500); // Show success message for 1.5 seconds
-        
-      } else {
-        // Real Supabase signup
-        if (password !== confirmPassword) {
-          setError('Passwords do not match');
-          return;
-        }
-        if (password.length < 6) {
-          setError('Password must be at least 6 characters');
-          return;
-        }
-        if (!userType || (userType !== 'regular' && userType !== 'shopkeeper')) {
-          setError('Please select whether you are a Regular User or Shopkeeper');
-          return;
-        }
-        
-        const { error } = await authService.signUp(email, password, {
-          full_name: email.split('@')[0], // Use email prefix as name
-          user_type: userType // 'regular' or 'shopkeeper'
-        });
-        
-        if (error) {
-          console.error('Signup error:', error);
-          setError('Signup failed: ' + error.message);
-          return;
-        }
-        setError('Signup successful! Please check your email to confirm your account, then login.');
-        setIsLogin(true);
-      }
-    } catch (err) {
-      console.error('Authentication error:', err);
-      setError('Authentication failed: ' + err.message);
-    }
-  };
-
-  const toggleMode = () => {
-    setIsLogin(!isLogin);
-    setError('');
-    setEmail('');
-    setPassword('');
-    setConfirmPassword('');
-    setUserType('regular'); // Reset to default
-    setShowForgotPassword(false);
-    setResetEmailSent(false);
-  };
-
-  const handleForgotPassword = async (e) => {
-    e.preventDefault();
-    setError('');
-    
-    if (!email) {
-      setError('Please enter your email address');
-      return;
-    }
-
-    try {
-      await authService.resetPassword(email);
-      setResetEmailSent(true);
-      setError('');
-    } catch (err) {
-      console.error('Password reset error:', err);
-      setError('Failed to send reset email: ' + err.message);
-    }
-  };
-
-  const handleBackToLogin = () => {
-    setShowForgotPassword(false);
-    setResetEmailSent(false);
-    setError('');
-  };
-
-  const handleGoogleSignIn = useCallback(async (e) => {
-    // Prevent any default behavior
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    
-    // Prevent if already signing in
-    if (isGoogleSigningIn || pendingGoogleSignIn) {
-      return;
-    }
-    
-    setError('');
-    // Show user type selection modal first
-    setShowUserTypeModal(true);
-    setPendingGoogleSignIn(true);
-  }, [isGoogleSigningIn, pendingGoogleSignIn]);
-  
-  // Mobile-specific touch handler
-  const handleGoogleSignInTouch = useCallback((e) => {
-    e.preventDefault();
+  const handleAddToCart = (e, product) => {
     e.stopPropagation();
-    // Call handleGoogleSignIn directly
-    if (isGoogleSigningIn || pendingGoogleSignIn) {
-      return;
-    }
-    setError('');
-    setShowUserTypeModal(true);
-    setPendingGoogleSignIn(true);
-  }, [isGoogleSigningIn, pendingGoogleSignIn]);
+    addToCart(product);
+  };
 
-  const handleUserTypeSelectedForGoogle = async (selectedType) => {
-    setUserType(selectedType);
-    setShowUserTypeModal(false);
-    setIsGoogleSigningIn(true);
-    
-    // Store user type in sessionStorage for after OAuth callback
-    sessionStorage.setItem('pendingUserType', selectedType);
-    
-    // Listen for callback to hide loading
-    const handleCallback = () => {
-      setIsGoogleSigningIn(false);
-      setPendingGoogleSignIn(false);
-      window.removeEventListener('googleSignInCallbackReceived', handleCallback);
-      window.removeEventListener('googleSignInError', handleError);
-    };
-    
-    const handleError = (event) => {
-      setIsGoogleSigningIn(false);
-      setPendingGoogleSignIn(false);
-      setError('Google sign-in failed. Please try again.');
-      window.removeEventListener('googleSignInCallbackReceived', handleCallback);
-      window.removeEventListener('googleSignInError', handleError);
-    };
-    
-    window.addEventListener('googleSignInCallbackReceived', handleCallback);
-    window.addEventListener('googleSignInError', handleError);
-    
-    try {
-      const { error } = await authService.signInWithGoogle();
-      
-      if (error) {
-        console.error('Google sign-in error:', error);
-        setIsGoogleSigningIn(false);
-        setPendingGoogleSignIn(false);
-        setError('Google sign-in failed: ' + error.message);
-        window.removeEventListener('googleSignInCallbackReceived', handleCallback);
-        window.removeEventListener('googleSignInError', handleError);
-        return;
-      }
-      
-      // The OAuth flow will redirect, so we don't need to handle success here
-      // The auth state change will be handled by App.js
-      // Loading state will be cleared when callback is received
-    } catch (err) {
-      console.error('Google authentication error:', err);
-      setIsGoogleSigningIn(false);
-      setPendingGoogleSignIn(false);
-      setError('Google authentication failed: ' + err.message);
-      window.removeEventListener('googleSignInCallbackReceived', handleCallback);
-      window.removeEventListener('googleSignInError', handleError);
-    }
+  const handleBuyNow = (e, product) => {
+    e.stopPropagation();
+    addToCart(product);
+    navigate('/checkout');
+  };
+
+  const handleSectionClick = (sectionId) => {
+    setSelectedSection(selectedSection === sectionId ? null : sectionId);
+    setCurrentPage(INITIAL_PAGE);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery('');
   };
 
   return (
-    <>
-    <div className="products-page">
-      <div className="products-container">
-        {/* Market Place Detailed View - Fresh Design */}
-            <div id="marketplace-section" className="product-section-fresh">
-              <div className="product-content-wrapper">
-                {/* Search Bar */}
-                <div className="marketplace-search-container">
-                  <div className="marketplace-search-wrapper">
-                    <div className="marketplace-search-icon">🔍</div>
-                    <input
-                      type="text"
-                      className="marketplace-search-input"
-                      placeholder="Search products by name, description, or category..."
-                      value={searchQuery}
-                      onChange={handleSearchChange}
-                      aria-label="Search products"
-                    />
-                    {searchQuery && (
-                      <button
-                        type="button"
-                        className="marketplace-search-clear"
-                        onClick={handleClearSearch}
-                        aria-label="Clear search"
-                      >
-                        ×
-                      </button>
-                    )}
-                  </div>
-                  {searchQuery && (
-                    <div className="marketplace-search-results-count">
-                      {filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'} found
-                    </div>
-                  )}
-                </div>
-                
-                <div className="section-header-fresh">
-                  <h2 className="section-title-fresh">Featured Products</h2>
-                  <div className="section-divider"></div>
-                  </div>
+    <div className="marketplace-page">
+      <div className="marketplace-container">
+        {/* Header */}
+        <div className="marketplace-header">
+          <h1>Welcome to Glory</h1>
+          <h2>Products and Professional Services</h2>
+        </div>
 
-                <div className="marketplace-categories-fresh">
-                    {loadingMarketplace ? (
-                    <div className="marketplace-loading-container">
-                      <div className="marketplace-loading-spinner"></div>
-                      <p className="marketplace-loading-text">Loading products...</p>
-                    </div>
-                    ) : searchQuery && filteredProducts.length === 0 ? (
-                    <div className="empty-state-fresh">
-                      <div className="empty-state-icon">🔍</div>
-                      <p className="empty-state-text">No products found matching "{searchQuery}"</p>
-                      <button 
-                        type="button"
-                        onClick={handleClearSearch}
-                        className="marketplace-search-clear-all"
-                      >
-                        Clear Search
-                      </button>
-                    </div>
-                    ) : marketplaceSections.length === 0 ? (
-                    <div className="empty-state-fresh">
-                      <div className="empty-state-icon">📦</div>
-                      <p className="empty-state-text">No products available yet. Admin can add sections and products using the Admin Panel.</p>
-                      </div>
-                    ) : searchQuery ? (
-                      // When searching, show all filtered products in a single grid
-                      <div className="category-section-fresh">
-                        <div className="category-header-fresh">
-                          <h3 className="category-title-fresh">Search Results</h3>
-                          <div className="category-badge">{filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'}</div>
-                        </div>
-                        <div className="products-grid-fresh">
-                          {marketplaceProducts.map((product) => {
-                                const handleProductClick = (e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  window.location.href = `/#product/${product.id}`;
-                                };
+        {/* Search */}
+        <div className="marketplace-search">
+          <input
+            type="text"
+            placeholder="Search products..."
+            value={searchQuery}
+            onChange={handleSearchChange}
+            className="search-input"
+          />
+          {searchQuery && (
+            <button onClick={handleClearSearch} className="search-clear">×</button>
+          )}
+        </div>
 
-                                const handleAddToCart = (e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  addToCart(product);
-                                  
-                                  // Calculate position relative to the clicked card
-                                  const cardElement = e.target.closest('.product-card-fresh');
-                                  if (cardElement) {
-                                    const cardRect = cardElement.getBoundingClientRect();
-                                    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-                                    const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
-                                    
-                                    // Notification dimensions (approximate)
-                                    const notificationWidth = window.innerWidth > 768 ? 320 : Math.min(300, window.innerWidth - 20);
-                                    
-                                    // Position notification near the top of the card
-                                    let top = cardRect.top + scrollTop + 10;
-                                    let left = cardRect.left + scrollLeft + (cardRect.width / 2) - (notificationWidth / 2);
-                                    
-                                    // Ensure notification stays within viewport
-                                    if (left < scrollLeft + 10) {
-                                      left = scrollLeft + 10;
-                                    } else if (left + notificationWidth > scrollLeft + window.innerWidth - 10) {
-                                      left = scrollLeft + window.innerWidth - notificationWidth - 10;
-                                    }
-                                    
-                                    // On mobile, position it at the top of the card
-                                    if (window.innerWidth <= 768) {
-                                      top = cardRect.top + scrollTop + 5;
-                                      left = scrollLeft + (window.innerWidth / 2) - (notificationWidth / 2);
-                                    }
-                                    
-                                    // Show clear notification message
-                                    setCartNotification({
-                                      show: true,
-                                      message: 'Added to cart!',
-                                      productName: product.name,
-                                      position: { top, left }
-                                    });
-                                    
-                                    // Hide notification after 3 seconds
-                                    setTimeout(() => {
-                                      setCartNotification({ 
-                                        show: false, 
-                                        message: '', 
-                                        productName: '',
-                                        position: { top: 0, left: 0 }
-                                      });
-                                    }, 3000);
-                                  }
-                                };
-
-                                const handleBuyNow = (e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  // Add product to cart first
-                                  addToCart(product);
-                                  // Navigate directly to checkout using React Router
-                                  // Preserve authentication state
-                                  const wasAuthenticated = localStorage.getItem('cvBuilderAuth') === 'true';
-                                  sessionStorage.setItem('isNavigating', 'true');
-                                  sessionStorage.setItem('navigationTimestamp', Date.now().toString());
-                                  // Set routing flags to prevent homepage redirect
-                                  localStorage.setItem('routingApp', 'checkout');
-                                  // Navigate to checkout
-                                  navigate('/checkout');
-                                  // Restore auth state after navigation
-                                  if (wasAuthenticated) {
-                                    setTimeout(() => {
-                                      localStorage.setItem('cvBuilderAuth', 'true');
-                                    }, 100);
-                                  }
-                                };
-                                
-                                const productImages = getProductImages(product);
-                                
-                                return (
-                                  <ProductCard
-                                    key={product.id}
-                                    product={product}
-                                    productImages={productImages}
-                                    onProductClick={handleProductClick}
-                                    onAddToCart={handleAddToCart}
-                                    onBuyNow={handleBuyNow}
-                                  />
-                                );
-                              })}
-                        </div>
-                      </div>
-                    ) : (
-                      // When not searching, show products grouped by sections
-                      marketplaceSections.map((section) => {
-                        // Filter products for this section from ALL products (not just paginated ones)
-                        // This ensures all products in a section are displayed, not just the first batch
-                        const sectionProducts = allProducts.filter(
-                          (product) => product.section_id === section.id
-                        );
-                        
-                        if (sectionProducts.length === 0) {
-                          return null;
-                        }
-
-                        return (
-                        <div key={section.id} className="category-section-fresh">
-                          <div className="category-header-fresh">
-                            <h3 className="category-title-fresh">{section.name}</h3>
-                            <div className="category-badge">{sectionProducts.length} {sectionProducts.length === 1 ? 'product' : 'products'}</div>
-                          </div>
-                          <div className="products-grid-fresh">
-                              {sectionProducts.map((product) => {
-                                const handleProductClick = (e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  window.location.href = `/#product/${product.id}`;
-                                };
-
-                                const handleAddToCart = (e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  addToCart(product);
-                                  
-                                  // Calculate position relative to the clicked card
-                                  const cardElement = e.target.closest('.product-card-fresh');
-                                  if (cardElement) {
-                                    const cardRect = cardElement.getBoundingClientRect();
-                                    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-                                    const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
-                                    
-                                    // Notification dimensions (approximate)
-                                    const notificationWidth = window.innerWidth > 768 ? 320 : Math.min(300, window.innerWidth - 20);
-                                    
-                                    // Position notification near the top of the card
-                                    let top = cardRect.top + scrollTop + 10;
-                                    let left = cardRect.left + scrollLeft + (cardRect.width / 2) - (notificationWidth / 2);
-                                    
-                                    // Ensure notification stays within viewport
-                                    if (left < scrollLeft + 10) {
-                                      left = scrollLeft + 10;
-                                    } else if (left + notificationWidth > scrollLeft + window.innerWidth - 10) {
-                                      left = scrollLeft + window.innerWidth - notificationWidth - 10;
-                                    }
-                                    
-                                    // On mobile, position it at the top of the card
-                                    if (window.innerWidth <= 768) {
-                                      top = cardRect.top + scrollTop + 5;
-                                      left = scrollLeft + (window.innerWidth / 2) - (notificationWidth / 2);
-                                    }
-                                    
-                                    // Show clear notification message
-                                    setCartNotification({
-                                      show: true,
-                                      message: 'Added to cart!',
-                                      productName: product.name,
-                                      position: { top, left }
-                                    });
-                                    
-                                    // Hide notification after 3 seconds
-                                    setTimeout(() => {
-                                      setCartNotification({ 
-                                        show: false, 
-                                        message: '', 
-                                        productName: '',
-                                        position: { top: 0, left: 0 }
-                                      });
-                                    }, 3000);
-                                  }
-                                };
-
-                                const handleBuyNow = (e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  // Add product to cart first
-                                  addToCart(product);
-                                  // Navigate directly to checkout using React Router
-                                  // Preserve authentication state
-                                  const wasAuthenticated = localStorage.getItem('cvBuilderAuth') === 'true';
-                                  sessionStorage.setItem('isNavigating', 'true');
-                                  sessionStorage.setItem('navigationTimestamp', Date.now().toString());
-                                  // Set routing flags to prevent homepage redirect
-                                  localStorage.setItem('routingApp', 'checkout');
-                                  // Navigate to checkout
-                                  navigate('/checkout');
-                                  // Restore auth state after navigation
-                                  if (wasAuthenticated) {
-                                    setTimeout(() => {
-                                      localStorage.setItem('cvBuilderAuth', 'true');
-                                    }, 100);
-                                  }
-                                };
-                                
-                                const productImages = getProductImages(product);
-                                
-                                return (
-                                  <ProductCard
-                                    key={product.id}
-                                    product={product}
-                                    productImages={productImages}
-                                    onProductClick={handleProductClick}
-                                    onAddToCart={handleAddToCart}
-                                    onBuyNow={handleBuyNow}
-                                  />
-                                );
-                              })}
-                            </div>
-                          </div>
-                        );
-                      })
-                    )}
-                    
-                    {/* Load More Trigger - Hidden element for infinite scroll */}
-                    {!loadingMarketplace && marketplaceSections.length > 0 && hasMoreProducts && (
-                      <div 
-                        ref={loadMoreRef}
-                        className="load-more-trigger"
-                        style={{ 
-                          height: '1px', 
-                          width: '100%'
-                        }}
-                      />
-                    )}
-                    
-                    {/* Loading More Products Indicator */}
-                    {loadingMoreProducts && (
-                      <div className="marketplace-loading-more">
-                        <div className="marketplace-loading-spinner-small"></div>
-                        <p className="marketplace-loading-text-small">Loading more products...</p>
-                      </div>
-                    )}
-                    
-                </div>
-              </div>
-            </div>
-
-
-        {/* Login Form Modal Popup */}
-        {showLogin && (
-          <div className="login-modal-overlay" onClick={() => {
-            setShowLogin(false);
-            setError('');
-            setLoginSuccess(false);
-            setEmail('');
-            setPassword('');
-            setConfirmPassword('');
-            setUserType('regular');
-            // Keep showLoginForm flags set so form can be reopened by clicking sign-in again
-            // Only clear flags if user is authenticated
-            const isAuth = localStorage.getItem('cvBuilderAuth') === 'true';
-            if (!isAuth) {
-              // User closed without signing in - keep flags so form can be shown again
-              localStorage.setItem('showLoginForm', 'true');
-              sessionStorage.setItem('showLoginForm', 'true');
-            }
-          }}>
-            <div className="login-modal-content" onClick={(e) => e.stopPropagation()}>
-              <button 
-                className="login-modal-close"
-                onClick={() => {
-                  setShowLogin(false);
-                  setError('');
-                  setLoginSuccess(false);
-                  setEmail('');
-                  setPassword('');
-                  setConfirmPassword('');
-                  setUserType('regular');
-                  // Keep showLoginForm flags set so form can be reopened by clicking sign-in again
-                  // Only clear flags if user is authenticated
-                  const isAuth = localStorage.getItem('cvBuilderAuth') === 'true';
-                  if (!isAuth) {
-                    // User closed without signing in - keep flags so form can be shown again
-                    localStorage.setItem('showLoginForm', 'true');
-                    sessionStorage.setItem('showLoginForm', 'true');
-                  }
-                }}
-                aria-label="Close"
+        {/* Sections */}
+        {sections.length > 0 && (
+          <div className="marketplace-sections">
+            <button
+              className={`section-btn ${selectedSection === null ? 'active' : ''}`}
+              onClick={() => handleSectionClick(null)}
+            >
+              All
+            </button>
+            {sections.map(section => (
+              <button
+                key={section.id}
+                className={`section-btn ${selectedSection === section.id ? 'active' : ''}`}
+                onClick={() => handleSectionClick(section.id)}
               >
-                ×
+                {section.name}
               </button>
-              <div className="login-card-inline">
-                <div className="login-header-inline">
-                  <h2>Welcome</h2>
-                  <p>{isLogin ? 'Sign in to access all products' : 'Get Started - It\'s Free!'}</p>
-                  {!isLogin && (
-                    <div className="welcome-message-inline">
-                      <p>Access all our products with one account</p>
-                      <p>Your data is automatically saved</p>
-                    </div>
-                  )}
-                </div>
-
-                {loginSuccess && (
-                  <div className="login-success-message">
-                    <div className="success-icon">✓</div>
-                    <div className="success-text">
-                      <h3>Login Successful!</h3>
-                      <p>You are now logged in. Redirecting...</p>
-                    </div>
-                  </div>
-                )}
-                {error && !loginSuccess && (
-                  <div className="error-message-inline">{error}</div>
-                )}
-                {showForgotPassword ? (
-                  <form onSubmit={handleForgotPassword} className="login-form-inline" style={{ display: loginSuccess ? 'none' : 'block' }}>
-                    {resetEmailSent ? (
-                      <div className="success-message-inline">
-                        <p>✅ Password reset email sent!</p>
-                        <p>Please check your email inbox and follow the instructions to reset your password.</p>
-                        <button 
-                          type="button" 
-                          onClick={handleBackToLogin}
-                          className="login-button-inline"
-                          style={{ marginTop: '1rem' }}
-                        >
-                          Back to Sign In
-                        </button>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="form-group-inline">
-                          <label htmlFor="reset-email-inline">Email Address</label>
-                          <input
-                            type="email"
-                            id="reset-email-inline"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder="Enter your email"
-                            required
-                          />
-                        </div>
-
-                        {error && <div className="error-message-inline">{error}</div>}
-
-                        <button type="submit" className="login-button-inline">
-                          Send Reset Link
-                        </button>
-
-                        <button 
-                          type="button" 
-                          onClick={handleBackToLogin}
-                          className="toggle-button-inline"
-                          style={{ 
-                            width: '100%', 
-                            marginTop: '0.5rem',
-                            background: 'transparent',
-                            color: '#667eea',
-                            border: '1px solid #667eea',
-                            padding: '0.5rem'
-                          }}
-                        >
-                          Back to Sign In
-                        </button>
-                      </>
-                    )}
-                  </form>
-                ) : (
-                  <form onSubmit={handleSubmit} className="login-form-inline" style={{ display: loginSuccess ? 'none' : 'block' }}>
-                    <div className="form-group-inline">
-                      <label htmlFor="email">Email Address</label>
-                      <input
-                        type="email"
-                        id="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="Enter your email"
-                        required
-                      />
-                    </div>
-
-                    <div className="form-group-inline">
-                      <label htmlFor="password">Password</label>
-                      <input
-                        type="password"
-                        id="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Enter your password"
-                        required
-                      />
-                    </div>
-
-                    {!isLogin && (
-                      <>
-                        <div className="form-group-inline">
-                          <label htmlFor="confirmPassword">Confirm Password</label>
-                          <input
-                            type="password"
-                            id="confirmPassword"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            placeholder="Confirm your password"
-                            required
-                          />
-                        </div>
-                        
-                        <div className="form-group-inline">
-                          <label>I am a <span style={{ color: '#c33' }}>*</span></label>
-                          <div className="option-selector">
-                            <button
-                              type="button"
-                              className={`option-button ${userType === 'regular' ? 'active' : ''}`}
-                              onClick={() => setUserType('regular')}
-                            >
-                              Regular User
-                            </button>
-                            <button
-                              type="button"
-                              className={`option-button ${userType === 'shopkeeper' ? 'active' : ''}`}
-                              onClick={() => setUserType('shopkeeper')}
-                            >
-                              Shopkeeper
-                            </button>
-                          </div>
-                        </div>
-                      </>
-                    )}
-
-                    {error && !loginSuccess && <div className="error-message-inline">{error}</div>}
-
-                    <button type="submit" className="login-button-inline">
-                      {isLogin ? 'Sign In' : 'Get Started'}
-                    </button>
-                  </form>
-                )}
-
-                {!showForgotPassword && (
-                  <>
-                    <div className="divider-inline">
-                      <span>or</span>
-                    </div>
-
-                    <button 
-                      type="button" 
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        handleGoogleSignIn(e);
-                      }}
-                      onTouchStart={(e) => {
-                        // Prevent double-firing on mobile
-                        e.stopPropagation();
-                        handleGoogleSignInTouch(e);
-                      }}
-                      onTouchEnd={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                      }}
-                      onMouseDown={(e) => {
-                        // Ensure click works on mobile browsers that simulate mouse events
-                        if (!isGoogleSigningIn && !pendingGoogleSignIn) {
-                          e.stopPropagation();
-                        }
-                      }}
-                      className="google-button-inline"
-                      disabled={isGoogleSigningIn || pendingGoogleSignIn}
-                      style={{ 
-                        opacity: (isGoogleSigningIn || pendingGoogleSignIn) ? 0.7 : 1, 
-                        cursor: (isGoogleSigningIn || pendingGoogleSignIn) ? 'wait' : 'pointer',
-                        pointerEvents: (isGoogleSigningIn || pendingGoogleSignIn) ? 'none' : 'auto',
-                        WebkitTapHighlightColor: 'rgba(0, 0, 0, 0.1)',
-                        userSelect: 'none',
-                        WebkitUserSelect: 'none',
-                        touchAction: 'manipulation'
-                      }}
-                      aria-label="Continue with Google"
-                      aria-disabled={isGoogleSigningIn || pendingGoogleSignIn}
-                    >
-                      <svg className="google-icon" viewBox="0 0 24 24" width="20" height="20">
-                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                      </svg>
-                      {isGoogleSigningIn ? 'Signing in...' : 'Continue with Google'}
-                    </button>
-                  </>
-                )}
-
-                {!showForgotPassword && (
-                  <div className="login-footer-inline">
-                    <p>
-                      {isLogin ? "Don't have an account? " : "Already have an account? "}
-                      <button type="button" onClick={toggleMode} className="toggle-button-inline">
-                        {isLogin ? 'Get Started' : 'Sign In'}
-                      </button>
-                    </p>
-                    {isLogin && (
-                      <div className="forgot-password-inline">
-                        <button 
-                          type="button" 
-                          onClick={() => setShowForgotPassword(true)}
-                          className="forgot-password-link-inline"
-                        >
-                          Forgot your password?
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
+            ))}
           </div>
+        )}
+
+        {/* Products Grid */}
+        {loading && products.length === 0 ? (
+          <div className="loading">Loading products...</div>
+        ) : filteredProducts.length === 0 ? (
+          <div className="no-products">No products found.</div>
+        ) : (
+          <>
+            <div className="products-grid">
+              {filteredProducts.map(product => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onProductClick={() => handleProductClick(product)}
+                  onAddToCart={(e) => handleAddToCart(e, product)}
+                  onBuyNow={(e) => handleBuyNow(e, product)}
+                  adminShopName={adminShopName}
+                />
+              ))}
+            </div>
+
+            {/* Load more trigger */}
+            {hasMore && !loading && (
+              <div ref={observerRef} className="load-more-trigger" />
+            )}
+
+            {loading && products.length > 0 && (
+              <div className="loading-more">Loading more products...</div>
+            )}
+          </>
         )}
       </div>
     </div>
-
-    {/* Cart Notification */}
-    {cartNotification.show && (
-      <div 
-        className="cart-notification"
-        style={{
-          top: `${cartNotification.position.top}px`,
-          left: `${cartNotification.position.left}px`
-        }}
-      >
-        <div className="cart-notification-content">
-          <span className="cart-notification-icon">✓</span>
-          <div className="cart-notification-text">
-            <div className="cart-notification-message">{cartNotification.message}</div>
-            <div className="cart-notification-product">{cartNotification.productName}</div>
-          </div>
-        </div>
-      </div>
-    )}
-
-
-      {/* User Type Selection Modal for Google Sign-In */}
-      {showUserTypeModal && (
-        <div className="user-type-modal-overlay" onClick={() => {
-          setShowUserTypeModal(false);
-          setPendingGoogleSignIn(false);
-        }}>
-          <div className="user-type-modal-content" onClick={(e) => e.stopPropagation()}>
-            <h2>Select Your Account Type</h2>
-            <p>Please select whether you are a Regular User or Shopkeeper before continuing with Google</p>
-            <div className="option-selector" style={{ marginTop: '20px', marginBottom: '20px' }}>
-              <button
-                type="button"
-                className={`option-button ${userType === 'regular' ? 'active' : ''}`}
-                onClick={() => setUserType('regular')}
-              >
-                Regular User
-              </button>
-              <button
-                type="button"
-                className={`option-button ${userType === 'shopkeeper' ? 'active' : ''}`}
-                onClick={() => setUserType('shopkeeper')}
-              >
-                Shopkeeper
-              </button>
-            </div>
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-              <button
-                type="button"
-                className="toggle-button-inline"
-                onClick={() => {
-                  setShowUserTypeModal(false);
-                  setPendingGoogleSignIn(false);
-                }}
-                style={{ padding: '10px 20px', border: '1px solid #e0e0e0', borderRadius: '8px' }}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className="login-button-inline"
-                onClick={() => handleUserTypeSelectedForGoogle(userType)}
-                style={{ padding: '10px 20px' }}
-              >
-                Continue
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
   );
 };
 
-export default ProductsPage;
-
+export default Marketplace;

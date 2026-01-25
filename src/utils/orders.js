@@ -31,6 +31,43 @@ export const orderService = {
         .single();
 
       if (error) throw error;
+
+      // Decrement stock for each product in the order
+      if (orderData.order_items && Array.isArray(orderData.order_items)) {
+        for (const item of orderData.order_items) {
+          if (item.id) {
+            try {
+              // Get current stock
+              const { data: product, error: productError } = await supabase
+                .from('marketplace_products')
+                .select('stock')
+                .eq('id', item.id)
+                .single();
+
+              if (!productError && product) {
+                const currentStock = product.stock || 0;
+                const quantity = item.quantity || 1;
+                const newStock = Math.max(0, currentStock - quantity);
+
+                // Update stock
+                const { error: updateError } = await supabase
+                  .from('marketplace_products')
+                  .update({ stock: newStock })
+                  .eq('id', item.id);
+
+                if (updateError) {
+                  console.error(`Error updating stock for product ${item.id}:`, updateError);
+                  // Don't throw - order is already created, just log the error
+                }
+              }
+            } catch (stockErr) {
+              console.error(`Error decrementing stock for product ${item.id}:`, stockErr);
+              // Don't throw - order is already created, just log the error
+            }
+          }
+        }
+      }
+
       return data;
     } catch (error) {
       console.error('Error creating order:', error);
@@ -107,6 +144,49 @@ export const orderService = {
       return data || [];
     } catch (error) {
       console.error('Error getting all orders:', error);
+      throw error;
+    }
+  },
+
+  // Get orders for a shopkeeper (orders containing their products)
+  async getShopkeeperOrders(shopkeeperId) {
+    try {
+      if (!shopkeeperId) {
+        return [];
+      }
+
+      // First, get all product IDs for this shopkeeper
+      const { data: products, error: productsError } = await supabase
+        .from('marketplace_products')
+        .select('id')
+        .eq('shopkeeper_id', shopkeeperId);
+
+      if (productsError) throw productsError;
+
+      if (!products || products.length === 0) {
+        return []; // No products, so no orders
+      }
+
+      const productIds = products.map(p => p.id);
+
+      // Get all orders
+      const { data: allOrders, error: ordersError } = await supabase
+        .from(ORDERS_TABLE)
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (ordersError) throw ordersError;
+
+      // Filter orders to include only those that have at least one item from this shopkeeper
+      const shopkeeperOrders = (allOrders || []).filter(order => {
+        const orderItems = Array.isArray(order.order_items) ? order.order_items : [];
+        // Check if any order item's product ID matches one of the shopkeeper's products
+        return orderItems.some(item => productIds.includes(item.id));
+      });
+
+      return shopkeeperOrders;
+    } catch (error) {
+      console.error('Error getting shopkeeper orders:', error);
       throw error;
     }
   },

@@ -19,6 +19,9 @@ const UserProfile = () => {
     email: ''
   });
   const [userType, setUserType] = useState(null);
+  const [shopName, setShopName] = useState('');
+  const [isUpdatingShopName, setIsUpdatingShopName] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const loadUserData = async () => {
@@ -56,14 +59,15 @@ const UserProfile = () => {
         
         setUserType(type);
 
-        // Load location from database
+        // Load location and shop name from database
         const { data, error } = await supabase
           .from('users')
-          .select('latitude, longitude, address, city, full_name')
+          .select('latitude, longitude, address, city, full_name, shop_name, is_admin')
           .eq('id', user.id)
           .single();
 
         if (!error && data) {
+          setIsAdmin(data.is_admin || false);
           setLocation({
             latitude: data.latitude || null,
             longitude: data.longitude || null,
@@ -72,6 +76,10 @@ const UserProfile = () => {
           });
           if (data.full_name) {
             setUserData(prev => ({ ...prev, full_name: data.full_name }));
+          }
+          // Load shop name if user is shopkeeper or admin (even if empty)
+          if (type === 'shopkeeper' || data.is_admin) {
+            setShopName(data.shop_name || '');
           }
         }
       } catch (err) {
@@ -152,6 +160,50 @@ const UserProfile = () => {
     }
   };
 
+  const handleUpdateShopName = async () => {
+    if (!currentUser || !shopName.trim()) {
+      alert('Please enter a shop name');
+      return;
+    }
+
+    try {
+      setIsUpdatingShopName(true);
+      const { error } = await supabase
+        .from('users')
+        .update({ shop_name: shopName.trim() })
+        .eq('id', currentUser.id);
+
+      if (error) throw error;
+      
+      // Verify the update was successful
+      const { data: updatedUser, error: verifyError } = await supabase
+        .from('users')
+        .select('shop_name')
+        .eq('id', currentUser.id)
+        .single();
+      
+      if (verifyError) {
+        console.error('Error verifying shop name update:', verifyError);
+      } else {
+        console.log('Shop name updated successfully in database:', updatedUser?.shop_name);
+      }
+      
+      alert('Shop name updated successfully!');
+      
+      // Dispatch event to refresh products in marketplace
+      console.log('Dispatching shopNameUpdated event...');
+      window.dispatchEvent(new CustomEvent('shopNameUpdated', { 
+        detail: { shopkeeperId: currentUser.id, shopName: shopName.trim() }
+      }));
+      console.log('shopNameUpdated event dispatched');
+    } catch (err) {
+      console.error('Error updating shop name:', err);
+      alert('Error updating shop name: ' + err.message);
+    } finally {
+      setIsUpdatingShopName(false);
+    }
+  };
+
   if (loading) {
     return <div className="user-profile-loading">Loading profile...</div>;
   }
@@ -185,6 +237,37 @@ const UserProfile = () => {
           </div>
         </div>
       </div>
+
+      {(userType === 'shopkeeper' || isAdmin) && (
+        <div className="user-profile-section">
+          <h2>Shop Information</h2>
+          <p className="section-description">
+            Manage your shop name. This name will be displayed with your products in the marketplace.
+          </p>
+          <div className="location-form">
+            <input
+              type="text"
+              placeholder="Enter your shop name"
+              value={shopName}
+              onChange={(e) => setShopName(e.target.value)}
+              className="form-input"
+            />
+            <button
+              type="button"
+              onClick={handleUpdateShopName}
+              disabled={isUpdatingShopName || !shopName.trim()}
+              className="btn btn-success"
+            >
+              {isUpdatingShopName ? 'Updating...' : 'Update Shop Name'}
+            </button>
+          </div>
+          {shopName && (
+            <div className="location-display" style={{ marginTop: '1rem' }}>
+              <div><strong>Current Shop Name:</strong> {shopName}</div>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="user-profile-section">
         <h2>Location</h2>

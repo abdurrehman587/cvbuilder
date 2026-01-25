@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getCart, getCartTotal, clearCart } from '../../utils/cart';
 import { orderService } from '../../utils/orders';
-import { authService } from '../Supabase/supabase';
+import { authService, supabase } from '../Supabase/supabase';
 import './Checkout.css';
 
 const Checkout = () => {
@@ -105,6 +105,45 @@ const Checkout = () => {
     setLoading(true);
 
     try {
+      // Check stock availability for all items before placing order
+      const stockCheckPromises = cartItems.map(async (item) => {
+        const { data: product, error } = await supabase
+          .from('marketplace_products')
+          .select('id, name, stock')
+          .eq('id', item.id)
+          .single();
+
+        if (error || !product) {
+          return { item, available: false, error: 'Product not found' };
+        }
+
+        const currentStock = product.stock || 0;
+        const requestedQuantity = item.quantity || 1;
+        const available = currentStock >= requestedQuantity;
+
+        return {
+          item,
+          product,
+          available,
+          currentStock,
+          requestedQuantity,
+          error: available ? null : `Insufficient stock. Available: ${currentStock}, Requested: ${requestedQuantity}`
+        };
+      });
+
+      const stockChecks = await Promise.all(stockCheckPromises);
+      const unavailableItems = stockChecks.filter(check => !check.available);
+
+      if (unavailableItems.length > 0) {
+        const errorMessages = unavailableItems.map(check => 
+          `- ${check.item.name}: ${check.error}`
+        ).join('\n');
+        
+        alert(`Cannot place order. Some items are out of stock:\n\n${errorMessages}\n\nPlease remove these items from your cart and try again.`);
+        setLoading(false);
+        return;
+      }
+
       const orderData = {
         order_items: cartItems,
         total_amount: cartTotal,

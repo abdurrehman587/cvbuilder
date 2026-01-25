@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { orderService } from '../../utils/orders';
+import { supabase, authService } from '../Supabase/supabase';
 import './OrderDetails.css';
 
 const OrderDetails = ({ orderId: propOrderId }) => {
@@ -30,14 +31,44 @@ const OrderDetails = ({ orderId: propOrderId }) => {
     const urlParams = new URLSearchParams(hash.split('?')[1] || '');
     return urlParams.get('from') === 'admin';
   };
+
+  // Check if accessed from shopkeeper panel
+  const isFromShopkeeper = () => {
+    const hash = window.location.hash;
+    const urlParams = new URLSearchParams(hash.split('?')[1] || '');
+    return urlParams.get('from') === 'shopkeeper';
+  };
   
   const [orderId] = useState(() => getOrderIdFromUrl());
   const [fromAdmin] = useState(() => isFromAdmin());
+  const [fromShopkeeper] = useState(() => isFromShopkeeper());
+  const [shopkeeperProductIds, setShopkeeperProductIds] = useState([]);
 
   useEffect(() => {
     loadOrder();
+    if (fromShopkeeper) {
+      loadShopkeeperProducts();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderId]); // loadOrder is stable, no need to include it
+
+  const loadShopkeeperProducts = async () => {
+    try {
+      const user = await authService.getCurrentUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('marketplace_products')
+        .select('id')
+        .eq('shopkeeper_id', user.id);
+
+      if (!error && data) {
+        setShopkeeperProductIds(data.map(p => p.id));
+      }
+    } catch (err) {
+      console.error('Error loading shopkeeper products:', err);
+    }
+  };
 
   const loadOrder = async () => {
     if (!orderId) {
@@ -218,37 +249,55 @@ ${order.notes ? `📝 *Notes:*\n${order.notes}\n` : ''}
           <div className="order-details-section">
             <h3>Order Items</h3>
             <div className="order-items-list">
-              {order.order_items && Array.isArray(order.order_items) && order.order_items.map((item, index) => (
-                <div key={index} className="order-item">
-                  <div className="order-item-image">
-                    {item.image_url ? (
-                      <img src={item.image_url} alt={item.name} />
-                    ) : (
-                      <div className="order-item-placeholder">📦</div>
-                    )}
-                  </div>
-                  <div className="order-item-details">
-                    <h4>{item.name}</h4>
-                    <div className="order-item-price-info">
-                      {item.original_price && item.original_price > item.price ? (
-                        <>
-                          <span className="order-item-price-discounted">Rs. {item.price?.toLocaleString() || '0'}</span>
-                          <span className="order-item-price-original">Rs. {item.original_price?.toLocaleString() || '0'}</span>
-                        </>
+              {(() => {
+                let itemsToShow = order.order_items && Array.isArray(order.order_items) ? order.order_items : [];
+                
+                // If viewing from shopkeeper panel, filter to show only their products
+                if (fromShopkeeper && shopkeeperProductIds.length > 0) {
+                  itemsToShow = itemsToShow.filter(item => shopkeeperProductIds.includes(item.id));
+                }
+                
+                return itemsToShow.map((item, index) => (
+                  <div key={index} className="order-item">
+                    <div className="order-item-image">
+                      {item.image_url ? (
+                        <img src={item.image_url} alt={item.name} />
                       ) : (
-                        <span className="order-item-price-regular">Rs. {item.price?.toLocaleString() || '0'}</span>
+                        <div className="order-item-placeholder">📦</div>
                       )}
                     </div>
+                    <div className="order-item-details">
+                      <h4>{item.name}</h4>
+                      <div className="order-item-price-info">
+                        {item.original_price && item.original_price > item.price ? (
+                          <>
+                            <span className="order-item-price-discounted">Rs. {item.price?.toLocaleString() || '0'}</span>
+                            <span className="order-item-price-original">Rs. {item.original_price?.toLocaleString() || '0'}</span>
+                          </>
+                        ) : (
+                          <span className="order-item-price-regular">Rs. {item.price?.toLocaleString() || '0'}</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="order-item-quantity">
+                      <span>Qty: {item.quantity || 1}</span>
+                      <span className="order-item-total">
+                        Rs. {((item.price || 0) * (item.quantity || 1)).toLocaleString()}
+                      </span>
+                    </div>
                   </div>
-                  <div className="order-item-quantity">
-                    <span>Qty: {item.quantity || 1}</span>
-                    <span className="order-item-total">
-                      Rs. {((item.price || 0) * (item.quantity || 1)).toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                ));
+              })()}
             </div>
+            {fromShopkeeper && order.order_items && Array.isArray(order.order_items) && (() => {
+              const shopkeeperItems = order.order_items.filter(item => shopkeeperProductIds.includes(item.id));
+              const hasOtherItems = order.order_items.length > shopkeeperItems.length;
+              return hasOtherItems && (
+                <p style={{ marginTop: '1rem', color: '#6b7280', fontSize: '0.875rem' }}>
+                  Note: This order contains items from other shopkeepers. Only your products are shown above.
+                </p>
+              );
+            })()}
           </div>
 
           {/* Customer Information */}
@@ -299,18 +348,33 @@ ${order.notes ? `📝 *Notes:*\n${order.notes}\n` : ''}
           <div className="order-details-section order-summary">
             <h3>Order Summary</h3>
             <div className="order-summary-content">
-              <div className="order-summary-row">
-                <span>Subtotal</span>
-                <span>Rs. {order.total_amount?.toLocaleString() || '0'}</span>
-              </div>
-              <div className="order-summary-row">
-                <span>Shipping</span>
-                <span>Free</span>
-              </div>
-              <div className="order-summary-total">
-                <span>Total</span>
-                <span>Rs. {order.total_amount?.toLocaleString() || '0'}</span>
-              </div>
+              {(() => {
+                let itemsToShow = order.order_items && Array.isArray(order.order_items) ? order.order_items : [];
+                let subtotal = order.total_amount || 0;
+                
+                // If viewing from shopkeeper panel, calculate total for their items only
+                if (fromShopkeeper && shopkeeperProductIds.length > 0) {
+                  itemsToShow = itemsToShow.filter(item => shopkeeperProductIds.includes(item.id));
+                  subtotal = itemsToShow.reduce((sum, item) => sum + ((item.price || 0) * (item.quantity || 1)), 0);
+                }
+                
+                return (
+                  <>
+                    <div className="order-summary-row">
+                      <span>Subtotal</span>
+                      <span>Rs. {subtotal?.toLocaleString() || '0'}</span>
+                    </div>
+                    <div className="order-summary-row">
+                      <span>Shipping</span>
+                      <span>Free</span>
+                    </div>
+                    <div className="order-summary-total">
+                      <span>Total</span>
+                      <span>Rs. {subtotal?.toLocaleString() || '0'}</span>
+                    </div>
+                  </>
+                );
+              })()}
             </div>
           </div>
 

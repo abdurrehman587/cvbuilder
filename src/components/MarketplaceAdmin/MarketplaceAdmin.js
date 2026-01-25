@@ -10,6 +10,7 @@ const MarketplaceAdmin = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('orders');
+  const [adminShopName, setAdminShopName] = useState('Glory'); // Admin's shop name, default to "Glory"
 
   // Helper function to convert HTML to plain text (preserving line breaks)
   // eslint-disable-next-line no-unused-vars
@@ -80,9 +81,39 @@ const MarketplaceAdmin = () => {
 
   // Load sections, products, and orders on mount
   useEffect(() => {
+    const loadAdminShopName = async () => {
+      try {
+        const { data: adminUsers, error } = await supabase
+          .from('users')
+          .select('shop_name')
+          .eq('is_admin', true)
+          .limit(1)
+          .single();
+        
+        if (!error && adminUsers?.shop_name) {
+          setAdminShopName(adminUsers.shop_name);
+        }
+      } catch (err) {
+        console.error('Error loading admin shop name:', err);
+      }
+    };
+    
+    loadAdminShopName();
     loadSections();
     loadProducts();
     loadOrders();
+    
+    // Listen for shop name updates
+    const handleShopNameUpdated = async () => {
+      await loadAdminShopName();
+      await loadProducts(); // Reload products to refresh shop names
+    };
+    
+    window.addEventListener('shopNameUpdated', handleShopNameUpdated);
+    
+    return () => {
+      window.removeEventListener('shopNameUpdated', handleShopNameUpdated);
+    };
   }, []);
 
   const loadSections = async () => {
@@ -1245,7 +1276,7 @@ const MarketplaceAdmin = () => {
                               backgroundColor: '#f3f4f6',
                               color: '#374151'
                             }}>
-                              Product uploaded by: Glory
+                              Product uploaded by: {adminShopName}
                             </span>
                           )}
                       </td>
@@ -1388,7 +1419,7 @@ const MarketplaceAdmin = () => {
                                   backgroundColor: '#f3f4f6',
                                   color: '#374151'
                                 }}>
-                                  Glory
+                                  {adminShopName}
                                 </span>
                               )}
                           </td>

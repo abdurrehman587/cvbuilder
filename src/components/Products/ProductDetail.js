@@ -13,11 +13,29 @@ const ProductDetail = ({ productId }) => {
   const [inCart, setInCart] = useState(false);
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [loadingRelated, setLoadingRelated] = useState(false);
+  const [adminShopName, setAdminShopName] = useState('Glory'); // Admin's shop name, default to "Glory"
 
   useEffect(() => {
     const loadProduct = async () => {
       try {
         setLoading(true);
+        
+        // Load admin shop name first
+        try {
+          const { data: adminUsers, error: adminError } = await supabase
+            .from('users')
+            .select('shop_name')
+            .eq('is_admin', true)
+            .limit(1)
+            .single();
+          
+          if (!adminError && adminUsers?.shop_name) {
+            setAdminShopName(adminUsers.shop_name);
+          }
+        } catch (adminErr) {
+          console.error('Error loading admin shop name:', adminErr);
+        }
+        
         const { data, error } = await supabase
           .from('marketplace_products')
           .select(`
@@ -49,6 +67,34 @@ const ProductDetail = ({ productId }) => {
     if (productId) {
       loadProduct();
     }
+    
+    // Listen for shop name updates to refresh product
+    const handleShopNameUpdated = async () => {
+      // Reload admin shop name
+      try {
+        const { data: adminUsers, error: adminError } = await supabase
+          .from('users')
+          .select('shop_name')
+          .eq('is_admin', true)
+          .limit(1)
+          .single();
+        
+        if (!adminError && adminUsers?.shop_name) {
+          setAdminShopName(adminUsers.shop_name);
+        }
+      } catch (adminErr) {
+        console.error('Error loading admin shop name:', adminErr);
+      }
+      
+      if (productId) {
+        loadProduct();
+      }
+    };
+    window.addEventListener('shopNameUpdated', handleShopNameUpdated);
+    
+    return () => {
+      window.removeEventListener('shopNameUpdated', handleShopNameUpdated);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productId]); // loadRelatedProducts is stable, no need to include it
 
@@ -179,6 +225,13 @@ const ProductDetail = ({ productId }) => {
   const handleRelatedAddToCart = (e, relatedProduct) => {
     e.preventDefault();
     e.stopPropagation();
+    
+    // Check stock before adding to cart
+    if ((relatedProduct.stock || 0) === 0) {
+      alert('This product is out of stock.');
+      return;
+    }
+    
     addToCart(relatedProduct);
     // Trigger cart update event
     window.dispatchEvent(new CustomEvent('cartUpdated'));
@@ -188,6 +241,13 @@ const ProductDetail = ({ productId }) => {
   const handleRelatedBuyNow = (e, relatedProduct) => {
     e.preventDefault();
     e.stopPropagation();
+    
+    // Check stock before buying
+    if ((relatedProduct.stock || 0) === 0) {
+      alert('This product is out of stock.');
+      return;
+    }
+    
     addToCart(relatedProduct);
     // Navigate directly to checkout using React Router
     // Preserve authentication state
@@ -261,6 +321,12 @@ const ProductDetail = ({ productId }) => {
   const handleAddToCart = () => {
     if (!product) return;
     
+    // Check stock before adding to cart
+    if ((product.stock || 0) === 0) {
+      alert('This product is out of stock.');
+      return;
+    }
+    
     addToCart(product);
     setAddedToCart(true);
     setInCart(true);
@@ -274,6 +340,12 @@ const ProductDetail = ({ productId }) => {
   // Handle buy now
   const handleBuyNow = () => {
     if (!product) return;
+    
+    // Check stock before buying
+    if ((product.stock || 0) === 0) {
+      alert('This product is out of stock.');
+      return;
+    }
     
     // Add product to cart first
     addToCart(product);
@@ -429,9 +501,25 @@ const ProductDetail = ({ productId }) => {
                   ? product.shopkeeper.shop_name 
                   : product.shopkeeper_id 
                     ? 'Shop' 
-                    : 'Glory'}
+                    : adminShopName}
               </span>
             </div>
+
+            {/* Stock status */}
+            {(product.stock !== undefined && product.stock !== null) && (product.stock || 0) === 0 && (
+              <div style={{ marginTop: '1rem', marginBottom: '1rem' }}>
+                <span style={{
+                  padding: '0.5rem 1rem',
+                  borderRadius: '6px',
+                  fontSize: '0.875rem',
+                  fontWeight: '600',
+                  backgroundColor: '#fee2e2',
+                  color: '#991b1b'
+                }}>
+                  ❌ Out of Stock
+                </span>
+              </div>
+            )}
 
             {product.description && (
               <div className="product-detail-description">
@@ -444,15 +532,24 @@ const ProductDetail = ({ productId }) => {
               <button 
                 className="product-detail-buy-now-btn"
                 onClick={handleBuyNow}
+                disabled={(product.stock || 0) === 0}
+                style={{
+                  opacity: (product.stock || 0) === 0 ? 0.5 : 1,
+                  cursor: (product.stock || 0) === 0 ? 'not-allowed' : 'pointer'
+                }}
               >
-                Buy Now
+                {(product.stock || 0) === 0 ? 'Out of Stock' : 'Buy Now'}
               </button>
               <button 
                 className={`product-detail-contact-btn ${inCart ? 'in-cart' : ''}`}
                 onClick={handleAddToCart}
-                disabled={addedToCart}
+                disabled={addedToCart || (product.stock || 0) === 0}
+                style={{
+                  opacity: (product.stock || 0) === 0 ? 0.5 : 1,
+                  cursor: (product.stock || 0) === 0 ? 'not-allowed' : 'pointer'
+                }}
               >
-                {addedToCart ? '✓ Added to Cart' : inCart ? 'Already in Cart' : 'Add to Cart'}
+                {(product.stock || 0) === 0 ? 'Out of Stock' : addedToCart ? '✓ Added to Cart' : inCart ? 'Already in Cart' : 'Add to Cart'}
               </button>
             </div>
           </div>
@@ -520,16 +617,26 @@ const ProductDetail = ({ productId }) => {
                             <button
                               className="related-product-buy-now-btn"
                               onClick={(e) => handleRelatedBuyNow(e, relatedProduct)}
-                              title="Buy Now"
+                              disabled={(relatedProduct.stock || 0) === 0}
+                              title={(relatedProduct.stock || 0) === 0 ? "Out of Stock" : "Buy Now"}
+                              style={{
+                                opacity: (relatedProduct.stock || 0) === 0 ? 0.5 : 1,
+                                cursor: (relatedProduct.stock || 0) === 0 ? 'not-allowed' : 'pointer'
+                              }}
                             >
-                              Buy Now
+                              {(relatedProduct.stock || 0) === 0 ? 'Out of Stock' : 'Buy Now'}
                             </button>
                             <button
                               className={`related-product-add-to-cart-btn ${relatedInCart ? 'in-cart' : ''}`}
                               onClick={(e) => handleRelatedAddToCart(e, relatedProduct)}
-                              title="Add to Cart"
+                              disabled={(relatedProduct.stock || 0) === 0}
+                              title={(relatedProduct.stock || 0) === 0 ? "Out of Stock" : "Add to Cart"}
+                              style={{
+                                opacity: (relatedProduct.stock || 0) === 0 ? 0.5 : 1,
+                                cursor: (relatedProduct.stock || 0) === 0 ? 'not-allowed' : 'pointer'
+                              }}
                             >
-                              {relatedInCart ? 'In Cart' : 'Add to Cart'}
+                              {(relatedProduct.stock || 0) === 0 ? 'Out of Stock' : relatedInCart ? 'In Cart' : 'Add to Cart'}
                             </button>
                           </div>
                         </div>

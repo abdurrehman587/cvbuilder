@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase, authService } from '../Supabase/supabase';
+import { orderService } from '../../utils/orders';
 import './ShopkeeperProductManager.css';
 import RichTextEditor from '../MarketplaceAdmin/RichTextEditor';
-import { getLocationWithAddress } from '../../utils/geolocation';
 
 const ShopkeeperProductManager = ({ onProductAdded }) => {
   const [sections, setSections] = useState([]);
   const [products, setProducts] = useState([]);
+  const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('products');
   const [currentUser, setCurrentUser] = useState(null);
@@ -67,16 +68,6 @@ const ShopkeeperProductManager = ({ onProductAdded }) => {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadingImageIndex, setUploadingImageIndex] = useState(null);
   const [draggedImageIndex, setDraggedImageIndex] = useState(null);
-  const [shopName, setShopName] = useState('');
-  const [isUpdatingShopName, setIsUpdatingShopName] = useState(false);
-  const [location, setLocation] = useState({
-    latitude: null,
-    longitude: null,
-    address: '',
-    city: ''
-  });
-  const [isUpdatingLocation, setIsUpdatingLocation] = useState(false);
-  const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [stockInputs, setStockInputs] = useState({});
   const [updatingStock, setUpdatingStock] = useState({});
   const updatingVisibilityRef = useRef(new Set());
@@ -170,9 +161,8 @@ const ShopkeeperProductManager = ({ onProductAdded }) => {
         // Only load data if user is shopkeeper AND not admin
         if (type === 'shopkeeper' && !adminStatus) {
           loadSections();
-          loadProducts();
-          loadShopName();
-          loadLocation();
+          loadProducts({}, user.id); // Pass user.id directly to avoid state timing issues
+          loadOrders(user.id); // Load orders for this shopkeeper
         }
       } catch (err) {
         console.error('Error checking user:', err);
@@ -202,151 +192,47 @@ const ShopkeeperProductManager = ({ onProductAdded }) => {
     }
   };
 
-  const loadShopName = async () => {
-    if (!currentUser) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('shop_name')
-        .eq('id', currentUser.id)
-        .single();
-
-      if (error) throw error;
-      setShopName(data?.shop_name || '');
-    } catch (err) {
-      console.error('Error loading shop name:', err);
-    }
-  };
-
-  const loadLocation = async () => {
-    if (!currentUser) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('latitude, longitude, address, city')
-        .eq('id', currentUser.id)
-        .single();
-
-      if (error) throw error;
-      setLocation({
-        latitude: data?.latitude || null,
-        longitude: data?.longitude || null,
-        address: data?.address || '',
-        city: data?.city || ''
-      });
-    } catch (err) {
-      console.error('Error loading location:', err);
-    }
-  };
-
-  const handleGetCurrentLocation = async () => {
-    setIsGettingLocation(true);
-    try {
-      const locationData = await getLocationWithAddress();
-      
-      if (locationData.error) {
-        alert('Error getting location: ' + locationData.error);
-        return;
-      }
-
-      // Show accuracy information to user
-      let accuracyMessage = '';
-      if (locationData.accuracy) {
-        if (locationData.accuracy > 100) {
-          accuracyMessage = `\n\n⚠️ Location accuracy: ${Math.round(locationData.accuracy)} meters. This may not be very precise.`;
-        } else if (locationData.accuracy > 50) {
-          accuracyMessage = `\n\n📍 Location accuracy: ${Math.round(locationData.accuracy)} meters.`;
-        } else {
-          accuracyMessage = `\n\n✅ Location accuracy: ${Math.round(locationData.accuracy)} meters (very accurate).`;
-        }
-      }
-
-      const confirmed = window.confirm(
-        `Location found!\n\nCoordinates: ${locationData.latitude.toFixed(6)}, ${locationData.longitude.toFixed(6)}${accuracyMessage}\n\nAddress: ${locationData.address || 'Not available'}\nCity: ${locationData.city || 'Not available'}\n\nIs this location correct? Click OK to use it, or Cancel to try again.`
-      );
-
-      if (confirmed) {
-        setLocation({
-          latitude: locationData.latitude,
-          longitude: locationData.longitude,
-          address: locationData.address || '',
-          city: locationData.city || ''
-        });
-      }
-    } catch (err) {
-      console.error('Error getting location:', err);
-      alert('Error getting location: ' + err.message);
-    } finally {
-      setIsGettingLocation(false);
-    }
-  };
-
-  const handleUpdateLocation = async () => {
-    if (!currentUser) return;
-
-    try {
-      setIsUpdatingLocation(true);
-      const { error } = await supabase
-        .from('users')
-        .update({
-          latitude: location.latitude,
-          longitude: location.longitude,
-          address: location.address,
-          city: location.city,
-          location_updated_at: new Date().toISOString()
-        })
-        .eq('id', currentUser.id);
-
-      if (error) throw error;
-      alert('Location updated successfully!');
-    } catch (err) {
-      console.error('Error updating location:', err);
-      alert('Error updating location: ' + err.message);
-    } finally {
-      setIsUpdatingLocation(false);
-    }
-  };
-
-  const handleUpdateShopName = async () => {
-    if (!currentUser || !shopName.trim()) {
-      alert('Please enter a shop name');
+  const loadOrders = async (userId = null) => {
+    const userIdToUse = userId || currentUser?.id;
+    if (!userIdToUse) {
+      console.warn('loadOrders: No user ID available');
       return;
     }
 
     try {
-      setIsUpdatingShopName(true);
-      const { error } = await supabase
-        .from('users')
-        .update({ shop_name: shopName.trim() })
-        .eq('id', currentUser.id);
-
-      if (error) throw error;
-      alert('Shop name updated successfully!');
+      setLoading(true);
+      const data = await orderService.getShopkeeperOrders(userIdToUse);
+      setOrders(data || []);
     } catch (err) {
-      console.error('Error updating shop name:', err);
-      alert('Error updating shop name: ' + err.message);
+      console.error('Error loading orders:', err);
+      alert('Error loading orders: ' + err.message);
     } finally {
-      setIsUpdatingShopName(false);
+      setLoading(false);
     }
   };
 
-  const loadProducts = async (preserveVisibilityUpdates = {}) => {
-    if (!currentUser) return;
+  const loadProducts = async (preserveVisibilityUpdates = {}, userId = null) => {
+    const userIdToUse = userId || currentUser?.id;
+    if (!userIdToUse) {
+      console.warn('loadProducts: No user ID available');
+      return;
+    }
     
     try {
       setLoading(true);
+      console.log('Loading products for shopkeeper_id:', userIdToUse);
       const { data, error } = await supabase
         .from('marketplace_products')
         .select('*, marketplace_sections(name)')
-        .eq('shopkeeper_id', currentUser.id)
+        .eq('shopkeeper_id', userIdToUse)
         .order('created_at', { ascending: false });
 
       if (error) {
         console.error('Supabase error loading products:', error);
         throw error;
       }
+      
+      console.log('Loaded products:', data?.length || 0, 'products for shopkeeper');
       
       // Load saved visibility states from localStorage as backup
       const savedVisibility = JSON.parse(localStorage.getItem('productVisibilityStates') || '{}');
@@ -368,7 +254,7 @@ const ShopkeeperProductManager = ({ onProductAdded }) => {
                 .from('marketplace_products')
                 .update({ is_hidden: savedVisibility[product.id] })
                 .eq('id', product.id)
-                .eq('shopkeeper_id', currentUser.id);
+                .eq('shopkeeper_id', userIdToUse);
             } catch (restoreErr) {
               console.error('Error restoring visibility state:', restoreErr);
             }
@@ -394,6 +280,10 @@ const ShopkeeperProductManager = ({ onProductAdded }) => {
     }
     pendingReloadTimeoutRef.current = setTimeout(async () => {
       if (isReloadingRef.current) return;
+      if (!currentUser?.id) {
+        console.warn('scheduleProductsReload: No currentUser.id available');
+        return;
+      }
       isReloadingRef.current = true;
       try {
         const updatesToPreserve = { ...pendingVisibilityUpdatesRef.current };
@@ -949,193 +839,6 @@ const ShopkeeperProductManager = ({ onProductAdded }) => {
         </div>
       </div>
 
-      <div className="shop-name-section" style={{ 
-        marginBottom: '2rem', 
-        padding: '1.5rem', 
-        backgroundColor: '#f8fafc', 
-        borderRadius: '8px',
-        border: '1px solid #e2e8f0'
-      }}>
-        <h3 style={{ marginTop: 0, marginBottom: '1rem' }}>Shop Name</h3>
-        <p style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '1rem' }}>
-          Your shop name will be displayed on all products you upload. This helps customers identify your products.
-        </p>
-        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-          <input
-            type="text"
-            placeholder="Enter your shop name"
-            value={shopName}
-            onChange={(e) => setShopName(e.target.value)}
-            style={{
-              flex: 1,
-              padding: '0.75rem',
-              border: '1px solid #d1d5db',
-              borderRadius: '6px',
-              fontSize: '1rem'
-            }}
-          />
-          <button
-            type="button"
-            onClick={handleUpdateShopName}
-            disabled={isUpdatingShopName || !shopName.trim()}
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#10b981',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: isUpdatingShopName || !shopName.trim() ? 'not-allowed' : 'pointer',
-              opacity: isUpdatingShopName || !shopName.trim() ? 0.6 : 1,
-              fontWeight: '600'
-            }}
-          >
-            {isUpdatingShopName ? 'Updating...' : 'Update Shop Name'}
-          </button>
-        </div>
-      </div>
-
-      <div className="location-section" style={{ 
-        marginBottom: '2rem', 
-        padding: '1.5rem', 
-        backgroundColor: '#f8fafc', 
-        borderRadius: '8px',
-        border: '1px solid #e2e8f0'
-      }}>
-        <h3 style={{ marginTop: 0, marginBottom: '1rem' }}>Shop Location</h3>
-        <p style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '1rem' }}>
-          Set your shop location to help customers find you. You can use your current location or enter it manually.
-        </p>
-        
-        <div style={{ marginBottom: '1rem' }}>
-          <button
-            type="button"
-            onClick={handleGetCurrentLocation}
-            disabled={isGettingLocation}
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#3b82f6',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: isGettingLocation ? 'not-allowed' : 'pointer',
-              opacity: isGettingLocation ? 0.6 : 1,
-              fontWeight: '600',
-              marginBottom: '1rem'
-            }}
-          >
-            {isGettingLocation ? 'Getting Location...' : '📍 Use Current Location'}
-          </button>
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <input
-              type="number"
-              step="any"
-              placeholder="Latitude"
-              value={location.latitude || ''}
-              onChange={(e) => setLocation({ ...location, latitude: e.target.value ? parseFloat(e.target.value) : null })}
-              style={{
-                flex: 1,
-                padding: '0.75rem',
-                border: '1px solid #d1d5db',
-                borderRadius: '6px',
-                fontSize: '1rem'
-              }}
-            />
-            <input
-              type="number"
-              step="any"
-              placeholder="Longitude"
-              value={location.longitude || ''}
-              onChange={(e) => setLocation({ ...location, longitude: e.target.value ? parseFloat(e.target.value) : null })}
-              style={{
-                flex: 1,
-                padding: '0.75rem',
-                border: '1px solid #d1d5db',
-                borderRadius: '6px',
-                fontSize: '1rem'
-              }}
-            />
-          </div>
-          <input
-            type="text"
-            placeholder="Address (will be auto-filled if using current location)"
-            value={location.address}
-            onChange={(e) => setLocation({ ...location, address: e.target.value })}
-            style={{
-              padding: '0.75rem',
-              border: '1px solid #d1d5db',
-              borderRadius: '6px',
-              fontSize: '1rem'
-            }}
-          />
-          <input
-            type="text"
-            placeholder="City (will be auto-filled if using current location)"
-            value={location.city}
-            onChange={(e) => setLocation({ ...location, city: e.target.value })}
-            style={{
-              padding: '0.75rem',
-              border: '1px solid #d1d5db',
-              borderRadius: '6px',
-              fontSize: '1rem'
-            }}
-          />
-          {location.latitude && location.longitude && (
-            <button
-              type="button"
-              onClick={() => window.open(`https://www.google.com/maps?q=${location.latitude},${location.longitude}`, '_blank', 'noopener,noreferrer')}
-              style={{
-                padding: '0.75rem 1.5rem',
-                backgroundColor: '#6366f1',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                fontSize: '1rem',
-                minWidth: 'auto',
-                height: 'auto',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                fontWeight: '600',
-                gap: '0.5rem'
-              }}
-            >
-              📍 View on Map
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={handleUpdateLocation}
-            disabled={isUpdatingLocation || (!location.latitude || !location.longitude)}
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#10b981',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: isUpdatingLocation || (!location.latitude || !location.longitude) ? 'not-allowed' : 'pointer',
-              opacity: isUpdatingLocation || (!location.latitude || !location.longitude) ? 0.6 : 1,
-              fontWeight: '600'
-            }}
-          >
-            {isUpdatingLocation ? 'Updating...' : 'Update Location'}
-          </button>
-        </div>
-
-        {location.latitude && location.longitude && (
-          <div style={{ marginTop: '1rem', padding: '0.75rem', backgroundColor: '#dbeafe', borderRadius: '6px', fontSize: '0.875rem' }}>
-            <div style={{ marginBottom: '0.5rem' }}>
-              <strong>Coordinates:</strong> {location.latitude.toFixed(6)}, {location.longitude.toFixed(6)}
-            </div>
-            {location.city && <div style={{ marginTop: '0.25rem' }}><strong>City:</strong> {location.city}</div>}
-            {location.address && <div style={{ marginTop: '0.25rem' }}><strong>Address:</strong> {location.address}</div>}
-          </div>
-        )}
-      </div>
-
       <div className="admin-tabs">
         <button
           type="button"
@@ -1150,6 +853,18 @@ const ShopkeeperProductManager = ({ onProductAdded }) => {
           onClick={() => setActiveTab('inventory')}
         >
           Inventory
+        </button>
+        <button
+          type="button"
+          className={activeTab === 'orders' ? 'active' : ''}
+          onClick={() => {
+            setActiveTab('orders');
+            if (currentUser) {
+              loadOrders();
+            }
+          }}
+        >
+          Orders
         </button>
       </div>
 
@@ -1551,6 +1266,216 @@ const ShopkeeperProductManager = ({ onProductAdded }) => {
                                 {updatingStock[product.id] ? 'Updating...' : 'Update'}
                               </button>
                             </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {activeTab === 'orders' && (
+        <div className="admin-section">
+          <h2>Manage Orders</h2>
+          <p style={{ color: '#6b7280', marginBottom: '1.5rem' }}>
+            View and manage orders for your products.
+          </p>
+          
+          <div style={{ marginBottom: '1rem' }}>
+            <button 
+              onClick={() => loadOrders()} 
+              className="back-button"
+              style={{ backgroundColor: '#3b82f6', color: 'white' }}
+              disabled={loading}
+            >
+              {loading ? 'Refreshing...' : 'Refresh Orders'}
+            </button>
+          </div>
+
+          {loading && orders.length === 0 ? (
+            <div className="loading-message">Loading orders...</div>
+          ) : (
+            <div className="admin-table-container">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Order #</th>
+                    <th>Customer</th>
+                    <th>Phone</th>
+                    <th>Items</th>
+                    <th>Total</th>
+                    <th>Payment Method</th>
+                    <th>Payment Status</th>
+                    <th>Order Status</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {orders.length === 0 && !loading ? (
+                    <tr>
+                      <td colSpan="10" style={{ textAlign: 'center', padding: '2rem' }}>
+                        No orders found.
+                      </td>
+                    </tr>
+                  ) : orders.length === 0 && loading ? (
+                    <tr>
+                      <td colSpan="10" style={{ textAlign: 'center', padding: '2rem' }}>
+                        Loading orders...
+                      </td>
+                    </tr>
+                  ) : (
+                    orders.map((order) => {
+                      const orderItems = Array.isArray(order.order_items) ? order.order_items : [];
+                      // Filter to show only items from this shopkeeper's products
+                      const shopkeeperProductIds = products.map(p => p.id);
+                      const shopkeeperOrderItems = orderItems.filter(item => shopkeeperProductIds.includes(item.id));
+                      const totalItems = shopkeeperOrderItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
+                      const shopkeeperTotal = shopkeeperOrderItems.reduce((sum, item) => sum + ((item.price || 0) * (item.quantity || 1)), 0);
+                      
+                      const formatDate = (dateString) => {
+                        if (!dateString) return 'N/A';
+                        const date = new Date(dateString);
+                        return date.toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        });
+                      };
+
+                      return (
+                        <tr key={order.id}>
+                          <td><strong>#{order.order_number || order.id.slice(0, 8)}</strong></td>
+                          <td>{order.customer_name || 'N/A'}</td>
+                          <td>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                              {order.customer_phone || 'N/A'}
+                              {order.has_whatsapp && (
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="#25D366" title="Has WhatsApp">
+                                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                                </svg>
+                              )}
+                            </div>
+                          </td>
+                          <td>{totalItems} item(s)</td>
+                          <td>Rs. {shopkeeperTotal?.toLocaleString() || '0'}</td>
+                          <td>
+                            {order.payment_method === 'bank_transfer' ? '🏦 Bank Transfer' : 
+                             order.payment_method === 'cash_on_delivery' ? '💵 Cash on Delivery' : 
+                             order.payment_method}
+                          </td>
+                          <td>
+                            <select
+                              value={order.payment_status || 'pending'}
+                              onChange={async (e) => {
+                                const newPaymentStatus = e.target.value;
+                                try {
+                                  setLoading(true);
+                                  await orderService.updateOrderStatus(order.id, order.order_status, newPaymentStatus);
+                                  
+                                  // Auto-send WhatsApp message if payment is confirmed and customer has WhatsApp
+                                  if (order.has_whatsapp && order.customer_phone && newPaymentStatus === 'paid') {
+                                    const updatedOrder = { ...order, payment_status: newPaymentStatus };
+                                    orderService.sendWhatsAppMessage(updatedOrder, 'payment_confirmed');
+                                  }
+                                  
+                                  await loadOrders();
+                                  alert('Payment status updated successfully!');
+                                } catch (err) {
+                                  console.error('Error updating payment status:', err);
+                                  alert('Error updating payment status: ' + err.message);
+                                } finally {
+                                  setLoading(false);
+                                }
+                              }}
+                              style={{
+                                padding: '0.25rem 0.5rem',
+                                borderRadius: '4px',
+                                border: '1px solid #d1d5db',
+                                fontSize: '0.875rem'
+                              }}
+                            >
+                              <option value="pending">Pending</option>
+                              <option value="paid">Paid</option>
+                              <option value="cancelled">Cancelled</option>
+                            </select>
+                          </td>
+                          <td>
+                            <select
+                              value={order.order_status || 'pending'}
+                              onChange={async (e) => {
+                                const newStatus = e.target.value;
+                                try {
+                                  setLoading(true);
+                                  await orderService.updateOrderStatus(order.id, newStatus);
+                                  
+                                  // Auto-send WhatsApp message if customer has WhatsApp
+                                  if (order.has_whatsapp && order.customer_phone) {
+                                    // Map order status to WhatsApp message type
+                                    const statusToMessageType = {
+                                      'confirmed': 'order_confirmation',
+                                      'shipped': 'order_shipped',
+                                      'delivered': 'order_delivered',
+                                      'processing': 'order_status',
+                                      'cancelled': 'order_status'
+                                    };
+                                    
+                                    const messageType = statusToMessageType[newStatus];
+                                    if (messageType) {
+                                      const updatedOrder = { ...order, order_status: newStatus };
+                                      orderService.sendWhatsAppMessage(updatedOrder, messageType);
+                                    }
+                                  }
+                                  
+                                  await loadOrders();
+                                  alert('Order status updated successfully!');
+                                } catch (err) {
+                                  console.error('Error updating order status:', err);
+                                  alert('Error updating order status: ' + err.message);
+                                } finally {
+                                  setLoading(false);
+                                }
+                              }}
+                              style={{
+                                padding: '0.25rem 0.5rem',
+                                borderRadius: '4px',
+                                border: '1px solid #d1d5db',
+                                fontSize: '0.875rem'
+                              }}
+                            >
+                              <option value="pending">Pending</option>
+                              <option value="confirmed">Confirmed</option>
+                              <option value="processing">Processing</option>
+                              <option value="shipped">Shipped</option>
+                              <option value="delivered">Delivered</option>
+                              <option value="cancelled">Cancelled</option>
+                            </select>
+                          </td>
+                          <td>{formatDate(order.created_at)}</td>
+                          <td>
+                            <button 
+                              onClick={() => {
+                                const orderId = order.order_number || order.id;
+                                window.location.hash = `#order-details?orderId=${orderId}&from=shopkeeper`;
+                              }}
+                              style={{
+                                padding: '0.25rem 0.5rem',
+                                fontSize: '0.875rem',
+                                backgroundColor: '#3b82f6',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '4px',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              View
+                            </button>
                           </td>
                         </tr>
                       );
