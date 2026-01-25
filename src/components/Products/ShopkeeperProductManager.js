@@ -274,6 +274,7 @@ const ShopkeeperProductManager = ({ onProductAdded }) => {
     }
   };
 
+  // eslint-disable-next-line no-unused-vars
   const scheduleProductsReload = () => {
     if (pendingReloadTimeoutRef.current) {
       clearTimeout(pendingReloadTimeoutRef.current);

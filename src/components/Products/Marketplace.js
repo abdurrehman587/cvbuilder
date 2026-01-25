@@ -248,6 +248,7 @@ const Marketplace = ({ showLoginOnMount = false }) => {
   // Initial load
   useEffect(() => {
     loadProducts(INITIAL_PAGE, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedSection]);
 
   // Listen for shop name updates
@@ -292,7 +293,8 @@ const Marketplace = ({ showLoginOnMount = false }) => {
     }
 
     return () => observer.disconnect();
-  }, [hasMore, currentPage, loadProducts]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasMore, currentPage]);
 
   // Filter products by search
   const filteredProducts = useMemo(() => {

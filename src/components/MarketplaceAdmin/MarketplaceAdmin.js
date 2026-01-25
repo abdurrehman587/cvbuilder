@@ -190,6 +190,7 @@ const MarketplaceAdmin = () => {
     }
   };
 
+  // eslint-disable-next-line no-unused-vars
   const scheduleProductsReload = () => {
     // Collapse multiple rapid toggles into one reload
     if (pendingReloadTimeoutRef.current) {
@@ -637,7 +638,7 @@ const MarketplaceAdmin = () => {
       setLoading(true);
       
       // Update with select to verify the update actually happened
-      const { data: updatedData, error, count } = await supabase
+      const { data: updatedData, error } = await supabase
         .from('marketplace_products')
         .update({ is_hidden: newHiddenState })
         .eq('id', product.id)
