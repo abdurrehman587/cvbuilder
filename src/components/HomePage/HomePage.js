@@ -25,7 +25,6 @@ const HomePage = ({ onProductSelect }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [userType, setUserType] = useState('regular');
   const [error, setError] = useState('');
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
@@ -291,7 +290,6 @@ const HomePage = ({ onProductSelect }) => {
         setEmail('');
         setPassword('');
         setConfirmPassword('');
-        setUserType('regular');
         const isAuth = localStorage.getItem('cvBuilderAuth') === 'true';
         if (!isAuth) {
           localStorage.setItem('showLoginForm', 'true');
@@ -307,7 +305,7 @@ const HomePage = ({ onProductSelect }) => {
       window.removeEventListener('showLoginFormHomepage', handleShowLoginForm);
       window.removeEventListener('keydown', handleEscape);
     };
-  }, []); // Empty dependency array - only run on mount to set up the function
+  }, [showLogin]); // Include showLogin as dependency
 
   // Separate effect for escape key handling that depends on showLogin
   useEffect(() => {
@@ -318,7 +316,6 @@ const HomePage = ({ onProductSelect }) => {
         setEmail('');
         setPassword('');
         setConfirmPassword('');
-        setUserType('regular');
         const isAuth = localStorage.getItem('cvBuilderAuth') === 'true';
         if (!isAuth) {
           localStorage.setItem('showLoginForm', 'true');
@@ -414,7 +411,6 @@ const HomePage = ({ onProductSelect }) => {
           setEmail('');
           setPassword('');
           setConfirmPassword('');
-          setUserType('regular');
           
           if (navigateToCVBuilder || navigateToIDCardPrint) {
             // User wants to navigate to a specific product after login
@@ -984,7 +980,6 @@ const HomePage = ({ onProductSelect }) => {
           setEmail('');
           setPassword('');
           setConfirmPassword('');
-          setUserType('regular');
           const isAuth = localStorage.getItem('cvBuilderAuth') === 'true';
           if (!isAuth) {
             localStorage.setItem('showLoginForm', 'true');
@@ -1001,7 +996,6 @@ const HomePage = ({ onProductSelect }) => {
                 setEmail('');
                 setPassword('');
                 setConfirmPassword('');
-                setUserType('regular');
                 const isAuth = localStorage.getItem('cvBuilderAuth') === 'true';
                 if (!isAuth) {
                   localStorage.setItem('showLoginForm', 'true');
