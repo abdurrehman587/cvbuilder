@@ -236,6 +236,11 @@
     max-width: 80px !important;
     border-radius: 12px !important;
     gap: 0.25rem !important;
+    pointer-events: auto !important;
+    position: relative !important;
+    z-index: 10002 !important;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1) !important;
+    touch-action: manipulation !important;
   }
 
   .bottom-nav-item:hover,
@@ -266,10 +271,22 @@
   /* Sign in/out button in bottom nav */
   .bottom-nav-item.signin-btn {
     color: #10b981 !important;
+    pointer-events: auto !important;
+    position: relative !important;
+    z-index: 10002 !important;
   }
 
   .bottom-nav-item.signout-btn {
     color: #ef4444 !important;
+    pointer-events: auto !important;
+    position: relative !important;
+    z-index: 10002 !important;
+  }
+  
+  /* Ensure all bottom nav items are clickable */
+  .bottom-nav-item {
+    pointer-events: auto !important;
+    position: relative !important;
   }
 }
 

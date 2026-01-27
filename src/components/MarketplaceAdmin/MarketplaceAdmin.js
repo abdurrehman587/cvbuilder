@@ -151,7 +151,7 @@ const MarketplaceAdmin = () => {
         throw error;
       }
       
-      // Load saved visibility states from localStorage as backup
+      // Load saved visibility states from localStorage (only for pending updates, not to override DB)
       const savedVisibility = JSON.parse(localStorage.getItem('productVisibilityStates') || '{}');
       
       // Always merge with pending visibility updates to prevent reverting other products
@@ -161,21 +161,14 @@ const MarketplaceAdmin = () => {
         if (updatesToMerge[product.id] !== undefined) {
           return { ...product, is_hidden: updatesToMerge[product.id] };
         }
-        // Check if we have a saved visibility state that differs from DB (DB might have been reset)
+        // Database is the source of truth - sync localStorage to match DB if there's a mismatch
+        // This ensures localStorage doesn't have stale data that could cause issues
         if (savedVisibility[product.id] !== undefined && savedVisibility[product.id] !== product.is_hidden) {
-          console.warn(`Product ${product.id} visibility mismatch: DB=${product.is_hidden}, Saved=${savedVisibility[product.id]}. Restoring saved state.`);
-          // Restore the saved state and update DB in background
-          setTimeout(async () => {
-            try {
-              await supabase
-                .from('marketplace_products')
-                .update({ is_hidden: savedVisibility[product.id] })
-                .eq('id', product.id);
-            } catch (restoreErr) {
-              console.error('Error restoring visibility state:', restoreErr);
-            }
-          }, 1000);
-          return { ...product, is_hidden: savedVisibility[product.id] };
+          console.log(`Product ${product.id} visibility mismatch: DB=${product.is_hidden}, Saved=${savedVisibility[product.id]}. Updating localStorage to match DB.`);
+          // Update localStorage to match database (database is source of truth)
+          const updatedSavedVisibility = { ...savedVisibility };
+          updatedSavedVisibility[product.id] = product.is_hidden;
+          localStorage.setItem('productVisibilityStates', JSON.stringify(updatedSavedVisibility));
         }
         return product;
       });
@@ -490,7 +483,8 @@ const MarketplaceAdmin = () => {
           price: parseFloat(productForm.price),
           original_price: productForm.original_price ? parseFloat(productForm.original_price) : null,
           stock: parseInt(productForm.stock) || 1,
-          description: descriptionHtml || ''
+          description: descriptionHtml || '',
+          is_hidden: false // Explicitly set to false for new products
         }])
         .select()
         .single();
@@ -546,8 +540,20 @@ const MarketplaceAdmin = () => {
         const currentProduct = products.find(p => p.id === editingProduct.id);
         const preserveIsHidden = currentProduct?.is_hidden ?? false;
         
+        // First, verify the product exists and we have access to it
+        const { data: productCheck, error: checkError } = await supabase
+          .from('marketplace_products')
+          .select('id, is_hidden')
+          .eq('id', editingProduct.id)
+          .single();
+        
+        if (checkError || !productCheck) {
+          console.error('Cannot access product:', checkError);
+          throw new Error('Cannot access product. You may not have permission to update this product.');
+        }
+        
         // Use direct update to ensure is_hidden is preserved
-        const { data: updatedData, error: updateError } = await supabase
+        const { error: updateError } = await supabase
           .from('marketplace_products')
           .update({
             name: productForm.name,
@@ -559,46 +565,32 @@ const MarketplaceAdmin = () => {
             stock: parseInt(productForm.stock) || 1,
             is_hidden: preserveIsHidden // CRITICAL: Preserve visibility state
           })
-          .eq('id', editingProduct.id)
-          .select('id, is_hidden')
-          .single();
+          .eq('id', editingProduct.id);
 
         if (updateError) {
-          console.error('Direct update failed, trying RPC:', updateError);
-          // Fall back to RPC if direct update fails
-          const { data: rpcData, error: rpcError } = await supabase
-            .rpc('admin_update_product', {
-              product_id: editingProduct.id,
-              product_name: productForm.name,
-              product_price: parseFloat(productForm.price),
-              product_original_price: productForm.original_price ? parseFloat(productForm.original_price) : null,
-              product_image_urls: productForm.image_urls.length > 0 ? productForm.image_urls : null,
-              product_section_id: productForm.section_id || null,
-              product_description: descriptionHtml || null,
-              product_stock: parseInt(productForm.stock) || 1
-            });
-
-          if (rpcError) {
-            console.error('RPC update also failed:', rpcError);
-            throw rpcError;
-          }
-          
-          // After RPC update, explicitly preserve is_hidden
-          if (rpcData) {
-            await supabase
-              .from('marketplace_products')
-              .update({ is_hidden: preserveIsHidden })
-              .eq('id', editingProduct.id);
-          }
-        } else {
-          // Verify is_hidden was preserved
-          if (updatedData && updatedData.is_hidden !== preserveIsHidden) {
-            console.warn('is_hidden was not preserved, fixing...');
-            await supabase
-              .from('marketplace_products')
-              .update({ is_hidden: preserveIsHidden })
-              .eq('id', editingProduct.id);
-          }
+          console.error('Direct update failed:', updateError);
+          throw updateError;
+        }
+        
+        // Verify the update succeeded by checking the product again
+        const { data: verifyData, error: verifyError } = await supabase
+          .from('marketplace_products')
+          .select('id, is_hidden, name')
+          .eq('id', editingProduct.id)
+          .single();
+        
+        if (verifyError) {
+          console.error('Verification failed:', verifyError);
+          throw new Error('Update may have failed. Please refresh and try again.');
+        }
+        
+        // Verify is_hidden was preserved
+        if (verifyData && verifyData.is_hidden !== preserveIsHidden) {
+          console.warn('is_hidden was not preserved, fixing...');
+          await supabase
+            .from('marketplace_products')
+            .update({ is_hidden: preserveIsHidden })
+            .eq('id', editingProduct.id);
         }
         
         await loadProducts();
@@ -637,31 +629,126 @@ const MarketplaceAdmin = () => {
       updatingVisibilityRef.current.add(product.id);
       setLoading(true);
       
-      // Update with select to verify the update actually happened
-      const { data: updatedData, error } = await supabase
+      // First, verify admin status using RPC function (most reliable)
+      let isAdmin = false;
+      let adminCheckError = null;
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          console.log('Current user:', { id: user.id, email: user.email, metadata: user.user_metadata });
+          
+          // Try RPC function first (most reliable)
+          try {
+            const { data: rpcAdminCheck, error: rpcError } = await supabase.rpc('is_admin_user');
+            console.log('RPC admin check result:', { rpcAdminCheck, rpcError });
+            if (rpcError) {
+              adminCheckError = rpcError;
+              console.error('RPC admin check error:', rpcError);
+            } else {
+              isAdmin = rpcAdminCheck === true;
+            }
+          } catch (rpcErr) {
+            adminCheckError = rpcErr;
+            console.error('RPC admin check exception:', rpcErr);
+          }
+          
+          // Fallback to metadata check
+          if (!isAdmin && !adminCheckError) {
+            isAdmin = user.user_metadata?.is_admin === true || false;
+            console.log('Fallback to metadata check:', isAdmin);
+          }
+        }
+      } catch (adminErr) {
+        adminCheckError = adminErr;
+        console.error('Error checking admin status:', adminErr);
+      }
+      
+      console.log('Admin status check:', { 
+        isAdmin, 
+        productId: product.id, 
+        newHiddenState,
+        adminCheckError: adminCheckError?.message 
+      });
+      
+      if (!isAdmin) {
+        console.error('User is not recognized as admin. RPC result may be false or RLS is blocking.');
+      }
+      
+      // First, verify the product exists and we have access to it
+      const { data: productCheck, error: checkError } = await supabase
+        .from('marketplace_products')
+        .select('id, is_hidden')
+        .eq('id', product.id);
+      
+      if (checkError || !productCheck || productCheck.length === 0) {
+        console.error('Cannot access product:', checkError);
+        throw new Error('Cannot access product. You may not have permission to update this product.');
+      }
+      
+      console.log('Product check result:', { 
+        productId: product.id, 
+        currentHidden: productCheck[0].is_hidden,
+        targetHidden: newHiddenState 
+      });
+      
+      // Perform the update with select to get confirmation
+      const { data: updateResult, error: updateError } = await supabase
         .from('marketplace_products')
         .update({ is_hidden: newHiddenState })
         .eq('id', product.id)
-        .select('id, is_hidden')
-        .single();
-
-      if (error) {
-        console.error('Supabase update error:', error);
-        throw error;
+        .select('id, is_hidden');
+      
+      console.log('Update result:', { updateResult, updateError, rowCount: updateResult?.length });
+      
+      if (updateError) {
+        console.error('Supabase update error:', updateError);
+        throw updateError;
       }
       
-      // Verify the update actually persisted
-      if (!updatedData) {
-        throw new Error('Update failed - no data returned from database');
+      // Check if update actually affected any rows
+      if (!updateResult || updateResult.length === 0) {
+        console.error('Update failed - no rows updated. Admin status:', isAdmin, 'Admin check error:', adminCheckError);
+        
+        let errorMessage = 'Update failed - no rows were updated. ';
+        if (!isAdmin) {
+          errorMessage += 'You may not be recognized as an admin. ';
+        }
+        errorMessage += 'This is likely an RLS (Row Level Security) policy issue. ';
+        errorMessage += 'Please run the SQL fix: fix_admin_update_policy.sql or fix_admin_update_policy_complete.sql in your Supabase SQL Editor. ';
+        errorMessage += 'The policy needs a WITH CHECK clause to allow updates.';
+        
+        throw new Error(errorMessage);
       }
       
-      if (updatedData.is_hidden !== newHiddenState) {
-        console.error('Update verification failed:', {
+      // Verify immediately from the update result
+      const firstResult = updateResult[0];
+      if (firstResult.is_hidden !== newHiddenState) {
+        console.error('Update result mismatch:', {
           expected: newHiddenState,
-          actual: updatedData.is_hidden,
+          actual: firstResult.is_hidden,
           productId: product.id
         });
-        throw new Error(`Update verification failed - database state (${updatedData.is_hidden}) does not match expected value (${newHiddenState})`);
+        throw new Error(`Update failed - database returned state (${firstResult.is_hidden}) does not match expected value (${newHiddenState})`);
+      }
+      
+      // Wait a moment for database to propagate, then verify again
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Double-check the update persisted
+      const { data: verifyData, error: verifyError } = await supabase
+        .from('marketplace_products')
+        .select('id, is_hidden')
+        .eq('id', product.id);
+      
+      if (verifyError) {
+        console.warn('Verification query failed, but update appeared successful:', verifyError);
+        // Don't throw - the update result already confirmed success
+      } else if (verifyData && verifyData.length > 0) {
+        const firstVerify = verifyData[0];
+        if (firstVerify.is_hidden !== newHiddenState) {
+          console.warn('Verification mismatch, but update result was correct. Possible timing issue.');
+          // The update result already confirmed success, so we'll trust that
+        }
       }
       
       console.log('Product visibility updated successfully:', {
@@ -693,15 +780,19 @@ const MarketplaceAdmin = () => {
           const { data: verifyData, error: verifyError } = await supabase
             .from('marketplace_products')
             .select('id, is_hidden')
-            .eq('id', product.id)
-            .single();
+            .eq('id', product.id);
           
-          if (!verifyError && verifyData && verifyData.is_hidden === newHiddenState) {
-            // Update persisted correctly, clear from pending
-            delete pendingVisibilityUpdatesRef.current[product.id];
-            console.log(`Verified: Product ${product.id} visibility update persisted`);
+          if (!verifyError && verifyData && verifyData.length > 0) {
+            const firstVerify = verifyData[0];
+            if (firstVerify.is_hidden === newHiddenState) {
+              // Update persisted correctly, clear from pending
+              delete pendingVisibilityUpdatesRef.current[product.id];
+              console.log(`Verified: Product ${product.id} visibility update persisted`);
+            } else {
+              console.warn(`Warning: Product ${product.id} visibility may not have persisted correctly`);
+            }
           } else {
-            console.warn(`Warning: Product ${product.id} visibility may not have persisted correctly`);
+            console.warn(`Warning: Could not verify product ${product.id} visibility update`);
           }
         } catch (verifyErr) {
           console.error('Error verifying update persistence:', verifyErr);

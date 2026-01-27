@@ -1230,65 +1230,31 @@ function App() {
           const isOAuthCallback = hasOAuthTokens || (hasOAuthFlag && session?.user);
           
           if (isOAuthCallback) {
-            const pendingUserType = sessionStorage.getItem('pendingUserType');
-            if (pendingUserType) {
-              // Check if user already has user_type in metadata
-              const currentUserType = session.user.user_metadata?.user_type;
-              
-              // Only set user_type if it doesn't exist yet (new user)
-              // If user already has a type, don't allow changing it (prevents users from switching types)
-              if (!currentUserType) {
-                // New user - set the user type
-                try {
-                  await authService.updateUserMetadata({
-                    user_type: pendingUserType,
-                    ...session.user.user_metadata // Preserve existing metadata
-                  });
-                } catch (err) {
-                  console.error('Error setting user type:', err);
-                  // If error is about not being able to change type, that's expected for existing users
-                  if (err.message && err.message.includes('cannot change your own user type')) {
-                  }
-                }
-              } else {
-                // User already has a type - check if it matches the selected type
-                if (currentUserType !== pendingUserType) {
-                  // User is trying to sign in with a different type than they signed up with
-                  console.error('User type mismatch:', currentUserType, 'vs', pendingUserType);
-                  
-                  // Clear pending user type first
-                  sessionStorage.removeItem('pendingUserType');
-                  
-                  // Sign out the user immediately
-                  try {
-                    await supabase.auth.signOut();
-                  } catch (signOutErr) {
-                    console.error('Error signing out:', signOutErr);
-                  }
-                  
-                  // Clear auth state
-                  localStorage.removeItem('cvBuilderAuth');
-                  sessionStorage.removeItem('googleSignInStarted');
-                  
-                  // Show error message
-                  const errorMsg = `You cannot sign in as a ${pendingUserType === 'shopkeeper' ? 'shopkeeper' : 'regular user'}. Your account is registered as a ${currentUserType === 'shopkeeper' ? 'shopkeeper' : 'regular user'}. Please contact admin if you need to change your account type.`;
-                  alert(errorMsg);
-                  
-                  // Redirect to home immediately
-                  setTimeout(() => {
-                    window.location.href = '/';
-                  }, 100);
-                  
-                  // Return early to prevent any further authentication processing
-                  return;
-                } else {
-                  // Types match - proceed normally
+            // All new Google sign-ins default to 'regular' user type
+            // Check if user already has user_type in metadata
+            const currentUserType = session.user.user_metadata?.user_type;
+            
+            // Only set user_type if it doesn't exist yet (new user)
+            // All new users are regular by default
+            if (!currentUserType) {
+              // New user - set to regular by default
+              try {
+                await authService.updateUserMetadata({
+                  user_type: 'regular',
+                  ...session.user.user_metadata // Preserve existing metadata
+                });
+                console.log('Set new Google sign-in user to regular type');
+              } catch (err) {
+                console.error('Error setting user type:', err);
+                // If error is about not being able to change type, that's expected for existing users
+                if (err.message && err.message.includes('cannot change your own user type')) {
                 }
               }
-              // Clear pending user type and OAuth flag
-              sessionStorage.removeItem('pendingUserType');
-              sessionStorage.removeItem('googleSignInStarted');
             }
+            
+            // Clear OAuth flag
+            sessionStorage.removeItem('pendingUserType');
+            sessionStorage.removeItem('googleSignInStarted');
           }
         }
         

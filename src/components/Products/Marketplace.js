@@ -8,6 +8,16 @@ import './Marketplace.css';
 const PRODUCTS_PER_PAGE = 20;
 const INITIAL_PAGE = 1;
 
+// Shuffle array function (Fisher-Yates algorithm)
+const shuffleArray = (array) => {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
+
 // Simple Product Card Component
 const ProductCard = React.memo(({ 
   product, 
@@ -101,10 +111,10 @@ const ProductCard = React.memo(({
         
         <div className="product-shop">
           {product.shopkeeper_id && product.shopkeeper?.shop_name 
-            ? `Product uploaded by: ${product.shopkeeper.shop_name}`
+            ? `Uploaded by: ${product.shopkeeper.shop_name}`
             : product.shopkeeper_id 
-              ? 'Product uploaded by: Shop' 
-              : `Product uploaded by: ${adminShopName}`}
+              ? 'Uploaded by: Shop' 
+              : `Uploaded by: ${adminShopName}`}
         </div>
 
         {isOutOfStock && (
@@ -230,7 +240,9 @@ const Marketplace = ({ showLoginOnMount = false }) => {
       if (error) throw error;
 
       if (reset) {
-        setProducts(data || []);
+        // Shuffle products on initial load or section change
+        const shuffledData = shuffleArray(data || []);
+        setProducts(shuffledData);
       } else {
         setProducts(prev => [...prev, ...(data || [])]);
       }
@@ -296,19 +308,35 @@ const Marketplace = ({ showLoginOnMount = false }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasMore, currentPage]);
 
-  // Filter products by search
+  // Filter products by search - improved word matching with space-insensitive matching
   const filteredProducts = useMemo(() => {
     if (!searchQuery.trim()) return products;
 
-    const query = searchQuery.toLowerCase();
+    const query = searchQuery.toLowerCase().trim();
+    // Split query into individual words
+    const queryWords = query.split(/\s+/).filter(word => word.length > 0);
+    
     return products.filter(product => {
       const name = (product.name || '').toLowerCase();
       const description = (product.description || '').toLowerCase();
       const sectionName = (product.marketplace_sections?.name || '').toLowerCase();
       
-      return name.includes(query) || 
-             description.includes(query) || 
-             sectionName.includes(query);
+      // Combine all searchable text
+      const searchableText = `${name} ${description} ${sectionName}`;
+      
+      // Check if all query words appear in the searchable text
+      const allWordsMatch = queryWords.every(word => searchableText.includes(word));
+      
+      // Check for exact phrase match
+      const exactMatch = searchableText.includes(query);
+      
+      // Space-insensitive matching: remove spaces and check if query appears
+      // This handles cases like "androidbox" matching "Android TV Box"
+      const queryWithoutSpaces = query.replace(/\s+/g, '');
+      const searchableTextWithoutSpaces = searchableText.replace(/\s+/g, '');
+      const spaceInsensitiveMatch = searchableTextWithoutSpaces.includes(queryWithoutSpaces);
+      
+      return allWordsMatch || exactMatch || spaceInsensitiveMatch;
     });
   }, [products, searchQuery]);
 

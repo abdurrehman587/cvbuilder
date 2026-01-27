@@ -80,6 +80,12 @@ const LeftNavbar = ({ isAuthenticated, onLogout }) => {
     if (wasAuthenticated) {
       // Preserve authentication state
       localStorage.setItem('cvBuilderAuth', 'true');
+      // Clear login form flags if authenticated
+      sessionStorage.removeItem('showLoginForm');
+      localStorage.removeItem('showLoginForm');
+    } else {
+      // If not authenticated, preserve any existing showLoginForm flag
+      // Don't clear it - let it show the login form if needed
     }
     
     // Set navigation flag to prevent logout
@@ -200,31 +206,70 @@ const LeftNavbar = ({ isAuthenticated, onLogout }) => {
   };
 
   const handleSignIn = () => {
-    // Simple: Always show the login form
-    // Set flag in both storages to ensure it's available immediately
+    console.log('Sign in button clicked', { pathname: location.pathname });
+    
+    // Always set flags to show login form
     localStorage.setItem('showLoginForm', 'true');
     sessionStorage.setItem('showLoginForm', 'true');
     
-    // If on homepage, show login form on homepage
-    if (location.pathname === '/') {
-      // Try to show login form directly if HomePage component is mounted
-      if (window.showLoginFormHomepage) {
-        window.showLoginFormHomepage();
-      } else {
-        // Dispatch event to trigger form display
+    // If already on homepage, try to show login form immediately
+    if (location.pathname === '/' || location.pathname === '') {
+      console.log('On homepage, showing login form');
+      // Try multiple methods to ensure form shows
+      const showForm = () => {
+        if (typeof window.showLoginFormHomepage === 'function') {
+          console.log('Calling window.showLoginFormHomepage()');
+          try {
+            window.showLoginFormHomepage();
+            return true;
+          } catch (err) {
+            console.error('Error calling showLoginFormHomepage:', err);
+          }
+        }
+        return false;
+      };
+      
+      // Try immediately
+      showForm();
+      
+      // Dispatch event
+      console.log('Dispatching showLoginFormHomepage event');
+      try {
         window.dispatchEvent(new CustomEvent('showLoginFormHomepage'));
+      } catch (err) {
+        console.error('Error dispatching event:', err);
       }
-    } else if (location.pathname === '/marketplace') {
-      // If already on marketplace, show login form immediately
-      if (window.showLoginForm) {
-        window.showLoginForm();
-      } else {
-        // Dispatch event to trigger form display
-        window.dispatchEvent(new CustomEvent('showLoginForm'));
-      }
+      
+      // Try with delays to ensure component is ready
+      setTimeout(() => showForm(), 50);
+      setTimeout(() => showForm(), 100);
+      setTimeout(() => showForm(), 200);
+      setTimeout(() => showForm(), 300);
+      setTimeout(() => showForm(), 500);
     } else {
-      // Navigate to homepage where login form will be shown
+      console.log('Navigating to homepage to show login form');
+      // Navigate to homepage - the flag will be checked on mount
       navigate('/');
+      // Also try to show form after navigation with delays
+      setTimeout(() => {
+        if (typeof window.showLoginFormHomepage === 'function') {
+          window.showLoginFormHomepage();
+        } else {
+          window.dispatchEvent(new CustomEvent('showLoginFormHomepage'));
+        }
+      }, 100);
+      setTimeout(() => {
+        if (typeof window.showLoginFormHomepage === 'function') {
+          window.showLoginFormHomepage();
+        } else {
+          window.dispatchEvent(new CustomEvent('showLoginFormHomepage'));
+        }
+      }, 300);
+      setTimeout(() => {
+        if (typeof window.showLoginFormHomepage === 'function') {
+          window.showLoginFormHomepage();
+        }
+      }, 500);
     }
   };
 
@@ -344,16 +389,56 @@ const LeftNavbar = ({ isAuthenticated, onLogout }) => {
         </button>
         {!isAuthenticated ? (
           <button
+            type="button"
             className="bottom-nav-item signin-btn"
-            onClick={handleSignIn}
+            onClick={(e) => {
+              console.log('Sign in button onClick fired', e);
+              e.preventDefault();
+              e.stopPropagation();
+              try {
+                handleSignIn();
+              } catch (error) {
+                console.error('Error in handleSignIn:', error);
+                // Fallback: just navigate to homepage
+                navigate('/');
+              }
+            }}
+            onTouchStart={(e) => {
+              console.log('Sign in button onTouchStart fired');
+              e.stopPropagation();
+            }}
+            onMouseDown={(e) => {
+              console.log('Sign in button onMouseDown fired');
+              e.stopPropagation();
+            }}
+            onPointerDown={(e) => {
+              console.log('Sign in button onPointerDown fired');
+            }}
+            disabled={false}
+            aria-label="Sign In"
+            style={{ 
+              pointerEvents: 'auto',
+              cursor: 'pointer',
+              userSelect: 'none',
+              WebkitUserSelect: 'none'
+            }}
           >
             <span className="bottom-nav-icon">🔐</span>
             <span className="bottom-nav-text">Sign In</span>
           </button>
         ) : (
           <button
+            type="button"
             className="bottom-nav-item signout-btn"
-            onClick={handleLogout}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleLogout();
+            }}
+            onTouchStart={(e) => {
+              e.stopPropagation();
+            }}
+            aria-label="Sign Out"
           >
             <span className="bottom-nav-icon">🚪</span>
             <span className="bottom-nav-text">Sign Out</span>
