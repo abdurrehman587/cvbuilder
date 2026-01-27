@@ -485,7 +485,6 @@ const HomePage = ({ onProductSelect }) => {
     setEmail('');
     setPassword('');
     setConfirmPassword('');
-    setUserType('regular');
     setShowForgotPassword(false);
     setResetEmailSent(false);
   };
