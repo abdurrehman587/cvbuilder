@@ -30,8 +30,14 @@ const HomePage = ({ onProductSelect }) => {
   const [resetEmailSent, setResetEmailSent] = useState(false);
   const [loginSuccess, setLoginSuccess] = useState(false);
   const [isGoogleSigningIn, setIsGoogleSigningIn] = useState(false);
-  const [showBecomeShopkeeper, setShowBecomeShopkeeper] = useState(false);
   const [isUpdatingUserType, setIsUpdatingUserType] = useState(false);
+  const [showShopkeeperForm, setShowShopkeeperForm] = useState(false);
+  const [shopkeeperFormData, setShopkeeperFormData] = useState({
+    shopkeeperName: '',
+    shopName: '',
+    shopAddress: '',
+    location: ''
+  });
   
   // Marketplace products state
   const [featuredProducts, setFeaturedProducts] = useState([]);
@@ -507,9 +513,12 @@ const HomePage = ({ onProductSelect }) => {
     }
   };
 
-  const handleBecomeShopkeeper = async () => {
+  const handleShopkeeperRegistration = async (e) => {
+    e.preventDefault();
+    
     if (!isAuthenticated) {
-      setShowBecomeShopkeeper(false);
+      setError('Please sign in first');
+      setShowShopkeeperForm(false);
       setShowLogin(true);
       return;
     }
@@ -530,7 +539,7 @@ const HomePage = ({ onProductSelect }) => {
       if (currentUserType === 'shopkeeper') {
         setError('You are already a shopkeeper!');
         setIsUpdatingUserType(false);
-        setShowBecomeShopkeeper(false);
+        setShowShopkeeperForm(false);
         // Redirect to shopkeeper dashboard
         setTimeout(() => {
           window.location.href = '/shopkeeper';
@@ -538,22 +547,40 @@ const HomePage = ({ onProductSelect }) => {
         return;
       }
 
-      // Update user type to shopkeeper
+      // Update user type to shopkeeper and save shop details
       await authService.updateUserMetadata({
         user_type: 'shopkeeper',
+        shopkeeper_name: shopkeeperFormData.shopkeeperName,
+        shop_name: shopkeeperFormData.shopName,
+        shop_address: shopkeeperFormData.shopAddress,
+        location: shopkeeperFormData.location,
         ...user.user_metadata
       });
 
+      // Also update the users table with shop details
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({
+          shop_name: shopkeeperFormData.shopName,
+          shop_address: shopkeeperFormData.shopAddress,
+          location: shopkeeperFormData.location
+        })
+        .eq('id', user.id);
+
+      if (updateError) {
+        console.error('Error updating user table:', updateError);
+      }
+
       setError('Success! You are now a shopkeeper. Redirecting to your dashboard...');
-      setShowBecomeShopkeeper(false);
+      setShowShopkeeperForm(false);
       
       // Redirect to shopkeeper dashboard after a short delay
       setTimeout(() => {
         window.location.href = '/shopkeeper';
       }, 1500);
     } catch (err) {
-      console.error('Error updating user type:', err);
-      setError('Failed to update account type: ' + (err.message || 'Unknown error'));
+      console.error('Error registering as shopkeeper:', err);
+      setError('Failed to register as shopkeeper: ' + (err.message || 'Unknown error'));
     } finally {
       setIsUpdatingUserType(false);
     }
@@ -636,11 +663,32 @@ const HomePage = ({ onProductSelect }) => {
         <div className="hero-section">
           <div className="hero-content">
             <h1 className="hero-title">
-              Welcome to <span className="glory-text">Glory</span>
+              Welcome to <span className="glory-text">getglory.pk</span>
             </h1>
+            <p className="hero-tagline">Live Glorious Life</p>
             <p className="hero-subtitle">
               Your one-stop destination for quality products and professional services
             </p>
+            <div className="hero-images">
+              <img 
+                src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=200&h=200&fit=crop&auto=format" 
+                alt="Shopping" 
+                className="hero-decorative-image hero-image-1"
+                loading="lazy"
+              />
+              <img 
+                src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=200&h=200&fit=crop&auto=format" 
+                alt="Business" 
+                className="hero-decorative-image hero-image-2"
+                loading="lazy"
+              />
+              <img 
+                src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=200&h=200&fit=crop&auto=format" 
+                alt="Technology" 
+                className="hero-decorative-image hero-image-3"
+                loading="lazy"
+              />
+            </div>
             
             {/* Prominent Google Sign In Button */}
             {!isAuthenticated && (
@@ -776,6 +824,192 @@ const HomePage = ({ onProductSelect }) => {
           )}
         </div>
 
+        {/* Become a Shopkeeper Section - Right after Marketplace */}
+        <div className="section-become-shopkeeper">
+          <div className="section-header">
+            <div className="section-image-wrapper">
+              <img 
+                src="https://images.unsplash.com/photo-1556740758-90de374c12ad?w=300&h=200&fit=crop&auto=format" 
+                alt="Shopkeeper" 
+                className="section-header-image"
+                loading="lazy"
+              />
+            </div>
+            <h2 className="section-title">🏪 Become a Shopkeeper</h2>
+            <p className="section-description">
+              Start selling your products and offering services to customers. Join our marketplace and grow your business.
+            </p>
+          </div>
+
+          {/* Detailed Features - Shown directly on homepage */}
+          <div className="shopkeeper-features-list">
+            <div className="shopkeeper-feature-item">
+              <div className="shopkeeper-feature-icon">🛍️</div>
+              <div className="shopkeeper-feature-content">
+                <h3>Sell your Products to Customers</h3>
+                <p>Upload and manage your product catalog. Reach thousands of customers and grow your sales.</p>
+              </div>
+            </div>
+            
+            <div className="shopkeeper-feature-item">
+              <div className="shopkeeper-feature-icon">📄</div>
+              <div className="shopkeeper-feature-content">
+                <h3>Make Bulk CV's for Customers</h3>
+                <p>Offer professional CV creation services to your customers. Create multiple CVs efficiently.</p>
+              </div>
+            </div>
+            
+            <div className="shopkeeper-feature-item">
+              <div className="shopkeeper-feature-icon">🪪</div>
+              <div className="shopkeeper-feature-content">
+                <h3>Print ID Cards Front and Back</h3>
+                <p>Print professional ID cards with front and back designs for your customers.</p>
+              </div>
+            </div>
+            
+            <div className="shopkeeper-feature-item">
+              <div className="shopkeeper-feature-icon">📋</div>
+              <div className="shopkeeper-feature-content">
+                <h3>Print Multiple ID Cards on Single Page</h3>
+                <p>Efficiently print multiple ID cards on a single page to save time and resources.</p>
+              </div>
+            </div>
+            
+            <div className="shopkeeper-feature-item">
+              <div className="shopkeeper-feature-icon">📊</div>
+              <div className="shopkeeper-feature-content">
+                <h3>Manage Inventory</h3>
+                <p>Track your products, manage stock levels, and keep your inventory organized.</p>
+              </div>
+            </div>
+            
+            <div className="shopkeeper-feature-item">
+              <div className="shopkeeper-feature-icon">💰</div>
+              <div className="shopkeeper-feature-content">
+                <h3>Track Sales</h3>
+                <p>Monitor your sales performance, view analytics, and track your business growth.</p>
+              </div>
+            </div>
+            
+            <div className="shopkeeper-feature-item">
+              <div className="shopkeeper-feature-icon">🏪</div>
+              <div className="shopkeeper-feature-content">
+                <h3>Shop Dashboard</h3>
+                <p>Access a comprehensive dashboard to manage all aspects of your shop in one place.</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Registration Form */}
+          {showShopkeeperForm ? (
+            <div className="shopkeeper-registration-form">
+              <h3 className="shopkeeper-form-title">Register Yourself as Shopkeeper</h3>
+              <form onSubmit={handleShopkeeperRegistration} className="shopkeeper-form">
+                <div className="form-group-shopkeeper">
+                  <label htmlFor="shopkeeperName">Shopkeeper Name <span className="required">*</span></label>
+                  <input
+                    type="text"
+                    id="shopkeeperName"
+                    value={shopkeeperFormData.shopkeeperName}
+                    onChange={(e) => setShopkeeperFormData({...shopkeeperFormData, shopkeeperName: e.target.value})}
+                    placeholder="Enter your full name"
+                    required
+                  />
+                </div>
+
+                <div className="form-group-shopkeeper">
+                  <label htmlFor="shopName">Shop Name <span className="required">*</span></label>
+                  <input
+                    type="text"
+                    id="shopName"
+                    value={shopkeeperFormData.shopName}
+                    onChange={(e) => setShopkeeperFormData({...shopkeeperFormData, shopName: e.target.value})}
+                    placeholder="Enter your shop name"
+                    required
+                  />
+                </div>
+
+                <div className="form-group-shopkeeper">
+                  <label htmlFor="shopAddress">Shop Address <span className="required">*</span></label>
+                  <textarea
+                    id="shopAddress"
+                    value={shopkeeperFormData.shopAddress}
+                    onChange={(e) => setShopkeeperFormData({...shopkeeperFormData, shopAddress: e.target.value})}
+                    placeholder="Enter your shop address"
+                    rows="3"
+                    required
+                  />
+                </div>
+
+                <div className="form-group-shopkeeper">
+                  <label htmlFor="location">Location <span className="required">*</span></label>
+                  <input
+                    type="text"
+                    id="location"
+                    value={shopkeeperFormData.location}
+                    onChange={(e) => setShopkeeperFormData({...shopkeeperFormData, location: e.target.value})}
+                    placeholder="Enter your location (city, area)"
+                    required
+                  />
+                </div>
+
+                <div className="shopkeeper-form-actions">
+                  <button 
+                    type="button"
+                    className="shopkeeper-form-cancel"
+                    onClick={() => {
+                      setShowShopkeeperForm(false);
+                      setShopkeeperFormData({
+                        shopkeeperName: '',
+                        shopName: '',
+                        shopAddress: '',
+                        location: ''
+                      });
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit"
+                    className="shopkeeper-form-submit"
+                    disabled={isUpdatingUserType}
+                  >
+                    {isUpdatingUserType ? 'Registering...' : 'Register as Shopkeeper'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          ) : (
+            <div className="become-shopkeeper-cta-section">
+              {!isAuthenticated ? (
+                <>
+                  <p className="become-shopkeeper-note">
+                    Sign up first to register as a shopkeeper
+                  </p>
+                  <button 
+                    className="become-shopkeeper-cta-button"
+                    onClick={() => setShowLogin(true)}
+                  >
+                    Sign Up / Login →
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button 
+                    className="become-shopkeeper-cta-button"
+                    onClick={() => setShowShopkeeperForm(true)}
+                  >
+                    Register Yourself as Shopkeeper →
+                  </button>
+                  <p className="become-shopkeeper-note">
+                    Fill in your shop details to get started
+                  </p>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+
         {/* CV Builder Section - Secondary Focus */}
         <div className="section-cv-builder">
           <div className="section-header">
@@ -827,91 +1061,17 @@ const HomePage = ({ onProductSelect }) => {
           </div>
         </div>
 
-        {/* Become a Shopkeeper Section */}
-        <div className="section-become-shopkeeper">
-          <div className="section-header">
-            <h2 className="section-title">🏪 Become a Shopkeeper</h2>
-            <p className="section-description">
-              Start selling your products and offering services to customers. Join our marketplace and grow your business.
-            </p>
-          </div>
-
-          <div className="become-shopkeeper-features-preview">
-            <div className="become-shopkeeper-feature-preview">
-              <span className="become-shopkeeper-icon">🛍️</span>
-              <p>Sell Products</p>
-            </div>
-            <div className="become-shopkeeper-feature-preview">
-              <span className="become-shopkeeper-icon">📄</span>
-              <p>Bulk CVs</p>
-            </div>
-            <div className="become-shopkeeper-feature-preview">
-              <span className="become-shopkeeper-icon">🪪</span>
-              <p>ID Cards</p>
-            </div>
-            <div className="become-shopkeeper-feature-preview">
-              <span className="become-shopkeeper-icon">📊</span>
-              <p>Track Sales</p>
-            </div>
-          </div>
-
-          <div className="become-shopkeeper-cta-section">
-            <button 
-              className="become-shopkeeper-cta-button"
-              onClick={() => setShowBecomeShopkeeper(true)}
-            >
-              Learn More & Register →
-            </button>
-            <p className="become-shopkeeper-note">
-              {isAuthenticated ? 'Click to upgrade your account' : 'Sign up first, then become a shopkeeper'}
-            </p>
-          </div>
-        </div>
-
-        {/* Become a Shopkeeper Section */}
-        <div className="section-become-shopkeeper">
-          <div className="section-header">
-            <h2 className="section-title">🏪 Become a Shopkeeper</h2>
-            <p className="section-description">
-              Start selling your products and offering services to customers. Join our marketplace and grow your business.
-            </p>
-          </div>
-
-          <div className="become-shopkeeper-features-preview">
-            <div className="become-shopkeeper-feature-preview">
-              <span className="become-shopkeeper-icon">🛍️</span>
-              <p>Sell Products</p>
-            </div>
-            <div className="become-shopkeeper-feature-preview">
-              <span className="become-shopkeeper-icon">📄</span>
-              <p>Bulk CVs</p>
-            </div>
-            <div className="become-shopkeeper-feature-preview">
-              <span className="become-shopkeeper-icon">🪪</span>
-              <p>ID Cards</p>
-            </div>
-            <div className="become-shopkeeper-feature-preview">
-              <span className="become-shopkeeper-icon">📊</span>
-              <p>Track Sales</p>
-            </div>
-          </div>
-
-          <div className="become-shopkeeper-cta-section">
-            <button 
-              className="become-shopkeeper-cta-button"
-              onClick={() => setShowBecomeShopkeeper(true)}
-            >
-              Learn More & Register →
-            </button>
-            <p className="become-shopkeeper-note">
-              {isAuthenticated ? 'Click to upgrade your account' : 'Sign up first, then become a shopkeeper'}
-            </p>
-          </div>
-        </div>
-
         {/* ID Card Printing Section - Tertiary Focus */}
         <div className="section-id-card">
           <div className="section-header">
+            <div className="section-image-wrapper">
+              <img 
+                src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=300&h=200&fit=crop&auto=format" 
+                alt="ID Card Printing" 
+                className="section-header-image"
+                loading="lazy"
+              />
+            </div>
             <h2 className="section-title">🖨️ ID Card Printer</h2>
             <p className="section-description">
               Print multiple ID cards on a single A4 page. Perfect for offices, schools, and organizations.
@@ -967,6 +1127,67 @@ const HomePage = ({ onProductSelect }) => {
               <span>Continue with Google</span>
             </button>
           )}
+        </div>
+
+        {/* Contact Us Section */}
+        <div className="contact-us-section">
+          <div className="contact-us-header">
+            <h2 className="contact-us-title">📞 Contact Us</h2>
+            <p className="contact-us-subtitle">Get in touch with us. We're here to help!</p>
+          </div>
+
+          <div className="contact-us-content">
+            <a 
+              href="https://wa.me/923153338612" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="contact-item"
+            >
+              <div className="contact-icon whatsapp-icon">
+                <svg viewBox="0 0 24 24" width="32" height="32" fill="currentColor">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+                </svg>
+              </div>
+              <div className="contact-details">
+                <h3>WhatsApp</h3>
+                <p>0315-3338612</p>
+              </div>
+            </a>
+
+            <a 
+              href="https://www.facebook.com/profile.php?id=61586695656112" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="contact-item"
+            >
+              <div className="contact-icon facebook-icon">
+                <svg viewBox="0 0 24 24" width="32" height="32" fill="currentColor">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                </svg>
+              </div>
+              <div className="contact-details">
+                <h3>Facebook</h3>
+                <p>Visit our Facebook page</p>
+              </div>
+            </a>
+
+            <a 
+              href="https://www.google.com/maps/search/?api=1&query=Main+Road+Nishat+Colony+Lahore+Cantt" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="contact-item"
+            >
+              <div className="contact-icon location-icon">
+                <svg viewBox="0 0 24 24" width="32" height="32" fill="currentColor">
+                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                </svg>
+              </div>
+              <div className="contact-details">
+                <h3>Address</h3>
+                <p>Main Road Nishat Colony<br />Lahore Cantt</p>
+              </div>
+            </a>
+          </div>
         </div>
       </div>
 
@@ -1191,106 +1412,6 @@ const HomePage = ({ onProductSelect }) => {
         </div>
       )}
 
-      {/* Become a Shopkeeper Modal */}
-      {showBecomeShopkeeper && (
-        <div className="become-shopkeeper-modal-overlay" onClick={() => setShowBecomeShopkeeper(false)}>
-          <div className="become-shopkeeper-modal-content" onClick={(e) => e.stopPropagation()}>
-            <button 
-              className="become-shopkeeper-close"
-              onClick={() => setShowBecomeShopkeeper(false)}
-            >
-              ×
-            </button>
-            <h2>Become a Shopkeeper</h2>
-            <p className="become-shopkeeper-subtitle">
-              Join our marketplace and start selling your products to customers. As a shopkeeper, you'll have access to powerful tools to grow your business.
-            </p>
-            
-            <div className="shopkeeper-features-list">
-              <div className="shopkeeper-feature-item">
-                <div className="shopkeeper-feature-icon">🛍️</div>
-                <div className="shopkeeper-feature-content">
-                  <h3>Sell your Products to Customers</h3>
-                  <p>Upload and manage your product catalog. Reach thousands of customers and grow your sales.</p>
-                </div>
-              </div>
-              
-              <div className="shopkeeper-feature-item">
-                <div className="shopkeeper-feature-icon">📄</div>
-                <div className="shopkeeper-feature-content">
-                  <h3>Make Bulk CV's for Customers</h3>
-                  <p>Offer professional CV creation services to your customers. Create multiple CVs efficiently.</p>
-                </div>
-              </div>
-              
-              <div className="shopkeeper-feature-item">
-                <div className="shopkeeper-feature-icon">🪪</div>
-                <div className="shopkeeper-feature-content">
-                  <h3>Print ID Cards Front and Back</h3>
-                  <p>Print professional ID cards with front and back designs for your customers.</p>
-                </div>
-              </div>
-              
-              <div className="shopkeeper-feature-item">
-                <div className="shopkeeper-feature-icon">📋</div>
-                <div className="shopkeeper-feature-content">
-                  <h3>Print Multiple ID Cards on Single Page</h3>
-                  <p>Efficiently print multiple ID cards on a single page to save time and resources.</p>
-                </div>
-              </div>
-              
-              <div className="shopkeeper-feature-item">
-                <div className="shopkeeper-feature-icon">📊</div>
-                <div className="shopkeeper-feature-content">
-                  <h3>Manage Inventory</h3>
-                  <p>Track your products, manage stock levels, and keep your inventory organized.</p>
-                </div>
-              </div>
-              
-              <div className="shopkeeper-feature-item">
-                <div className="shopkeeper-feature-icon">💰</div>
-                <div className="shopkeeper-feature-content">
-                  <h3>Track Sales</h3>
-                  <p>Monitor your sales performance, view analytics, and track your business growth.</p>
-                </div>
-              </div>
-              
-              <div className="shopkeeper-feature-item">
-                <div className="shopkeeper-feature-icon">🏪</div>
-                <div className="shopkeeper-feature-content">
-                  <h3>Shop Dashboard</h3>
-                  <p>Access a comprehensive dashboard to manage all aspects of your shop in one place.</p>
-                </div>
-              </div>
-            </div>
-            
-            {!isAuthenticated ? (
-              <div className="become-shopkeeper-cta">
-                <p className="become-shopkeeper-cta-text">Sign up or log in to become a shopkeeper</p>
-                <button 
-                  className="become-shopkeeper-btn"
-                  onClick={() => {
-                    setShowBecomeShopkeeper(false);
-                    setShowLogin(true);
-                  }}
-                >
-                  Get Started
-                </button>
-              </div>
-            ) : (
-              <div className="become-shopkeeper-cta">
-                <button 
-                  className="become-shopkeeper-btn"
-                  onClick={handleBecomeShopkeeper}
-                  disabled={isUpdatingUserType}
-                >
-                  {isUpdatingUserType ? 'Updating...' : 'Become a Shopkeeper'}
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 };
