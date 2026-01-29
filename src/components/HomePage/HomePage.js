@@ -707,14 +707,12 @@ const HomePage = ({ onProductSelect }) => {
                   </svg>
                   <span>{isGoogleSigningIn ? 'Signing in...' : 'Continue with Google'}</span>
                 </button>
-                <p className="hero-cta-note">
-                  Quick & secure sign in. Most users choose Google.
-                </p>
-                <button 
+                <span className="hero-cta-or">OR</span>
+                <button
                   className="email-login-link"
                   onClick={() => setShowLogin(true)}
                 >
-                  Or sign in with email (Admin/Test accounts)
+                  Sign in with Email
                 </button>
               </div>
             )}
@@ -827,6 +825,13 @@ const HomePage = ({ onProductSelect }) => {
         {/* Become a Shopkeeper Section - Right after Marketplace */}
         <div className="section-become-shopkeeper">
           <div className="section-header">
+            {/* Title and statement before the image */}
+            <div className="section-header-text">
+              <h2 className="section-title">🏪 Become a Shopkeeper</h2>
+              <p className="section-description">
+                Start selling your products and offering services to customers. Join our marketplace and grow your business.
+              </p>
+            </div>
             <div className="section-image-wrapper">
               <img 
                 src="https://images.unsplash.com/photo-1556740758-90de374c12ad?w=300&h=200&fit=crop&auto=format" 
@@ -835,10 +840,6 @@ const HomePage = ({ onProductSelect }) => {
                 loading="lazy"
               />
             </div>
-            <h2 className="section-title">🏪 Become a Shopkeeper</h2>
-            <p className="section-description">
-              Start selling your products and offering services to customers. Join our marketplace and grow your business.
-            </p>
           </div>
 
           {/* Detailed Features - Shown directly on homepage */}
@@ -979,36 +980,31 @@ const HomePage = ({ onProductSelect }) => {
                 </div>
               </form>
             </div>
-          ) : (
-            <div className="become-shopkeeper-cta-section">
-              {!isAuthenticated ? (
-                <>
-                  <p className="become-shopkeeper-note">
-                    Sign up first to register as a shopkeeper
-                  </p>
-                  <button 
-                    className="become-shopkeeper-cta-button"
-                    onClick={() => setShowLogin(true)}
-                  >
-                    Sign Up / Login →
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button 
-                    className="become-shopkeeper-cta-button"
-                    onClick={() => setShowShopkeeperForm(true)}
-                  >
-                    Register Yourself as Shopkeeper →
-                  </button>
-                  <p className="become-shopkeeper-note">
-                    Fill in your shop details to get started
-                  </p>
-                </>
-              )}
-            </div>
-          )}
+          ) : null}
         </div>
+
+        {/* Shopkeeper CTA - Direct children of main container (index 3, 4) */}
+        {!showShopkeeperForm && !isAuthenticated && (
+          <button
+            className="become-shopkeeper-cta-button"
+            onClick={() => setShowLogin(true)}
+          >
+            Sign Up / Login →
+          </button>
+        )}
+        {!showShopkeeperForm && isAuthenticated && (
+          <>
+            <button
+              className="become-shopkeeper-cta-button"
+              onClick={() => setShowShopkeeperForm(true)}
+            >
+              Register Yourself as Shopkeeper →
+            </button>
+            <p className="become-shopkeeper-note">
+              Fill in your shop details to get started
+            </p>
+          </>
+        )}
 
         {/* CV Builder Section - Secondary Focus */}
         <div className="section-cv-builder">

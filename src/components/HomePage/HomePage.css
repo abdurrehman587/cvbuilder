@@ -215,19 +215,46 @@
   margin: 0;
 }
 
-.email-login-link {
-  background: transparent;
-  border: 1px solid #cbd5e1;
-  color: #475569;
-  padding: 0.625rem 1.25rem;
-  border-radius: 8px;
+.hero-cta-or {
   font-size: 0.875rem;
+  font-weight: 600;
+  color: #64748b;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+.email-login-link {
+  width: 100%;
+  max-width: 360px;
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 2px solid #e2e8f0;
+  color: #334155;
+  padding: 1rem 1.75rem;
+  border-radius: 14px;
+  font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.email-login-link:hover {
+  background: linear-gradient(180deg, #e2e8f0 0%, #cbd5e1 100%);
+  border-color: #94a3b8;
+  color: #1e293b;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.email-login-link:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
 }
 
 .email-login-link:active {
-  background: #f1f5f9;
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  background: #cbd5e1;
   border-color: #94a3b8;
 }
 
@@ -245,8 +272,8 @@
 }
 
 .section-become-shopkeeper {
-  background: linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%);
-  border-top: 1px solid #e2e8f0;
+  background: linear-gradient(135deg, #fafbff 0%, #f5f7ff 100%);
+  border-top: 2px solid #c7d2fe;
 }
 
 .section-cv-builder {
@@ -262,6 +289,16 @@
 .section-header {
   text-align: center;
   margin-bottom: 2rem;
+}
+
+.section-header-text {
+  margin-bottom: 1.5rem;
+}
+
+.section-header-text .section-title,
+.section-header-text .section-description {
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .section-image-wrapper {
@@ -336,13 +373,21 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  min-height: 0;
+  padding: 16px;
+  box-sizing: border-box;
 }
 
 .homepage-product-image {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  padding: 0.5rem;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  width: auto !important;
+  height: auto !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  display: block;
+  flex-shrink: 1;
+  flex-grow: 0;
 }
 
 .homepage-product-placeholder {
@@ -1736,8 +1781,16 @@
   margin: 0;
 }
 
-.become-shopkeeper-cta-section {
-  margin-top: 2rem;
+/* Shopkeeper CTA - direct children of .homepage-container-new (dom order index 3, 4) */
+.homepage-container-new > .become-shopkeeper-cta-button {
+  display: block;
+  margin: 2rem auto 0;
+}
+
+.homepage-container-new > .become-shopkeeper-note {
+  display: block;
+  margin: 0.75rem auto 2rem;
+  text-align: center;
 }
 
 .become-shopkeeper-cta-button {
@@ -1761,7 +1814,6 @@
 .become-shopkeeper-note {
   font-size: 0.875rem;
   color: #64748b;
-  margin: 0.75rem 0 0 0;
 }
 
 /* Become a Shopkeeper Modal */
