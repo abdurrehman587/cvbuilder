@@ -342,17 +342,22 @@ export const authService = {
         // Check if user already has a user_type
         const currentUserType = user.user_metadata?.user_type
         if (currentUserType && currentUserType !== metadata.user_type) {
-          // User is trying to change their own type - check if they're admin
-          const { data: userData } = await supabase
-            .from('users')
-            .select('is_admin')
-            .eq('id', user.id)
-            .single()
-          
-          const isAdmin = userData?.is_admin === true
-          
-          if (!isAdmin) {
-            throw new Error('You cannot change your own user type. Only admins can change user types.')
+          // Allow self-registration: regular → shopkeeper only
+          const isSelfRegisteringAsShopkeeper =
+            (currentUserType === 'regular' || !currentUserType) && metadata.user_type === 'shopkeeper'
+          if (isSelfRegisteringAsShopkeeper) {
+            // Allow it; no admin check needed
+          } else {
+            // Any other type change requires admin
+            const { data: userData } = await supabase
+              .from('users')
+              .select('is_admin')
+              .eq('id', user.id)
+              .single()
+            const isAdmin = userData?.is_admin === true
+            if (!isAdmin) {
+              throw new Error('You cannot change your own user type. Only admins can change user types.')
+            }
           }
         }
       } catch (err) {

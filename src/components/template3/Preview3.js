@@ -30,6 +30,7 @@ const getFormDataFromDOM = (existingFormData = null) => {
     email: document.getElementById('email-input')?.value || '',
     address: document.getElementById('address-input')?.value || '',
     profileImage: profileImage,
+    showProfileImage: document.getElementById('show-profile-image-checkbox')?.checked !== false,
     professionalSummary: document.getElementById('professional-summary-textarea')?.value || '',
     education: [],
     experience: [],
@@ -43,27 +44,18 @@ const getFormDataFromDOM = (existingFormData = null) => {
   };
 
   // Get education data
-  const mainDegree = document.getElementById('degree-input')?.value || '';
-  const mainBoard = document.getElementById('board-input')?.value || '';
-  const mainYear = document.getElementById('year-input')?.value || '';
-  const mainMarks = document.getElementById('marks-input')?.value || '';
-  
-  let educationData = [];
-  if (mainDegree.trim() || mainBoard.trim() || mainYear.trim() || mainMarks.trim()) {
-    educationData.push({ degree: mainDegree, board: mainBoard, year: mainYear, marks: mainMarks });
-  }
-  
   const educationGroups = document.querySelectorAll('.education-group');
-  educationData = educationData.concat(Array.from(educationGroups).map(group => {
+  const educationData = Array.from(educationGroups).map(group => {
     const degree = group.querySelector('.degree-input')?.value || '';
     const board = group.querySelector('.board-input')?.value || '';
     const year = group.querySelector('.year-input')?.value || '';
     const marks = group.querySelector('.marks-input')?.value || '';
-    if (degree.trim() || board.trim() || year.trim() || marks.trim()) {
-      return { degree, board, year, marks };
+    const details = group.querySelector('.education-details-textarea')?.value || '';
+    if (degree.trim() || board.trim() || year.trim() || marks.trim() || details.trim()) {
+      return { degree, board, year, marks, details };
     }
     return null;
-  }).filter(edu => edu !== null));
+  }).filter(edu => edu !== null);
   data.education = educationData;
 
   // Get experience data
@@ -286,7 +278,8 @@ function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
         e.target.id === 'phone-input' ||
         e.target.id === 'email-input' ||
         e.target.id === 'address-input' ||
-        e.target.id === 'professional-summary-textarea'
+        e.target.id === 'professional-summary-textarea' ||
+        e.target.id === 'show-profile-image-checkbox'
       )) {
         updatePreviewData();
       }
@@ -589,7 +582,8 @@ function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
     hobbies: Array.isArray(formData?.hobbies) && formData.hobbies.length > 0 ? formData.hobbies.filter(hobby => hobby && hobby.trim() !== '') : [],
     otherInfo: Array.isArray(formData?.otherInfo) && formData.otherInfo.length > 0 ? formData.otherInfo.filter(info => info && info.value && info.value.trim() !== '') : [],
     customSection: Array.isArray(formData?.customSection) && formData.customSection.length > 0 ? formData.customSection : [],
-    references: Array.isArray(formData?.references) && formData.references.length > 0 ? formData.references.filter(ref => ref && ref.trim() !== '') : []
+    references: Array.isArray(formData?.references) && formData.references.length > 0 ? formData.references.filter(ref => ref && ref.trim() !== '') : [],
+    showProfileImage: formData?.showProfileImage !== false
   };
   
   
@@ -665,6 +659,7 @@ function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
           {/* Header Top Section with Profile on Left */}
           <div className="cv3-header-top">
             {/* Profile Image Container */}
+            {displayData.showProfileImage !== false && (
             <div className="cv3-profile-image-container">
               {profileImageUrl ? (
                 <img 
@@ -674,10 +669,17 @@ function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
                 />
               ) : (
                 <div className="cv3-profile-placeholder">
-                  CV
+                  <svg viewBox="0 0 64 64" className="cv3-default-cv-logo" aria-hidden="true">
+                    <rect x="8" y="4" width="48" height="56" rx="4" fill="none" stroke="currentColor" strokeWidth="2"/>
+                    <line x1="16" y1="18" x2="48" y2="18" stroke="currentColor" strokeWidth="1.5"/>
+                    <line x1="16" y1="26" x2="48" y2="26" stroke="currentColor" strokeWidth="1.5"/>
+                    <line x1="16" y1="34" x2="40" y2="34" stroke="currentColor" strokeWidth="1.5"/>
+                    <text x="32" y="52" textAnchor="middle" fontSize="14" fontWeight="700" fill="currentColor" fontFamily="system-ui, sans-serif">CV</text>
+                  </svg>
                 </div>
               )}
             </div>
+            )}
 
             {/* Header Content */}
             <div className="cv3-header-content">
@@ -746,6 +748,15 @@ function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
                     {edu.year && <span className="cv3-education-year"> • {edu.year}</span>}
                     {edu.marks && <span className="cv3-education-marks"> • {edu.marks}</span>}
                   </div>
+                  {edu.details && (
+                    <ul className="cv3-education-details-list">
+                      {edu.details.split('\n').map((detail, detailIndex) => (
+                        detail.trim() && (
+                          <li key={detailIndex} className="cv3-education-detail-item">{detail.trim()}</li>
+                        )
+                      ))}
+                    </ul>
+                  )}
                 </div>
               ))}
             </div>
@@ -1144,6 +1155,7 @@ function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
                   <option value="template2">Template 2</option>
                   <option value="template3">Template 3</option>
                   <option value="template4">Template 4</option>
+                  <option value="template5">Template 5</option>
                 </select>
               </div>
             )}

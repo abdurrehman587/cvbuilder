@@ -1,137 +1,96 @@
-# ✅ App Ready for Play Store Upload - Version 2.0.7
+# ✅ App Ready for Play Store Upload - Version 2.1.0
 
 ## 🎉 Status: READY
 
-Your app is now fully prepared for Play Store upload!
+Your app is configured for Google Play Store upload.
 
 ---
 
-## ✅ Completed Steps
+## ✅ Completed Configuration
 
-1. ✅ **Production Build**: Created successfully
-   - Main bundle: 147.69 kB (gzipped)
-   - Build location: `build/` folder
-   - All assets optimized
-
-2. ✅ **Capacitor Sync**: Completed
-   - All web assets copied to Android
-   - Capacitor plugins updated
-   - Configuration synced
-
-3. ✅ **Version Configuration**: Verified
-   - Version Code: **17**
-   - Version Name: **2.0.7**
-   - App ID: `com.getglory.app`
-   - App Name: Get Glory
-
-4. ✅ **Configuration Files**: Verified
-   - `capacitor.config.ts`: ✅ Correct
-   - `android/app/build.gradle`: ✅ Correct
-   - `AndroidManifest.xml`: ✅ Correct
-   - Permissions: ✅ Configured
-
-5. ✅ **Documentation**: Created
-   - Complete guide with release notes for version 2.0.7
+| Item | Status |
+|------|--------|
+| **Version** | 2.1.0 (versionCode: 24) |
+| **Application ID** | com.getglory.app |
+| **App Name** | Get Glory |
+| **Target SDK** | 35 (meets 2025 Play Store requirement) |
+| **Release signing** | keystore.properties + release keystore |
+| **BuildConfig** | Enabled (for DEBUG_MODE) |
+| **ProGuard** | Minify + shrink enabled for release |
+| **Permissions** | INTERNET, storage (legacy only; image picker uses system picker) |
+| **Security** | usesCleartextTraffic=false, HTTPS only |
+| **Icons & splash** | Configured |
 
 ---
 
-## 🚀 Next Steps
+## 🚀 Build & Upload
 
-### Step 1: Generate AAB File
+### 1. Build release AAB
 
-**Option A: Using Android Studio (Recommended)**
-1. Open Android Studio
-2. File → Open → Select `android` folder
-3. Build → Generate Signed Bundle / APK
-4. Select **Android App Bundle (AAB)**
-5. Use keystore: `android/app/upload-keystore.jks`
-6. Build variant: **release**
-7. AAB will be at: `android/app/build/outputs/bundle/release/app-release.aab`
-
-**Option B: Using Command Line**
-```powershell
-cd android
-.\gradlew.bat bundleRelease
+```bash
+npm run android:build
 ```
 
-### Step 2: Upload to Play Store
-
-1. Go to: https://play.google.com/console
-2. Select your app: **Get Glory**
-3. Navigate to: **Release** → **Production** (or **Testing** → **Internal testing** first)
-4. Click **"Create new release"**
-5. Upload AAB file from: `android/app/build/outputs/bundle/release/app-release.aab`
-6. Add release notes (see release notes section below)
-7. Review and publish
-
----
-
-## 📋 Quick Checklist
-
-### Before Building AAB
-- [x] Production build completed
-- [x] Capacitor synced
-- [x] Version numbers verified (16/2.0.6)
-- [x] All configurations checked
-
-### Before Uploading
-- [ ] AAB file generated
-- [ ] AAB file signed
-- [ ] Release notes prepared
-- [ ] App tested (recommended: Internal testing track first)
-
----
-
-## 📝 Release Notes Summary
-
-**Version 2.0.7** includes:
-- Clean URL routing implementation
-- ID Card Printer route fixes
-- Performance optimizations
-- UI improvements (Welcome banner, removed install button)
-- Multiple bug fixes (sign-in, navigation, routing)
-- Technical improvements (state management, error handling)
-
-**Full release notes**: See release notes section above
-
----
-
-## 📍 Important Files
-
-- **AAB File** (after build): `android/app/build/outputs/bundle/release/app-release.aab`
-- **Keystore**: `android/app/upload-keystore.jks`
-- **Keystore Properties**: `android/keystore.properties`
-- **Keystore Setup Guide**: `android/KEYSTORE_SETUP.md`
-- **Upload Guide**: `android/UPLOAD_TO_PLAYSTORE.md`
-
----
-
-## ⚠️ Important Reminders
-
-1. **Version Code**: Must be incremented for each new upload (currently 17)
-2. **Keystore**: Keep secure and backed up - if lost, you cannot update the app
-3. **Testing**: Always test on Internal testing track before Production
-4. **Signing**: AAB must be signed with your release keystore
-
----
-
-## 🎯 Quick Commands
-
+On **Windows** (if the above fails):
 ```powershell
-# Build and sync (already done)
-npm run build
-npx cap sync android
-
-# Open in Android Studio
-npx cap open android
-
-# Then in Android Studio: Build → Generate Signed Bundle / APK
+npm run android:build:win
 ```
 
+**Output:** `android/app/build/outputs/bundle/release/app-release.aab`
+
+### 2. Upload to Play Console
+
+1. Open [Google Play Console](https://play.google.com/console)
+2. Select app **Get Glory**
+3. **Release** → **Production** (or **Testing** → **Internal testing** first)
+4. **Create new release** → Upload the AAB
+5. Add **release notes**, then **Review** and **Start rollout**
+
 ---
 
-**Status**: ✅ **READY FOR PLAY STORE UPLOAD**
+## 📋 Pre-upload checklist
 
-**Next Action**: Generate AAB file using Android Studio or command line, then upload to Play Store.
+- [x] AAB builds successfully
+- [x] Keystore configured and backed up
+- [x] Version code 24 (increment for each new upload)
+- [x] **Demo/Guest access** – "Continue as Guest (Try Demo)" on login for Play Store review
+- [ ] Release notes written
+- [ ] Store listing (description, screenshots, icon) ready
+- [ ] Privacy policy URL set (if your app collects data)
+- [ ] Content rating questionnaire completed in Play Console
 
-**Good luck! 🚀**
+---
+
+## 🔐 App access for Google Play review
+
+**Required:** Google Play reviewers must be able to access your app without an account.
+
+**Solution:** The app includes a **"Continue as Guest (Try Demo)"** button on all login screens.
+
+**When submitting in Play Console:**
+1. Go to **Policy and programs** → **App content** → **App access**
+2. If asked for login credentials, select **"All functionality is available without special access"**
+3. In the description, add: *"Tap 'Continue as Guest (Try Demo)' on the login screen to access all app features without an account. No credentials required."*
+
+---
+
+## 📁 Key files
+
+| File | Purpose |
+|------|---------|
+| `android/app/build.gradle` | Version, signing, build config |
+| `android/keystore.properties` | Signing credentials (do not commit) |
+| `android/UPLOAD_TO_PLAYSTORE.md` | Step-by-step upload guide |
+| `android/KEYSTORE_SETUP.md` | Keystore creation and setup |
+
+---
+
+## ⚠️ Reminders
+
+1. **Version code** – Increment in `android/app/build.gradle` for every Play Store upload.
+2. **Keystore** – Keep the file and passwords safe; you cannot update the app without them.
+3. **Testing** – Prefer **Internal testing** or **Closed testing** before production.
+
+---
+
+**Next action:** Run `npm run android:build` (or `npm run android:build:win` on Windows), then upload the generated AAB in Play Console.

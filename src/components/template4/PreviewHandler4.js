@@ -37,6 +37,7 @@ const usePreviewHandler = (passedFormData = null) => {
       email: document.getElementById('email-input')?.value || '',
       address: document.getElementById('address-input')?.value || '',
       profileImage: document.getElementById('file-input')?.files?.[0] || null,
+      showProfileImage: document.getElementById('show-profile-image-checkbox')?.checked !== false,
       professionalSummary: document.getElementById('professional-summary-textarea')?.value || '',
       education: [],
       experience: [],
@@ -49,38 +50,19 @@ const usePreviewHandler = (passedFormData = null) => {
       references: []
     };
 
-    // Get education data - first get the main education section, then any additional groups
-    const mainDegree = document.getElementById('degree-input')?.value || '';
-    const mainBoard = document.getElementById('board-input')?.value || '';
-    const mainYear = document.getElementById('year-input')?.value || '';
-    const mainMarks = document.getElementById('marks-input')?.value || '';
-    
-    let educationData = [];
-    
-    // Add main education entry if it has data
-    if (mainDegree.trim() || mainBoard.trim() || mainYear.trim() || mainMarks.trim()) {
-      educationData.push({
-        degree: mainDegree,
-        board: mainBoard,
-        year: mainYear,
-        marks: mainMarks
-      });
-    }
-    
-    // Get additional education groups
+    // Get education data from education groups
     const educationGroups = document.querySelectorAll('.education-group');
-    educationData = educationData.concat(Array.from(educationGroups).map(group => {
+    const educationData = Array.from(educationGroups).map(group => {
       const degree = group.querySelector('.degree-input')?.value || '';
       const board = group.querySelector('.board-input')?.value || '';
       const year = group.querySelector('.year-input')?.value || '';
       const marks = group.querySelector('.marks-input')?.value || '';
-      
-      if (degree.trim() || board.trim() || year.trim() || marks.trim()) {
-        return { degree, board, year, marks };
+      const details = group.querySelector('.education-details-textarea')?.value || '';
+      if (degree.trim() || board.trim() || year.trim() || marks.trim() || details.trim()) {
+        return { degree, board, year, marks, details };
       }
       return null;
-    }).filter(edu => edu !== null));
-    
+    }).filter(edu => edu !== null);
     data.education = educationData;
     
     // Debug log removed to prevent console spam

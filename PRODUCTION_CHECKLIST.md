@@ -47,8 +47,11 @@
 - [x] App icon configured
 - [x] Splash screen configured
 - [x] App name and description ready
-- [x] Privacy policy URL (if required)
-- [x] Screenshots prepared (if needed)
+- [x] Target SDK 35 (meets 2025 requirement)
+- [x] Permissions declared (INTERNET, storage; no READ_MEDIA_* — uses system picker)
+- [ ] Privacy policy URL set in Play Console (if app collects user data)
+- [ ] Screenshots prepared in Play Console
+- [ ] Content rating completed in Play Console
 
 ---
 

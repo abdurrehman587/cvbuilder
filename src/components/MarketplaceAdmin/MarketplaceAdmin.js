@@ -8,6 +8,8 @@ const MarketplaceAdmin = () => {
   const [sections, setSections] = useState([]);
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
+  const [reviews, setReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('orders');
   const [adminShopName, setAdminShopName] = useState('Glory'); // Admin's shop name, default to "Glory"
@@ -102,6 +104,7 @@ const MarketplaceAdmin = () => {
     loadSections();
     loadProducts();
     loadOrders();
+    loadReviews();
     
     // Listen for shop name updates
     const handleShopNameUpdated = async () => {
@@ -260,6 +263,44 @@ const MarketplaceAdmin = () => {
       alert('Error loading orders: ' + err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadReviews = async () => {
+    try {
+      setReviewsLoading(true);
+      const { data, error } = await supabase
+        .from('product_reviews')
+        .select(`
+          *,
+          product:marketplace_products!product_id(id, name),
+          reviewer:users!user_id(full_name, email)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setReviews(data || []);
+    } catch (err) {
+      console.error('Error loading reviews:', err);
+      setReviews([]);
+    } finally {
+      setReviewsLoading(false);
+    }
+  };
+
+  const handleDeleteReview = async (reviewId) => {
+    if (!window.confirm('Are you sure you want to delete this review?')) return;
+    try {
+      const { error } = await supabase
+        .from('product_reviews')
+        .delete()
+        .eq('id', reviewId);
+
+      if (error) throw error;
+      loadReviews();
+    } catch (err) {
+      console.error('Error deleting review:', err);
+      alert('Error deleting review: ' + err.message);
     }
   };
 
@@ -851,10 +892,12 @@ const MarketplaceAdmin = () => {
         if (hashParts.length > 1) {
           const urlParams = new URLSearchParams(hashParts[1]);
           const tabParam = urlParams.get('tab');
-          if (tabParam && ['products', 'sections', 'orders', 'inventory'].includes(tabParam)) {
+          if (tabParam && ['products', 'sections', 'orders', 'inventory', 'reviews'].includes(tabParam)) {
             setActiveTab(tabParam);
             if (tabParam === 'orders') {
               loadOrders();
+            } else if (tabParam === 'reviews') {
+              loadReviews();
             }
             // Keep the tab parameter in URL, but ensure it's in the correct format
             if (hash.includes('#admin/marketplace')) {
@@ -928,9 +971,11 @@ const MarketplaceAdmin = () => {
     setActiveTab(tab);
     // Update URL with tab parameter
     window.history.replaceState(null, '', window.location.pathname + `#admin?tab=${tab}`);
-    // Load orders if switching to orders tab
+    // Load data when switching tabs
     if (tab === 'orders') {
       loadOrders();
+    } else if (tab === 'reviews') {
+      loadReviews();
     }
   };
 
@@ -1059,6 +1104,22 @@ const MarketplaceAdmin = () => {
         >
           Sections
         </button>
+        <button
+          type="button"
+          className={activeTab === 'reviews' ? 'active' : ''}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.nativeEvent?.stopImmediatePropagation();
+            handleTabChange('reviews');
+          }}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+        >
+          Reviews
+        </button>
       </div>
 
       {loading && activeTab === 'sections' && sections.length === 0 && (
@@ -1071,6 +1132,10 @@ const MarketplaceAdmin = () => {
 
       {loading && activeTab === 'orders' && orders.length === 0 && (
         <div className="loading-message">Loading orders...</div>
+      )}
+
+      {reviewsLoading && activeTab === 'reviews' && reviews.length === 0 && (
+        <div className="loading-message">Loading reviews...</div>
       )}
 
       {activeTab === 'sections' && (
@@ -1798,6 +1863,108 @@ const MarketplaceAdmin = () => {
                             }}
                           >
                             View
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'reviews' && (
+        <div className="admin-section">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <h2>Manage Product Reviews</h2>
+            <button
+              onClick={loadReviews}
+              className="back-button"
+              style={{ backgroundColor: '#3b82f6', color: 'white' }}
+              disabled={reviewsLoading}
+            >
+              {reviewsLoading ? 'Refreshing...' : 'Refresh Reviews'}
+            </button>
+          </div>
+
+          <div className="admin-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Reviewer</th>
+                  <th>Rating</th>
+                  <th>Comment</th>
+                  <th>Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {reviews.length === 0 && !reviewsLoading ? (
+                  <tr>
+                    <td colSpan="6" style={{ textAlign: 'center', padding: '2rem' }}>
+                      No reviews found.
+                    </td>
+                  </tr>
+                ) : reviews.length === 0 && reviewsLoading ? (
+                  <tr>
+                    <td colSpan="6" style={{ textAlign: 'center', padding: '2rem' }}>
+                      Loading reviews...
+                    </td>
+                  </tr>
+                ) : (
+                  reviews.map((review) => {
+                    const formatDate = (dateString) => {
+                      if (!dateString) return 'N/A';
+                      const date = new Date(dateString);
+                      return date.toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      });
+                    };
+                    const reviewerName = review.reviewer?.full_name || review.reviewer?.email || 'Anonymous';
+                    const productName = review.product?.name || 'Unknown Product';
+                    return (
+                      <tr key={review.id}>
+                        <td>
+                          <a
+                            href={`/#product/${review.product_id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ color: '#3b82f6', textDecoration: 'none' }}
+                          >
+                            {productName}
+                          </a>
+                        </td>
+                        <td>{reviewerName}</td>
+                        <td>
+                          <span style={{ color: '#f59e0b' }}>
+                            {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
+                          </span>
+                        </td>
+                        <td style={{ maxWidth: '200px' }}>
+                          {review.comment ? (
+                            <span title={review.comment}>
+                              {review.comment.length > 80 ? review.comment.slice(0, 80) + '...' : review.comment}
+                            </span>
+                          ) : (
+                            <span style={{ color: '#9ca3af' }}>—</span>
+                          )}
+                        </td>
+                        <td>{formatDate(review.created_at)}</td>
+                        <td>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteReview(review.id)}
+                            className="delete-btn"
+                            title="Delete review"
+                          >
+                            Delete
                           </button>
                         </td>
                       </tr>

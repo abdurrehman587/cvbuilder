@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import useFormHandler from './FormHandler1';
-import './Form1.css';
+import useFormHandler from './FormHandler5';
+import './Form5.css';
 
 function Form({ formData, updateFormData, markAsChanged }) {
     const { 
@@ -26,23 +26,23 @@ function Form({ formData, updateFormData, markAsChanged }) {
     
     // Log every render
     const renderTimestamp = Date.now();
-    console.log('[Form1] ========== Component RENDER ==========');
-    console.log('[Form1] Render timestamp:', renderTimestamp);
-    console.log('[Form1] Render count:', renderCountRef.current);
-    console.log('[Form1] formData.languages:', formData.languages);
-    console.log('[Form1] formData.languages length:', formData.languages?.length);
-    console.log('[Form1] formData.languages type:', typeof formData.languages);
-    console.log('[Form1] formData.languages is array:', Array.isArray(formData.languages));
+    console.log('[Form5] ========== Component RENDER ==========');
+    console.log('[Form5] Render timestamp:', renderTimestamp);
+    console.log('[Form5] Render count:', renderCountRef.current);
+    console.log('[Form5] formData.languages:', formData.languages);
+    console.log('[Form5] formData.languages length:', formData.languages?.length);
+    console.log('[Form5] formData.languages type:', typeof formData.languages);
+    console.log('[Form5] formData.languages is array:', Array.isArray(formData.languages));
     if (Array.isArray(formData.languages) && formData.languages.length > 0) {
-        console.log('[Form1] formData.languages first item:', formData.languages[0]);
-        console.log('[Form1] formData.languages first item type:', typeof formData.languages[0]);
-        console.log('[Form1] formData.languages last item:', formData.languages[formData.languages.length - 1]);
-        console.log('[Form1] formData.languages last item type:', typeof formData.languages[formData.languages.length - 1]);
+        console.log('[Form5] formData.languages first item:', formData.languages[0]);
+        console.log('[Form5] formData.languages first item type:', typeof formData.languages[0]);
+        console.log('[Form5] formData.languages last item:', formData.languages[formData.languages.length - 1]);
+        console.log('[Form5] formData.languages last item type:', typeof formData.languages[formData.languages.length - 1]);
         // Check for mixed types
         const hasStrings = formData.languages.some(lang => typeof lang === 'string');
         const hasObjects = formData.languages.some(lang => typeof lang === 'object' && lang !== null);
         if (hasStrings && hasObjects) {
-            console.warn('[Form1] ⚠️ WARNING: formData.languages contains MIXED types (strings and objects)! This may cause rendering issues.');
+            console.warn('[Form5] ⚠️ WARNING: formData.languages contains MIXED types (strings and objects)! This may cause rendering issues.');
         }
     }
 
@@ -50,26 +50,26 @@ function Form({ formData, updateFormData, markAsChanged }) {
     const prevFormDataRef = useRef(formData);
     useEffect(() => {
         const changeTimestamp = Date.now();
-        console.log('[Form1] ========== formData Prop Changed ==========');
-        console.log('[Form1] Change timestamp:', changeTimestamp);
-        console.log('[Form1] Render count:', renderCountRef.current);
-        console.log('[Form1] Previous formData.languages length:', prevFormDataRef.current?.languages?.length);
-        console.log('[Form1] Current formData.languages length:', formData.languages?.length);
-        console.log('[Form1] Languages length changed:', prevFormDataRef.current?.languages?.length !== formData.languages?.length);
-        console.log('[Form1] Languages reference changed:', prevFormDataRef.current?.languages !== formData.languages);
+        console.log('[Form5] ========== formData Prop Changed ==========');
+        console.log('[Form5] Change timestamp:', changeTimestamp);
+        console.log('[Form5] Render count:', renderCountRef.current);
+        console.log('[Form5] Previous formData.languages length:', prevFormDataRef.current?.languages?.length);
+        console.log('[Form5] Current formData.languages length:', formData.languages?.length);
+        console.log('[Form5] Languages length changed:', prevFormDataRef.current?.languages?.length !== formData.languages?.length);
+        console.log('[Form5] Languages reference changed:', prevFormDataRef.current?.languages !== formData.languages);
         if (prevFormDataRef.current?.languages?.length !== formData.languages?.length) {
-            console.log('[Form1] ✅ Languages array length changed! This should trigger a re-render.');
-            console.log('[Form1] Previous languages:', prevFormDataRef.current?.languages);
-            console.log('[Form1] Current languages:', formData.languages);
+            console.log('[Form5] ✅ Languages array length changed! This should trigger a re-render.');
+            console.log('[Form5] Previous languages:', prevFormDataRef.current?.languages);
+            console.log('[Form5] Current languages:', formData.languages);
         }
         prevFormDataRef.current = formData;
-        console.log('[Form1] New formData.languages:', formData.languages);
-        console.log('[Form1] New formData.languages length:', formData.languages?.length);
-        console.log('[Form1] Number of language inputs that should render:', (formData.languages || []).length);
+        console.log('[Form5] New formData.languages:', formData.languages);
+        console.log('[Form5] New formData.languages length:', formData.languages?.length);
+        console.log('[Form5] Number of language inputs that should render:', (formData.languages || []).length);
         if (Array.isArray(formData.languages)) {
-            console.log('[Form1] formData.languages detailed structure:', JSON.stringify(formData.languages, null, 2));
+            console.log('[Form5] formData.languages detailed structure:', JSON.stringify(formData.languages, null, 2));
         }
-        console.log('[Form1] ========== formData Prop Change Completed ==========');
+        console.log('[Form5] ========== formData Prop Change Completed ==========');
     }, [formData]);
 
     // Initialize form on component mount
@@ -101,7 +101,7 @@ function Form({ formData, updateFormData, markAsChanged }) {
         
         // If languages array is empty, set default languages
         if (!Array.isArray(currentLanguages) || currentLanguages.length === 0) {
-            console.log('[Form1] Languages array is empty, setting default languages...');
+            console.log('[Form5] Languages array is empty, setting default languages...');
             const defaultLanguages = [{ name: 'English', level: '' }, { name: 'Urdu', level: '' }, { name: 'Punjabi', level: '' }];
             const newFormData = {
                 ...formData,
@@ -109,7 +109,7 @@ function Form({ formData, updateFormData, markAsChanged }) {
             };
             updateFormData(newFormData);
             markAsChanged();
-            console.log('[Form1] Default languages set:', defaultLanguages);
+            console.log('[Form5] Default languages set:', defaultLanguages);
             return;
         }
         
@@ -123,7 +123,7 @@ function Form({ formData, updateFormData, markAsChanged }) {
         );
         
         if (needsNormalization) {
-            console.log('[Form1] Languages need normalization, processing...');
+            console.log('[Form5] Languages need normalization, processing...');
             // Normalize and filter out empty languages
             const normalizedLanguages = normalizeLanguages(currentLanguages)
                 .filter(lang => lang.name && lang.name.trim() !== '')
@@ -143,7 +143,7 @@ function Form({ formData, updateFormData, markAsChanged }) {
             };
             updateFormData(newFormData);
             markAsChanged();
-            console.log('[Form1] Languages normalized:', finalLanguages);
+            console.log('[Form5] Languages normalized:', finalLanguages);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);

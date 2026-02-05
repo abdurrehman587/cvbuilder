@@ -1,0 +1,601 @@
+/* ==================================================
+   TEMPLATE 5 - ELEGANT MINIMALIST
+   Premium editorial design with refined typography
+================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Source+Sans+3:wght@400;500;600;700&display=swap');
+
+.template5-root {
+  --template5-accent: #0d9488;
+  --template5-accent-dark: #0f766e;
+  --template5-accent-soft: #ccfbf1;
+  --template5-cream: #faf8f5;
+  --template5-dark: #000000;
+  --template5-muted: #000000;
+  --template5-line: #e2e8f0;
+  
+  box-sizing: border-box;
+  font-family: "Source Sans 3", "Segoe UI", sans-serif;
+  color: var(--template5-dark);
+  background: linear-gradient(to left, rgba(13, 148, 136, 0.02) 0%, transparent 24px), #ffffff;
+  position: relative;
+  padding: 0 12px 0 8px;
+  border-left: 4px solid var(--template5-accent);
+}
+
+.template5-root::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 60px;
+  height: 60px;
+  background: radial-gradient(circle at 100% 100%, rgba(13, 148, 136, 0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.template5-root::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, rgba(13, 148, 136, 0.1) 0%, transparent 60%);
+  border-radius: 0 0 16px 0;
+  pointer-events: none;
+}
+
+/* ==================================================
+   HEADER - Editorial Style
+================================================== */
+
+.template5-root .template5-cv-header {
+  background-image:
+    radial-gradient(circle at 20% 30%, rgba(13, 148, 136, 0.06) 0%, transparent 40%),
+    linear-gradient(135deg, var(--template5-cream) 0%, #ffffff 50%, var(--template5-accent-soft) 100%);
+  background-color: var(--template5-cream);
+  border-radius: 0;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--template5-line);
+  position: relative;
+}
+
+.template5-root .template5-cv-header::before {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--template5-accent) 0%, var(--template5-accent-dark) 50%, var(--template5-accent) 100%);
+  opacity: 0.8;
+}
+
+.template5-root .template5-cv-header::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 60px;
+  height: 60px;
+  background: radial-gradient(circle at 100% 0%, rgba(13, 148, 136, 0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+
+.template5-root .template5-cv-header-top {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+
+/* ==================================================
+   PROFILE IMAGE - Rounded Square (Compact)
+================================================== */
+
+.template5-root .template5-profile-image-container {
+  width: 90px;
+  height: 90px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid var(--template5-accent);
+  background: var(--template5-cream);
+  flex-shrink: 0;
+  box-shadow: 0 4px 16px rgba(13, 148, 136, 0.2);
+  position: relative;
+}
+
+.template5-root .template5-profile-image-container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 1px solid rgba(13, 148, 136, 0.3);
+  border-radius: 10px;
+  pointer-events: none;
+}
+
+.template5-root .template5-profile-image-container::after {
+  content: "";
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  background: var(--template5-accent);
+  border-radius: 50%;
+  opacity: 0.2;
+  pointer-events: none;
+}
+
+.template5-root .template5-profile-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.template5-root .template5-profile-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--template5-cream) 0%, var(--template5-accent-soft) 100%);
+  color: var(--template5-accent-dark);
+}
+
+.template5-root .template5-default-cv-logo {
+  width: 65%;
+  height: 65%;
+  opacity: 0.9;
+}
+
+/* ==================================================
+   HEADER CONTENT - Serif Typography
+================================================== */
+
+.template5-root .template5-header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.template5-root .template5-header-name {
+  font-family: "Cormorant Garamond", "Georgia", serif;
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin: 0;
+  color: var(--template5-dark);
+  line-height: 1.2;
+  position: relative;
+  display: inline-block;
+}
+
+.template5-root .template5-header-name::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--template5-accent) 0%, transparent 100%);
+  opacity: 0.5;
+  border-radius: 2px;
+}
+
+.template5-root .template5-header-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--template5-accent-dark);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+/* ==================================================
+   CONTACT INFO - Minimal
+================================================== */
+
+.template5-root .template5-contact-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 2px;
+}
+
+.template5-root .template5-contact-item {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--template5-muted);
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.template5-root .template5-contact-icon {
+  font-size: 14px;
+  color: var(--template5-accent);
+  opacity: 0.9;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.template5-root .template5-contact-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* ==================================================
+   SECTION WRAPPER
+================================================== */
+
+.template5-root .template5-cv-section {
+  margin-bottom: 10px;
+  position: relative;
+  padding-bottom: 8px;
+}
+
+.template5-root .template5-cv-section:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--template5-accent) 15%, var(--template5-accent) 85%, transparent 100%);
+  opacity: 0.25;
+}
+
+.template5-root .template5-cv-section::before {
+  content: "";
+  position: absolute;
+  left: -10px;
+  top: 2px;
+  width: 3px;
+  height: 18px;
+  background: linear-gradient(180deg, var(--template5-accent), var(--template5-accent-dark));
+  border-radius: 2px;
+  opacity: 0.6;
+}
+
+.template5-root .template5-section-content {
+  display: block;
+  width: 100%;
+}
+
+/* ==================================================
+   SECTION HEADING - Editorial
+================================================== */
+
+.template5-root .template5-section-heading {
+  font-family: "Cormorant Garamond", "Georgia", serif;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: none;
+  margin-bottom: 6px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(13, 148, 136, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--template5-accent-dark);
+}
+
+.template5-root .template5-section-heading::after {
+  content: "";
+  flex: 1;
+  height: 2px;
+  background: linear-gradient(to right, var(--template5-accent) 20%, transparent 60%);
+  opacity: 0.6;
+}
+
+
+.template5-root .template5-section-heading-icon {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  color: var(--template5-accent);
+}
+
+/* ==================================================
+   PROFESSIONAL SUMMARY
+================================================== */
+
+.template5-root .template5-professional-summary-wrapper {
+  position: relative;
+}
+
+.template5-root .template5-professional-summary-wrapper::before {
+  content: "“";
+  position: absolute;
+  top: -2px;
+  left: 0;
+  font-family: "Cormorant Garamond", serif;
+  font-size: 24px;
+  color: var(--template5-accent);
+  opacity: 0.35;
+  line-height: 1;
+}
+
+.template5-root .template5-professional-summary-text {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--template5-dark);
+  text-align: justify;
+  padding-left: 18px;
+}
+
+/* ==================================================
+   EDUCATION - Clean List
+================================================== */
+
+.template5-root .template5-education-item {
+  margin-bottom: 4px;
+  padding-bottom: 4px;
+  padding-left: 12px;
+  padding-top: 1px;
+  border-left: 2px solid var(--template5-accent-soft);
+  position: relative;
+}
+
+.template5-root .template5-education-item::before {
+  content: "▸";
+  position: absolute;
+  left: 2px;
+  top: 4px;
+  font-size: 10px;
+  color: var(--template5-accent);
+  font-weight: bold;
+}
+
+.template5-root .template5-education-item:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.template5-root .template5-education-single-line {
+  font-size: 15px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.template5-root .template5-education-degree {
+  font-weight: 700;
+  color: var(--template5-accent-dark);
+  font-size: 15px;
+}
+
+.template5-root .template5-education-board,
+.template5-root .template5-education-year,
+.template5-root .template5-education-marks {
+  color: var(--template5-muted);
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.template5-root .template5-education-details-list {
+  margin: 4px 0 0 0;
+  padding-left: 16px;
+}
+
+.template5-root .template5-education-detail-item {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* ==================================================
+   EXPERIENCE - Timeline Style
+================================================== */
+
+.template5-root .template5-experience-item {
+  position: relative;
+  padding-left: 16px;
+  margin-bottom: 8px;
+  border-left: 2px solid var(--template5-accent-soft);
+  margin-left: 4px;
+}
+
+.template5-root .template5-experience-item::before {
+  content: "";
+  position: absolute;
+  left: -6px;
+  top: 5px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--template5-accent);
+  box-shadow: 0 0 0 2px var(--template5-accent-soft);
+}
+
+.template5-root .template5-experience-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+}
+
+.template5-root .template5-experience-job-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--template5-dark);
+}
+
+.template5-root .template5-experience-duration {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--template5-accent);
+  letter-spacing: 0.5px;
+}
+
+
+.template5-root .template5-experience-company {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--template5-muted);
+  font-style: italic;
+}
+
+/* ==================================================
+   EXPERIENCE BULLETS
+================================================== */
+
+.template5-root .template5-experience-details-list {
+  padding-left: 14px;
+  margin: 4px 0 0 0;
+}
+
+.template5-root .template5-experience-detail-item {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--template5-dark);
+}
+
+.template5-root .template5-experience-detail-item::marker {
+  color: var(--template5-accent);
+}
+
+/* ==================================================
+   SKILLS / LANGUAGES / HOBBIES - Pill Style
+================================================== */
+
+.template5-root .template5-skills-container,
+.template5-root .template5-languages-container,
+.template5-root .template5-hobbies-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  position: relative;
+}
+
+.template5-root .template5-skill-pill,
+.template5-root .template5-language-pill,
+.template5-root .template5-hobby-pill {
+  background: transparent;
+  border: 1px solid var(--template5-accent);
+  border-radius: 14px;
+  padding: 3px 10px;
+}
+
+.template5-root .template5-skill-name,
+.template5-root .template5-language-name,
+.template5-root .template5-hobby-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--template5-accent-dark);
+}
+
+.template5-root .template5-language-level {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--template5-muted);
+}
+
+/* ==================================================
+   CERTIFICATIONS / REFERENCES / CUSTOM
+================================================== */
+
+.template5-root .template5-certifications-content,
+.template5-root .template5-references-content,
+.template5-root .template5-custom-section-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-left: 10px;
+  border-left: 2px solid var(--template5-accent-soft);
+  position: relative;
+}
+
+.template5-root .template5-certifications-content::before,
+.template5-root .template5-references-content::before,
+.template5-root .template5-custom-section-content::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 16px;
+  height: 16px;
+  background: linear-gradient(135deg, transparent 50%, rgba(13, 148, 136, 0.06) 100%);
+  pointer-events: none;
+}
+
+.template5-root .template5-certification-item,
+.template5-root .template5-reference-item,
+.template5-root .template5-custom-section-item {
+  position: relative;
+  padding-left: 18px;
+}
+
+.template5-root .template5-certification-item::before,
+.template5-root .template5-custom-section-item::before {
+  content: "◆";
+  position: absolute;
+  left: 0;
+  color: var(--template5-accent);
+  font-weight: 400;
+  font-size: 10px;
+}
+
+.template5-root .template5-reference-item {
+  padding-left: 0;
+}
+
+.template5-root .template5-reference-item::before {
+  content: none;
+  display: none;
+}
+
+.template5-root .template5-certification-text,
+.template5-root .template5-reference-text,
+.template5-root .template5-custom-section-detail {
+  font-size: 14px;
+  line-height: 1.65;
+  color: #000000;
+}
+
+/* ==================================================
+   OTHER INFORMATION GRID
+================================================== */
+
+.template5-root .template5-other-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 4px 14px;
+  padding-left: 10px;
+  border-left: 2px solid var(--template5-accent-soft);
+}
+
+
+.template5-root .template5-info-label {
+  font-weight: 600;
+  color: var(--template5-accent-dark);
+  font-size: 14px;
+}
+
+.template5-root .template5-info-value {
+  font-weight: 500;
+  color: var(--template5-muted);
+  font-size: 14px;
+}
+
+/* ==================================================
+   PRINT OPTIMIZATION
+================================================== */
+
+@media print {
+  .template5-root .template5-cv-section {
+    page-break-inside: avoid;
+  }
+  
+  .template5-root {
+    border-left-color: var(--template5-accent);
+  }
+}

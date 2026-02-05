@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
-import usePreviewHandler from './PreviewHandler1';
+import usePreviewHandler from './PreviewHandler5';
 // eslint-disable-next-line no-unused-vars
-import generatePDF from './pdf1';
+import generatePDF from './pdf5';
 import { setCVView } from '../../utils/routing';
-import './Preview1.css';
-import './Preview1.mobile.css';
+import './Preview5.css';
+import './Preview5.mobile.css';
 
-// Function to capture all form data from DOM (similar to PreviewHandler1.getFormData)
+// Function to capture all form data from DOM (similar to PreviewHandler5.getFormData)
 // Takes existingFormData parameter to preserve profileImage from database
 const getFormDataFromDOM = (existingFormData = null) => {
   // Get profileImage - prefer existing one (from database) if available, otherwise get from file input
@@ -31,7 +31,6 @@ const getFormDataFromDOM = (existingFormData = null) => {
     email: document.getElementById('email-input')?.value || '',
     address: document.getElementById('address-input')?.value || '',
     profileImage: profileImage,
-    showProfileImage: document.getElementById('show-profile-image-checkbox')?.checked !== false,
     professionalSummary: document.getElementById('professional-summary-textarea')?.value || '',
     education: [],
     experience: [],
@@ -156,7 +155,7 @@ const getFormDataFromDOM = (existingFormData = null) => {
   return data;
 };
 
-function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, selectedTemplate, onTemplateSwitch, isPreviewPage, updateFormData }) {
+function Preview5({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, selectedTemplate, onTemplateSwitch, isPreviewPage, updateFormData }) {
   const [showA4Preview, setShowA4Preview] = useState(false);
   const [a4Scale, setA4Scale] = useState(1);
   const [userZoom, setUserZoom] = useState(1);
@@ -164,7 +163,7 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
   const a4PreviewRef = useRef(null);
   const { formData: hookFormData, formatContactInfo, updatePreviewData } = usePreviewHandler(propFormData);
   
-  // Use hookFormData as primary source (it merges propFormData with DOM data in PreviewHandler1)
+  // Use hookFormData as primary source (it merges propFormData with DOM data in PreviewHandler5)
   // This ensures we get all data whether from app state or DOM
   // If hookFormData is empty or doesn't have data, check localStorage and propFormData
   let formData = hookFormData;
@@ -189,7 +188,7 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
         }
         formData = parsedData;
       } catch (e) {
-        console.error('Preview1 - Error parsing stored data:', e);
+        console.error('Preview5 - Error parsing stored data:', e);
         formData = propFormData || {};
       }
     } else {
@@ -258,8 +257,7 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
         e.target.id === 'phone-input' ||
         e.target.id === 'email-input' ||
         e.target.id === 'address-input' ||
-        e.target.id === 'professional-summary-textarea' ||
-        e.target.id === 'show-profile-image-checkbox'
+        e.target.id === 'professional-summary-textarea'
       )) {
         updatePreviewData();
       }
@@ -545,7 +543,6 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
     phone: formData?.phone || '',
     email: formData?.email || '',
     address: formData?.address || '',
-    showProfileImage: formData?.showProfileImage !== false,
     professionalSummary: formData?.professionalSummary || 'To work with a organization that offers a creative, dynamic and professional environment, where my education, knowledge, skills and proven abilities can be fully utilized and which also offers learning opportunities for my career development in the long run.',
     education: Array.isArray(formData?.education) && formData.education.length > 0 ? formData.education : [],
     experience: Array.isArray(formData?.experience) && formData.experience.length > 0 ? formData.experience : [],
@@ -632,23 +629,22 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
 
   // Render the CV preview content (reusable for both normal and modal view)
   const renderCVContent = () => (
-    <div className="template1-root">
+    <div className="template5-root">
         {/* CV Header */}
-        <div className="template1-cv-header">
+        <div className="template5-cv-header">
           {/* Header Top Section with Profile on Left */}
-          <div className="template1-cv-header-top">
-            {/* Profile Image Container - only show if user wants it */}
-            {displayData.showProfileImage !== false && (
-            <div className="template1-profile-image-container">
+          <div className="template5-cv-header-top">
+            {/* Profile Image Container */}
+            <div className="template5-profile-image-container">
               {profileImageUrl ? (
                 <img 
                   src={profileImageUrl} 
                   alt="Profile" 
-                  className="template1-profile-image"
+                  className="template5-profile-image"
                 />
               ) : (
-                <div className="template1-profile-placeholder">
-                  <svg viewBox="0 0 64 64" className="template1-default-cv-logo" aria-hidden="true">
+                <div className="template5-profile-placeholder">
+                  <svg viewBox="0 0 64 64" className="template5-default-cv-logo" aria-hidden="true">
                     <rect x="8" y="4" width="48" height="56" rx="4" fill="none" stroke="currentColor" strokeWidth="2"/>
                     <line x1="16" y1="18" x2="48" y2="18" stroke="currentColor" strokeWidth="1.5"/>
                     <line x1="16" y1="26" x2="48" y2="26" stroke="currentColor" strokeWidth="1.5"/>
@@ -658,42 +654,41 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
                 </div>
               )}
             </div>
-            )}
 
             {/* Header Content */}
-            <div className="template1-header-content">
+            <div className="template5-header-content">
               {/* Name */}
-              <h1 className="template1-header-name">
+              <h1 className="template5-header-name">
                 {displayData.name}
               </h1>
 
               {/* Position/Title */}
               {displayData.position && (
-                <h2 className="template1-header-title">
+                <h2 className="template5-header-title">
                   {displayData.position}
                 </h2>
               )}
 
               {/* Phone */}
               {displayData.phone && (
-                <div className="template1-contact-item">
-                  <span className="template1-contact-icon">📞</span>
+                <div className="template5-contact-item">
+                  <span className="template5-contact-icon">📞</span>
                   <span>{displayData.phone}</span>
                 </div>
               )}
 
               {/* Email */}
               {displayData.email && (
-                <div className="template1-contact-item">
-                  <span className="template1-contact-icon">✉️</span>
+                <div className="template5-contact-item">
+                  <span className="template5-contact-icon">✉️</span>
                   <span>{displayData.email}</span>
                 </div>
               )}
 
               {/* Address */}
               {displayData.address && (
-                <div className="template1-contact-item">
-                  <span className="template1-contact-icon">📍</span>
+                <div className="template5-contact-item">
+                  <span className="template5-contact-icon">📍</span>
                   <span>{displayData.address}</span>
                 </div>
               )}
@@ -701,14 +696,14 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
           </div>
           
           {/* Header Bottom Accent Bar */}
-          <div className="template1-cv-header-bottom"></div>
+          <div className="template5-cv-header-bottom"></div>
         </div>
 
         {/* Professional Summary Section */}
-        <div className="template1-cv-section">
-          <h3 className="template1-section-heading">Professional Summary</h3>
-          <div className="template1-section-content">
-            <p className="template1-professional-summary-text">
+        <div className="template5-cv-section">
+          <h3 className="template5-section-heading">Professional Summary</h3>
+          <div className="template5-section-content">
+            <p className="template5-professional-summary-text">
               {displayData.professionalSummary}
             </p>
           </div>
@@ -716,29 +711,25 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
 
         {/* Education Section */}
         {displayData.education && displayData.education.length > 0 && (
-          <div className="template1-cv-section">
-            <h3 className="template1-section-heading">Education</h3>
-            <div className="template1-section-content">
+          <div className="template5-cv-section">
+            <h3 className="template5-section-heading">Education</h3>
+            <div className="template5-section-content">
               {displayData.education.map((edu, index) => (
-                <div key={index} className="template1-education-item">
-                  <div className="template1-education-single-line">
-                    <span className="template1-education-degree">{edu.degree}</span>
-                    {edu.board && <span className="template1-education-board"> • {edu.board}</span>}
-                    {edu.year && <span className="template1-education-year"> • {edu.year}</span>}
-                    {edu.marks && <span className="template1-education-marks"> • {edu.marks}</span>}
+                <div key={index} className="template5-education-item">
+                  <div className="template5-education-single-line">
+                    <span className="template5-education-degree">{edu.degree}</span>
+                    {edu.board && <span className="template5-education-board"> • {edu.board}</span>}
+                    {edu.year && <span className="template5-education-year"> • {edu.year}</span>}
+                    {edu.marks && <span className="template5-education-marks"> • {edu.marks}</span>}
                   </div>
                   {edu.details && (
-                    <div className="template1-education-details">
-                      <ul className="template1-education-details-list">
-                        {edu.details.split('\n').map((detail, detailIndex) => (
-                          detail.trim() && (
-                            <li key={detailIndex} className="template1-education-detail-item">
-                              {detail.trim()}
-                            </li>
-                          )
-                        ))}
-                      </ul>
-                    </div>
+                    <ul className="template5-education-details-list">
+                      {edu.details.split('\n').map((detail, detailIndex) => (
+                        detail.trim() && (
+                          <li key={detailIndex} className="template5-education-detail-item">{detail.trim()}</li>
+                        )
+                      ))}
+                    </ul>
                   )}
                 </div>
               ))}
@@ -748,26 +739,26 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
 
         {/* Experience Section */}
         {displayData.experience && displayData.experience.length > 0 && (
-          <div className="template1-cv-section">
-            <h3 className="template1-section-heading">Experience</h3>
-            <div className="template1-section-content">
+          <div className="template5-cv-section">
+            <h3 className="template5-section-heading">Experience</h3>
+            <div className="template5-section-content">
               {displayData.experience.map((exp, index) => (
-                <div key={index} className="template1-experience-item">
-                  <div className="template1-experience-header">
-                    <span className="template1-experience-job-title">{exp.jobTitle || 'No job title'}</span>
-                    {exp.duration && <span className="template1-experience-duration">{exp.duration}</span>}
+                <div key={index} className="template5-experience-item">
+                  <div className="template5-experience-header">
+                    <span className="template5-experience-job-title">{exp.jobTitle || 'No job title'}</span>
+                    {exp.duration && <span className="template5-experience-duration">{exp.duration}</span>}
                   </div>
                   {exp.company && (
-                    <div className="template1-experience-company-line">
-                      <span className="template1-experience-company">{exp.company}</span>
+                    <div className="template5-experience-company-line">
+                      <span className="template5-experience-company">{exp.company}</span>
                     </div>
                   )}
                   {exp.jobDetails && (
-                    <div className="template1-experience-details">
-                      <ul className="template1-experience-details-list">
+                    <div className="template5-experience-details">
+                      <ul className="template5-experience-details-list">
                         {exp.jobDetails.split('\n').map((detail, detailIndex) => (
                           detail.trim() && (
-                            <li key={detailIndex} className="template1-experience-detail-item">
+                            <li key={detailIndex} className="template5-experience-detail-item">
                               {detail.trim()}
                             </li>
                           )
@@ -783,13 +774,13 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
 
         {/* Certifications Section */}
         {displayData.certifications && displayData.certifications.length > 0 && (
-          <div className="template1-cv-section">
-            <h3 className="template1-section-heading">Certifications</h3>
-            <div className="template1-section-content">
-              <div className="template1-certifications-content">
+          <div className="template5-cv-section">
+            <h3 className="template5-section-heading">Certifications</h3>
+            <div className="template5-section-content">
+              <div className="template5-certifications-content">
                 {displayData.certifications.map((cert, index) => (
-                  <div key={index} className="template1-certification-item">
-                    <p className="template1-certification-text">{cert}</p>
+                  <div key={index} className="template5-certification-item">
+                    <p className="template5-certification-text">{cert}</p>
                   </div>
                 ))}
               </div>
@@ -799,13 +790,13 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
 
         {/* Skills Section */}
         {displayData.skills && displayData.skills.length > 0 && (
-          <div className="template1-cv-section">
-            <h3 className="template1-section-heading">Skills</h3>
-            <div className="template1-section-content">
-              <div className="template1-skills-container">
+          <div className="template5-cv-section">
+            <h3 className="template5-section-heading">Skills</h3>
+            <div className="template5-section-content">
+              <div className="template5-skills-container">
                 {displayData.skills.map((skill, index) => (
-                  <div key={index} className="template1-skill-pill">
-                    <span className="template1-skill-name">{skill}</span>
+                  <div key={index} className="template5-skill-pill">
+                    <span className="template5-skill-name">{skill}</span>
                   </div>
                 ))}
               </div>
@@ -815,17 +806,17 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
 
         {/* Other Information Section */}
         {displayData.otherInfo && displayData.otherInfo.length > 0 && (
-          <div className="template1-cv-section">
-            <h3 className="template1-section-heading">Other Information</h3>
-            <div className="template1-section-content">
+          <div className="template5-cv-section">
+            <h3 className="template5-section-heading">Other Information</h3>
+            <div className="template5-section-content">
               <div
-                className="template1-other-info-grid"
+                className="template5-other-info-grid"
                 style={{ gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gridAutoFlow: 'row' }}
               >
                 {displayData.otherInfo.map((info, index) => (
-                  <div key={index} className="template1-info-item">
-                    <span className="template1-info-label">{info.label}:</span>
-                    <span className="template1-info-value">{info.value}</span>
+                  <div key={index} className="template5-info-item">
+                    <span className="template5-info-label">{info.label}:</span>
+                    <span className="template5-info-value">{info.value}</span>
                   </div>
                 ))}
               </div>
@@ -836,13 +827,13 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
 
         {/* Hobbies Section */}
         {displayData.hobbies && displayData.hobbies.length > 0 && (
-          <div className="template1-cv-section">
-            <h3 className="template1-section-heading">Hobbies</h3>
-            <div className="template1-section-content">
-              <div className="template1-hobbies-container">
+          <div className="template5-cv-section">
+            <h3 className="template5-section-heading">Hobbies</h3>
+            <div className="template5-section-content">
+              <div className="template5-hobbies-container">
                 {displayData.hobbies.map((hobby, index) => (
-                  <div key={index} className="template1-hobby-pill">
-                    <span className="template1-hobby-name">{hobby}</span>
+                  <div key={index} className="template5-hobby-pill">
+                    <span className="template5-hobby-name">{hobby}</span>
                   </div>
                 ))}
               </div>
@@ -852,18 +843,18 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
 
         {/* Languages Section */}
         {displayData.languages && displayData.languages.length > 0 && (
-          <div className="template1-cv-section">
-            <h3 className="template1-section-heading">Languages</h3>
-            <div className="template1-section-content">
-              <div className="template1-languages-container">
+          <div className="template5-cv-section">
+            <h3 className="template5-section-heading">Languages</h3>
+            <div className="template5-section-content">
+              <div className="template5-languages-container">
                 {displayData.languages.map((language, index) => {
                   const languageName = typeof language === 'string' ? language : (language.name || language);
                   const languageLevel = typeof language === 'string' ? '' : (language.level || '');
                   return (
-                    <div key={index} className="template1-language-pill">
-                      <span className="template1-language-name">{languageName}</span>
+                    <div key={index} className="template5-language-pill">
+                      <span className="template5-language-name">{languageName}</span>
                       {languageLevel && (
-                        <span className="template1-language-level"> - {languageLevel}</span>
+                        <span className="template5-language-level"> - {languageLevel}</span>
                       )}
                     </div>
                   );
@@ -883,16 +874,16 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
           if (!heading && details.length === 0) return null;
           
           return (
-            <div key={sectionIndex} className="template1-cv-section">
-              <h3 className="template1-section-heading">
+            <div key={sectionIndex} className="template5-cv-section">
+              <h3 className="template5-section-heading">
                 {heading || 'Custom Section'}
               </h3>
-              <div className="template1-section-content">
-                <div className="template1-custom-section-content">
+              <div className="template5-section-content">
+                <div className="template5-custom-section-content">
                   {details.map((detail, detailIndex) => (
                     detail && (
-                      <div key={detailIndex} className="template1-custom-section-item">
-                        <p className="template1-custom-section-detail">{detail}</p>
+                      <div key={detailIndex} className="template5-custom-section-item">
+                        <p className="template5-custom-section-detail">{detail}</p>
                       </div>
                     )
                   ))}
@@ -904,13 +895,13 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
 
         {/* References Section */}
         {displayData.references && displayData.references.length > 0 && (
-          <div className="template1-cv-section">
-            <h3 className="template1-section-heading">References</h3>
-            <div className="template1-section-content">
-              <div className="template1-references-content">
+          <div className="template5-cv-section">
+            <h3 className="template5-section-heading">References</h3>
+            <div className="template5-section-content">
+              <div className="template5-references-content">
                 {displayData.references.map((reference, index) => (
-                  <div key={index} className="template1-reference-item">
-                    <p className="template1-reference-text">{reference}</p>
+                  <div key={index} className="template5-reference-item">
+                    <p className="template5-reference-text">{reference}</p>
                   </div>
                 ))}
               </div>
@@ -925,7 +916,7 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
     return (
       <div className="preview-page-preview-wrapper">
         <div 
-          className="template1-preview template1-a4-size-preview template1-pdf-mode preview-page-preview"
+          className="template5-preview template5-a4-size-preview template5-pdf-mode preview-page-preview"
           style={{
             transform: `scale(${previewPageScale})`,
             transformOrigin: 'top left',
@@ -1090,7 +1081,7 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
 
       {/* A4 Preview Element - Always rendered for PDF generation, hidden when modal is closed */}
       <div 
-        className="template1-preview template1-a4-size-preview template1-pdf-mode"
+        className="template5-preview template5-a4-size-preview template5-pdf-mode"
         style={{
           display: 'none', // Hidden but in DOM for PDF generation
           position: 'fixed',
@@ -1194,7 +1185,7 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
             
             <div className="a4-preview-container" ref={a4PreviewRef}>
               <div 
-                className="template1-preview template1-a4-size-preview template1-pdf-mode"
+                className="template5-preview template5-a4-size-preview template5-pdf-mode"
                 id="a4-preview-content"
                 key={`a4-preview-${formData?.name || 'default'}-${Date.now()}`}
                 style={{
@@ -1222,4 +1213,4 @@ function Preview1({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
   );
 }
 
-export default Preview1;
+export default Preview5;

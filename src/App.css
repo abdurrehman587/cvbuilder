@@ -176,7 +176,7 @@ html {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-/* CV Builder Header (below main header) */
+/* CV Builder Header (below main header) - fixed at top */
 .app-header-cv {
   display: flex !important;
   justify-content: space-between;
@@ -187,7 +187,7 @@ html {
   margin: 0;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   position: fixed;
-  top: calc(var(--header-height, 80px) + 56px);
+  top: var(--header-height, 70px);
   left: 0;
   right: 0;
   z-index: 999;

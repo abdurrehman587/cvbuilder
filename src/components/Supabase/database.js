@@ -132,7 +132,10 @@ CREATE TRIGGER on_auth_user_created
 -- Insert default templates
 INSERT INTO public.templates (id, name, description, preview_url) VALUES
 ('template1', 'Template 1', 'Classic professional layout with clean design', '/templates/template1-preview.png'),
-('template2', 'Template 2', 'Modern layout with enhanced visual appeal', '/templates/template2-preview.png')
+('template2', 'Template 2', 'Modern layout with enhanced visual appeal', '/templates/template2-preview.png'),
+('template3', 'Template 3', 'Professional card-style layout', '/templates/template3-preview.png'),
+('template4', 'Template 4', 'Europass format', '/templates/template4-preview.png'),
+('template5', 'Template 5', 'Elegant minimalist design with refined typography', '/templates/template5-preview.png')
 ON CONFLICT (id) DO NOTHING;
 `;
 
@@ -227,7 +230,8 @@ export const dbHelpers = {
           position: formData.position,
           phone: formData.phone,
           email: formData.email,
-          address: formData.address
+          address: formData.address,
+          showProfileImage: formData.showProfileImage !== false
         },
         professional_summary: formData.professionalSummary,
         education: formData.education || [],
@@ -254,6 +258,7 @@ export const dbHelpers = {
       phone: data.personal_info?.phone || '',
       email: data.personal_info?.email || '',
       address: data.personal_info?.address || '',
+      showProfileImage: data.personal_info?.showProfileImage !== false,
       professionalSummary: data.professional_summary || '',
       education: data.education || [],
       experience: data.experience || [],

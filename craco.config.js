@@ -5,7 +5,18 @@ module.exports = {
     alias: {
       '@': path.resolve(__dirname, 'src'),
     },
-    configure: (webpackConfig) => {
+    configure: (webpackConfig, { env }) => {
+      // Strip console.log/warn/info/debug in production (smaller bundle, no debug leakage)
+      if (env === 'production' && Array.isArray(webpackConfig.optimization?.minimizer)) {
+        for (const plugin of webpackConfig.optimization.minimizer) {
+          try {
+            if (plugin?.constructor?.name === 'TerserPlugin' && plugin.options?.terserOptions?.compress) {
+              plugin.options.terserOptions.compress.drop_console = true;
+              break;
+            }
+          } catch (_) { /* ignore */ }
+        }
+      }
       // Ensure TypeScript path aliases work
       const existingAlias = webpackConfig.resolve.alias || {};
       webpackConfig.resolve.alias = {

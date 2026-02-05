@@ -1,4 +1,4 @@
-﻿/* ===== MAIN WRAPPER & LAYOUT ===== */
+/* ===== MAIN WRAPPER & LAYOUT ===== */
 .template2-cv-content-wrapper {
   display: grid;
   grid-template-columns: 35% 65%;
@@ -66,9 +66,19 @@
 }
 
 .template2-profile-placeholder {
-  font-size: 32px;
-  font-weight: 700;
-  color: #ecf0f1;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);
+  color: #0077b6;
+}
+
+.template2-default-cv-logo {
+  width: 70%;
+  height: 70%;
+  opacity: 0.9;
 }
 
 /* ===== NAME & TITLE ===== */
@@ -328,6 +338,16 @@
 .template2-education-single-line strong {
   color: #48cae4;
   font-weight: 700;
+}
+
+.template2-education-details-list {
+  margin: 4px 0 0 0;
+  padding-left: 16px;
+}
+
+.template2-education-detail-item {
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 /* ===== CERTIFICATION ===== */

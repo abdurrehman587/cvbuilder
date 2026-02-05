@@ -2,30 +2,30 @@
    TEMPLATE 1 - ROOT & GLOBAL
 ================================================== */
 
-.template1-root {
-  --template1-accent: #e67e22;
-  --template1-accent-soft: #fdebd0;
-  --template1-dark: #1f2937;
-  --template1-muted: #6b7280;
-  --template1-line: #e5e7eb;
+.template5-root {
+  --template5-accent: #e67e22;
+  --template5-accent-soft: #fdebd0;
+  --template5-dark: #1f2937;
+  --template5-muted: #6b7280;
+  --template5-line: #e5e7eb;
   
   box-sizing: border-box;
   font-family: "Inter", "Segoe UI", Arial, sans-serif;
-  color: var(--template1-dark);
+  color: var(--template5-dark);
 }
 
 /* ==================================================
    HEADER
 ================================================== */
 
-.template1-root .template1-cv-header {
-  background: linear-gradient(135deg, #fff 60%, var(--template1-accent-soft));
+.template5-root .template5-cv-header {
+  background: linear-gradient(135deg, #fff 60%, var(--template5-accent-soft));
   border-radius: 10px;
   padding: 14px;
   margin-bottom: 18px;
 }
 
-.template1-root .template1-cv-header-top {
+.template5-root .template5-cv-header-top {
   display: flex;
   gap: 16px;
   align-items: center;
@@ -36,33 +36,33 @@
    PROFILE IMAGE
 ================================================== */
 
-.template1-root .template1-profile-image-container {
+.template5-root .template5-profile-image-container {
   width: 150px;
   height: 150px;
   border-radius: 50%;
   overflow: hidden;
-  border: 3px solid var(--template1-accent);
+  border: 3px solid var(--template5-accent);
   background: #fff;
   flex-shrink: 0;
 }
 
-.template1-root .template1-profile-image {
+.template5-root .template5-profile-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.template1-root .template1-profile-placeholder {
+.template5-root .template5-profile-placeholder {
   width: 100%;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  color: var(--template1-accent);
+  color: var(--template5-accent);
 }
 
-.template1-root .template1-default-cv-logo {
+.template5-root .template5-default-cv-logo {
   width: 70%;
   height: 70%;
   opacity: 0.85;
@@ -72,23 +72,23 @@
    HEADER CONTENT
 ================================================== */
 
-.template1-root .template1-header-content {
+.template5-root .template5-header-content {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.template1-root .template1-header-name {
+.template5-root .template5-header-name {
   font-size: 28px;
   font-weight: 800;
   letter-spacing: 0.3px;
   margin: 0;
 }
 
-.template1-root .template1-header-title {
+.template5-root .template5-header-title {
   font-size: 14px;
   font-weight: 600;
-  color: var(--template1-accent);
+  color: var(--template5-accent);
   text-transform: uppercase;
 }
 
@@ -96,29 +96,29 @@
    CONTACT INFO
 ================================================== */
 
-.template1-root .template1-contact-item {
+.template5-root .template5-contact-item {
   font-size: 13px;
   font-weight: 600;
-  color: var(--template1-muted);
+  color: var(--template5-muted);
   display: flex;
   gap: 6px;
   align-items: center;
 }
 
-.template1-root .template1-contact-icon {
+.template5-root .template5-contact-icon {
   font-size: 16px;
-  color: var(--template1-accent);
+  color: var(--template5-accent);
 }
 
 /* ==================================================
    SECTION WRAPPER
 ================================================== */
 
-.template1-root .template1-cv-section {
+.template5-root .template5-cv-section {
   margin-bottom: 18px;
 }
 
-.template1-root .template1-section-content {
+.template5-root .template5-section-content {
   display: block;
   width: 100%;
 }
@@ -127,7 +127,7 @@
    SECTION HEADING (UNIQUE STYLE)
 ================================================== */
 
-.template1-root .template1-section-heading {
+.template5-root .template5-section-heading {
   font-size: 15px;
   font-weight: 800;
   letter-spacing: 0.8px;
@@ -138,18 +138,18 @@
   gap: 8px;
 }
 
-.template1-root .template1-section-heading::after {
+.template5-root .template5-section-heading::after {
   content: "";
   flex: 1;
   height: 2px;
-  background: linear-gradient(to right, var(--template1-accent), transparent);
+  background: linear-gradient(to right, var(--template5-accent), transparent);
 }
 
 /* ==================================================
    PROFESSIONAL SUMMARY
 ================================================== */
 
-.template1-root .template1-professional-summary-text {
+.template5-root .template5-professional-summary-text {
   font-size: 13.5px;
   line-height: 1.7;
   color: #374151;
@@ -160,77 +160,61 @@
    EDUCATION
 ================================================== */
 
-.template1-root .template1-education-item {
+.template5-root .template5-education-item {
   margin-bottom: 6px;
 }
 
-.template1-root .template1-education-single-line {
+.template5-root .template5-education-single-line {
   font-size: 13.5px;
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
 }
 
-.template1-root .template1-education-degree {
+.template5-root .template5-education-degree {
   font-weight: 700;
-  color: var(--template1-accent);
+  color: var(--template5-accent);
 }
 
-.template1-root .template1-education-board,
-.template1-root .template1-education-year,
-.template1-root .template1-education-marks {
-  color: var(--template1-muted);
+.template5-root .template5-education-board,
+.template5-root .template5-education-year,
+.template5-root .template5-education-marks {
+  color: var(--template5-muted);
   font-weight: 500;
-}
-
-.template1-root .template1-education-details {
-  margin-top: 4px;
-  padding-left: 14px;
-}
-
-.template1-root .template1-education-details-list {
-  margin: 0;
-  padding-left: 16px;
-}
-
-.template1-root .template1-education-detail-item {
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--template1-dark);
 }
 
 /* ==================================================
    EXPERIENCE
 ================================================== */
 
-.template1-root .template1-experience-item {
+.template5-root .template5-experience-item {
   padding-left: 10px;
-  border-left: 3px solid var(--template1-accent-soft);
+  border-left: 3px solid var(--template5-accent-soft);
   margin-bottom: 10px;
 }
 
-.template1-root .template1-experience-header {
+.template5-root .template5-experience-header {
   display: flex;
   justify-content: space-between;
   gap: 10px;
 }
 
-.template1-root .template1-experience-job-title {
+.template5-root .template5-experience-job-title {
   font-size: 14px;
   font-weight: 700;
 }
 
-.template1-root .template1-experience-duration {
+.template5-root .template5-experience-duration {
   font-size: 12px;
   font-weight: 600;
-  color: var(--template1-accent);
+  color: var(--template5-accent);
 }
 
 
-.template1-root .template1-experience-company {
+.template5-root .template5-experience-company {
   font-size: 13px;
   font-weight: 600;
-  color: var(--template1-muted);
+  color: var(--template5-muted);
 }
 
 /* ==================================================
@@ -238,87 +222,87 @@
 ================================================== */
 
 
-.template1-root .template1-experience-details-list {
+.template5-root .template5-experience-details-list {
   padding-left: 16px;
   margin: 4px 0 0 0;
 }
 
-.template1-root .template1-experience-detail-item {
+.template5-root .template5-experience-detail-item {
   font-size: 13px;
   line-height: 1.6;
 }
 
-.template1-root .template1-experience-detail-item::marker {
-  color: var(--template1-accent);
+.template5-root .template5-experience-detail-item::marker {
+  color: var(--template5-accent);
 }
 
 /* ==================================================
    SKILLS / LANGUAGES / HOBBIES (TAG STYLE)
 ================================================== */
 
-.template1-root .template1-skills-container,
-.template1-root .template1-languages-container,
-.template1-root .template1-hobbies-container {
+.template5-root .template5-skills-container,
+.template5-root .template5-languages-container,
+.template5-root .template5-hobbies-container {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 }
 
-.template1-root .template1-skill-pill,
-.template1-root .template1-language-pill,
-.template1-root .template1-hobby-pill {
-  background: var(--template1-accent-soft);
+.template5-root .template5-skill-pill,
+.template5-root .template5-language-pill,
+.template5-root .template5-hobby-pill {
+  background: var(--template5-accent-soft);
   border-radius: 6px;
   padding: 5px 10px;
 }
 
-.template1-root .template1-skill-name,
-.template1-root .template1-language-name,
-.template1-root .template1-hobby-name {
+.template5-root .template5-skill-name,
+.template5-root .template5-language-name,
+.template5-root .template5-hobby-name {
   font-size: 12.5px;
   font-weight: 700;
-  color: var(--template1-accent);
+  color: var(--template5-accent);
 }
 
-.template1-root .template1-language-level {
+.template5-root .template5-language-level {
   font-size: 12.5px;
   font-weight: 500;
-  color: var(--template1-muted);
+  color: var(--template5-muted);
 }
 
 /* ==================================================
    CERTIFICATIONS / REFERENCES / CUSTOM
 ================================================== */
 
-.template1-root .template1-certifications-content,
-.template1-root .template1-references-content,
-.template1-root .template1-custom-section-content {
+.template5-root .template5-certifications-content,
+.template5-root .template5-references-content,
+.template5-root .template5-custom-section-content {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.template1-root .template1-certification-item,
-.template1-root .template1-reference-item,
-.template1-root .template1-custom-section-item {
+.template5-root .template5-certification-item,
+.template5-root .template5-reference-item,
+.template5-root .template5-custom-section-item {
   position: relative;
   padding-left: 16px;
 }
 
-.template1-root .template1-certification-item::before,
-.template1-root .template1-reference-item::before,
-.template1-root .template1-custom-section-item::before {
+.template5-root .template5-certification-item::before,
+.template5-root .template5-reference-item::before,
+.template5-root .template5-custom-section-item::before {
   content: "▸";
   position: absolute;
   margin-top: 12px;
   left: 0;
-  color: var(--template1-accent);
+  color: var(--template5-accent);
   font-weight: 900;
 }
 
-.template1-root .template1-certification-text,
-.template1-root .template1-reference-text,
-.template1-root .template1-custom-section-detail {
+.template5-root .template5-certification-text,
+.template5-root .template5-reference-text,
+.template5-root .template5-custom-section-detail {
   font-size: 13px;
   line-height: 1.6;
 }
@@ -327,20 +311,20 @@
    OTHER INFORMATION GRID
 ================================================== */
 
-.template1-root .template1-other-info-grid {
+.template5-root .template5-other-info-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 6px 14px;
 }
 
 
-.template1-root .template1-info-label {
+.template5-root .template5-info-label {
   font-weight: 700;
 }
 
-.template1-root .template1-info-value {
+.template5-root .template5-info-value {
   font-weight: 500;
-  color: var(--template1-muted);
+  color: var(--template5-muted);
 }
 
 /* ==================================================
@@ -348,7 +332,7 @@
 ================================================== */
 
 @media print {
-  .template1-root .template1-cv-section {
+  .template5-root .template5-cv-section {
     page-break-inside: avoid;
   }
 }

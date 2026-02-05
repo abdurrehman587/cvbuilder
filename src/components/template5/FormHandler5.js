@@ -138,10 +138,6 @@ const useFormHandler = (formData, updateFormData, markAsChanged) => {
                     <label for="marks-input-${timestamp}" class="marks-label input-label">Marks/CGPA</label>
                     <input id="marks-input-${timestamp}" class="marks-input styled-input" type="text" name="marks" placeholder="Enter your marks or CGPA" />
                 </div>
-                <div class="education-details-input-container input-group">
-                    <label for="education-details-textarea-${timestamp}" class="education-details-label input-label">Details</label>
-                    <textarea id="education-details-textarea-${timestamp}" class="education-details-textarea styled-input" name="details" placeholder="Enter details about your education" rows="2"></textarea>
-                </div>
                 <div class="remove-education-container">
                     <button type="button" class="remove-education-button" onclick="this.parentElement.parentElement.remove()">Remove Education</button>
                 </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../Supabase/supabase';
+import { supabase, authService } from '../Supabase/supabase';
 import { addToCart, isInCart } from '../../utils/cart';
 import './ProductDetail.css';
 
@@ -12,6 +12,13 @@ const ProductDetail = ({ productId }) => {
   const [inCart, setInCart] = useState(false);
   const [adminShopName, setAdminShopName] = useState('Glory');
   const [relatedProducts, setRelatedProducts] = useState([]);
+  const [reviews, setReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [userReview, setUserReview] = useState(null);
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '' });
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const isAuthenticated = localStorage.getItem('cvBuilderAuth') === 'true';
 
   // Load product data
   useEffect(() => {
@@ -50,6 +57,7 @@ const ProductDetail = ({ productId }) => {
         setProduct(data);
         if (data) {
           setInCart(isInCart(data.id));
+          loadReviews(data.id);
           // Load related products
           if (data.section_id) {
             loadRelatedProducts(data.section_id, data.id);
@@ -81,6 +89,38 @@ const ProductDetail = ({ productId }) => {
       setRelatedProducts(data || []);
     } catch (err) {
       console.error('Error loading related products:', err);
+    }
+  };
+
+  // Load product reviews
+  const loadReviews = async (pid) => {
+    if (!pid) return;
+    try {
+      setReviewsLoading(true);
+      const { data, error } = await supabase
+        .from('product_reviews')
+        .select('*, reviewer:users!user_id(full_name, email)')
+        .eq('product_id', pid)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setReviews(data || []);
+
+      // Check if current user has already reviewed
+      if (isAuthenticated) {
+        const user = await authService.getCurrentUser();
+        if (user) {
+          const myReview = (data || []).find(r => r.user_id === user.id);
+          setUserReview(myReview || null);
+        }
+      } else {
+        setUserReview(null);
+      }
+    } catch (err) {
+      console.error('Error loading reviews:', err);
+      setReviews([]);
+    } finally {
+      setReviewsLoading(false);
     }
   };
 
@@ -166,6 +206,54 @@ const ProductDetail = ({ productId }) => {
     }
     addToCart(relatedProduct);
     navigate('/checkout');
+  };
+
+  // Submit or update review
+  const handleSubmitReview = async (e) => {
+    e.preventDefault();
+    if (!product || !isAuthenticated || submittingReview) return;
+    const user = await authService.getCurrentUser();
+    if (!user) {
+      alert('Please sign in to leave a review.');
+      return;
+    }
+    if (!reviewForm.rating || reviewForm.rating < 1 || reviewForm.rating > 5) {
+      alert('Please select a rating (1-5 stars).');
+      return;
+    }
+    try {
+      setSubmittingReview(true);
+      if (userReview) {
+        const { error } = await supabase
+          .from('product_reviews')
+          .update({ rating: reviewForm.rating, comment: reviewForm.comment.trim() || null })
+          .eq('id', userReview.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('product_reviews')
+          .insert({
+            product_id: product.id,
+            user_id: user.id,
+            rating: reviewForm.rating,
+            comment: reviewForm.comment.trim() || null
+          });
+        if (error) throw error;
+      }
+      setShowReviewForm(false);
+      setReviewForm({ rating: 5, comment: '' });
+      loadReviews(product.id);
+    } catch (err) {
+      console.error('Error submitting review:', err);
+      alert(err.message || 'Failed to submit review. You may have already reviewed this product.');
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
+  const formatReviewDate = (dateStr) => {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('en-PK', { year: 'numeric', month: 'short', day: 'numeric' });
   };
 
   // Loading state
@@ -308,6 +396,109 @@ const ProductDetail = ({ productId }) => {
               >
                 {isOutOfStock ? 'Out of Stock' : inCart ? 'In Cart' : 'Add to Cart'}
               </button>
+            </div>
+
+            {/* Customer Reviews */}
+            <div className="product-detail-reviews">
+              <h2 className="product-detail-reviews-title">Customer Reviews</h2>
+              {reviewsLoading ? (
+                <div className="product-detail-reviews-loading">Loading reviews...</div>
+              ) : (
+                <>
+                  {reviews.length > 0 && (
+                    <div className="product-detail-reviews-summary">
+                      <span className="product-detail-reviews-count">
+                        {reviews.length} {reviews.length === 1 ? 'review' : 'reviews'}
+                      </span>
+                      <span className="product-detail-reviews-avg">
+                        ★ {(reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)} average
+                      </span>
+                    </div>
+                  )}
+                  {isAuthenticated && !userReview && !showReviewForm && (
+                    <button
+                      type="button"
+                      className="product-detail-write-review-btn"
+                      onClick={() => setShowReviewForm(true)}
+                    >
+                      Write a Review
+                    </button>
+                  )}
+                  {isAuthenticated && userReview && !showReviewForm && (
+                    <div className="product-detail-user-review-badge">
+                      You reviewed this product
+                      <button
+                        type="button"
+                        className="product-detail-edit-review-btn"
+                        onClick={() => {
+                          setReviewForm({ rating: userReview.rating, comment: userReview.comment || '' });
+                          setShowReviewForm(true);
+                        }}
+                      >
+                        Edit
+                      </button>
+                    </div>
+                  )}
+                  {showReviewForm && (
+                    <form onSubmit={handleSubmitReview} className="product-detail-review-form">
+                      <h3>{userReview ? 'Edit your review' : 'Write a review'}</h3>
+                      <div className="product-detail-review-rating">
+                        <label>Rating:</label>
+                        <div className="product-detail-star-input">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <button
+                              key={star}
+                              type="button"
+                              className={`product-detail-star-btn ${reviewForm.rating >= star ? 'filled' : ''}`}
+                              onClick={() => setReviewForm(f => ({ ...f, rating: star }))}
+                            >
+                              ★
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="product-detail-review-comment">
+                        <label htmlFor="review-comment">Comment (optional)</label>
+                        <textarea
+                          id="review-comment"
+                          value={reviewForm.comment}
+                          onChange={(e) => setReviewForm(f => ({ ...f, comment: e.target.value }))}
+                          placeholder="Share your experience with this product..."
+                          rows={4}
+                        />
+                      </div>
+                      <div className="product-detail-review-form-actions">
+                        <button type="button" onClick={() => setShowReviewForm(false)}>Cancel</button>
+                        <button type="submit" disabled={submittingReview}>
+                          {submittingReview ? 'Submitting...' : 'Submit Review'}
+                        </button>
+                      </div>
+                    </form>
+                  )}
+                  <div className="product-detail-reviews-list">
+                    {reviews.length === 0 && !reviewsLoading ? (
+                      <p className="product-detail-reviews-empty">No reviews yet. Be the first to review!</p>
+                    ) : (
+                      reviews.map((review) => (
+                        <div key={review.id} className="product-detail-review-card">
+                          <div className="product-detail-review-header">
+                            <span className="product-detail-review-author">
+                              {review.reviewer?.full_name || review.reviewer?.email || 'Anonymous'}
+                            </span>
+                            <span className="product-detail-review-date">{formatReviewDate(review.created_at)}</span>
+                          </div>
+                          <div className="product-detail-review-stars">
+                            {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
+                          </div>
+                          {review.comment && (
+                            <p className="product-detail-review-comment-text">{review.comment}</p>
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>

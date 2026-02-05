@@ -9,12 +9,20 @@ Before uploading, you need to build the release AAB file:
 npm run android:build
 ```
 
+On **Windows** (if `./gradlew` fails), use:
+```powershell
+npm run android:build:win
+```
+
 Or manually:
 ```bash
 npm run build
 npx cap sync android
 cd android
-gradlew bundleRelease
+# Unix/Mac:
+./gradlew bundleRelease
+# Windows (from android folder):
+.\gradlew.bat bundleRelease
 ```
 
 **Output Location:**
@@ -25,7 +33,7 @@ android/app/build/outputs/bundle/release/app-release.aab
 **File Details:**
 - Size: ~8-10 MB (will be generated after build)
 - Signed with: New keystore (Pakistan123@)
-- Version: 2.1.0 (versionCode: 18)
+- Version: 2.1.0 (versionCode: 24)
 - Last Modified: [Will be updated after build]
 
 ---
@@ -94,7 +102,7 @@ android/app/build/outputs/bundle/release/app-release.aab
 
 ✅ **AAB is signed correctly** - The AAB is signed with your new keystore (Pakistan123@)
 
-✅ **Version code incremented** - Current version: 18 (versionName: 2.1.0)
+✅ **Version code incremented** - Current version: 19 (versionName: 2.1.0)
 
 ⚠️ **If you get an error about signing:**
 - Make sure your upload key reset request was fully approved
@@ -108,7 +116,7 @@ android/app/build/outputs/bundle/release/app-release.aab
 Before uploading, verify:
 - [x] AAB file exists and is accessible
 - [x] Upload key reset was approved in Play Console
-- [x] Version code is incremented (current: 18)
+- [x] Version code is incremented (current: 24)
 - [ ] Release notes are prepared
 - [ ] You're ready to publish
 

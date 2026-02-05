@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase, authService } from '../Supabase/supabase';
 import { orderService } from '../../utils/orders';
 import './ShopkeeperProductManager.css';
 import RichTextEditor from '../MarketplaceAdmin/RichTextEditor';
 
 const ShopkeeperProductManager = ({ onProductAdded }) => {
+  const navigate = useNavigate();
   const [sections, setSections] = useState([]);
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
@@ -786,7 +788,7 @@ const ShopkeeperProductManager = ({ onProductAdded }) => {
         reason
       });
       
-      // Show a visible message to help user understand why panel isn't showing
+      // Show a visible message and offer "Register as Shopkeeper" for regular users
       return (
         <div className="shopkeeper-product-manager">
           <div className="admin-section" style={{ 
@@ -802,20 +804,66 @@ const ShopkeeperProductManager = ({ onProductAdded }) => {
               {reason}
             </p>
             {!isAdmin && (
-              <div style={{ marginTop: '1.5rem', padding: '1rem', backgroundColor: '#fff', borderRadius: '6px' }}>
-                <p style={{ color: '#374151', marginBottom: '0.5rem', fontWeight: '600' }}>
-                  To fix this:
+              <>
+                <p style={{ color: '#374151', marginTop: '1rem', marginBottom: '1rem' }}>
+                  You can register as a shopkeeper to get access. Fill in your shop details and your account will be updated.
                 </p>
-                <ol style={{ textAlign: 'left', color: '#6b7280', maxWidth: '600px', margin: '0 auto' }}>
-                  <li>Make sure you've created the shopkeeper account (shopkeeper@cvbuilder.com)</li>
-                  <li>Run the SQL script: <code style={{ backgroundColor: '#f3f4f6', padding: '0.2rem 0.4rem', borderRadius: '4px' }}>create_shopkeeper_test_account.sql</code></li>
-                  <li>Verify your account has <code style={{ backgroundColor: '#f3f4f6', padding: '0.2rem 0.4rem', borderRadius: '4px' }}>user_type = 'shopkeeper'</code> in the database</li>
-                  <li>Log out and log back in</li>
-                </ol>
-                <p style={{ marginTop: '1rem', color: '#6b7280', fontSize: '0.9rem' }}>
-                  Current Status: <strong>User Type = "{userType || 'not set'}"</strong>, <strong>Is Admin = {isAdmin ? 'Yes' : 'No'}</strong>
+                <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap', marginTop: '1.5rem' }}>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/?openShopkeeperForm=1')}
+                    style={{
+                      padding: '0.75rem 1.5rem',
+                      backgroundColor: '#16a34a',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      fontSize: '1rem'
+                    }}
+                  >
+                    Register as Shopkeeper
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/')}
+                    style={{
+                      padding: '0.75rem 1.5rem',
+                      backgroundColor: '#6b7280',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      fontSize: '1rem'
+                    }}
+                  >
+                    Go to Home
+                  </button>
+                </div>
+                <p style={{ marginTop: '1.5rem', color: '#6b7280', fontSize: '0.9rem' }}>
+                  Current status: <strong>User type = "{userType || 'not set'}"</strong>
                 </p>
-              </div>
+              </>
+            )}
+            {isAdmin && (
+              <button
+                type="button"
+                onClick={() => navigate('/')}
+                style={{
+                  marginTop: '1rem',
+                  padding: '0.75rem 1.5rem',
+                  backgroundColor: '#6b7280',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontWeight: '600',
+                  cursor: 'pointer'
+                }}
+              >
+                Go to Home
+              </button>
             )}
           </div>
         </div>

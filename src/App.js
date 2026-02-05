@@ -11,6 +11,7 @@ import generatePDF1 from './components/template1/pdf1';
 import generatePDF2 from './components/template2/pdf2';
 import generatePDF3 from './components/template3/pdf3';
 import generatePDF4 from './components/template4/pdf4';
+import generatePDF5 from './components/template5/pdf5';
 import { setCurrentApp, getCVView, setCVView, setIDCardView, getRoute } from './utils/routing';
 import { pathToApp, getProductIdFromPath, getOrderIdFromPath } from './utils/routeMapping';
 import { setNavigate } from './utils/navigation';
@@ -24,10 +25,12 @@ import ProductsPage from './components/Products/Marketplace';
 const Login = lazy(() => import('./components/Login/Login'));
 const CVDashboard = lazy(() => import('./components/Dashboard/CVDashboard'));
 const Form1 = lazy(() => import('./components/template1/Form1'));
+const Form5 = lazy(() => import('./components/template5/Form5'));
 const Preview1 = lazy(() => import('./components/template1/Preview1'));
 const Preview2 = lazy(() => import('./components/template2/Preview2'));
 const Preview3 = lazy(() => import('./components/template3/Preview3'));
 const Preview4 = lazy(() => import('./components/template4/Preview4'));
+const Preview5 = lazy(() => import('./components/template5/Preview5'));
 const IDCardPrintPage = lazy(() => import('./components/IDCardPrint/IDCardPrintPage'));
 const IDCardDashboard = lazy(() => import('./components/IDCardDashboard/IDCardDashboard'));
 const UserProfile = lazy(() => import('./components/UserProfile/UserProfile'));
@@ -213,10 +216,10 @@ function App() {
   const { 
     autoSaveStatus: hookAutoSaveStatus, 
     hasUnsavedChanges: hookHasUnsavedChanges, 
-    // eslint-disable-next-line no-unused-vars
     currentCVId,
     loadCV,
     createNewCV,
+    duplicateCV,
     markAsChanged: hookMarkAsChanged
   } = useAutoSave(formData);
 
@@ -484,6 +487,7 @@ function App() {
       email: '',
       address: '',
       profileImage: null,
+      showProfileImage: true,
       professionalSummary: '',
       education: [],
       experience: [],
@@ -511,6 +515,15 @@ function App() {
     });
     
   }, [createNewCV]);
+
+  // Duplicate current CV - creates a new record with same data for editing experience/education separately
+  const handleDuplicateCV = React.useCallback(async () => {
+    const result = await duplicateCV(formData, selectedTemplate);
+    // Guest mode returns the duplicated form data to update the form
+    if (result && typeof result === 'object' && result.name) {
+      setFormData(result);
+    }
+  }, [duplicateCV, formData, selectedTemplate]);
 
   // Fresh handler for "Create New ID Card" button - Rebuilt from scratch
   const handleCreateNewIDCard = React.useCallback(() => {
@@ -576,14 +589,26 @@ function App() {
             console.log('Error getting initial session:', error);
             setIsAuthenticated(false);
             localStorage.removeItem('cvBuilderAuth');
+            localStorage.removeItem('guestMode');
               setIsLoading(false);
           } else if (session?.user) {
             setIsAuthenticated(true);
             localStorage.setItem('cvBuilderAuth', 'true');
               setIsLoading(false);
+          } else if (localStorage.getItem('guestMode') === 'true') {
+            // Guest/demo mode - allow app access for Play Store review
+            setIsAuthenticated(true);
+            localStorage.setItem('cvBuilderAuth', 'true');
+              setIsLoading(false);
           } else {
-            setIsAuthenticated(false);
-            localStorage.removeItem('cvBuilderAuth');
+            const guestMode = localStorage.getItem('guestMode');
+            if (guestMode !== 'true') {
+              setIsAuthenticated(false);
+              localStorage.removeItem('cvBuilderAuth');
+            } else {
+              setIsAuthenticated(true);
+              localStorage.setItem('cvBuilderAuth', 'true');
+            }
               setIsLoading(false);
             }
           }, 0);
@@ -603,11 +628,13 @@ function App() {
         // If it's a timeout error, use localStorage as fallback
         if (error.message === 'Supabase session check timed out') {
           const cachedAuth = localStorage.getItem('cvBuilderAuth');
-          setIsAuthenticated(cachedAuth === 'true');
+          const guestMode = localStorage.getItem('guestMode');
+          setIsAuthenticated(cachedAuth === 'true' || guestMode === 'true');
         } else {
           console.log('Error getting initial session:', error);
           setIsAuthenticated(false);
           localStorage.removeItem('cvBuilderAuth');
+          localStorage.removeItem('guestMode');
         }
         // Ensure loading is stopped
         setIsLoading(false);
@@ -1345,6 +1372,7 @@ function App() {
             if (!justLoggedIn && !justAuthenticated) {
               setIsAuthenticated(false);
               localStorage.removeItem('cvBuilderAuth');
+              localStorage.removeItem('guestMode');
             } else {
               // User just logged in - this might be a false SIGNED_OUT event
               // Keep auth state and wait for SIGNED_IN event
@@ -1363,6 +1391,7 @@ function App() {
             if (!justLoggedIn && !justAuthenticated && !isAuthInStorage) {
               setIsAuthenticated(false);
               localStorage.removeItem('cvBuilderAuth');
+              localStorage.removeItem('guestMode');
             } else if (isAuthInStorage || justLoggedIn || justAuthenticated) {
               // User is authenticated - ensure auth state is set
               setIsAuthenticated(true);
@@ -1399,6 +1428,7 @@ function App() {
       console.error('Logout error:', error);
     } finally {
       localStorage.removeItem('cvBuilderAuth');
+      localStorage.removeItem('guestMode');
       setIsAuthenticated(false);
       setIsLoading(false);
       // Reset to dashboard view so when user logs back in, they go to dashboard
@@ -1670,13 +1700,16 @@ function App() {
         case 'template4':
           generatePDF = generatePDF4;
           break;
+        case 'template5':
+          generatePDF = generatePDF5;
+          break;
         default:
           generatePDF = generatePDF1;
       }
 
       // Call the PDF generation function
       if (generatePDF) {
-        if (selectedTemplate === 'template1' || selectedTemplate === 'template2' || selectedTemplate === 'template3' || selectedTemplate === 'template4') {
+        if (selectedTemplate === 'template1' || selectedTemplate === 'template2' || selectedTemplate === 'template3' || selectedTemplate === 'template4' || selectedTemplate === 'template5') {
           generatePDF(dataForFileName);
         } else {
           generatePDF();
@@ -2420,6 +2453,26 @@ function App() {
                   />
                 </>
               );
+            case 'template5':
+              return (
+                <>
+                  <Form5 
+                    key={formResetKey}
+                    formData={formData}
+                    updateFormData={updateFormData}
+                    markAsChanged={hookMarkAsChanged}
+                  />
+                  <Preview5 
+                    formData={formData}
+                    autoSaveStatus={hookAutoSaveStatus}
+                    hasUnsavedChanges={hookHasUnsavedChanges}
+                    selectedTemplate={selectedTemplate}
+                    onTemplateSwitch={handleTemplateSwitch}
+                    isPreviewPage={false}
+                    updateFormData={updateFormData}
+                  />
+                </>
+              );
             default:
               return (
                 <>
@@ -2469,6 +2522,27 @@ function App() {
                       </div>
                     )}
                   </div>
+                  {currentCVId && (
+                    <button 
+                      onClick={handleDuplicateCV} 
+                      className="duplicate-cv-button"
+                      style={{ 
+                        padding: '10px 18px',
+                        fontSize: '15px',
+                        fontWeight: '700',
+                        color: 'white',
+                        backgroundColor: '#0d9488',
+                        border: 'none',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        marginRight: '8px',
+                        boxShadow: '0 2px 6px rgba(13, 148, 136, 0.4)'
+                      }}
+                      title="Create a copy of this CV to edit experience/education separately"
+                    >
+                      📋 Duplicate CV
+                    </button>
+                  )}
                   <button 
                     onClick={handleShareApp} 
                     className="share-button-header"
@@ -2486,24 +2560,6 @@ function App() {
                     title="Share App & Get Free Credit"
                   >
                     📤 Share App & Get Free Credit
-                  </button>
-                  <button 
-                    onClick={handleDownloadPDF} 
-                    className="download-pdf-button-header"
-                    style={{ 
-                      padding: '8px 16px',
-                      fontSize: '14px',
-                      fontWeight: '600',
-                      color: 'white',
-                      backgroundColor: '#10b981',
-                      border: 'none',
-                      borderRadius: '6px',
-                      cursor: 'pointer',
-                      marginRight: '8px'
-                    }}
-                    title="Download CV as PDF"
-                  >
-                    📥 Download PDF
                   </button>
                   <button 
                     onClick={handleBackToDashboard} 
@@ -2715,6 +2771,26 @@ function App() {
                 />
               </>
             );
+          case 'template5':
+            return (
+              <>
+                <Form5 
+                  key={formResetKey}
+                  formData={formData}
+                  updateFormData={updateFormData}
+                  markAsChanged={hookMarkAsChanged}
+                />
+                <Preview5 
+                  formData={formData}
+                  autoSaveStatus={hookAutoSaveStatus}
+                  hasUnsavedChanges={hookHasUnsavedChanges}
+                  selectedTemplate={selectedTemplate}
+                  onTemplateSwitch={handleTemplateSwitch}
+                  isPreviewPage={false}
+                  updateFormData={updateFormData}
+                />
+              </>
+            );
           default:
             return (
               <>
@@ -2763,6 +2839,27 @@ function App() {
                   </div>
                 )}
               </div>
+              {currentCVId && (
+                <button 
+                  onClick={handleDuplicateCV} 
+                  className="duplicate-cv-button"
+                  style={{ 
+                    padding: '10px 18px',
+                    fontSize: '15px',
+                    fontWeight: '700',
+                    color: 'white',
+                    backgroundColor: '#0d9488',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    marginRight: '8px',
+                    boxShadow: '0 2px 6px rgba(13, 148, 136, 0.4)'
+                  }}
+                  title="Create a copy of this CV to edit experience/education separately"
+                >
+                  📋 Duplicate CV
+                </button>
+              )}
               <button 
                 onClick={handleBackToDashboard} 
                 className="back-to-dashboard-button"
@@ -2821,6 +2918,13 @@ function App() {
                 <Preview3 formData={formData} isPreviewPage={false} />
               </>
             );
+          case 'template5':
+            return (
+              <>
+                <Form5 formData={formData} updateFormData={updateFormData} />
+                <Preview5 formData={formData} updateFormData={updateFormData} />
+              </>
+            );
           default:
             return (
               <>
@@ -2860,6 +2964,27 @@ function App() {
                   </div>
                 )}
               </div>
+              {currentCVId && (
+                <button 
+                  onClick={handleDuplicateCV} 
+                  className="duplicate-cv-button"
+                  style={{ 
+                    padding: '10px 18px',
+                    fontSize: '15px',
+                    fontWeight: '700',
+                    color: 'white',
+                    backgroundColor: '#0d9488',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    marginRight: '8px',
+                    boxShadow: '0 2px 6px rgba(13, 148, 136, 0.4)'
+                  }}
+                  title="Create a copy of this CV to edit experience/education separately"
+                >
+                  📋 Duplicate CV
+                </button>
+              )}
               <button onClick={handleBackToDashboard} className="back-to-dashboard-button">
                 Back to Dashboard
               </button>
@@ -2952,6 +3077,23 @@ function App() {
               />
             </>
           );
+        case 'template5':
+          return (
+            <>
+              <Form5 
+                key={formResetKey}
+                formData={formData}
+                updateFormData={updateFormData}
+                markAsChanged={hookMarkAsChanged}
+              />
+              <Preview5 
+                formData={formData}
+                autoSaveStatus={hookAutoSaveStatus}
+                hasUnsavedChanges={hookHasUnsavedChanges}
+                updateFormData={updateFormData}
+              />
+            </>
+          );
         default:
           return (
             <>
@@ -3017,6 +3159,27 @@ function App() {
                 </div>
               )}
             </div>
+              {currentCVId && (
+                <button 
+                  onClick={handleDuplicateCV} 
+                  className="duplicate-cv-button"
+                  style={{ 
+                    padding: '10px 18px',
+                    fontSize: '15px',
+                    fontWeight: '700',
+                    color: 'white',
+                    backgroundColor: '#0d9488',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    marginRight: '8px',
+                    boxShadow: '0 2px 6px rgba(13, 148, 136, 0.4)'
+                  }}
+                  title="Create a copy of this CV to edit experience/education separately"
+                >
+                  📋 Duplicate CV
+                </button>
+              )}
               <button 
                 onClick={handleBackToDashboard} 
                 className="back-to-dashboard-button"

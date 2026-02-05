@@ -14,7 +14,7 @@ android {
         applicationId "com.getglory.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 19
+        versionCode 25
         versionName "2.1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
@@ -27,6 +27,9 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_21
         targetCompatibility JavaVersion.VERSION_21
+    }
+    buildFeatures {
+        buildConfig = true
     }
     signingConfigs {
         release {
@@ -78,6 +81,53 @@ dependencies {
 }
 
 apply from: 'capacitor.build.gradle'
+
+// Strip READ_MEDIA_IMAGES and READ_MEDIA_VIDEO from ALL release manifests (Play policy: one-time/infrequent use must use photo picker)
+afterEvaluate {
+    def stripMediaPerms = { File manifest ->
+        if (!manifest.exists()) return false
+        def content = manifest.text
+        if (!content.contains("READ_MEDIA_IMAGES") && !content.contains("READ_MEDIA_VIDEO")) return false
+        def original = content
+        // Single-line and multiline permission tags
+        content = content.replaceAll("<uses-permission[^>]*READ_MEDIA_IMAGES[^>]*/?\\s*>", "")
+        content = content.replaceAll("<uses-permission[^>]*READ_MEDIA_VIDEO[^>]*/?\\s*>", "")
+        content = content.replaceAll("\\s*<uses-permission\\s+[^>]*android:name=\"android.permission.READ_MEDIA_IMAGES\"[^/]*/>\\s*", "")
+        content = content.replaceAll("\\s*<uses-permission\\s+[^>]*android:name=\"android.permission.READ_MEDIA_VIDEO\"[^/]*/>\\s*", "")
+        if (content != original) {
+            manifest.write(content)
+            return true
+        }
+        return false
+    }
+    def buildDir = file("${project.buildDir}")
+    def stripAllReleaseManifests = {
+        def stripped = []
+        try {
+            buildDir.eachFileRecurse(groovy.io.FileType.FILES) { f ->
+                if (f.name == "AndroidManifest.xml" && (f.path.contains("release") || f.path.contains("Release"))) {
+                    if (stripMediaPerms(f)) stripped.add(f.path)
+                }
+            }
+        } catch (Exception e) {
+            println "Strip scan warning: " + e.message
+        }
+        if (!stripped.isEmpty()) {
+            println("PLAY POLICY: Removed READ_MEDIA_IMAGES/READ_MEDIA_VIDEO from: " + stripped.join(", "))
+        }
+    }
+    // Hook into ANY task that processes release manifest (AGP 7/8/8.13)
+    tasks.configureEach { task ->
+        def name = task.name
+        if (name.toLowerCase().contains("release") && name.toLowerCase().contains("manifest") && name.toLowerCase().contains("process")) {
+            task.doLast { stripAllReleaseManifests() }
+        }
+    }
+    // Also run strip before bundleRelease so it runs even if task names differ
+    tasks.named("bundleRelease").configure { bundleTask ->
+        bundleTask.doFirst { stripAllReleaseManifests() }
+    }
+}
 
 try {
     def servicesJSON = file('google-services.json')

@@ -81,10 +81,14 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
-  font-weight: 700;
+  background: linear-gradient(135deg, #f8f9fa 0%, var(--cv3-primary-light) 100%);
   color: var(--cv3-primary);
-  background: var(--cv3-primary-light);
+}
+
+.cv3-default-cv-logo {
+  width: 70%;
+  height: 70%;
+  opacity: 0.85;
 }
 
 /* ==================================================
@@ -260,6 +264,16 @@ body {
 .cv3-education-marks {
   color: var(--cv3-muted);
   font-weight: 500;
+}
+
+.cv3-education-details-list {
+  margin: 4px 0 0 0;
+  padding-left: 16px;
+}
+
+.cv3-education-detail-item {
+  font-size: 13px;
+  line-height: 1.5;
   font-size: 13px;
 }
 
