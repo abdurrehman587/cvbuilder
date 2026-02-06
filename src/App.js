@@ -1658,8 +1658,8 @@ function App() {
     }
   };
 
-  // Handle download PDF
-  const handleDownloadPDF = async () => {
+  // Handle download PDF (reserved for future use / passed to child components)
+  const handleDownloadPDF = async () => { // eslint-disable-line no-unused-vars
     try {
       // Check CV credits before allowing download
       const user = await authService.getCurrentUser();

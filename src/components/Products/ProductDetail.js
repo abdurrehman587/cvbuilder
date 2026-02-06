@@ -19,8 +19,9 @@ const ProductDetail = ({ productId }) => {
   const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '' });
   const [submittingReview, setSubmittingReview] = useState(false);
   const isAuthenticated = localStorage.getItem('cvBuilderAuth') === 'true';
-
+  
   // Load product data
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!productId) return;
 
@@ -71,6 +72,7 @@ const ProductDetail = ({ productId }) => {
     };
 
     loadProduct();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productId]);
 
   // Load related products
