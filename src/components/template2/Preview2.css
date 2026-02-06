@@ -379,8 +379,8 @@
 .template2-custom-section-item {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: 6px 0;
+  gap: 0;
+  padding: 2px 0;
   padding-left: 8px;
   border-left: 2px solid #48cae4;
 }
@@ -394,6 +394,7 @@
 .template2-custom-section-detail {
   font-size: 13px;
   margin: 0;
+  line-height: 1.35;
 }
 
 /* ===== RESPONSIVE DESIGN ===== */

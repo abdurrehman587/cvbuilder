@@ -508,7 +508,7 @@
 .template5-root .template5-custom-section-content {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
   padding-left: 10px;
   border-left: 2px solid var(--template5-accent-soft);
   position: relative;
@@ -557,8 +557,9 @@
 .template5-root .template5-reference-text,
 .template5-root .template5-custom-section-detail {
   font-size: 14px;
-  line-height: 1.65;
+  line-height: 1.35;
   color: #000000;
+  margin: 0;
 }
 
 /* ==================================================

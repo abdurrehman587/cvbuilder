@@ -403,7 +403,7 @@ body {
 .cv3-custom-section-content {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .cv3-certification-item,
@@ -411,7 +411,7 @@ body {
 .cv3-custom-section-item {
   position: relative;
   padding-left: 20px;
-  padding: 3px 0 3px 20px;
+  padding: 1px 0 1px 20px;
 }
 
 .cv3-education-item::before, 
@@ -438,7 +438,7 @@ body {
 .cv3-reference-text,
 .cv3-custom-section-detail {
   font-size: 13px;
-  line-height: 1.4;
+  line-height: 1.3;
   margin: 0;
   color: var(--cv3-dark);
 }

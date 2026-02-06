@@ -295,7 +295,7 @@
 .template1-root .template1-custom-section-content {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 2px;
 }
 
 .template1-root .template1-certification-item,
@@ -303,6 +303,8 @@
 .template1-root .template1-custom-section-item {
   position: relative;
   padding-left: 16px;
+  margin: 0;
+  line-height: 1.25;
 }
 
 .template1-root .template1-certification-item::before,
@@ -320,7 +322,8 @@
 .template1-root .template1-reference-text,
 .template1-root .template1-custom-section-detail {
   font-size: 13px;
-  line-height: 1.6;
+  line-height: 1.35;
+  margin: 0 0 2px 0;
 }
 
 /* ==================================================
