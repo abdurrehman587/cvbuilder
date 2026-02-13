@@ -43,46 +43,50 @@ const SearchCV = ({ onBack, onEditCV }) => {
     }
   }, [isAdmin, userInfo]);
 
-  // Client-side search function (much faster for small datasets)
+  // Client-side search: case-insensitive (capitals vs small letters), match each word
   const performClientSearch = useCallback((term, allCVs) => {
     if (!term.trim()) {
       return allCVs;
     }
 
-    const lowerTerm = term.toLowerCase();
-    return allCVs.filter(cv => {
-      const name = cv.name?.toLowerCase() || '';
-      const title = cv.title?.toLowerCase() || '';
-      const company = cv.company?.toLowerCase() || '';
-      const phone = cv.phone?.toLowerCase() || '';
-      const email = cv.email?.toLowerCase() || '';
-      
-      return name.includes(lowerTerm) || 
-             title.includes(lowerTerm) || 
-             company.includes(lowerTerm) ||
-             phone.includes(lowerTerm) ||
-             email.includes(lowerTerm);
+    const normalizedTerm = term.trim().toLowerCase();
+    const words = normalizedTerm.split(/\s+/).filter(Boolean);
+    if (words.length === 0) return allCVs;
+
+    return allCVs.filter((cv) => {
+      const name = (cv.name ?? '').toString().toLowerCase();
+      const title = (cv.title ?? '').toString().toLowerCase();
+      const company = (cv.company ?? '').toString().toLowerCase();
+      const phone = (cv.phone ?? cv.cv_data?.personal_info?.phone ?? '').toString().toLowerCase();
+      const email = (cv.email ?? cv.cv_data?.personal_info?.email ?? '').toString().toLowerCase();
+      const searchable = `${name} ${title} ${company} ${phone} ${email}`;
+
+      return words.every((word) => searchable.includes(word));
     });
   }, []);
 
+  // Normalize term for case-insensitive behavior: cache and API always use lowercase
+  const normalizedSearchTerm = (t) => (t && typeof t === 'string' ? t.trim().toLowerCase() : '') || '';
+
   // Server-side search function (for large datasets or complex queries)
   const performServerSearch = useCallback(async (term) => {
-    // Check cache first
-    if (searchCacheRef.current.has(term)) {
-      return searchCacheRef.current.get(term);
+    const key = normalizedSearchTerm(term);
+    if (!key) return [];
+
+    if (searchCacheRef.current.has(key)) {
+      return searchCacheRef.current.get(key);
     }
 
     try {
       setIsSearching(true);
-      const results = await searchCVs(term);
+      const results = await searchCVs(key);
       
-      // Cache the results
-      searchCacheRef.current.set(term, results);
-      
-      // Limit cache size to prevent memory issues
-      if (searchCacheRef.current.size > 50) {
-        const firstKey = searchCacheRef.current.keys().next().value;
-        searchCacheRef.current.delete(firstKey);
+      if (results.length > 0) {
+        searchCacheRef.current.set(key, results);
+        if (searchCacheRef.current.size > 50) {
+          const firstKey = searchCacheRef.current.keys().next().value;
+          searchCacheRef.current.delete(firstKey);
+        }
       }
       
       return results;
@@ -102,15 +106,15 @@ const SearchCV = ({ onBack, onEditCV }) => {
       return;
     }
 
-    // Use client-side search for small datasets (< 100 CVs) or short search terms
+    const normalized = normalizedSearchTerm(term);
+
     if (useClientSearch && cvs.length < 100) {
-      const results = performClientSearch(term, cvs);
+      const results = performClientSearch(normalized, cvs);
       setSearchResults(results);
       return;
     }
 
-    // Use server-side search for larger datasets or complex queries
-    const results = await performServerSearch(term);
+    const results = await performServerSearch(normalized);
     setSearchResults(results);
   }, [cvs, useClientSearch, performClientSearch, performServerSearch]);
 

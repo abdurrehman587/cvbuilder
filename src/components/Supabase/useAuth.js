@@ -209,18 +209,33 @@ export const useCVs = () => {
     }
   }
 
-  // Search CVs (lightweight version)
+  // Escape term for safe use in ilike (%, _, \ are special in LIKE)
+  const escapeIlike = (term) => {
+    if (!term || typeof term !== 'string') return ''
+    return term.trim().replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_')
+  }
+
+  // Search CVs (lightweight version) - does not set global loading so search UI stays responsive
+  // Matches by each word (e.g. "aqsa ahsan" finds CVs with both "aqsa" and "ahsan" in any searchable field)
   const searchCVs = async (searchTerm) => {
     if (!user) return []
+    const trimmed = (searchTerm && typeof searchTerm === 'string' ? searchTerm.trim() : '') || ''
+    if (!trimmed) return []
+
+    const words = trimmed.toLowerCase().split(/\s+/).filter(Boolean)
+    if (words.length === 0) return []
 
     try {
-      setLoading(true)
-      setError(null)
-      
-      // Check if user is admin
       const adminStatus = await checkAdminStatus()
-      
-      
+
+      // Build OR conditions per word so DB returns any CV containing at least one of the words
+      const orParts = words.flatMap((word) => {
+        const escaped = escapeIlike(word)
+        const pattern = `%${escaped}%`
+        return [`name.ilike.${pattern}`, `title.ilike.${pattern}`, `company.ilike.${pattern}`]
+      })
+      const orClause = orParts.join(',')
+
       let query = supabase
         .from('cvs')
         .select(`
@@ -234,28 +249,35 @@ export const useCVs = () => {
           cv_data->personal_info->email,
           user_id
         `)
-        .or(`name.ilike.%${searchTerm}%,title.ilike.%${searchTerm}%,company.ilike.%${searchTerm}%`)
+        .or(orClause)
         .order('created_at', { ascending: false })
-      
-      // If not admin, restrict to user's own CVs
+
       if (!adminStatus) {
         query = query.eq('user_id', user.id)
       }
-      
+
       const { data, error } = await query
-      
+
       if (error) {
         console.error('❌ Error searching CVs:', error)
         throw error
       }
-      
-      return data || []
+
+      const list = data || []
+      // Keep only CVs where every search word appears (case-insensitive) in name, title, company, phone, or email
+      return list.filter((cv) => {
+        const name = (cv.name ?? '').toString().toLowerCase()
+        const title = (cv.title ?? '').toString().toLowerCase()
+        const company = (cv.company ?? '').toString().toLowerCase()
+        const phone = (cv.phone ?? cv.cv_data?.personal_info?.phone ?? '').toString().toLowerCase()
+        const email = (cv.email ?? cv.cv_data?.personal_info?.email ?? '').toString().toLowerCase()
+        const searchable = `${name} ${title} ${company} ${phone} ${email}`
+        return words.every((word) => searchable.includes(word))
+      })
     } catch (err) {
       console.error('❌ Error in searchCVs:', err)
       setError(err.message)
       return []
-    } finally {
-      setLoading(false)
     }
   }
 
