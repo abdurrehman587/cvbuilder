@@ -135,24 +135,15 @@ const useAutoSave = (formData, saveInterval = 10000) => {
         // Ensure currentCVId is stored in localStorage
         localStorage.setItem('currentCVId', currentCVId);
       } else {
-        // For new CVs, set user_id to current user's ID
+        // For new CVs: ensure unique name (e.g. "Abdul Rehman" -> "Abdul Rehman 1" if already exists)
         cvData.user_id = user.id;
-        // Check if a CV with the same name already exists to prevent duplicates
-        const existingCV = await cvService.findCVByName(user.id, cvData.name, isAdmin);
-        
-        if (existingCV) {
-          // Update existing CV instead of creating a new one
-          savedCV = await cvService.updateCV(existingCV.id, cvData, user.id, isAdmin);
-          setCurrentCVId(existingCV.id);
-          // Store currentCVId in localStorage
-          localStorage.setItem('currentCVId', existingCV.id);
-        } else {
-          // Create new CV only if no existing CV found
-          savedCV = await cvService.createCV(cvData);
-          setCurrentCVId(savedCV.id);
-          // Store currentCVId in localStorage
-          localStorage.setItem('currentCVId', savedCV.id);
+        const baseName = (cvData.name || '').trim();
+        if (baseName) {
+          cvData.name = await cvService.getNextAvailableName(user.id, baseName);
         }
+        savedCV = await cvService.createCV(cvData);
+        setCurrentCVId(savedCV.id);
+        localStorage.setItem('currentCVId', savedCV.id);
       }
       
       // Update last saved data reference

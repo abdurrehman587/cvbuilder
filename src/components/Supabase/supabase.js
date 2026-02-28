@@ -139,6 +139,33 @@ export const cvService = {
     // update the wrong CV. So we return null to force creation of new CV
     // if admin is creating CV for a different user
     return null
+  },
+
+  /**
+   * Return a name that is unique for this user: baseName if free, else "baseName 1", "baseName 2", etc.
+   * Used when saving a new CV so duplicate names get auto-numbered (e.g. "Abdul Rehman" -> "Abdul Rehman 1").
+   */
+  async getNextAvailableName(userId, baseName) {
+    const base = (baseName && typeof baseName === 'string' ? baseName.trim() : '') || '';
+    if (!base) return base;
+
+    const { data, error } = await supabase
+      .from(TABLES.CVS)
+      .select('name')
+      .eq('user_id', userId);
+
+    if (error) throw error;
+
+    const names = (data || []).map((row) => (row.name ?? '').trim()).filter(Boolean);
+    const exactUsed = names.includes(base);
+    const suffixNumbers = names
+      .filter((n) => n.startsWith(base + ' ') && /^\d+$/.test(n.slice(base.length + 1)))
+      .map((n) => parseInt(n.slice(base.length + 1), 10))
+      .filter((n) => Number.isInteger(n) && n >= 1);
+    const maxN = suffixNumbers.length > 0 ? Math.max(...suffixNumbers) : 0;
+
+    if (!exactUsed && maxN === 0) return base;
+    return `${base} ${maxN + 1}`;
   }
 }
 
