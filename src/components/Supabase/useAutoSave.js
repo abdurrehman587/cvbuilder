@@ -14,6 +14,8 @@ const useAutoSave = (formData, saveInterval = 10000) => {
   });
   const [isAuthenticated, setIsAuthenticated] = useState(true);
   const lastSavedDataRef = useRef(null);
+  // When true, user clicked "Create New CV" – don't link form to existing CV by name (so we create "Name 1" instead of overwriting)
+  const userCreatedNewCVRef = useRef(false);
 
   // Auto-save functionality
   const autoSave = useCallback(async () => {
@@ -144,6 +146,7 @@ const useAutoSave = (formData, saveInterval = 10000) => {
         savedCV = await cvService.createCV(cvData);
         setCurrentCVId(savedCV.id);
         localStorage.setItem('currentCVId', savedCV.id);
+        userCreatedNewCVRef.current = false; // done creating new; future saves will update this CV
       }
       
       // Update last saved data reference
@@ -197,36 +200,28 @@ const useAutoSave = (formData, saveInterval = 10000) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Try to find and set currentCVId when formData has a name but currentCVId is null
-  // This prevents creating duplicates when form loads from localStorage
+  // Try to find and set currentCVId when formData has a name but currentCVId is null (e.g. after refresh).
+  // Skip when user explicitly clicked "Create New CV" so we create "Name 1" instead of overwriting existing.
   useEffect(() => {
     const findAndSetCVId = async () => {
-      // Skip for guest mode - no cloud CVs
       if (isGuestMode()) return;
-      // Only run if we have a name but no currentCVId
-      if (!formData.name?.trim() || currentCVId || !isAuthenticated) {
-        return;
-      }
+      if (!formData.name?.trim() || currentCVId || !isAuthenticated) return;
+      if (userCreatedNewCVRef.current) return; // user chose Create New CV – don't link to existing by name
 
       try {
         const user = await authService.getCurrentUser();
         if (!user) return;
 
-        // Check if user is admin
         const { data: userData } = await supabase
           .from('users')
           .select('is_admin')
           .eq('email', user.email)
           .single();
-        
         const isAdmin = userData?.is_admin || false;
 
-        // Try to find existing CV with this exact name
         const existingCV = await cvService.findCVByName(user.id, formData.name, isAdmin);
-        
         if (existingCV) {
           setCurrentCVId(existingCV.id);
-          // Store currentCVId in localStorage
           localStorage.setItem('currentCVId', existingCV.id);
         }
       } catch (error) {
@@ -330,12 +325,11 @@ const useAutoSave = (formData, saveInterval = 10000) => {
   // Create new CV
   const createNewCV = () => {
     setCurrentCVId(null);
-    // Clear currentCVId from localStorage when creating new CV
     localStorage.removeItem('currentCVId');
     setHasUnsavedChanges(false);
     setAutoSaveStatus('Ready');
-    // Clear the last saved data reference to ensure new CV starts fresh
     lastSavedDataRef.current = null;
+    userCreatedNewCVRef.current = true; // so we create "Name 1" instead of linking to existing CV by name
   };
 
   // Helper to generate a unique display name for duplicated CVs (for list differentiation)
