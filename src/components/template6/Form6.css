@@ -1,0 +1,9 @@
+@import '../template5/Form5.css';
+
+.template6-form-shell {
+  --template6-accent: #6f42c1;
+}
+
+.template6-form-root {
+  position: relative;
+}

@@ -1,0 +1,484 @@
+/* Template 6 — clean two-column résumé (scoped t6-*) */
+
+.t6-preview,
+.t6-root {
+  /* All body and heading text: black (links and accents match for a monochrome CV). */
+  --t6-orange: #000000;
+  --t6-link: #000000;
+  --t6-text: #000000;
+  --t6-muted: #000000;
+  --t6-rule: #e5e7eb;
+  --t6-font: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --t6-sidebar-col: 168px;
+  --t6-body-col-gap: 16px;
+  --t6-heading-name: 30px;
+  --t6-heading-section: 14px;
+  --t6-heading-sidebar: 13.5px;
+}
+
+.t6-preview,
+.t6-root {
+  font-family: var(--t6-font);
+  color: var(--t6-text);
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.t6-preview *,
+.t6-root * {
+  box-sizing: border-box;
+}
+
+/* Force monochrome text inside template 6, even if shared preview CSS applies colors. */
+.t6-preview.t6-a4-size-preview,
+.t6-preview.t6-a4-size-preview *,
+.t6-root,
+.t6-root * {
+  color: var(--t6-text);
+}
+
+/* Keep links black in all states (visited/active can otherwise appear purple/blue). */
+.t6-preview.t6-a4-size-preview .t6-link,
+.t6-preview.t6-a4-size-preview .t6-link:visited,
+.t6-preview.t6-a4-size-preview .t6-link:hover,
+.t6-preview.t6-a4-size-preview .t6-link:active,
+.t6-preview.t6-a4-size-preview .t6-link:focus-visible,
+.t6-root .t6-link,
+.t6-root .t6-link:visited,
+.t6-root .t6-link:hover,
+.t6-root .t6-link:active,
+.t6-root .t6-link:focus-visible {
+  color: var(--t6-text);
+}
+
+.t6-root {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 2px 18px;
+  line-height: 1.2;
+  font-size: 13px;
+}
+
+/* Header */
+.t6-header {
+  margin-bottom: 10px;
+}
+
+.t6-header-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 8px;
+}
+
+.t6-profile-photo {
+  flex: 0 0 76px;
+  width: 76px;
+  height: 76px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #f3f4f6;
+}
+
+.t6-profile-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.t6-profile-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #e5e7eb, #f9fafb);
+}
+
+.t6-header-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.t6-name {
+  margin: 0 0 3px;
+  font-size: var(--t6-heading-name);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  color: var(--t6-text);
+}
+
+.t6-tagline {
+  margin: 0;
+  font-size: 13px;
+  color: var(--t6-text);
+  font-weight: 400;
+  line-height: 1.15;
+}
+
+.t6-header-rule {
+  height: 1px;
+  background: var(--t6-rule);
+  border: 0;
+  margin: 0;
+}
+
+/* Two-column body */
+.t6-split-wrapper {
+  margin-bottom: 0;
+}
+
+/* Flex keeps the sidebar from stretching the main column row height (fixes gap before Education). */
+.t6-body {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: var(--t6-body-col-gap);
+}
+
+.t6-main-column {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* Left column: denser layout */
+.t6-main {
+  min-width: 0;
+}
+
+.t6-main-heading {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 5px;
+  font-size: var(--t6-heading-section);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--t6-text);
+  line-height: 1.1;
+}
+
+.t6-icon {
+  flex-shrink: 0;
+}
+
+.t6-icon-square {
+  width: 8px;
+  height: 8px;
+  background: var(--t6-orange);
+  border-radius: 1px;
+}
+
+.t6-icon-star {
+  width: auto;
+  height: auto;
+  color: var(--t6-orange);
+  font-size: 14px;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.t6-main-block {
+  margin-bottom: 12px;
+}
+
+.t6-main-block:last-child {
+  margin-bottom: 0;
+}
+
+.t6-prose {
+  margin: 0;
+  color: var(--t6-text);
+  font-size: 12.5px;
+  line-height: 1.22;
+}
+
+.t6-main .t6-prose {
+  font-size: 12px;
+  line-height: 1.18;
+}
+
+.t6-prose p {
+  margin: 0 0 2px;
+}
+
+.t6-prose p:last-child {
+  margin-bottom: 0;
+}
+
+.t6-skill-list {
+  margin: 0;
+  padding-left: 14px;
+  color: var(--t6-text);
+}
+
+.t6-main .t6-skill-list {
+  font-size: 12px;
+  line-height: 1.18;
+}
+
+.t6-skill-item {
+  margin-bottom: 1px;
+}
+
+.t6-exp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.t6-exp-title {
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1.12;
+  color: var(--t6-text);
+}
+
+.t6-exp-at {
+  font-weight: 600;
+  color: var(--t6-text);
+}
+
+.t6-exp-dates {
+  margin: 0 0 2px;
+  font-size: 11.5px;
+  color: var(--t6-text);
+  line-height: 1.12;
+}
+
+.t6-exp-desc p {
+  margin: 0 0 2px;
+  color: var(--t6-text);
+  font-size: 12px;
+  line-height: 1.18;
+}
+
+/* Sidebar */
+.t6-sidebar {
+  flex: 0 0 var(--t6-sidebar-col);
+  width: var(--t6-sidebar-col);
+  max-width: var(--t6-sidebar-col);
+  font-size: 12px;
+  color: var(--t6-text);
+  line-height: 1.18;
+}
+
+.t6-sidebar-title {
+  margin: 0 0 7px;
+  font-size: var(--t6-heading-sidebar);
+  font-weight: 700;
+  color: var(--t6-text);
+  line-height: 1.15;
+}
+
+.t6-sidebar-title--spaced {
+  margin-top: 12px;
+}
+
+.t6-detail-block {
+  margin-bottom: 7px;
+}
+
+.t6-detail-label {
+  display: block;
+  font-weight: 600;
+  font-size: 11px;
+  color: var(--t6-text);
+  margin-bottom: 1px;
+  line-height: 1.15;
+}
+
+.t6-detail-value {
+  display: block;
+  word-break: break-word;
+}
+
+.t6-link {
+  color: var(--t6-link);
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.t6-link:hover,
+.t6-link:focus-visible {
+  color: var(--t6-link);
+  text-decoration: underline;
+}
+
+.t6-lang-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.t6-lang-item {
+  margin-bottom: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.t6-lang-name {
+  font-weight: 600;
+}
+
+.t6-lang-level {
+  font-size: 11px;
+  color: var(--t6-text);
+  line-height: 1.15;
+}
+
+.t6-links-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.t6-links-list li {
+  margin-bottom: 3px;
+}
+
+/* Full-width sections (education, projects, etc.) */
+.t6-full {
+  margin-top: 10px;
+}
+
+/* First full-width block after main blocks: sit tight under employment */
+.t6-main-column > .t6-full:first-of-type {
+  margin-top: 0;
+}
+
+.t6-fw-heading {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 8px;
+}
+
+.t6-fw-title {
+  margin: 0;
+  flex: 0 0 auto;
+  font-size: var(--t6-heading-section);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--t6-text);
+  line-height: 1.1;
+}
+
+.t6-fw-line {
+  flex: 1;
+  height: 1px;
+  background: var(--t6-rule);
+  min-width: 24px;
+}
+
+.t6-edu-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.t6-edu-title {
+  margin: 0 0 2px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--t6-text);
+  line-height: 1.12;
+}
+
+.t6-edu-dates {
+  margin: 0 0 4px;
+  font-size: 11.5px;
+  color: var(--t6-text);
+  line-height: 1.12;
+}
+
+.t6-cert-list {
+  margin: 0;
+  padding-left: 14px;
+  color: var(--t6-text);
+  font-size: 12px;
+  line-height: 1.18;
+}
+
+.t6-cert-item {
+  margin-bottom: 2px;
+}
+
+.t6-inline-list {
+  margin: 0;
+  color: var(--t6-text);
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+/* A4 preview shell */
+.t6-preview.t6-a4-size-preview {
+  background: #fff;
+}
+
+/* Full-width blocks */
+.t6-full .t6-prose {
+  font-size: 12px;
+  line-height: 1.18;
+}
+
+.t6-full .t6-prose p {
+  margin-bottom: 2px;
+}
+
+/* Final hard override for body text darkness in preview/PDF rendering. */
+.t6-preview.t6-a4-size-preview .t6-prose,
+.t6-preview.t6-a4-size-preview .t6-prose p,
+.t6-preview.t6-a4-size-preview .t6-detail-label,
+.t6-preview.t6-a4-size-preview .t6-detail-value,
+.t6-preview.t6-a4-size-preview .t6-lang-name,
+.t6-preview.t6-a4-size-preview .t6-lang-level,
+.t6-preview.t6-a4-size-preview .t6-links-list li,
+.t6-preview.t6-a4-size-preview .t6-inline-list,
+.t6-preview.t6-a4-size-preview .t6-exp-dates,
+.t6-preview.t6-a4-size-preview .t6-edu-dates,
+.t6-root .t6-prose,
+.t6-root .t6-prose p,
+.t6-root .t6-detail-label,
+.t6-root .t6-detail-value,
+.t6-root .t6-lang-name,
+.t6-root .t6-lang-level,
+.t6-root .t6-links-list li,
+.t6-root .t6-inline-list,
+.t6-root .t6-exp-dates,
+.t6-root .t6-edu-dates {
+  color: #000000 !important;
+  opacity: 1 !important;
+}
+
+@media (max-width: 640px) {
+  .t6-body {
+    flex-direction: column;
+  }
+
+  .t6-sidebar {
+    flex: 1 1 auto;
+    width: 100%;
+    max-width: none;
+    border-top: 1px solid var(--t6-rule);
+    padding-top: 12px;
+  }
+
+  .t6-name {
+    font-size: 26px;
+    line-height: 1.05;
+  }
+
+  .t6-header-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .t6-profile-photo {
+    flex-basis: 72px;
+    width: 72px;
+    height: 72px;
+  }
+}
