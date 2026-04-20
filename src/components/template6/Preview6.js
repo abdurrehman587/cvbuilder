@@ -678,7 +678,7 @@ function Preview6({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
             {displayData.skills && displayData.skills.length > 0 ? (
               <section className="t6-main-block">
                 <h2 className="t6-main-heading">
-                  <span className="t6-icon t6-icon-star" aria-hidden="true">★</span>
+                  <span className="t6-icon t6-icon-square" aria-hidden="true" />
                   Skills
                 </h2>
                 <ul className="t6-skill-list">
