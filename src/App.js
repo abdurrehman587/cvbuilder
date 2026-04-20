@@ -12,6 +12,7 @@ import generatePDF2 from './components/template2/pdf2';
 import generatePDF3 from './components/template3/pdf3';
 import generatePDF4 from './components/template4/pdf4';
 import generatePDF5 from './components/template5/pdf5';
+import generatePDF6 from './components/template6/pdf6';
 import { setCurrentApp, getCVView, setCVView, setIDCardView, getRoute } from './utils/routing';
 import { pathToApp, getProductIdFromPath, getOrderIdFromPath } from './utils/routeMapping';
 import { setNavigate } from './utils/navigation';
@@ -25,12 +26,14 @@ import ProductsPage from './components/Products/Marketplace';
 const Login = lazy(() => import('./components/Login/Login'));
 const CVDashboard = lazy(() => import('./components/Dashboard/CVDashboard'));
 const Form1 = lazy(() => import('./components/template1/Form1'));
-const Form5 = lazy(() => import('./components/template5/Form5'));
+const Form5 = lazy(() => import('./components/template5/Form1'));
+const Form6 = lazy(() => import('./components/template6/Form1'));
 const Preview1 = lazy(() => import('./components/template1/Preview1'));
 const Preview2 = lazy(() => import('./components/template2/Preview2'));
 const Preview3 = lazy(() => import('./components/template3/Preview3'));
 const Preview4 = lazy(() => import('./components/template4/Preview4'));
 const Preview5 = lazy(() => import('./components/template5/Preview5'));
+const Preview6 = lazy(() => import('./components/template6/Preview6'));
 const IDCardPrintPage = lazy(() => import('./components/IDCardPrint/IDCardPrintPage'));
 const IDCardDashboard = lazy(() => import('./components/IDCardDashboard/IDCardDashboard'));
 const UserProfile = lazy(() => import('./components/UserProfile/UserProfile'));
@@ -1703,13 +1706,16 @@ function App() {
         case 'template5':
           generatePDF = generatePDF5;
           break;
+        case 'template6':
+          generatePDF = generatePDF6;
+          break;
         default:
           generatePDF = generatePDF1;
       }
 
       // Call the PDF generation function
       if (generatePDF) {
-        if (selectedTemplate === 'template1' || selectedTemplate === 'template2' || selectedTemplate === 'template3' || selectedTemplate === 'template4' || selectedTemplate === 'template5') {
+        if (selectedTemplate === 'template1' || selectedTemplate === 'template2' || selectedTemplate === 'template3' || selectedTemplate === 'template4' || selectedTemplate === 'template5' || selectedTemplate === 'template6') {
           generatePDF(dataForFileName);
         } else {
           generatePDF();
@@ -2473,6 +2479,26 @@ function App() {
                   />
                 </>
               );
+            case 'template6':
+              return (
+                <>
+                  <Form6
+                    key={formResetKey}
+                    formData={formData}
+                    updateFormData={updateFormData}
+                    markAsChanged={hookMarkAsChanged}
+                  />
+                  <Preview6
+                    formData={formData}
+                    autoSaveStatus={hookAutoSaveStatus}
+                    hasUnsavedChanges={hookHasUnsavedChanges}
+                    selectedTemplate={selectedTemplate}
+                    onTemplateSwitch={handleTemplateSwitch}
+                    isPreviewPage={false}
+                    updateFormData={updateFormData}
+                  />
+                </>
+              );
             default:
               return (
                 <>
@@ -2791,6 +2817,26 @@ function App() {
                 />
               </>
             );
+          case 'template6':
+            return (
+              <>
+                <Form6
+                  key={formResetKey}
+                  formData={formData}
+                  updateFormData={updateFormData}
+                  markAsChanged={hookMarkAsChanged}
+                />
+                <Preview6
+                  formData={formData}
+                  autoSaveStatus={hookAutoSaveStatus}
+                  hasUnsavedChanges={hookHasUnsavedChanges}
+                  selectedTemplate={selectedTemplate}
+                  onTemplateSwitch={handleTemplateSwitch}
+                  isPreviewPage={false}
+                  updateFormData={updateFormData}
+                />
+              </>
+            );
           default:
             return (
               <>
@@ -2923,6 +2969,13 @@ function App() {
               <>
                 <Form5 formData={formData} updateFormData={updateFormData} />
                 <Preview5 formData={formData} updateFormData={updateFormData} />
+              </>
+            );
+          case 'template6':
+            return (
+              <>
+                <Form6 formData={formData} updateFormData={updateFormData} />
+                <Preview6 formData={formData} updateFormData={updateFormData} />
               </>
             );
           default:
@@ -3087,6 +3140,23 @@ function App() {
                 markAsChanged={hookMarkAsChanged}
               />
               <Preview5 
+                formData={formData}
+                autoSaveStatus={hookAutoSaveStatus}
+                hasUnsavedChanges={hookHasUnsavedChanges}
+                updateFormData={updateFormData}
+              />
+            </>
+          );
+        case 'template6':
+          return (
+            <>
+              <Form6
+                key={formResetKey}
+                formData={formData}
+                updateFormData={updateFormData}
+                markAsChanged={hookMarkAsChanged}
+              />
+              <Preview6
                 formData={formData}
                 autoSaveStatus={hookAutoSaveStatus}
                 hasUnsavedChanges={hookHasUnsavedChanges}

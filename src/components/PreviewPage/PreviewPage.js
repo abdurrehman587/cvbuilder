@@ -5,6 +5,7 @@ import generatePDF2 from '../template2/pdf2';
 import generatePDF3 from '../template3/pdf3';
 import generatePDF4 from '../template4/pdf4';
 import generatePDF5 from '../template5/pdf5';
+import generatePDF6 from '../template6/pdf6';
 import { Share } from '@capacitor/share';
 import { authService } from '../Supabase/supabase';
 import './PreviewPage.css';
@@ -15,6 +16,7 @@ import Preview2 from '../template2/Preview2';
 import Preview3 from '../template3/Preview3';
 import Preview4 from '../template4/Preview4';
 import Preview5 from '../template5/Preview5';
+import Preview6 from '../template6/Preview6';
 
 function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
   // On mount, check if formData is empty and try to load from localStorage
@@ -60,6 +62,8 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
         return <Preview4 {...previewProps} />;
       case 'template5':
         return <Preview5 {...previewProps} />;
+      case 'template6':
+        return <Preview6 {...previewProps} />;
       default:
         return <Preview1 {...previewProps} />;
     }
@@ -217,6 +221,9 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
       case 'template5':
         generatePDF = generatePDF5;
         break;
+      case 'template6':
+        generatePDF = generatePDF6;
+        break;
       default:
         generatePDF = generatePDF1;
     }
@@ -224,7 +231,7 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
     // Call the PDF generation function
     if (generatePDF) {
       // Template 1, 2, 3, and 4 accept formData parameter for filename
-      if (selectedTemplate === 'template1' || selectedTemplate === 'template2' || selectedTemplate === 'template3' || selectedTemplate === 'template4' || selectedTemplate === 'template5') {
+      if (selectedTemplate === 'template1' || selectedTemplate === 'template2' || selectedTemplate === 'template3' || selectedTemplate === 'template4' || selectedTemplate === 'template5' || selectedTemplate === 'template6') {
         generatePDF(dataForFileName);
       } else {
         // Other templates don't accept formData parameter
@@ -359,6 +366,13 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
                 title="Template 5"
               >
                 T5
+              </button>
+              <button
+                className={`preview-template-button ${selectedTemplate === 'template6' ? 'active' : ''}`}
+                onClick={() => onTemplateSwitch('template6')}
+                title="Template 6"
+              >
+                T6
               </button>
             </div>
           </div>
