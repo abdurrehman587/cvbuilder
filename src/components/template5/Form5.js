@@ -14,11 +14,14 @@ function Form({ formData, updateFormData, markAsChanged }) {
         addCustomSectionDetail, 
         addCustomSection,
         addReferenceInput,
+        moveExperience,
         handleInputChange,
         handleReferenceChange,
         referenceText,
         activeSection
     } = useFormHandler(formData, updateFormData, markAsChanged);
+
+    const experienceList = formData.experience || [];
 
     // Render counter for debugging
     const renderCountRef = useRef(0);
@@ -482,8 +485,34 @@ function Form({ formData, updateFormData, markAsChanged }) {
                 <h3 className="section-title" onClick={() => toggleSection('experience')} >Experience</h3>
 
                 {/* Render all experience entries dynamically */}
-                {(formData.experience || []).map((exp, index) => (
+                {experienceList.map((exp, index) => (
                     <div key={index} className="experience-group">
+                        {experienceList.length > 1 && (
+                            <div className="experience-actions">
+                                <button
+                                    type="button"
+                                    className="move-experience-button move-experience-button--up"
+                                    disabled={index === 0}
+                                    onClick={() => moveExperience(index, 'up')}
+                                    title="Move up"
+                                    aria-label="Move experience up"
+                                >
+                                    <span className="move-experience-icon" aria-hidden="true">↑</span>
+                                    Move Up
+                                </button>
+                                <button
+                                    type="button"
+                                    className="move-experience-button move-experience-button--down"
+                                    disabled={index === experienceList.length - 1}
+                                    onClick={() => moveExperience(index, 'down')}
+                                    title="Move down"
+                                    aria-label="Move experience down"
+                                >
+                                    <span className="move-experience-icon" aria-hidden="true">↓</span>
+                                    Move Down
+                                </button>
+                            </div>
+                        )}
                         <div className="job-title-input-container input-group">
                             <label htmlFor={`job-title-input-${index}`} className="job-title-label input-label">
                                 Job Title
@@ -1010,6 +1039,7 @@ function Form({ formData, updateFormData, markAsChanged }) {
                 {formData.customSection && formData.customSection.length > 0 && formData.customSection.map((custom, sectionIndex) => {
                     // Handle both old format (with 'detail') and new format (with 'details' array)
                     const details = custom.details || (custom.detail ? [custom.detail] : ['']);
+                    const subHeading = custom.subHeading || custom.subheading || '';
                     
                     return (
                         <div key={sectionIndex} className="custom-section-group">
@@ -1029,7 +1059,8 @@ function Form({ formData, updateFormData, markAsChanged }) {
                                             const heading = e.target.value;
                                             const newCustomSection = [...(formData.customSection || [])];
                                             const currentDetails = newCustomSection[sectionIndex]?.details || (newCustomSection[sectionIndex]?.detail ? [newCustomSection[sectionIndex].detail] : ['']);
-                                            newCustomSection[sectionIndex] = { heading, details: currentDetails };
+                                            const currentSubHeading = newCustomSection[sectionIndex]?.subHeading || newCustomSection[sectionIndex]?.subheading || '';
+                                            newCustomSection[sectionIndex] = { heading, subHeading: currentSubHeading, details: currentDetails };
                                             handleInputChange('customSection', newCustomSection);
                                         }}
                                     />
@@ -1047,6 +1078,31 @@ function Form({ formData, updateFormData, markAsChanged }) {
                                         </button>
                                     )}
                                 </div>
+                            </div>
+
+                            <div className="custom-section-subheading-input-container input-group">
+                                <label htmlFor={`custom-section-subheading-input-${sectionIndex}`} className="custom-section-subheading-label input-label">
+                                    Custom Section Sub Heading {sectionIndex > 0 ? `#${sectionIndex + 1}` : ''}
+                                </label>
+                                <input
+                                    id={`custom-section-subheading-input-${sectionIndex}`}
+                                    className="custom-section-subheading-input styled-input"
+                                    type="text"
+                                    name="customSectionSubHeading"
+                                    placeholder="Enter custom section sub heading"
+                                    value={subHeading}
+                                    onChange={(e) => {
+                                        const newCustomSection = [...(formData.customSection || [])];
+                                        const currentHeading = newCustomSection[sectionIndex]?.heading || '';
+                                        const currentDetails = newCustomSection[sectionIndex]?.details || (newCustomSection[sectionIndex]?.detail ? [newCustomSection[sectionIndex].detail] : ['']);
+                                        newCustomSection[sectionIndex] = {
+                                            heading: currentHeading,
+                                            subHeading: e.target.value,
+                                            details: currentDetails
+                                        };
+                                        handleInputChange('customSection', newCustomSection);
+                                    }}
+                                />
                             </div>
 
                             {/* Render all details for this section */}
@@ -1069,6 +1125,7 @@ function Form({ formData, updateFormData, markAsChanged }) {
                                                     newCustomSection[sectionIndex] = { 
                                                         ...newCustomSection[sectionIndex], 
                                                         heading: newCustomSection[sectionIndex]?.heading || '',
+                                                        subHeading: newCustomSection[sectionIndex]?.subHeading || newCustomSection[sectionIndex]?.subheading || '',
                                                         details: currentDetails 
                                                     };
                                                     handleInputChange('customSection', newCustomSection);
@@ -1085,6 +1142,7 @@ function Form({ formData, updateFormData, markAsChanged }) {
                                                         newCustomSection[sectionIndex] = { 
                                                             ...newCustomSection[sectionIndex], 
                                                             heading: newCustomSection[sectionIndex]?.heading || '',
+                                                            subHeading: newCustomSection[sectionIndex]?.subHeading || newCustomSection[sectionIndex]?.subheading || '',
                                                             details: currentDetails 
                                                         };
                                                         handleInputChange('customSection', newCustomSection);
@@ -1128,7 +1186,23 @@ function Form({ formData, updateFormData, markAsChanged }) {
                                 value=""
                                 onChange={(e) => {
                                     const heading = e.target.value;
-                                    handleInputChange('customSection', [{ heading, details: [''] }]);
+                                    handleInputChange('customSection', [{ heading, subHeading: '', details: [''] }]);
+                                }}
+                            />
+                        </div>
+                        <div className="custom-section-subheading-input-container input-group">
+                            <label htmlFor="custom-section-subheading-input-0" className="custom-section-subheading-label input-label">
+                                Custom Section Sub Heading
+                            </label>
+                            <input
+                                id="custom-section-subheading-input-0"
+                                className="custom-section-subheading-input styled-input"
+                                type="text"
+                                name="customSectionSubHeading"
+                                placeholder="Enter custom section sub heading"
+                                value=""
+                                onChange={(e) => {
+                                    handleInputChange('customSection', [{ heading: '', subHeading: e.target.value, details: [''] }]);
                                 }}
                             />
                         </div>
@@ -1143,7 +1217,7 @@ function Form({ formData, updateFormData, markAsChanged }) {
                                     placeholder="Enter custom section detail"
                                     value=""
                                     onChange={(e) => {
-                                        handleInputChange('customSection', [{ heading: '', details: [e.target.value] }]);
+                                        handleInputChange('customSection', [{ heading: '', subHeading: '', details: [e.target.value] }]);
                                     }}
                                 />
                             </div>

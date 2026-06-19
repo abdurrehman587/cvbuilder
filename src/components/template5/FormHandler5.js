@@ -147,6 +147,14 @@ const useFormHandler = (formData, updateFormData, markAsChanged) => {
         }
     };
 
+    const moveExperience = (index, direction) => {
+        const experiences = [...(formData.experience || [])];
+        const swapIndex = direction === 'up' ? index - 1 : index + 1;
+        if (swapIndex < 0 || swapIndex >= experiences.length) return;
+        [experiences[index], experiences[swapIndex]] = [experiences[swapIndex], experiences[index]];
+        handleInputChange('experience', experiences);
+    };
+
     // Function to add new experience group
     const addExperienceGroup = () => {
         const experienceSection = document.getElementById('experience');
@@ -283,7 +291,7 @@ const useFormHandler = (formData, updateFormData, markAsChanged) => {
   const addCustomSectionDetail = (sectionIndex) => {
     const newCustomSection = [...(formData.customSection || [])];
     if (!newCustomSection[sectionIndex]) {
-      newCustomSection[sectionIndex] = { heading: '', details: [''] };
+      newCustomSection[sectionIndex] = { heading: '', subHeading: '', details: [''] };
     }
     if (!newCustomSection[sectionIndex].details) {
       newCustomSection[sectionIndex].details = [''];
@@ -296,7 +304,7 @@ const useFormHandler = (formData, updateFormData, markAsChanged) => {
   // Function to add a new custom section (adds a completely new section with heading and one detail)
   const addCustomSection = () => {
     const newCustomSection = [...(formData.customSection || [])];
-    newCustomSection.push({ heading: '', details: [''] });
+    newCustomSection.push({ heading: '', subHeading: '', details: [''] });
     updateFormData({ ...formData, customSection: newCustomSection });
     markAsChanged();
   };
@@ -330,6 +338,7 @@ const useFormHandler = (formData, updateFormData, markAsChanged) => {
         initializeForm,
         addEducationGroup,
         addExperienceGroup,
+        moveExperience,
         addSkillInput,
         addCertificationInput,
         addCustomInformation,

@@ -137,19 +137,28 @@ const getFormDataFromDOM = (existingFormData = null) => {
   data.otherInfo = otherInfoData;
 
   // Get custom section
-  const customSectionHeading = document.getElementById('custom-section-heading-input')?.value || '';
-  const customSectionDetail = document.getElementById('custom-section-detail-input')?.value || '';
+  const customSectionGroups = document.querySelectorAll('.custom-section-group');
   let customSectionData = [];
-  if (customSectionHeading.trim() || customSectionDetail.trim()) {
-    customSectionData.push({ heading: customSectionHeading, detail: customSectionDetail });
-  }
-  const customDetailInputs = document.querySelectorAll('.custom-detail-input');
-  customDetailInputs.forEach(input => {
-    const detail = input.value.trim();
-    if (detail) {
-      customSectionData.push({ heading: '', detail: detail });
+  if (customSectionGroups.length > 0) {
+    customSectionData = Array.from(customSectionGroups).map((group) => {
+      const heading = group.querySelector('.custom-section-heading-input')?.value?.trim() || '';
+      const subHeading = group.querySelector('.custom-section-subheading-input')?.value?.trim() || '';
+      const details = Array.from(group.querySelectorAll('.custom-detail-input'))
+        .map((input) => input.value.trim())
+        .filter(Boolean);
+      if (heading || subHeading || details.length > 0) {
+        return { heading, subHeading, details };
+      }
+      return null;
+    }).filter(Boolean);
+  } else {
+    const customSectionHeading = document.getElementById('custom-section-heading-input')?.value?.trim() || '';
+    const customSectionSubHeading = document.getElementById('custom-section-subheading-input')?.value?.trim() || '';
+    const customSectionDetail = document.getElementById('custom-section-detail-input')?.value?.trim() || '';
+    if (customSectionHeading || customSectionSubHeading || customSectionDetail) {
+      customSectionData.push({ heading: customSectionHeading, subHeading: customSectionSubHeading, details: customSectionDetail ? [customSectionDetail] : [] });
     }
-  });
+  }
   data.customSection = customSectionData;
 
   return data;
@@ -258,6 +267,7 @@ function Preview6({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
         e.target.classList.contains('certification-input') ||
         e.target.classList.contains('hobby-input') ||
         e.target.classList.contains('custom-detail-input') ||
+        e.target.classList.contains('custom-section-subheading-input') ||
         e.target.id === 'name-input' ||
         e.target.id === 'position-input' ||
         e.target.id === 'phone-input' ||
@@ -784,7 +794,8 @@ function Preview6({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
         ? displayData.customSection.map((custom, sectionIndex) => {
             const details = custom.details || (custom.detail ? [custom.detail] : []);
             const heading = custom.heading || '';
-            if (!heading && details.length === 0) return null;
+            const subHeading = custom.subHeading || custom.subheading || '';
+            if (!heading && !subHeading && details.length === 0) return null;
             return (
               <section key={sectionIndex} className="t6-full t6-cv-section">
                 <div className="t6-fw-heading">
@@ -792,6 +803,7 @@ function Preview6({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
                   <h2 className="t6-fw-title">{heading || 'Projects'}</h2>
                   <span className="t6-fw-line" aria-hidden="true" />
                 </div>
+                {subHeading ? <h3 className="t6-custom-subheading">{subHeading}</h3> : null}
                 <div className="t6-prose">
                   {details.map((detail, detailIndex) =>
                     detail && detail.trim() ? <p key={detailIndex}>{detail.trim()}</p> : null

@@ -774,12 +774,18 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
         {displayData.customSection && displayData.customSection.length > 0 && displayData.customSection.map((custom, sectionIndex) => {
           const details = custom.details || (custom.detail ? [custom.detail] : []);
           const heading = custom.heading || '';
-          if (!heading && details.length === 0) return null;
+          const subHeading = custom.subHeading || custom.subheading || '';
+          if (!heading && !subHeading && details.length === 0) return null;
           
           return (
             <div key={sectionIndex} className="template2-cv-section">
               <h3 className="template2-section-heading">{heading || 'Custom Section'}</h3>
               <div className="template2-section-content">
+                {subHeading && (
+                  <div className="template2-custom-section-item">
+                    <p className="template2-custom-section-detail"><strong>{subHeading}</strong></p>
+                  </div>
+                )}
                 {details.map((detail, detailIndex) => detail && (
                   <div key={detailIndex} className="template2-custom-section-item">
                     <p className="template2-custom-section-detail">{detail}</p>

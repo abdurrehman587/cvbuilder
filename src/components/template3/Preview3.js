@@ -895,9 +895,10 @@ function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
           // Handle both old format (with 'detail') and new format (with 'details' array)
           const details = custom.details || (custom.detail ? [custom.detail] : []);
           const heading = custom.heading || '';
+          const subHeading = custom.subHeading || custom.subheading || '';
           
           // Skip sections without heading or details
-          if (!heading && details.length === 0) return null;
+          if (!heading && !subHeading && details.length === 0) return null;
           
           return (
             <div key={sectionIndex} className="cv3-section">
@@ -906,6 +907,11 @@ function Preview3({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
               </h3>
               <div className="cv3-section-content">
                 <div className="cv3-custom-section-content">
+                  {subHeading && (
+                    <div className="cv3-custom-section-item">
+                      <p className="cv3-custom-section-detail"><strong>{subHeading}</strong></p>
+                    </div>
+                  )}
                   {details.map((detail, detailIndex) => (
                     detail && (
                       <div key={detailIndex} className="cv3-custom-section-item">
