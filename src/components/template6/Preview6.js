@@ -1146,6 +1146,7 @@ function Preview6({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
                   <option value="template4">Template 4</option>
                   <option value="template5">Template 5</option>
                   <option value="template6">Template 6</option>
+                  <option value="template7">Template 7</option>
                 </select>
               </div>
             )}

@@ -1,23 +1,57 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { pickRicherEducation, readStoredFormData, meaningfulEducationCount } from '../../utils/cvEducation';
+
+const DEFAULT_FORM_DATA = {
+  name: '',
+  position: '',
+  phone: '',
+  email: '',
+  address: '',
+  profileImage: null,
+  professionalSummary: '',
+  education: [],
+  experience: [],
+  skills: [],
+  certifications: [],
+  languages: [],
+  hobbies: [],
+  otherInfo: [],
+  customSection: [],
+  references: []
+};
+
+const pickNonEmptyArray = (preferred, fallback) => {
+  if (Array.isArray(preferred) && preferred.length > 0) return preferred;
+  if (Array.isArray(fallback) && fallback.length > 0) return fallback;
+  return Array.isArray(preferred) ? preferred : (Array.isArray(fallback) ? fallback : []);
+};
+
+const mergeFormDataSources = (primary, secondary) => {
+  if (!primary && !secondary) return null;
+  if (!primary) return secondary;
+  if (!secondary) return primary;
+  return {
+    ...secondary,
+    ...primary,
+    education: pickRicherEducation(primary.education, secondary.education),
+    experience: pickNonEmptyArray(primary.experience, secondary.experience),
+    skills: pickNonEmptyArray(primary.skills, secondary.skills),
+    certifications: pickNonEmptyArray(primary.certifications, secondary.certifications),
+    languages: pickNonEmptyArray(primary.languages, secondary.languages),
+    hobbies: pickNonEmptyArray(primary.hobbies, secondary.hobbies),
+    references: pickNonEmptyArray(primary.references, secondary.references),
+    otherInfo: pickNonEmptyArray(primary.otherInfo, secondary.otherInfo),
+    customSection: pickNonEmptyArray(primary.customSection, secondary.customSection),
+    profileImage: primary.profileImage || secondary.profileImage,
+    professionalSummary: primary.professionalSummary || secondary.professionalSummary,
+  };
+};
 
 const usePreviewHandler = (passedFormData = null) => {
-  const [formData, setFormData] = useState({
-    name: '',
-    position: '',
-    phone: '',
-    email: '',
-    address: '',
-    profileImage: null,
-    professionalSummary: '',
-    education: [],
-    experience: [],
-    skills: [],
-    certifications: [],
-    languages: [],
-    hobbies: [],
-    otherInfo: [],
-    customSection: [],
-    references: []
+  const [formData, setFormData] = useState(() => {
+    const stored = readStoredFormData();
+    const merged = mergeFormDataSources(passedFormData, stored);
+    return merged ? { ...DEFAULT_FORM_DATA, ...merged } : DEFAULT_FORM_DATA;
   });
   
   // Use ref to track current formData to avoid stale closure issues
@@ -198,12 +232,12 @@ const usePreviewHandler = (passedFormData = null) => {
     // First, check localStorage for form data (in case it was stored before navigation)
     const storedData = localStorage.getItem('cvFormData');
     let dataToUse = passedFormData;
-    
-    if (storedData && (!passedFormData || !passedFormData.name)) {
+
+    if (storedData) {
       try {
         const parsedData = JSON.parse(storedData);
         console.log('PreviewHandler1 - Loaded form data from localStorage:', parsedData);
-        dataToUse = parsedData;
+        dataToUse = mergeFormDataSources(passedFormData, parsedData);
       } catch (e) {
         console.error('PreviewHandler1 - Error parsing stored form data:', e);
       }
@@ -220,7 +254,7 @@ const usePreviewHandler = (passedFormData = null) => {
       // Check if DOM has meaningful data (form is still in DOM)
       const domHasData = domData.name || domData.position || domData.phone || 
                         domData.professionalSummary ||
-                        (domData.education && domData.education.length > 0) ||
+                        meaningfulEducationCount(domData.education) > 0 ||
                         (domData.experience && domData.experience.length > 0);
       
       // Merge strategy: 
@@ -236,12 +270,15 @@ const usePreviewHandler = (passedFormData = null) => {
         professionalSummary: domData.professionalSummary || dataToUse.professionalSummary,
         // Profile image: prefer DOM file input if available (newly selected), then dataToUse (from database/base64), then null
         profileImage: domData.profileImage || dataToUse.profileImage,
-        customSection: dataToUse.customSection && dataToUse.customSection.length > 0 
-          ? dataToUse.customSection 
-          : (domData.customSection || []),
-        otherInfo: dataToUse.otherInfo && dataToUse.otherInfo.length > 0
-          ? dataToUse.otherInfo
-          : (domData.otherInfo || [])
+        education: pickRicherEducation(domData.education, dataToUse.education),
+        experience: pickNonEmptyArray(domData.experience, dataToUse.experience),
+        skills: pickNonEmptyArray(domData.skills, dataToUse.skills),
+        certifications: pickNonEmptyArray(domData.certifications, dataToUse.certifications),
+        languages: pickNonEmptyArray(domData.languages, dataToUse.languages),
+        hobbies: pickNonEmptyArray(domData.hobbies, dataToUse.hobbies),
+        references: pickNonEmptyArray(domData.references, dataToUse.references),
+        customSection: pickNonEmptyArray(domData.customSection, dataToUse.customSection),
+        otherInfo: pickNonEmptyArray(domData.otherInfo, dataToUse.otherInfo),
       };
       
       console.log('PreviewHandler1 - mergedData:', mergedData);
@@ -277,18 +314,18 @@ const usePreviewHandler = (passedFormData = null) => {
     // Check if DOM has meaningful data
     const domHasData = newData.name || newData.position || newData.phone || 
                       newData.professionalSummary ||
-                      (newData.education && newData.education.length > 0) ||
+                      meaningfulEducationCount(newData.education) > 0 ||
                       (newData.experience && newData.experience.length > 0);
     
     // Check localStorage for stored data (in case form is not in DOM)
     const storedData = localStorage.getItem('cvFormData');
     let dataToUse = passedFormData;
     
-    if (storedData && (!passedFormData || !passedFormData.name)) {
+    if (storedData) {
       try {
         const parsedData = JSON.parse(storedData);
         console.log('updatePreviewData - Loaded from localStorage:', parsedData);
-        dataToUse = parsedData;
+        dataToUse = mergeFormDataSources(passedFormData, parsedData);
       } catch (e) {
         console.error('updatePreviewData - Error parsing stored data:', e);
       }
@@ -298,8 +335,8 @@ const usePreviewHandler = (passedFormData = null) => {
     // Only update if DOM has data or if we don't have any data yet
     // Use formDataRef to get current state value (not stale closure)
     const currentFormData = formDataRef.current;
-    const hasExistingData = currentFormData.name || currentFormData.professionalSummary || currentFormData.education?.length > 0 || currentFormData.experience?.length > 0;
-    const hasDataToUse = dataToUse && (dataToUse.name || dataToUse.professionalSummary || dataToUse.education?.length > 0 || dataToUse.experience?.length > 0);
+    const hasExistingData = currentFormData.name || currentFormData.professionalSummary || meaningfulEducationCount(currentFormData.education) > 0 || currentFormData.experience?.length > 0;
+    const hasDataToUse = dataToUse && (dataToUse.name || dataToUse.professionalSummary || meaningfulEducationCount(dataToUse.education) > 0 || dataToUse.experience?.length > 0);
     
     if (!domHasData && (hasDataToUse || hasExistingData)) {
       console.log('updatePreviewData - DOM is empty but we have data, skipping update to prevent overwrite');
@@ -317,12 +354,15 @@ const usePreviewHandler = (passedFormData = null) => {
         professionalSummary: newData.professionalSummary || dataToUse.professionalSummary,
         // Profile image: prefer DOM file input if available (newly selected), then dataToUse (from database/base64)
         profileImage: newData.profileImage || dataToUse.profileImage,
-        customSection: dataToUse.customSection && dataToUse.customSection.length > 0 
-          ? dataToUse.customSection 
-          : (newData.customSection || []),
-        otherInfo: dataToUse.otherInfo && dataToUse.otherInfo.length > 0
-          ? dataToUse.otherInfo
-          : (newData.otherInfo || [])
+        education: pickRicherEducation(newData.education, dataToUse.education),
+        experience: pickNonEmptyArray(newData.experience, dataToUse.experience),
+        skills: pickNonEmptyArray(newData.skills, dataToUse.skills),
+        certifications: pickNonEmptyArray(newData.certifications, dataToUse.certifications),
+        languages: pickNonEmptyArray(newData.languages, dataToUse.languages),
+        hobbies: pickNonEmptyArray(newData.hobbies, dataToUse.hobbies),
+        references: pickNonEmptyArray(newData.references, dataToUse.references),
+        customSection: pickNonEmptyArray(newData.customSection, dataToUse.customSection),
+        otherInfo: pickNonEmptyArray(newData.otherInfo, dataToUse.otherInfo),
       };
       console.log('updatePreviewData - mergedData:', mergedData);
       setFormData(mergedData);

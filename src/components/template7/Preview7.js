@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
-import usePreviewHandler from './PreviewHandler4';
-import generatePDF from './pdf4';
+import usePreviewHandler from './PreviewHandler7';
+// eslint-disable-next-line no-unused-vars
+import generatePDF from './pdf7';
 import { setCVView } from '../../utils/routing';
-import './Preview4.css';
-import './Preview4.mobile.css';
+import { resolvePreviewEducation, readStoredFormData } from '../../utils/cvEducation';
+import './Preview7.css';
 
-// Function to capture all form data from DOM (similar to PreviewHandler4.getFormData)
+// Function to capture all form data from DOM (similar to PreviewHandler5.getFormData)
 // Takes existingFormData parameter to preserve profileImage from database
 const getFormDataFromDOM = (existingFormData = null) => {
   // Get profileImage - prefer existing one (from database) if available, otherwise get from file input
@@ -137,25 +138,34 @@ const getFormDataFromDOM = (existingFormData = null) => {
   data.otherInfo = otherInfoData;
 
   // Get custom section
-  const customSectionHeading = document.getElementById('custom-section-heading-input')?.value || '';
-  const customSectionDetail = document.getElementById('custom-section-detail-input')?.value || '';
+  const customSectionGroups = document.querySelectorAll('.custom-section-group');
   let customSectionData = [];
-  if (customSectionHeading.trim() || customSectionDetail.trim()) {
-    customSectionData.push({ heading: customSectionHeading, detail: customSectionDetail });
-  }
-  const customDetailInputs = document.querySelectorAll('.custom-detail-input');
-  customDetailInputs.forEach(input => {
-    const detail = input.value.trim();
-    if (detail) {
-      customSectionData.push({ heading: '', detail: detail });
+  if (customSectionGroups.length > 0) {
+    customSectionData = Array.from(customSectionGroups).map((group) => {
+      const heading = group.querySelector('.custom-section-heading-input')?.value?.trim() || '';
+      const subHeading = group.querySelector('.custom-section-subheading-input')?.value?.trim() || '';
+      const details = Array.from(group.querySelectorAll('.custom-detail-input'))
+        .map((input) => input.value.trim())
+        .filter(Boolean);
+      if (heading || subHeading || details.length > 0) {
+        return { heading, subHeading, details };
+      }
+      return null;
+    }).filter(Boolean);
+  } else {
+    const customSectionHeading = document.getElementById('custom-section-heading-input')?.value?.trim() || '';
+    const customSectionSubHeading = document.getElementById('custom-section-subheading-input')?.value?.trim() || '';
+    const customSectionDetail = document.getElementById('custom-section-detail-input')?.value?.trim() || '';
+    if (customSectionHeading || customSectionSubHeading || customSectionDetail) {
+      customSectionData.push({ heading: customSectionHeading, subHeading: customSectionSubHeading, details: customSectionDetail ? [customSectionDetail] : [] });
     }
-  });
+  }
   data.customSection = customSectionData;
 
   return data;
 };
 
-function Preview4({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, selectedTemplate, onTemplateSwitch, isPreviewPage, updateFormData }) {
+function Preview7({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, selectedTemplate, onTemplateSwitch, isPreviewPage, updateFormData }) {
   const [showA4Preview, setShowA4Preview] = useState(false);
   const [a4Scale, setA4Scale] = useState(1);
   const [userZoom, setUserZoom] = useState(1);
@@ -163,7 +173,7 @@ function Preview4({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
   const a4PreviewRef = useRef(null);
   const { formData: hookFormData, formatContactInfo, updatePreviewData } = usePreviewHandler(propFormData);
   
-  // Use hookFormData as primary source (it merges propFormData with DOM data in PreviewHandler4)
+  // Use hookFormData as primary source (it merges propFormData with DOM data in PreviewHandler5)
   // This ensures we get all data whether from app state or DOM
   // If hookFormData is empty or doesn't have data, check localStorage and propFormData
   let formData = hookFormData;
@@ -188,7 +198,7 @@ function Preview4({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
         }
         formData = parsedData;
       } catch (e) {
-        console.error('Preview4 - Error parsing stored data:', e);
+        console.error('Preview7 - Error parsing stored data:', e);
         formData = propFormData || {};
       }
     } else {
@@ -206,6 +216,38 @@ function Preview4({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
       }
     }
   }
+
+  const pickRicherArray = (current, ...fallbacks) => {
+    if (Array.isArray(current) && current.length > 0) return current;
+    for (const candidate of fallbacks) {
+      if (Array.isArray(candidate) && candidate.length > 0) return candidate;
+    }
+    return Array.isArray(current) ? current : [];
+  };
+
+  const storedFormData = readStoredFormData();
+  let domEducation = [];
+  try {
+    if (typeof document !== 'undefined' && document.querySelectorAll('.education-group').length > 0) {
+      domEducation = getFormDataFromDOM(propFormData).education || [];
+    }
+  } catch (e) {
+    domEducation = [];
+  }
+
+  const resolvedEducation = resolvePreviewEducation(
+    domEducation,
+    hookFormData?.education,
+    propFormData?.education,
+    storedFormData?.education,
+    formData?.education
+  );
+
+  formData = {
+    ...formData,
+    education: resolvedEducation,
+    experience: pickRicherArray(formData?.experience, propFormData?.experience, storedFormData?.experience),
+  };
 
   // Refresh preview data from form inputs whenever app form data changes
   // Only update if not on preview page (where form is not in DOM)
@@ -252,6 +294,13 @@ function Preview4({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
         e.target.classList.contains('company-input') ||
         e.target.classList.contains('duration-input') ||
         e.target.classList.contains('job-details-textarea') ||
+        e.target.classList.contains('language-input') ||
+        e.target.classList.contains('language-level-input') ||
+        e.target.classList.contains('skill-input') ||
+        e.target.classList.contains('certification-input') ||
+        e.target.classList.contains('hobby-input') ||
+        e.target.classList.contains('custom-detail-input') ||
+        e.target.classList.contains('custom-section-subheading-input') ||
         e.target.id === 'name-input' ||
         e.target.id === 'position-input' ||
         e.target.id === 'phone-input' ||
@@ -288,7 +337,7 @@ function Preview4({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
       existingSpacers.forEach(spacer => spacer.remove());
       
       // Reset all sections to their natural position
-      const sections = previewElement.querySelectorAll('.cv-section');
+      const sections = previewElement.querySelectorAll('.t7-cv-section');
       sections.forEach(section => {
         section.style.marginTop = '';
         section.style.pageBreakBefore = '';
@@ -298,11 +347,14 @@ function Preview4({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
       const pageHeight = 1129; // A4 page height in pixels
       const padding = 20; // Top and bottom padding
       const usablePageHeight = pageHeight - (padding * 2);
-      
+      const previewRect = previewElement.getBoundingClientRect();
+
       // Check each section to see if it would be cut off
       sections.forEach((section, index) => {
-        // Get the section's position relative to the preview container
-        const sectionTop = section.offsetTop;
+        // Position relative to preview (offsetTop alone is wrong for nested sections)
+        const sectionRect = section.getBoundingClientRect();
+        const sectionTop =
+          sectionRect.top - previewRect.top + previewElement.scrollTop;
         const sectionHeight = section.offsetHeight;
         
         // Calculate which page this section starts on (accounting for padding)
@@ -538,7 +590,6 @@ function Preview4({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
   
   // Default sections to show on page load: professional-summary, skills, languages, references
   // Ensure all data is properly extracted from formData
-  // Debug: Log formData to see what we're getting
   const displayData = {
     name: formData?.name || '',
     position: formData?.position || '',
@@ -546,7 +597,7 @@ function Preview4({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
     email: formData?.email || '',
     address: formData?.address || '',
     professionalSummary: formData?.professionalSummary || 'To work with a organization that offers a creative, dynamic and professional environment, where my education, knowledge, skills and proven abilities can be fully utilized and which also offers learning opportunities for my career development in the long run.',
-    education: Array.isArray(formData?.education) && formData.education.length > 0 ? formData.education : [],
+    education: resolvedEducation,
     experience: Array.isArray(formData?.experience) && formData.experience.length > 0 ? formData.experience : [],
     skills: Array.isArray(formData?.skills) ? formData.skills.filter(skill => skill && skill.trim() !== '') : [],
     certifications: Array.isArray(formData?.certifications) && formData.certifications.length > 0 ? formData.certifications.filter(cert => cert && cert.trim() !== '') : [],
@@ -631,354 +682,246 @@ function Preview4({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
   const contactInfo = formatContactInfo();
 
   // Render the CV preview content (reusable for both normal and modal view)
-  const renderCVContent = () => (
-    <>
-        {/* Europass Header */}
-        <div className="template4-europass-header">
-          <h1 className="template4-europass-title">CURRICULUM VITAE</h1>
-          <div className="template4-header-right">
-            {/* Profile Image in Header */}
-            {displayData.showProfileImage !== false && (
-            <div className="template4-header-profile-image-container">
+  const renderCVContent = () => {
+    return (
+    <div className="t7-root">
+      <header className="t7-hero t7-cv-section">
+        <div className="t7-hero-inner">
+          <div className="t7-hero-text">
+            <h1 className="t7-name">{displayData.name}</h1>
+            {displayData.position ? (
+              <p className="t7-tagline">{displayData.position}</p>
+            ) : null}
+          </div>
+          {displayData.showProfileImage !== false ? (
+            <div className="t7-profile-photo">
               {profileImageUrl ? (
-                <img 
-                  src={profileImageUrl} 
-                  alt="Profile" 
-                  className="template4-header-profile-image"
-                />
+                <img src={profileImageUrl} alt="" className="t7-profile-img" />
               ) : (
-                <div className="template4-header-profile-placeholder">
-                  <svg viewBox="0 0 64 64" className="template4-default-cv-logo" aria-hidden="true">
-                    <rect x="8" y="4" width="48" height="56" rx="4" fill="none" stroke="currentColor" strokeWidth="2"/>
-                    <line x1="16" y1="18" x2="48" y2="18" stroke="currentColor" strokeWidth="1.5"/>
-                    <line x1="16" y1="26" x2="48" y2="26" stroke="currentColor" strokeWidth="1.5"/>
-                    <line x1="16" y1="34" x2="40" y2="34" stroke="currentColor" strokeWidth="1.5"/>
-                    <text x="32" y="52" textAnchor="middle" fontSize="14" fontWeight="700" fill="currentColor" fontFamily="system-ui, sans-serif">CV</text>
-                  </svg>
-                </div>
+                <div className="t7-profile-placeholder" aria-hidden="true" />
               )}
             </div>
-            )}
-            {/* Europass Logo */}
-            <div className="template4-europass-logo-container">
-              <img 
-                src={`${process.env.PUBLIC_URL || ''}/images/europass-logo.png.png`}
-                alt="Europass Logo" 
-                className="template4-europass-logo-image"
-                onError={(e) => {
-                  // Fallback to CSS logo if image fails
-                  e.target.style.display = 'none';
-                  const fallback = document.createElement('div');
-                  fallback.className = 'template4-europass-logo';
-                  fallback.innerHTML = '<div class="template4-logo-square"></div><span class="template4-logo-text">europass</span>';
-                  e.target.parentNode.appendChild(fallback);
-                }}
-              />
-            </div>
-          </div>
+          ) : null}
         </div>
+      </header>
 
-        {/* Personal Information Section */}
-        <div className="template4-personal-info-section">
-          <div className="template4-personal-info-content">
-            {/* Name */}
-            <div className="template4-personal-info-item">
-              <span className="template4-personal-info-label">First Name(s) / Surname(s)</span>
-              <h1 className="template4-personal-info-name">
-                {displayData.name}
-              </h1>
+      <div className="t7-layout">
+        <aside className="t7-sidebar t7-cv-section">
+          <h3 className="t7-sidebar-title">Contact Information</h3>
+          {displayData.phone ? (
+            <div className="t7-detail-block">
+              <span className="t7-detail-label">Phone</span>
+              <span className="t7-detail-value">{displayData.phone}</span>
             </div>
-
-            {/* Position/Title */}
-            {displayData.position && (
-              <div className="template4-personal-info-item">
-                <span className="template4-personal-info-label">Occupation</span>
-                <p className="template4-personal-info-title">{displayData.position}</p>
-              </div>
-            )}
-
-            {/* Phone and Email in a single row */}
-            {(displayData.phone || displayData.email) && (
-              <div className="template4-contact-row">
-                {displayData.phone && (
-                  <div className="template4-contact-item-inline">
-                    <span className="template4-contact-icon">📞</span>
-                    <span className="template4-personal-info-value">{displayData.phone}</span>
-                  </div>
-                )}
-                {displayData.email && (
-                  <div className="template4-contact-item-inline">
-                    <span className="template4-contact-icon">✉️</span>
-                    <span className="template4-personal-info-value">{displayData.email}</span>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Address */}
-            {displayData.address && (
-              <div className="template4-contact-item">
-                <span className="template4-contact-icon">📍</span>
-                <span className="template4-personal-info-value">{displayData.address}</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Work Experience Section */}
-        {displayData.experience && displayData.experience.length > 0 && (
-          <div className="template4-cv-section">
-            <h3 className="template4-section-heading">Work Experience</h3>
-            <div className="template4-section-content">
-              {displayData.experience.map((exp, index) => (
-                <div key={index} className="template4-experience-item">
-                  {exp.duration && (
-                    <div className="template4-experience-date">{exp.duration}</div>
-                  )}
-                  <div className="template4-experience-content">
-                    <div className="template4-experience-header">
-                      <span className="template4-experience-job-title">{exp.jobTitle || 'No job title'}</span>
-                      {exp.company && (
-                        <span className="template4-experience-company">{exp.company}</span>
-                      )}
-                    </div>
-                    {exp.jobDetails && (
-                      <ul className="template4-experience-details-list">
-                        {exp.jobDetails.split('\n').map((detail, detailIndex) => (
-                          detail.trim() && (
-                            <li key={detailIndex} className="template4-experience-detail-item">
-                              {detail.trim()}
-                            </li>
-                          )
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                </div>
-              ))}
+          ) : null}
+          {displayData.email ? (
+            <div className="t7-detail-block">
+              <span className="t7-detail-label">Email</span>
+              <a className="t7-link" href={`mailto:${displayData.email}`}>{displayData.email}</a>
             </div>
-          </div>
-        )}
-
-        {/* Education and Training Section */}
-        {displayData.education && displayData.education.length > 0 && (
-          <div className="template4-cv-section">
-            <h3 className="template4-section-heading">Education and Training</h3>
-            <div className="template4-section-content">
-              {displayData.education.map((edu, index) => (
-                <div key={index} className="template4-education-item">
-                  {edu.year && (
-                    <div className="template4-education-date">{edu.year}</div>
-                  )}
-                  <div className="template4-education-content">
-                    <div className="template4-education-single-line">
-                      <span className="template4-education-degree">{edu.degree}</span>
-                      {edu.board && <span className="template4-education-board"> • {edu.board}</span>}
-                      {edu.marks && <span className="template4-education-marks"> • {edu.marks}</span>}
-                    </div>
-                    {edu.details && (
-                      <ul className="template4-education-details-list">
-                        {edu.details.split('\n').map((detail, detailIndex) => (
-                          detail.trim() && (
-                            <li key={detailIndex} className="template4-education-detail-item">{detail.trim()}</li>
-                          )
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                </div>
-              ))}
+          ) : null}
+          {displayData.address ? (
+            <div className="t7-detail-block">
+              <span className="t7-detail-label">Address</span>
+              <span className="t7-detail-value">{displayData.address}</span>
             </div>
-          </div>
-        )}
+          ) : null}
 
-        {/* Certifications Section */}
-        {displayData.certifications && displayData.certifications.length > 0 && (
-          <div className="template4-cv-section">
-            <h3 className="template4-section-heading">Certifications</h3>
-            <div className="template4-section-content">
-              <div className="template4-certifications-content">
-                {displayData.certifications.map((cert, index) => (
-                  <div key={index} className="template4-certification-item">
-                    <p className="template4-certification-text">{cert}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Personal Skills Section */}
-        {displayData.skills && displayData.skills.length > 0 && (
-          <div className="template4-cv-section">
-            <h3 className="template4-section-heading">Personal Skills</h3>
-            <div className="template4-section-content">
-              <div className="template4-skills-list">
-                {displayData.skills.map((skill, index) => (
-                  <div key={index} className="template4-skill-item">
-                    <span className="template4-skill-name">{skill}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Professional Summary Section */}
-        {displayData.professionalSummary && (
-          <div className="template4-cv-section">
-            <h3 className="template4-section-heading">Professional Summary</h3>
-            <div className="template4-section-content">
-              <p className="template4-professional-summary-text">
-                {displayData.professionalSummary}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Additional Information Section */}
-        {((displayData.otherInfo && displayData.otherInfo.length > 0) || (displayData.customSection && displayData.customSection.length > 0)) && (
-          <div className="template4-cv-section">
-            <h3 className="template4-section-heading">Additional Information</h3>
-            <div className="template4-section-content">
-
-              {/* Other Information */}
-              {displayData.otherInfo && displayData.otherInfo.length > 0 && (
-                <div style={{ marginBottom: '16px' }}>
-                  <div className="template4-other-info-grid">
-                    {displayData.otherInfo.map((info, index) => (
-                      <div key={index}>
-                        <span className="template4-info-label">{info.label}:</span>
-                        <span className="template4-info-value"> {info.value}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Custom Sections */}
-              {displayData.customSection && displayData.customSection.length > 0 && (
-                <div>
-                  <div className="template4-custom-section-content">
-                    {displayData.customSection.map((item, index) => (
-                      <div key={index} className="template4-custom-section-item">
-                        {item.subHeading && (
-                          <p className="template4-custom-section-detail"><strong>{item.subHeading}</strong></p>
-                        )}
-                        {item.heading && (
-                          <h4 className="template4-custom-section-heading">{item.heading}</h4>
-                        )}
-                        {(item.details || (item.detail ? [item.detail] : [])).map((detail, detailIndex) => (
-                          detail ? <p key={detailIndex} className="template4-custom-section-detail">{detail}</p> : null
-                        ))}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-
-        {/* Hobbies Section */}
-        {displayData.hobbies && displayData.hobbies.length > 0 && (
-          <div className="template4-cv-section">
-            <h3 className="template4-section-heading">Hobbies</h3>
-            <div className="template4-section-content">
-              <div className="template4-hobbies-container">
-                {displayData.hobbies.map((hobby, index) => (
-                  <div key={index} className="template4-hobby-pill">
-                    <span className="template4-hobby-name">{hobby}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Languages Section */}
-        {displayData.languages && displayData.languages.length > 0 && (
-          <div className="template4-cv-section">
-            <h3 className="template4-section-heading">Languages</h3>
-            <div className="template4-section-content">
-              <div className="template4-languages-container">
+          {displayData.languages && displayData.languages.length > 0 ? (
+            <>
+              <h3 className="t7-sidebar-title t7-sidebar-title--spaced">Languages</h3>
+              <ul className="t7-lang-list">
                 {displayData.languages.map((language, index) => {
                   const languageName = typeof language === 'string' ? language : (language.name || language);
                   const languageLevel = typeof language === 'string' ? '' : (language.level || '');
                   return (
-                    <div key={index} className="template4-language-item">
-                      <span className="template4-language-name">{languageName}</span>
-                      {languageLevel && (
-                        <span className="template4-language-level">{languageLevel}</span>
-                      )}
-                    </div>
+                    <li key={index} className="t7-lang-item">
+                      <span className="t7-lang-name">{languageName}</span>
+                      {languageLevel ? <span className="t7-lang-level">{languageLevel}</span> : null}
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
+          ) : null}
+
+          {displayData.skills && displayData.skills.length > 0 ? (
+            <>
+              <h3 className="t7-sidebar-title t7-sidebar-title--spaced">Skills</h3>
+              <ul className="t7-skill-pills">
+                {displayData.skills.map((skill, index) => (
+                  <li key={index} className="t7-skill-pill">{skill}</li>
+                ))}
+              </ul>
+            </>
+          ) : null}
+
+          {(() => {
+            const links = (displayData.otherInfo || []).filter(
+              (info) => info && info.value && /^https?:\/\//i.test(info.value.trim())
+            );
+            if (!links.length) return null;
+            return (
+              <>
+                <h3 className="t7-sidebar-title t7-sidebar-title--spaced">Links</h3>
+                <ul className="t7-links-list">
+                  {links.map((info, index) => (
+                    <li key={index}>
+                      <a className="t7-link" href={info.value.trim()} target="_blank" rel="noopener noreferrer">
+                        {info.label && info.label.trim() ? info.label : info.value.trim()}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            );
+          })()}
+
+          {(() => {
+            const plain = (displayData.otherInfo || []).filter(
+              (info) => info && info.value && !/^https?:\/\//i.test(info.value.trim())
+            );
+            if (!plain.length) return null;
+            return (
+              <>
+                <h3 className="t7-sidebar-title t7-sidebar-title--spaced">Other Information</h3>
+                {plain.map((info, index) => (
+                  <div key={index} className="t7-detail-block">
+                    <span className="t7-detail-label">{info.label}</span>
+                    <span className="t7-detail-value">{info.value}</span>
+                  </div>
+                ))}
+              </>
+            );
+          })()}
+        </aside>
+
+        <div className="t7-main-column">
+          {displayData.professionalSummary ? (
+            <section className="t7-main-block t7-cv-section">
+              <h2 className="t7-section-heading">Profile</h2>
+              <p className="t7-prose">{displayData.professionalSummary}</p>
+            </section>
+          ) : null}
+
+          {displayData.education && displayData.education.length > 0 ? (
+            <section className="t7-main-block t7-cv-section">
+              <h2 className="t7-section-heading">Education</h2>
+              <div className="t7-edu-list">
+                {displayData.education.map((edu, index) => {
+                  const title = [edu.degree, edu.board].filter(Boolean).join(' — ')
+                    || [edu.year, edu.marks].filter(Boolean).join(' · ')
+                    || 'Education';
+                  return (
+                  <article key={index} className="t7-edu-item">
+                    <h3 className="t7-edu-title">{title}</h3>
+                    {(edu.degree || edu.board) && (edu.year || edu.marks) ? (
+                      <p className="t7-edu-dates">
+                        {[edu.year, edu.marks].filter(Boolean).join(' · ')}
+                      </p>
+                    ) : null}
+                    {edu.details ? (
+                      <div className="t7-prose t7-edu-desc">
+                        {edu.details.split('\n').map((line, i) =>
+                          line.trim() ? <p key={i}>{line.trim()}</p> : null
+                        )}
+                      </div>
+                    ) : null}
+                  </article>
                   );
                 })}
               </div>
-            </div>
-          </div>
-        )}
+            </section>
+          ) : null}
 
-        {/* Custom Section */}
-        {displayData.customSection && displayData.customSection.length > 0 && displayData.customSection.map((custom, sectionIndex) => {
-          // Handle both old format (with 'detail') and new format (with 'details' array)
-          const details = custom.details || (custom.detail ? [custom.detail] : []);
-          const heading = custom.heading || '';
-          const subHeading = custom.subHeading || custom.subheading || '';
-          
-          // Skip sections without heading or details
-          if (!heading && !subHeading && details.length === 0) return null;
-          
-          return (
-            <div key={sectionIndex} className="template4-cv-section">
-              <h3 className="template4-section-heading">
-                {heading || 'Custom Section'}
-              </h3>
-              <div className="template4-section-content">
-                <div className="template4-custom-section-content">
-                  {subHeading && (
-                    <div className="template4-custom-section-item">
-                      <p className="template4-custom-section-detail"><strong>{subHeading}</strong></p>
+          {displayData.experience && displayData.experience.length > 0 ? (
+            <section className="t7-main-block t7-cv-section">
+              <h2 className="t7-section-heading">Employment History</h2>
+              <div className="t7-timeline">
+                {displayData.experience.map((exp, index) => (
+                  <article key={index} className="t7-exp-item">
+                    <div className="t7-exp-title">
+                      {exp.jobTitle || 'Role'}
+                      {exp.company ? (
+                        <span className="t7-exp-at">{' '}at {exp.company}</span>
+                      ) : null}
                     </div>
-                  )}
-                  {details.map((detail, detailIndex) => (
-                    detail && (
-                      <div key={detailIndex} className="template4-custom-section-item">
-                        <p className="template4-custom-section-detail">{detail}</p>
+                    {exp.duration ? (
+                      <p className="t7-exp-dates">{exp.duration}</p>
+                    ) : null}
+                    {exp.jobDetails ? (
+                      <div className="t7-exp-desc">
+                        {exp.jobDetails.split('\n').map((line, i) =>
+                          line.trim() ? <p key={i}>{line.trim()}</p> : null
+                        )}
                       </div>
-                    )
-                  ))}
-                </div>
-              </div>
-            </div>
-          );
-        })}
-
-        {/* References Section - Show as ANNEXES */}
-        {displayData.references && displayData.references.length > 0 && (
-          <div className="template4-cv-section">
-            <h3 className="template4-section-heading">Annexes</h3>
-            <div className="template4-section-content">
-              <div className="template4-references-content">
-                {displayData.references.map((reference, index) => (
-                  <div key={index} className="template4-reference-item">
-                    <p className="template4-reference-text">{reference}</p>
-                  </div>
+                    ) : null}
+                  </article>
                 ))}
               </div>
-            </div>
-          </div>
-        )}
-    </>
-  );
+            </section>
+          ) : null}
+
+          {displayData.certifications && displayData.certifications.length > 0 ? (
+            <section className="t7-main-block t7-cv-section">
+              <h2 className="t7-section-heading">Certifications</h2>
+              <ul className="t7-cert-list">
+                {displayData.certifications.map((cert, index) => (
+                  <li key={index} className="t7-cert-item">{cert}</li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+
+          {displayData.hobbies && displayData.hobbies.length > 0 ? (
+            <section className="t7-main-block t7-cv-section">
+              <h2 className="t7-section-heading">Hobbies</h2>
+              <p className="t7-inline-list">{displayData.hobbies.join(' · ')}</p>
+            </section>
+          ) : null}
+
+          {displayData.customSection && displayData.customSection.length > 0
+            ? displayData.customSection.map((custom, sectionIndex) => {
+                const details = custom.details || (custom.detail ? [custom.detail] : []);
+                const heading = custom.heading || '';
+                const subHeading = custom.subHeading || custom.subheading || '';
+                if (!heading && !subHeading && details.length === 0) return null;
+                return (
+                  <section key={sectionIndex} className="t7-main-block t7-cv-section">
+                    <h2 className="t7-section-heading">{heading || 'Projects'}</h2>
+                    {subHeading ? <h3 className="t7-custom-subheading">{subHeading}</h3> : null}
+                    <div className="t7-prose">
+                      {details.map((detail, detailIndex) =>
+                        detail && detail.trim() ? <p key={detailIndex}>{detail.trim()}</p> : null
+                      )}
+                    </div>
+                  </section>
+                );
+              })
+            : null}
+
+          {displayData.references && displayData.references.length > 0 ? (
+            <section className="t7-main-block t7-cv-section">
+              <h2 className="t7-section-heading">References</h2>
+              <div className="t7-prose">
+                {displayData.references.map((reference, index) => (
+                  <p key={index}>{reference}</p>
+                ))}
+              </div>
+            </section>
+          ) : null}
+        </div>
+      </div>
+    </div>
+    );
+  };
 
   // If this is the preview page, render the preview content directly
   if (isPreviewPage) {
     return (
       <div className="preview-page-preview-wrapper">
         <div 
-          className="template4-root template4-preview template4-a4-size-preview template4-pdf-mode preview-page-preview"
+          className="t7-preview t7-a4-size-preview t7-pdf-mode preview-page-preview"
           style={{
             transform: `scale(${previewPageScale})`,
             transformOrigin: 'top left',
@@ -1008,9 +951,12 @@ function Preview4({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
         <button 
           className="preview-a4-button"
           onClick={async () => {
+            console.log('Preview button clicked - capturing form data and syncing to App.js');
+            
             // Capture all form data from DOM, preserving profileImage from existing formData if it's from database
             const existingData = propFormData || hookFormData || formData;
             const capturedData = getFormDataFromDOM(existingData);
+            console.log('Captured form data from DOM:', capturedData);
             
             // Merge captured data with propFormData to ensure we have all data (especially from database)
             // Prefer propFormData for fields that might not be in DOM (like profileImage from database)
@@ -1020,9 +966,11 @@ function Preview4({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
               // But keep captured data for fields that were updated in form
               profileImage: propFormData?.profileImage || capturedData.profileImage,
               // Ensure arrays are preserved from propFormData if they exist
-              education: propFormData?.education && propFormData.education.length > 0 
-                ? propFormData.education 
-                : capturedData.education,
+              education: resolvePreviewEducation(
+                capturedData.education,
+                propFormData?.education,
+                readStoredFormData()?.education
+              ),
               experience: propFormData?.experience && propFormData.experience.length > 0 
                 ? propFormData.experience 
                 : capturedData.experience,
@@ -1049,9 +997,12 @@ function Preview4({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
                 : capturedData.references
             };
             
+            console.log('Merged form data (DOM + propFormData):', mergedData);
+            
             // Sync to App.js state if updateFormData is available
             if (updateFormData) {
               updateFormData(mergedData);
+              console.log('Synced merged form data to App.js state');
             }
             
             // Always store in localStorage before navigating to preview
@@ -1075,6 +1026,7 @@ function Preview4({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
                         reader.readAsDataURL(mergedData.profileImage);
                       });
                       profileImageData = { data: base64 };
+                      console.log('Converted profile image to base64');
                     } catch (err) {
                       console.error('Error converting profile image to base64:', err);
                       profileImageData = null;
@@ -1090,6 +1042,7 @@ function Preview4({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
                   profileImage: profileImageData
                 };
                 localStorage.setItem('cvFormData', JSON.stringify(serializableData));
+                console.log('Stored form data in localStorage before navigating to preview');
               } catch (e) {
                 console.error('Error storing form data in localStorage:', e);
                 // Fallback: store without image
@@ -1131,18 +1084,11 @@ function Preview4({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
         >
           📄 View A4 Preview
         </button>
-          <button 
-          className="download-pdf-button-main"
-            onClick={generatePDF}
-            title="Download CV as PDF"
-          >
-          📥 Download PDF
-          </button>
       </div>
 
       {/* A4 Preview Element - Always rendered for PDF generation, hidden when modal is closed */}
       <div 
-        className="template4-root template4-preview template4-a4-size-preview template4-pdf-mode"
+        className="t7-preview t7-a4-size-preview t7-pdf-mode"
         style={{
           display: 'none', // Hidden but in DOM for PDF generation
           position: 'fixed',
@@ -1188,7 +1134,7 @@ function Preview4({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
                 <label className="template-switcher-label">Template:</label>
                 <select 
                   className="template-switcher-select"
-                  value={selectedTemplate || 'template4'}
+                  value={selectedTemplate || 'template1'}
                   onChange={(e) => {
                     e.stopPropagation();
                     if (onTemplateSwitch) {
@@ -1201,7 +1147,7 @@ function Preview4({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
                   <option value="template1">Template 1</option>
                   <option value="template2">Template 2</option>
                   <option value="template3">Template 3</option>
-                  <option value="template4">Template 4 (Europass)</option>
+                  <option value="template4">Template 4</option>
                   <option value="template5">Template 5</option>
                   <option value="template6">Template 6</option>
                   <option value="template7">Template 7</option>
@@ -1249,7 +1195,7 @@ function Preview4({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
             
             <div className="a4-preview-container" ref={a4PreviewRef}>
               <div 
-                className="template4-root template4-preview template4-a4-size-preview template4-pdf-mode"
+                className="t7-preview t7-a4-size-preview t7-pdf-mode"
                 id="a4-preview-content"
                 key={`a4-preview-${formData?.name || 'default'}-${Date.now()}`}
                 style={{
@@ -1269,13 +1215,12 @@ function Preview4({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
               >
                 {renderCVContent()}
               </div>
-            </div>
-          </div>
         </div>
+      </div>
+    </div>
       )}
     </>
   );
 }
 
-export default Preview4;
-
+export default Preview7;

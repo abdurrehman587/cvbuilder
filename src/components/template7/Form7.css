@@ -1,0 +1,9 @@
+/* Template 7 form shell — indigo accent on shared Form5 */
+
+.template7-form-shell {
+  --template7-accent: #4f46e5;
+}
+
+.template7-form-root {
+  width: 100%;
+}

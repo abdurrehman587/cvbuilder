@@ -1,11 +1,13 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, lazy, Suspense, useMemo } from 'react';
 import { setCVView } from '../../utils/routing';
+import { mergePreviewFormData } from '../../utils/cvEducation';
 import generatePDF1 from '../template1/pdf1';
 import generatePDF2 from '../template2/pdf2';
 import generatePDF3 from '../template3/pdf3';
 import generatePDF4 from '../template4/pdf4';
 import generatePDF5 from '../template5/pdf5';
 import generatePDF6 from '../template6/pdf6';
+import generatePDF7 from '../template7/pdf7';
 import { Share } from '@capacitor/share';
 import { authService } from '../Supabase/supabase';
 import './PreviewPage.css';
@@ -17,6 +19,8 @@ import Preview3 from '../template3/Preview3';
 import Preview4 from '../template4/Preview4';
 import Preview5 from '../template5/Preview5';
 import Preview6 from '../template6/Preview6';
+
+const Preview7 = lazy(() => import('../template7/Preview7'));
 
 function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
   // On mount, check if formData is empty and try to load from localStorage
@@ -40,10 +44,15 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
   const [isLoading, setIsLoading] = useState(false);
   const previewRef = useRef(null);
 
+  const effectiveFormData = useMemo(
+    () => mergePreviewFormData(formData),
+    [formData]
+  );
+
   // Get the appropriate preview component based on selected template
   const renderPreview = () => {
     const previewProps = {
-      formData: formData,
+      formData: effectiveFormData,
       autoSaveStatus: '',
       hasUnsavedChanges: false,
       selectedTemplate: selectedTemplate,
@@ -64,6 +73,12 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
         return <Preview5 {...previewProps} />;
       case 'template6':
         return <Preview6 {...previewProps} />;
+      case 'template7':
+        return (
+          <Suspense fallback={<div className="preview-page-loading-inline">Loading template...</div>}>
+            <Preview7 {...previewProps} />
+          </Suspense>
+        );
       default:
         return <Preview1 {...previewProps} />;
     }
@@ -224,6 +239,9 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
       case 'template6':
         generatePDF = generatePDF6;
         break;
+      case 'template7':
+        generatePDF = generatePDF7;
+        break;
       default:
         generatePDF = generatePDF1;
     }
@@ -231,7 +249,7 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
     // Call the PDF generation function
     if (generatePDF) {
       // Template 1, 2, 3, and 4 accept formData parameter for filename
-      if (selectedTemplate === 'template1' || selectedTemplate === 'template2' || selectedTemplate === 'template3' || selectedTemplate === 'template4' || selectedTemplate === 'template5' || selectedTemplate === 'template6') {
+      if (selectedTemplate === 'template1' || selectedTemplate === 'template2' || selectedTemplate === 'template3' || selectedTemplate === 'template4' || selectedTemplate === 'template5' || selectedTemplate === 'template6' || selectedTemplate === 'template7') {
         generatePDF(dataForFileName);
       } else {
         // Other templates don't accept formData parameter
@@ -373,6 +391,13 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
                 title="Template 6"
               >
                 T6
+              </button>
+              <button
+                className={`preview-template-button ${selectedTemplate === 'template7' ? 'active' : ''}`}
+                onClick={() => onTemplateSwitch('template7')}
+                title="Template 7"
+              >
+                T7
               </button>
             </div>
           </div>
