@@ -5,17 +5,36 @@ import {
   downloadCombinedPdf,
   downloadBlob,
 } from './enhanceImage';
+import { expandPdfToPageItems, isAcceptedUploadFile, isPdfFile } from './pdfImport';
 import './DocumentScanner.css';
 
-const ACCEPTED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/bmp'];
+const FILE_INPUT_ACCEPT =
+  'image/jpeg,image/jpg,image/png,image/webp,image/bmp,application/pdf,.pdf';
 
 const makeId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+
+const createImageItem = (file) => ({
+  id: makeId(),
+  file,
+  fileName: file.name,
+  originalUrl: URL.createObjectURL(file),
+  enhancedUrl: null,
+  enhancedBlob: null,
+  dataUrl: null,
+  width: 0,
+  height: 0,
+  status: 'pending',
+  error: null,
+  sourcePdfName: null,
+  pdfPageNumber: null,
+});
 
 function DocumentScanner() {
   const fileInputRef = useRef(null);
   const [items, setItems] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [error, setError] = useState('');
   const [dragOver, setDragOver] = useState(false);
@@ -23,40 +42,59 @@ function DocumentScanner() {
   const selectedItem = items.find((item) => item.id === selectedId) || items[0] || null;
   const enhancedCount = items.filter((item) => item.status === 'done').length;
   const hasEnhanced = enhancedCount > 0;
+  const isBusy = isProcessing || isImporting || isDownloading;
 
-  const addFiles = useCallback((fileList) => {
-    const files = Array.from(fileList).filter((file) => {
-      if (ACCEPTED_TYPES.includes(file.type)) return true;
-      return /\.(jpe?g|png|webp|bmp)$/i.test(file.name);
-    });
+  const addFiles = useCallback(async (fileList) => {
+    const files = Array.from(fileList).filter(isAcceptedUploadFile);
 
     if (!files.length) {
-      setError('Please upload JPG, PNG, WEBP, or BMP images.');
+      setError('Please upload JPG, PNG, WEBP, BMP images, or PDF files.');
       return;
     }
 
+    setIsImporting(true);
     setError('');
-    const newItems = files.map((file) => ({
-      id: makeId(),
-      file,
-      fileName: file.name,
-      originalUrl: URL.createObjectURL(file),
-      enhancedUrl: null,
-      enhancedBlob: null,
-      dataUrl: null,
-      width: 0,
-      height: 0,
-      status: 'pending',
-      error: null,
-    }));
 
-    setItems((prev) => {
-      const merged = [...prev, ...newItems];
-      if (!selectedId && merged.length) {
-        setSelectedId(merged[0].id);
+    try {
+      const newItems = [];
+
+      for (const file of files) {
+        if (isPdfFile(file)) {
+          const pages = await expandPdfToPageItems(file);
+          pages.forEach((page) => {
+            newItems.push({
+              id: makeId(),
+              file: page.file,
+              fileName: page.fileName,
+              originalUrl: page.originalUrl,
+              enhancedUrl: null,
+              enhancedBlob: null,
+              dataUrl: null,
+              width: 0,
+              height: 0,
+              status: 'pending',
+              error: null,
+              sourcePdfName: page.sourcePdfName,
+              pdfPageNumber: page.pdfPageNumber,
+            });
+          });
+        } else {
+          newItems.push(createImageItem(file));
+        }
       }
-      return merged;
-    });
+
+      setItems((prev) => {
+        const merged = [...prev, ...newItems];
+        if (!selectedId && merged.length) {
+          setSelectedId(merged[0].id);
+        }
+        return merged;
+      });
+    } catch (err) {
+      setError(err.message || 'Failed to import PDF');
+    } finally {
+      setIsImporting(false);
+    }
   }, [selectedId]);
 
   const handleFileChange = (e) => {
@@ -204,7 +242,7 @@ function DocumentScanner() {
       <div className="document-scanner-header">
         <div>
           <h1>Document Scanner</h1>
-          <p>Upload images to clean the background, sharpen text, and export as JPG or PDF.</p>
+          <p>Upload images or PDFs to clean the background, sharpen text, and export as JPG or PDF.</p>
         </div>
         {items.length > 0 && (
           <div className="ds-header-actions">
@@ -212,7 +250,7 @@ function DocumentScanner() {
               type="button"
               className="ds-btn ds-btn-ghost"
               onClick={startOver}
-              disabled={isProcessing}
+              disabled={isBusy}
             >
               Start over
             </button>
@@ -220,9 +258,9 @@ function DocumentScanner() {
               type="button"
               className="ds-btn ds-btn-ghost"
               onClick={openFilePicker}
-              disabled={isProcessing}
+              disabled={isBusy}
             >
-              Choose images
+              Choose files
             </button>
           </div>
         )}
@@ -234,29 +272,31 @@ function DocumentScanner() {
           onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
           onDragLeave={() => setDragOver(false)}
           onDrop={handleDrop}
-          onClick={openFilePicker}
+          onClick={() => !isImporting && openFilePicker()}
           role="button"
           tabIndex={0}
-          onKeyDown={(e) => e.key === 'Enter' && openFilePicker()}
+          onKeyDown={(e) => e.key === 'Enter' && !isImporting && openFilePicker()}
         >
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/jpeg,image/jpg,image/png,image/webp,image/bmp"
+            accept={FILE_INPUT_ACCEPT}
             multiple
             onChange={handleFileChange}
             className="ds-file-input"
           />
           <div className="ds-dropzone-icon">📄</div>
-          <p className="ds-dropzone-title">Drop images here or click to browse</p>
-          <p className="ds-dropzone-hint">Supports JPG, PNG, WEBP, BMP — batch upload OK</p>
+          <p className="ds-dropzone-title">
+            {isImporting ? 'Importing PDF pages…' : 'Drop files here or click to browse'}
+          </p>
+          <p className="ds-dropzone-hint">Supports JPG, PNG, WEBP, BMP, PDF — batch upload OK</p>
         </div>
       ) : (
         <>
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/jpeg,image/jpg,image/png,image/webp,image/bmp"
+            accept={FILE_INPUT_ACCEPT}
             multiple
             onChange={handleFileChange}
             className="ds-file-input"
@@ -267,26 +307,27 @@ function DocumentScanner() {
               type="button"
               className="ds-btn ds-btn-ghost ds-btn-back"
               onClick={startOver}
-              disabled={isProcessing || isDownloading}
+              disabled={isBusy}
             >
               ← Back
             </button>
             <span className="ds-workspace-summary">
-              {items.length} image{items.length > 1 ? 's' : ''} selected
+              {items.length} file{items.length > 1 ? 's' : ''} selected
+              {isImporting ? ' — importing PDF…' : ''}
             </span>
             <button
               type="button"
               className="ds-btn ds-btn-ghost"
               onClick={openFilePicker}
-              disabled={isProcessing || isDownloading}
+              disabled={isBusy}
             >
-              Add images
+              Add files
             </button>
             <button
               type="button"
               className="ds-btn ds-btn-ghost"
               onClick={resetEnhancement}
-              disabled={isProcessing || isDownloading || !hasEnhanced}
+              disabled={isBusy || !hasEnhanced}
             >
               Reset enhancement
             </button>
@@ -300,12 +341,14 @@ function DocumentScanner() {
           onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
           onDragLeave={() => setDragOver(false)}
           onDrop={handleDrop}
-          onClick={openFilePicker}
+          onClick={() => !isImporting && openFilePicker()}
           role="button"
           tabIndex={0}
-          onKeyDown={(e) => e.key === 'Enter' && openFilePicker()}
+          onKeyDown={(e) => e.key === 'Enter' && !isImporting && openFilePicker()}
         >
-          <p className="ds-dropzone-title">Drop more images here or click to add</p>
+          <p className="ds-dropzone-title">
+            {isImporting ? 'Importing PDF pages…' : 'Drop more files here or click to add'}
+          </p>
         </div>
       )}
 
@@ -315,16 +358,16 @@ function DocumentScanner() {
             type="button"
             className="ds-btn ds-btn-primary"
             onClick={processAll}
-            disabled={isProcessing || isDownloading}
+            disabled={isBusy}
           >
-            {isProcessing ? 'Processing…' : `Enhance ${items.length} image${items.length > 1 ? 's' : ''}`}
+            {isProcessing ? 'Processing…' : `Enhance ${items.length} file${items.length > 1 ? 's' : ''}`}
           </button>
 
           <button
             type="button"
             className="ds-btn ds-btn-secondary"
             onClick={handleDownloadJpegs}
-            disabled={!hasEnhanced || isProcessing || isDownloading}
+            disabled={!hasEnhanced || isBusy}
           >
             Download JPGs separately
           </button>
@@ -333,7 +376,7 @@ function DocumentScanner() {
             type="button"
             className="ds-btn ds-btn-secondary"
             onClick={handleDownloadPdf}
-            disabled={!hasEnhanced || isProcessing || isDownloading}
+            disabled={!hasEnhanced || isBusy}
           >
             Download combined PDF
           </button>
@@ -384,7 +427,7 @@ function DocumentScanner() {
 
       {items.length > 0 && (
         <div className="ds-thumbnail-list">
-          <h3>Uploaded images ({items.length})</h3>
+          <h3>Uploaded files ({items.length})</h3>
           <div className="ds-thumbnails">
             {items.map((item) => (
               <button
