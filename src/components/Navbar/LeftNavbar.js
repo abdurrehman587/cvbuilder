@@ -41,6 +41,8 @@ const LeftNavbar = ({ isAuthenticated, onLogout }) => {
         // Check localStorage for selected app
         if (selectedApp === 'id-card-print') {
           setActiveSection('id-card-printer');
+        } else if (selectedApp === 'document-scanner') {
+          setActiveSection('document-scanner');
         } else if (selectedApp === 'cv-builder') {
           setActiveSection('cv-builder');
         } else if (selectedApp === 'marketplace') {
@@ -64,12 +66,14 @@ const LeftNavbar = ({ isAuthenticated, onLogout }) => {
     window.addEventListener('navigateToMarketplace', handleNavigate);
     window.addEventListener('navigateToCVBuilder', handleNavigate);
     window.addEventListener('navigateToIDCardPrinter', handleNavigate);
+    window.addEventListener('navigateToDocumentScanner', handleNavigate);
     
     return () => {
       window.removeEventListener('hashchange', updateActiveSection);
       window.removeEventListener('navigateToMarketplace', handleNavigate);
       window.removeEventListener('navigateToCVBuilder', handleNavigate);
       window.removeEventListener('navigateToIDCardPrinter', handleNavigate);
+      window.removeEventListener('navigateToDocumentScanner', handleNavigate);
     };
   }, []);
 
@@ -203,6 +207,16 @@ const LeftNavbar = ({ isAuthenticated, onLogout }) => {
     sessionStorage.removeItem('showProductsPage');
     // Navigate to /id-card-print route using React Router
     navigate('/id-card-print');
+  };
+
+  const navigateToDocumentScanner = () => {
+    sessionStorage.setItem('isNavigating', 'true');
+    sessionStorage.setItem('navigationTimestamp', Date.now().toString());
+    localStorage.setItem('selectedApp', 'document-scanner');
+    localStorage.removeItem('showProductsPage');
+    sessionStorage.removeItem('showProductsPage');
+    window.dispatchEvent(new CustomEvent('navigateToDocumentScanner'));
+    navigate('/document-scanner');
   };
 
   const handleSignIn = () => {
@@ -353,6 +367,15 @@ const LeftNavbar = ({ isAuthenticated, onLogout }) => {
                 <span className="nav-text">ID Card Printer</span>
               </button>
             </li>
+            <li>
+              <button
+                className={`left-navbar-item ${activeSection === 'document-scanner' ? 'active' : ''}`}
+                onClick={navigateToDocumentScanner}
+              >
+                <span className="nav-icon">📷</span>
+                <span className="nav-text">Document Scanner</span>
+              </button>
+            </li>
           </ul>
         </div>
       </nav>
@@ -386,6 +409,13 @@ const LeftNavbar = ({ isAuthenticated, onLogout }) => {
         >
           <span className="bottom-nav-icon">🪪</span>
           <span className="bottom-nav-text">ID Card</span>
+        </button>
+        <button
+          className={`bottom-nav-item ${activeSection === 'document-scanner' ? 'active' : ''}`}
+          onClick={navigateToDocumentScanner}
+        >
+          <span className="bottom-nav-icon">📷</span>
+          <span className="bottom-nav-text">Scanner</span>
         </button>
         {!isAuthenticated ? (
           <button

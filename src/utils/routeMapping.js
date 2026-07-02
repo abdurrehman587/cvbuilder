@@ -23,6 +23,11 @@ export const pathToApp = (pathname) => {
   if (pathname.startsWith('/id-card-print')) {
     return 'id-card-print';
   }
+
+  // Document Scanner routes
+  if (pathname.startsWith('/document-scanner')) {
+    return 'document-scanner';
+  }
   
   // Admin routes
   if (pathname.startsWith('/admin')) {
@@ -68,6 +73,7 @@ export const navigateToRoute = (navigate, route, options = {}) => {
     'cv-builder': '/cv-builder',
     'marketplace': '/marketplace',
     'id-card-print': '/id-card-print',
+    'document-scanner': '/document-scanner',
     'cart': '/cart',
     'checkout': '/checkout',
     'orders': '/orders',

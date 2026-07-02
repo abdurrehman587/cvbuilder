@@ -5,12 +5,12 @@
   margin-top: calc(var(--header-height, 80px) + env(safe-area-inset-top, 0));
   position: fixed;
   top: calc(var(--header-height, 80px) + env(safe-area-inset-top, 0));
-  left: 200px; /* Position beside navbar */
+  left: var(--left-navbar-width, 232px); /* Position beside navbar */
   right: 0;
   bottom: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  width: calc(100% - 200px); /* Account for navbar width */
+  width: calc(100% - var(--left-navbar-width, 232px)); /* Account for navbar width */
   box-sizing: border-box;
 }
 

@@ -1,3 +1,7 @@
+:root {
+  --left-navbar-width: 232px;
+}
+
 .App {
   padding: 8px;
   overflow-x: hidden;
@@ -57,10 +61,10 @@ html {
 
 /* App content wrapper when navbar is present */
 .app-content-with-navbar {
-  margin-left: 200px;
+  margin-left: var(--left-navbar-width, 232px);
   margin-top: calc(70px + env(safe-area-inset-top, 0));
-  width: calc(100% - 200px);
-  max-width: calc(100% - 200px);
+  width: calc(100% - var(--left-navbar-width, 232px));
+  max-width: calc(100% - var(--left-navbar-width, 232px));
   transition: margin-left 0.3s ease, width 0.3s ease;
   overflow-x: hidden !important;
   overflow-y: visible !important;
@@ -210,8 +214,8 @@ html {
 
 /* When navbar is present, adjust CV header position */
 .app-content-with-navbar .app-header-cv {
-  left: 200px;
-  width: calc(100% - 200px);
+  left: var(--left-navbar-width, 232px);
+  width: calc(100% - var(--left-navbar-width, 232px));
 }
 
 /* ID Card Print content wrapper */
@@ -220,6 +224,11 @@ html {
   padding-left: 0;
   padding-right: 0;
   padding-bottom: 1rem;
+}
+
+.document-scanner-content-wrapper {
+  margin-top: calc(var(--header-height, 80px) + 56px);
+  padding: 0 0 1rem;
 }
 
 .app-content-with-navbar .id-card-print-content-wrapper {

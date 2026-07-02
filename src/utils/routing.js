@@ -19,7 +19,7 @@ export const getCurrentApp = () => {
  * This is the ONLY place where selectedApp should be written
  */
 export const setCurrentApp = (app) => {
-  if (app && ['marketplace', 'cv-builder', 'id-card-print'].includes(app)) {
+  if (app && ['marketplace', 'cv-builder', 'id-card-print', 'document-scanner'].includes(app)) {
     const previousApp = localStorage.getItem('selectedApp');
     // If navigating away from ID Card Print, clear saved card designs
     if (previousApp === 'id-card-print' && app !== 'id-card-print') {

@@ -39,6 +39,7 @@ const Preview6 = lazy(() => import('./components/template6/Preview6'));
 const Preview7 = lazy(() => import('./components/template7/Preview7'));
 const IDCardPrintPage = lazy(() => import('./components/IDCardPrint/IDCardPrintPage'));
 const IDCardDashboard = lazy(() => import('./components/IDCardDashboard/IDCardDashboard'));
+const DocumentScanner = lazy(() => import('./components/DocumentScanner/DocumentScanner'));
 const UserProfile = lazy(() => import('./components/UserProfile/UserProfile'));
 // const MarketplaceAdmin = lazy(() => import('./components/MarketplaceAdmin/MarketplaceAdmin')); // Not currently used
 const AdminDashboard = lazy(() => import('./components/Admin/AdminDashboard'));
@@ -2052,6 +2053,13 @@ function App() {
       localStorage.removeItem('navigateToIDCardPrint');
       console.log('PRIORITY 0: /id-card-print pathname detected - forcing ID Card Print routing, idCardView:', localStorage.getItem('idCardView'));
     }
+
+    if (pathname === '/document-scanner') {
+      routingApp = 'document-scanner';
+      localStorage.setItem('selectedApp', 'document-scanner');
+      sessionStorage.removeItem('navigateToDocumentScanner');
+      localStorage.removeItem('navigateToDocumentScanner');
+    }
     
     // Get current route from routing utility (reads from localStorage)
     // Only use this if pathname didn't force a routing decision
@@ -2063,7 +2071,7 @@ function App() {
     if (cvView === 'preview') {
       const selectedProduct = localStorage.getItem('selectedApp');
       // Don't show preview if user is on marketplace or id-card-print
-      if (selectedProduct !== 'id-card-print' && selectedProduct !== 'marketplace') {
+      if (selectedProduct !== 'id-card-print' && selectedProduct !== 'marketplace' && selectedProduct !== 'document-scanner') {
         return (
           <Suspense fallback={<LoadingFallback />}>
             <PreviewPage 
@@ -2115,6 +2123,8 @@ function App() {
                                       localStorage.getItem('navigateToIDCardPrint') === 'true';
     const selectedAppIsIDCardPrint = localStorage.getItem('selectedApp') === 'id-card-print';
     const isIDCardPrintPathname = pathname === '/id-card-print';
+    const selectedAppIsDocumentScanner = localStorage.getItem('selectedApp') === 'document-scanner';
+    const isDocumentScannerPathname = pathname === '/document-scanner';
     
     // PRIORITY 0: Check for navigateToCVBuilder flag FIRST (before homepage check)
     // This ensures CV Builder is accessible when user clicks on it
@@ -2150,6 +2160,17 @@ function App() {
         localStorage.removeItem('navigateToIDCardPrint');
       }
       console.log('PRIORITY 0: navigateToIDCardPrint flag or selectedApp=id-card-print detected - routing to ID Card, idCardView:', localStorage.getItem('idCardView'));
+    }
+
+    const navigateToDocumentScannerFlag = sessionStorage.getItem('navigateToDocumentScanner') === 'true' ||
+                                          localStorage.getItem('navigateToDocumentScanner') === 'true';
+    if (!routingApp && !isDocumentScannerPathname && (navigateToDocumentScannerFlag || selectedAppIsDocumentScanner)) {
+      routingApp = 'document-scanner';
+      localStorage.setItem('selectedApp', 'document-scanner');
+      if (navigateToDocumentScannerFlag) {
+        sessionStorage.removeItem('navigateToDocumentScanner');
+        localStorage.removeItem('navigateToDocumentScanner');
+      }
     }
     
     // PRIORITY: Check for homepage navigation flag BEFORE any default logic
@@ -2700,10 +2721,10 @@ function App() {
                 padding: '24px 20px 12px 20px', 
                 position: 'fixed',
                 top: 'calc(var(--header-height, 80px) + 56px)',
-                left: '200px',
+                left: 'var(--left-navbar-width, 232px)',
                 right: 0,
                 zIndex: 999,
-                width: 'calc(100% - 200px)',
+                width: 'calc(100% - var(--left-navbar-width, 232px))',
                 minHeight: '80px',
                 justifyContent: 'space-between',
                 alignItems: 'center',
@@ -2760,6 +2781,28 @@ function App() {
         )
     );
   }
+
+    // ============================================
+    // DOCUMENT SCANNER SECTION
+    // ============================================
+    if (routingApp === 'document-scanner') {
+      return wrapWithTopNav(
+        wrapWithNavbar(
+          <>
+            <Header
+              isAuthenticated={isAuthenticated}
+              onLogout={handleLogout}
+              currentProduct="document-scanner"
+            />
+            <div className="document-scanner-content-wrapper">
+              <Suspense fallback={<LoadingFallback />}>
+                <DocumentScanner />
+              </Suspense>
+            </div>
+          </>
+        )
+      );
+    }
   }
   
   // PRIORITY: Check if we should show CV Builder form/preview FIRST
@@ -2767,8 +2810,8 @@ function App() {
   // CRITICAL: Don't show CV form if user is on marketplace
   if (currentView === 'cv-builder' && isAuthenticated && !isLoading) {
     const selectedProduct = localStorage.getItem('selectedApp');
-    // Don't show CV form if user is on marketplace or id-card-print
-    if (selectedProduct !== 'id-card-print' && selectedProduct !== 'marketplace') {
+    // Don't show CV form if user is on marketplace, id-card-print, or document-scanner
+    if (selectedProduct !== 'id-card-print' && selectedProduct !== 'marketplace' && selectedProduct !== 'document-scanner') {
       const renderFormAndPreview = () => {
         switch (selectedTemplate) {
           case 'template1':
@@ -3142,7 +3185,7 @@ function App() {
   // ABSOLUTE PRIORITY: If currentView is 'cv-builder', show it regardless of products page flags
   if (currentView === 'cv-builder' && isAuthenticated && !isLoading) {
     const selectedProduct = localStorage.getItem('selectedApp');
-    if (selectedProduct !== 'id-card-print') {
+    if (selectedProduct !== 'id-card-print' && selectedProduct !== 'document-scanner') {
     const renderFormAndPreview = () => {
       switch (selectedTemplate) {
         case 'template1':
@@ -3282,10 +3325,10 @@ function App() {
             padding: '24px 20px 12px 20px', 
             position: 'fixed',
             top: 'var(--header-height, 80px)',
-            left: '200px',
+            left: 'var(--left-navbar-width, 232px)',
             right: 0,
             zIndex: 999,
-            width: 'calc(100% - 200px)',
+            width: 'calc(100% - var(--left-navbar-width, 232px))',
             minHeight: '80px',
             justifyContent: 'space-between',
             alignItems: 'center',

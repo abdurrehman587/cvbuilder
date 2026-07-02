@@ -97,6 +97,19 @@ const AppRouter = () => {
           } 
         />
         
+        <Route 
+          path="/document-scanner" 
+          element={
+            <RouteWrapper 
+              title="Document Scanner" 
+              description="Enhance document images with a clean white background. Download as JPG or combined PDF."
+              keywords="document scanner, image enhancer, scan documents, white background, PDF export"
+            >
+              <App />
+            </RouteWrapper>
+          } 
+        />
+        
         {/* Cart & Checkout */}
         <Route 
           path="/cart" 
