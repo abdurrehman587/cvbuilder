@@ -155,6 +155,14 @@ const useFormHandler = (formData, updateFormData, markAsChanged) => {
         handleInputChange('experience', experiences);
     };
 
+    const moveEducation = (index, direction) => {
+        const educations = [...(formData.education || [])];
+        const swapIndex = direction === 'up' ? index - 1 : index + 1;
+        if (swapIndex < 0 || swapIndex >= educations.length) return;
+        [educations[index], educations[swapIndex]] = [educations[swapIndex], educations[index]];
+        handleInputChange('education', educations);
+    };
+
     // Function to add new experience group
     const addExperienceGroup = () => {
         const experienceSection = document.getElementById('experience');
@@ -339,6 +347,7 @@ const useFormHandler = (formData, updateFormData, markAsChanged) => {
         addEducationGroup,
         addExperienceGroup,
         moveExperience,
+        moveEducation,
         addSkillInput,
         addCertificationInput,
         addCustomInformation,

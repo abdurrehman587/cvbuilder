@@ -494,6 +494,7 @@
 .contact-info-section .address-input-container,
 .professional-summary-section .professional-summary-textarea-container,
 .education-section .education-group,
+.education-section .education-actions,
 .education-section .add-education-container,
 .education-section .remove-education-container,
 .experience-section .experience-group,
@@ -555,6 +556,7 @@
 .contact-info-section.active .address-input-container,
 .professional-summary-section.active .professional-summary-textarea-container,
 .education-section.active .education-group,
+.education-section.active .education-actions,
 .education-section.active .add-education-container,
 .education-section.active .remove-education-container,
 .experience-section.active .experience-group,
@@ -661,6 +663,61 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   border: 1px solid #dee2e6;
   animation: fadeInUp 0.6s ease-out;
+}
+
+.education-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #d1d5db;
+}
+
+.move-education-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  padding: 7px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.35);
+  min-width: 108px;
+}
+
+.move-education-icon {
+  font-size: 14px;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.move-education-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(102, 126, 234, 0.45);
+}
+
+.move-education-button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
+}
+
+.move-education-button:disabled {
+  background: linear-gradient(135deg, #ced4da 0%, #adb5bd 100%);
+  border-color: transparent;
+  opacity: 0.65;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
 }
 
 /* Remove Education Button */

@@ -15,6 +15,7 @@ function Form({ formData, updateFormData, markAsChanged }) {
         addCustomSection,
         addReferenceInput,
         moveExperience,
+        moveEducation,
         handleInputChange,
         handleReferenceChange,
         referenceText,
@@ -376,6 +377,32 @@ function Form({ formData, updateFormData, markAsChanged }) {
                     };
                     return (
                     <div key={index} className="education-group">
+                        {educationList.length > 1 && (
+                            <div className="education-actions">
+                                <button
+                                    type="button"
+                                    className="move-education-button move-education-button--up"
+                                    disabled={index === 0}
+                                    onClick={() => moveEducation(index, 'up')}
+                                    title="Move up"
+                                    aria-label="Move education up"
+                                >
+                                    <span className="move-education-icon" aria-hidden="true">↑</span>
+                                    Move Up
+                                </button>
+                                <button
+                                    type="button"
+                                    className="move-education-button move-education-button--down"
+                                    disabled={index === educationList.length - 1}
+                                    onClick={() => moveEducation(index, 'down')}
+                                    title="Move down"
+                                    aria-label="Move education down"
+                                >
+                                    <span className="move-education-icon" aria-hidden="true">↓</span>
+                                    Move Down
+                                </button>
+                            </div>
+                        )}
                         <div className="degree-input-container input-group">
                             <label htmlFor={`degree-input-${index}`} className="degree-label input-label">
                                 Degree
