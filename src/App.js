@@ -40,6 +40,7 @@ const Preview7 = lazy(() => import('./components/template7/Preview7'));
 const IDCardPrintPage = lazy(() => import('./components/IDCardPrint/IDCardPrintPage'));
 const IDCardDashboard = lazy(() => import('./components/IDCardDashboard/IDCardDashboard'));
 const DocumentScanner = lazy(() => import('./components/DocumentScanner/DocumentScanner'));
+const PassportPhoto = lazy(() => import('./components/PassportPhoto/PassportPhoto'));
 const UserProfile = lazy(() => import('./components/UserProfile/UserProfile'));
 // const MarketplaceAdmin = lazy(() => import('./components/MarketplaceAdmin/MarketplaceAdmin')); // Not currently used
 const AdminDashboard = lazy(() => import('./components/Admin/AdminDashboard'));
@@ -1907,6 +1908,45 @@ function App() {
     }
   }
   
+  // Public routes: Document Scanner and Passport Photos (no login required)
+  if (location.pathname === '/document-scanner') {
+    return wrapWithTopNav(
+      wrapWithNavbar(
+        <>
+          <Header
+            isAuthenticated={isAuthenticated}
+            onLogout={isAuthenticated ? handleLogout : undefined}
+            currentProduct="document-scanner"
+          />
+          <div className="document-scanner-content-wrapper">
+            <Suspense fallback={<LoadingFallback />}>
+              <DocumentScanner />
+            </Suspense>
+          </div>
+        </>
+      )
+    );
+  }
+
+  if (location.pathname === '/passport-photo') {
+    return wrapWithTopNav(
+      wrapWithNavbar(
+        <>
+          <Header
+            isAuthenticated={isAuthenticated}
+            onLogout={isAuthenticated ? handleLogout : undefined}
+            currentProduct="passport-photo"
+          />
+          <div className="passport-photo-content-wrapper">
+            <Suspense fallback={<LoadingFallback />}>
+              <PassportPhoto />
+            </Suspense>
+          </div>
+        </>
+      )
+    );
+  }
+
   // Check for admin panel route (both hash-based and clean URL routing)
   // This must take priority over other routing logic (except order-details above)
   // Check this BEFORE authentication check to ensure admin panel always shows
@@ -2060,6 +2100,13 @@ function App() {
       sessionStorage.removeItem('navigateToDocumentScanner');
       localStorage.removeItem('navigateToDocumentScanner');
     }
+
+    if (pathname === '/passport-photo') {
+      routingApp = 'passport-photo';
+      localStorage.setItem('selectedApp', 'passport-photo');
+      sessionStorage.removeItem('navigateToPassportPhoto');
+      localStorage.removeItem('navigateToPassportPhoto');
+    }
     
     // Get current route from routing utility (reads from localStorage)
     // Only use this if pathname didn't force a routing decision
@@ -2071,7 +2118,12 @@ function App() {
     if (cvView === 'preview') {
       const selectedProduct = localStorage.getItem('selectedApp');
       // Don't show preview if user is on marketplace or id-card-print
-      if (selectedProduct !== 'id-card-print' && selectedProduct !== 'marketplace' && selectedProduct !== 'document-scanner') {
+      if (
+        selectedProduct !== 'id-card-print' &&
+        selectedProduct !== 'marketplace' &&
+        selectedProduct !== 'document-scanner' &&
+        selectedProduct !== 'passport-photo'
+      ) {
         return (
           <Suspense fallback={<LoadingFallback />}>
             <PreviewPage 
@@ -2125,6 +2177,8 @@ function App() {
     const isIDCardPrintPathname = pathname === '/id-card-print';
     const selectedAppIsDocumentScanner = localStorage.getItem('selectedApp') === 'document-scanner';
     const isDocumentScannerPathname = pathname === '/document-scanner';
+    const selectedAppIsPassportPhoto = localStorage.getItem('selectedApp') === 'passport-photo';
+    const isPassportPhotoPathname = pathname === '/passport-photo';
     
     // PRIORITY 0: Check for navigateToCVBuilder flag FIRST (before homepage check)
     // This ensures CV Builder is accessible when user clicks on it
@@ -2170,6 +2224,17 @@ function App() {
       if (navigateToDocumentScannerFlag) {
         sessionStorage.removeItem('navigateToDocumentScanner');
         localStorage.removeItem('navigateToDocumentScanner');
+      }
+    }
+
+    const navigateToPassportPhotoFlag = sessionStorage.getItem('navigateToPassportPhoto') === 'true' ||
+                                        localStorage.getItem('navigateToPassportPhoto') === 'true';
+    if (!routingApp && !isPassportPhotoPathname && (navigateToPassportPhotoFlag || selectedAppIsPassportPhoto)) {
+      routingApp = 'passport-photo';
+      localStorage.setItem('selectedApp', 'passport-photo');
+      if (navigateToPassportPhotoFlag) {
+        sessionStorage.removeItem('navigateToPassportPhoto');
+        localStorage.removeItem('navigateToPassportPhoto');
       }
     }
     
@@ -2803,6 +2868,28 @@ function App() {
         )
       );
     }
+
+    // ============================================
+    // PASSPORT PHOTO SECTION
+    // ============================================
+    if (routingApp === 'passport-photo') {
+      return wrapWithTopNav(
+        wrapWithNavbar(
+          <>
+            <Header
+              isAuthenticated={isAuthenticated}
+              onLogout={handleLogout}
+              currentProduct="passport-photo"
+            />
+            <div className="passport-photo-content-wrapper">
+              <Suspense fallback={<LoadingFallback />}>
+                <PassportPhoto />
+              </Suspense>
+            </div>
+          </>
+        )
+      );
+    }
   }
   
   // PRIORITY: Check if we should show CV Builder form/preview FIRST
@@ -2810,8 +2897,13 @@ function App() {
   // CRITICAL: Don't show CV form if user is on marketplace
   if (currentView === 'cv-builder' && isAuthenticated && !isLoading) {
     const selectedProduct = localStorage.getItem('selectedApp');
-    // Don't show CV form if user is on marketplace, id-card-print, or document-scanner
-    if (selectedProduct !== 'id-card-print' && selectedProduct !== 'marketplace' && selectedProduct !== 'document-scanner') {
+    // Don't show CV form if user is on marketplace, id-card-print, document-scanner, or passport-photo
+    if (
+      selectedProduct !== 'id-card-print' &&
+      selectedProduct !== 'marketplace' &&
+      selectedProduct !== 'document-scanner' &&
+      selectedProduct !== 'passport-photo'
+    ) {
       const renderFormAndPreview = () => {
         switch (selectedTemplate) {
           case 'template1':
@@ -3185,7 +3277,7 @@ function App() {
   // ABSOLUTE PRIORITY: If currentView is 'cv-builder', show it regardless of products page flags
   if (currentView === 'cv-builder' && isAuthenticated && !isLoading) {
     const selectedProduct = localStorage.getItem('selectedApp');
-    if (selectedProduct !== 'id-card-print' && selectedProduct !== 'document-scanner') {
+    if (selectedProduct !== 'id-card-print' && selectedProduct !== 'document-scanner' && selectedProduct !== 'passport-photo') {
     const renderFormAndPreview = () => {
       switch (selectedTemplate) {
         case 'template1':
