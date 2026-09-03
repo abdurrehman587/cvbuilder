@@ -43,6 +43,8 @@ const LeftNavbar = ({ isAuthenticated, onLogout }) => {
           setActiveSection('id-card-printer');
         } else if (selectedApp === 'document-scanner') {
           setActiveSection('document-scanner');
+        } else if (selectedApp === 'passport-photo') {
+          setActiveSection('passport-photo');
         } else if (selectedApp === 'cv-builder') {
           setActiveSection('cv-builder');
         } else if (selectedApp === 'marketplace') {
@@ -67,6 +69,7 @@ const LeftNavbar = ({ isAuthenticated, onLogout }) => {
     window.addEventListener('navigateToCVBuilder', handleNavigate);
     window.addEventListener('navigateToIDCardPrinter', handleNavigate);
     window.addEventListener('navigateToDocumentScanner', handleNavigate);
+    window.addEventListener('navigateToPassportPhoto', handleNavigate);
     
     return () => {
       window.removeEventListener('hashchange', updateActiveSection);
@@ -74,6 +77,7 @@ const LeftNavbar = ({ isAuthenticated, onLogout }) => {
       window.removeEventListener('navigateToCVBuilder', handleNavigate);
       window.removeEventListener('navigateToIDCardPrinter', handleNavigate);
       window.removeEventListener('navigateToDocumentScanner', handleNavigate);
+      window.removeEventListener('navigateToPassportPhoto', handleNavigate);
     };
   }, []);
 
@@ -217,6 +221,16 @@ const LeftNavbar = ({ isAuthenticated, onLogout }) => {
     sessionStorage.removeItem('showProductsPage');
     window.dispatchEvent(new CustomEvent('navigateToDocumentScanner'));
     navigate('/document-scanner');
+  };
+
+  const navigateToPassportPhoto = () => {
+    sessionStorage.setItem('isNavigating', 'true');
+    sessionStorage.setItem('navigationTimestamp', Date.now().toString());
+    localStorage.setItem('selectedApp', 'passport-photo');
+    localStorage.removeItem('showProductsPage');
+    sessionStorage.removeItem('showProductsPage');
+    window.dispatchEvent(new CustomEvent('navigateToPassportPhoto'));
+    navigate('/passport-photo');
   };
 
   const handleSignIn = () => {
@@ -376,6 +390,15 @@ const LeftNavbar = ({ isAuthenticated, onLogout }) => {
                 <span className="nav-text">Document Scanner</span>
               </button>
             </li>
+            <li>
+              <button
+                className={`left-navbar-item ${activeSection === 'passport-photo' ? 'active' : ''}`}
+                onClick={navigateToPassportPhoto}
+              >
+                <span className="nav-icon">🧑</span>
+                <span className="nav-text">Passport Photos</span>
+              </button>
+            </li>
           </ul>
         </div>
       </nav>
@@ -416,6 +439,13 @@ const LeftNavbar = ({ isAuthenticated, onLogout }) => {
         >
           <span className="bottom-nav-icon">📷</span>
           <span className="bottom-nav-text">Scanner</span>
+        </button>
+        <button
+          className={`bottom-nav-item ${activeSection === 'passport-photo' ? 'active' : ''}`}
+          onClick={navigateToPassportPhoto}
+        >
+          <span className="bottom-nav-icon">🧑</span>
+          <span className="bottom-nav-text">Photos</span>
         </button>
         {!isAuthenticated ? (
           <button

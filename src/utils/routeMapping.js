@@ -28,6 +28,11 @@ export const pathToApp = (pathname) => {
   if (pathname.startsWith('/document-scanner')) {
     return 'document-scanner';
   }
+
+  // Passport Photo routes
+  if (pathname.startsWith('/passport-photo')) {
+    return 'passport-photo';
+  }
   
   // Admin routes
   if (pathname.startsWith('/admin')) {
@@ -74,6 +79,7 @@ export const navigateToRoute = (navigate, route, options = {}) => {
     'marketplace': '/marketplace',
     'id-card-print': '/id-card-print',
     'document-scanner': '/document-scanner',
+    'passport-photo': '/passport-photo',
     'cart': '/cart',
     'checkout': '/checkout',
     'orders': '/orders',

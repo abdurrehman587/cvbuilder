@@ -1,0 +1,395 @@
+.passport-photo-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 20px 48px;
+}
+
+.pp-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.pp-header h1 {
+  margin: 0 0 6px;
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+.pp-header p {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.95rem;
+  max-width: 640px;
+  line-height: 1.45;
+}
+
+.pp-ai-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  border: 1px solid #e2e8f0;
+}
+
+.pp-ai-status--online {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #065f46;
+}
+
+.pp-ai-status--offline {
+  background: #fff7ed;
+  border-color: #fed7aa;
+  color: #9a3412;
+}
+
+.pp-ai-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.pp-ai-status code {
+  font-size: 0.85em;
+  background: rgba(0, 0, 0, 0.06);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.pp-dropzone {
+  border: 2px dashed #93c5fd;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #f8fbff 0%, #eff6ff 100%);
+  padding: 40px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.pp-dropzone:hover,
+.pp-dropzone--active {
+  border-color: #3b82f6;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+}
+
+.pp-file-input {
+  display: none;
+}
+
+.pp-dropzone-icon {
+  font-size: 2.4rem;
+  margin-bottom: 8px;
+}
+
+.pp-dropzone-title {
+  margin: 0 0 4px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1e3a8a;
+}
+
+.pp-dropzone-hint {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.pp-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0 18px;
+}
+
+.pp-toolbar-status {
+  margin-left: auto;
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.pp-btn {
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: transform 0.15s, opacity 0.15s, box-shadow 0.15s;
+}
+
+.pp-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.pp-btn-primary {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(37, 99, 235, 0.3);
+}
+
+.pp-btn-secondary {
+  background: #0f172a;
+  color: #fff;
+}
+
+.pp-btn-ghost {
+  background: #f1f5f9;
+  color: #334155;
+  border: 1px solid #e2e8f0;
+}
+
+.pp-btn-small {
+  margin-top: 10px;
+  background: #2563eb;
+  color: #fff;
+  padding: 8px 12px;
+  font-size: 0.85rem;
+}
+
+.pp-btn-tiny {
+  margin-left: auto;
+  padding: 5px 10px;
+  font-size: 0.8rem;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid currentColor;
+  color: inherit;
+}
+
+.pp-error {
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.pp-preview-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.pp-preview-panel h3 {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+  color: #334155;
+}
+
+.pp-preview-frame {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  min-height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.pp-preview-frame img {
+  max-width: 100%;
+  max-height: 420px;
+  object-fit: contain;
+  display: block;
+}
+
+.pp-preview-frame--passport {
+  background: #fff;
+}
+
+.pp-placeholder {
+  color: #94a3b8;
+  padding: 24px;
+  text-align: center;
+}
+
+.pp-placeholder--error {
+  color: #dc2626;
+}
+
+.pp-engine-hint {
+  margin: 8px 0 0;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.pp-sheet-panel {
+  margin-bottom: 22px;
+  padding: 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.pp-sheet-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.pp-sheet-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: #1e293b;
+}
+
+.pp-sheet-frame {
+  background: #f8fafc;
+  border-radius: 8px;
+  overflow: auto;
+  max-height: 640px;
+  border: 1px solid #e2e8f0;
+}
+
+.pp-sheet-frame img {
+  width: 100%;
+  display: block;
+}
+
+.pp-thumbnail-list h3 {
+  margin: 0 0 10px;
+  font-size: 1rem;
+  color: #1e293b;
+}
+
+.pp-thumbnails {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.pp-thumb {
+  position: relative;
+  width: 120px;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  background: #fff;
+  padding: 6px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.pp-thumb--active {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.pp-thumb img {
+  width: 100%;
+  height: 84px;
+  object-fit: cover;
+  border-radius: 6px;
+  display: block;
+}
+
+.pp-thumb-name {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.7rem;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pp-thumb-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #94a3b8;
+  color: #fff;
+  font-size: 0.7rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pp-thumb-badge--done {
+  background: #16a34a;
+}
+
+.pp-thumb-badge--processing {
+  background: #2563eb;
+}
+
+.pp-thumb-badge--error {
+  background: #dc2626;
+}
+
+.pp-thumb-remove {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.75);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.pp-guide {
+  margin-top: 28px;
+  padding: 16px 18px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.pp-guide h3 {
+  margin: 0 0 10px;
+  font-size: 1rem;
+  color: #1e293b;
+}
+
+.pp-guide ol {
+  margin: 0;
+  padding-left: 20px;
+  color: #475569;
+  line-height: 1.55;
+  font-size: 0.92rem;
+}
+
+.pp-guide code {
+  font-size: 0.85em;
+  background: #e2e8f0;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+@media (max-width: 800px) {
+  .pp-preview-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pp-toolbar-status {
+    margin-left: 0;
+    width: 100%;
+  }
+}

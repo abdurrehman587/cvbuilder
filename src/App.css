@@ -231,6 +231,11 @@ html {
   padding: 0 0 1rem;
 }
 
+.passport-photo-content-wrapper {
+  margin-top: calc(var(--header-height, 80px) + 56px);
+  padding: 0 0 1rem;
+}
+
 .app-content-with-navbar .id-card-print-content-wrapper {
   padding-left: 0;
   padding-right: 0;

@@ -109,6 +109,19 @@ const AppRouter = () => {
             </RouteWrapper>
           } 
         />
+
+        <Route 
+          path="/passport-photo" 
+          element={
+            <RouteWrapper 
+              title="Passport Photos" 
+              description="Crop photos to passport size and arrange them on an A4 sheet for printing."
+              keywords="passport photo, photo crop, passport size print, photo sheet"
+            >
+              <App />
+            </RouteWrapper>
+          } 
+        />
         
         {/* Cart & Checkout */}
         <Route 
