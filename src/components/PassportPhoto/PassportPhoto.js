@@ -1,11 +1,17 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import EdgeRefineEditor from './EdgeRefineEditor';
+import ManualCropEditor from './ManualCropEditor';
 import {
   buildPrintSheet,
   checkPassportAiHealth,
   cropPassportPhoto,
   downloadBlob,
   isAcceptedPhoto,
+  manualCropPassport,
+  PASSPORT_RATIO,
 } from './passportPhotoUtils';
+import { BG_COLORS, compositeOnBackground, removePassportBackground } from './removeBackground';
+import { retouchPassportPhoto } from './retouchPhoto';
 import './PassportPhoto.css';
 
 const makeId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -21,10 +27,15 @@ function PassportPhoto() {
   const [error, setError] = useState('');
   const [dragOver, setDragOver] = useState(false);
   const [printSheet, setPrintSheet] = useState(null);
+  const [adjustingId, setAdjustingId] = useState(null);
+  const [refiningId, setRefiningId] = useState(null);
+  const [isRemovingBg, setIsRemovingBg] = useState(false);
+  const [isRetouching, setIsRetouching] = useState(false);
+  const [bgColor, setBgColor] = useState('white');
 
   const selectedItem = items.find((item) => item.id === selectedId) || items[0] || null;
   const croppedCount = items.filter((item) => item.status === 'done').length;
-  const isBusy = isProcessing || isBuildingSheet;
+  const isBusy = isProcessing || isBuildingSheet || isRemovingBg || isRetouching;
 
   const refreshAiStatus = useCallback(async () => {
     const health = await checkPassportAiHealth();
@@ -176,6 +187,182 @@ function PassportPhoto() {
 
   const openFilePicker = () => fileInputRef.current?.click();
 
+  const defaultManualBox = () => {
+    const w = 0.48;
+    const h = w / PASSPORT_RATIO;
+    return {
+      x: (1 - w) / 2,
+      y: Math.max(0, (1 - h) * 0.18),
+      w,
+      h,
+    };
+  };
+
+  const handleApplyManualCrop = async (payload) => {
+    if (!adjustingId) return;
+    const item = items.find((i) => i.id === adjustingId);
+    if (!item) return;
+
+    const { rotation = 0, ...box } = payload || {};
+    setIsProcessing(true);
+    setError('');
+    try {
+      const result = await manualCropPassport(item.file, box, rotation);
+      const croppedUrl = URL.createObjectURL(result.blob);
+      setItems((prev) =>
+        prev.map((row) => {
+          if (row.id !== adjustingId) return row;
+          if (row.croppedUrl) URL.revokeObjectURL(row.croppedUrl);
+          return {
+            ...row,
+            status: 'done',
+            croppedUrl,
+            croppedBlob: result.blob,
+            dataUrl: result.dataUrl,
+            width: result.width,
+            height: result.height,
+            engine: result.engine,
+            manualBox: box,
+            manualRotation: rotation,
+          };
+        })
+      );
+      setAdjustingId(null);
+      setPrintSheet(null);
+    } catch (err) {
+      setError(err.message || 'Manual crop failed');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const adjustingItem = adjustingId ? items.find((i) => i.id === adjustingId) : null;
+  const refiningItem = refiningId ? items.find((i) => i.id === refiningId) : null;
+
+  const handleRemoveBackground = async () => {
+    if (!selectedItem?.croppedBlob && !selectedItem?.croppedUrl) return;
+    setIsRemovingBg(true);
+    setError('');
+    try {
+      const source = selectedItem.croppedBlob || selectedItem.croppedUrl;
+      const hex = BG_COLORS[bgColor]?.hex || '#FFFFFF';
+      const result = await removePassportBackground(source, hex);
+      const croppedUrl = URL.createObjectURL(result.blob);
+      setItems((prev) =>
+        prev.map((row) => {
+          if (row.id !== selectedItem.id) return row;
+          if (row.croppedUrl) URL.revokeObjectURL(row.croppedUrl);
+          return {
+            ...row,
+            croppedUrl,
+            croppedBlob: result.blob,
+            dataUrl: result.dataUrl,
+            width: result.width,
+            height: result.height,
+            engine: `${result.engine}:${bgColor}`,
+            bgRemoved: true,
+            bgColor,
+            cutoutDataUrl: result.cutoutDataUrl,
+          };
+        })
+      );
+      setPrintSheet(null);
+      setRefiningId(selectedItem.id);
+    } catch (err) {
+      console.error(err);
+      setError(
+        err.message ||
+          'Background removal failed. Check your internet (model downloads on first use) and try again.'
+      );
+    } finally {
+      setIsRemovingBg(false);
+    }
+  };
+
+  const handleApplyRefine = (result) => {
+    if (!refiningId) return;
+    const croppedUrl = URL.createObjectURL(result.blob);
+    setItems((prev) =>
+      prev.map((row) => {
+        if (row.id !== refiningId) return row;
+        if (row.croppedUrl) URL.revokeObjectURL(row.croppedUrl);
+        return {
+          ...row,
+          croppedUrl,
+          croppedBlob: result.blob,
+          dataUrl: result.dataUrl,
+          width: result.width,
+          height: result.height,
+          engine: result.engine,
+          cutoutDataUrl: result.cutoutDataUrl,
+          bgRemoved: true,
+        };
+      })
+    );
+    setRefiningId(null);
+    setPrintSheet(null);
+  };
+
+  const handleRetouch = async () => {
+    if (!selectedItem?.croppedBlob && !selectedItem?.croppedUrl) return;
+    setIsRetouching(true);
+    setError('');
+    try {
+      const source = selectedItem.croppedBlob || selectedItem.croppedUrl;
+      const result = await retouchPassportPhoto(source);
+      const croppedUrl = URL.createObjectURL(result.blob);
+      setItems((prev) =>
+        prev.map((row) => {
+          if (row.id !== selectedItem.id) return row;
+          if (row.croppedUrl) URL.revokeObjectURL(row.croppedUrl);
+          return {
+            ...row,
+            croppedUrl,
+            croppedBlob: result.blob,
+            dataUrl: result.dataUrl,
+            width: result.width,
+            height: result.height,
+            engine: result.engine,
+            retouched: true,
+          };
+        })
+      );
+      setPrintSheet(null);
+    } catch (err) {
+      console.error(err);
+      setError(err.message || 'Retouch failed');
+    } finally {
+      setIsRetouching(false);
+    }
+  };
+
+  const handleBgColorChange = async (nextId) => {
+    setBgColor(nextId);
+    if (!selectedItem?.bgRemoved || !selectedItem?.cutoutDataUrl) return;
+    const hex = BG_COLORS[nextId]?.hex || '#FFFFFF';
+    try {
+      const composed = await compositeOnBackground(selectedItem.cutoutDataUrl, hex);
+      const croppedUrl = URL.createObjectURL(composed.blob);
+      setItems((prev) =>
+        prev.map((row) => {
+          if (row.id !== selectedItem.id) return row;
+          if (row.croppedUrl) URL.revokeObjectURL(row.croppedUrl);
+          return {
+            ...row,
+            croppedUrl,
+            croppedBlob: composed.blob,
+            dataUrl: composed.dataUrl,
+            bgColor: nextId,
+            engine: `bg-removed:${nextId}`,
+          };
+        })
+      );
+      setPrintSheet(null);
+    } catch (err) {
+      setError(err.message || 'Failed to change background color');
+    }
+  };
+
   return (
     <div className="passport-photo-page">
       <div className="pp-header">
@@ -265,6 +452,14 @@ function PassportPhoto() {
             </button>
             <button
               type="button"
+              className="pp-btn pp-btn-retouch"
+              onClick={handleRetouch}
+              disabled={isBusy || selectedItem?.status !== 'done'}
+            >
+              {isRetouching ? 'Retouching…' : 'Retouch & finish'}
+            </button>
+            <button
+              type="button"
               className="pp-btn pp-btn-secondary"
               onClick={handleBuildSheet}
               disabled={croppedCount === 0 || isBusy}
@@ -280,7 +475,26 @@ function PassportPhoto() {
 
       {error && <div className="pp-error">{error}</div>}
 
-      {selectedItem && (
+      {adjustingItem && (
+        <ManualCropEditor
+          imageUrl={adjustingItem.originalUrl}
+          initialBox={adjustingItem.manualBox || defaultManualBox()}
+          initialRotation={adjustingItem.manualRotation || 0}
+          onApply={handleApplyManualCrop}
+          onCancel={() => setAdjustingId(null)}
+        />
+      )}
+
+      {refiningItem?.cutoutDataUrl && (
+        <EdgeRefineEditor
+          cutoutDataUrl={refiningItem.cutoutDataUrl}
+          bgHex={BG_COLORS[refiningItem.bgColor || bgColor]?.hex || '#FFFFFF'}
+          onApply={handleApplyRefine}
+          onCancel={() => setRefiningId(null)}
+        />
+      )}
+
+      {selectedItem && !adjustingItem && !refiningItem && (
         <div className="pp-preview-grid">
           <div className="pp-preview-panel">
             <h3>Original</h3>
@@ -306,18 +520,79 @@ function PassportPhoto() {
             {selectedItem.status === 'done' && (
               <>
                 <p className="pp-engine-hint">Engine: {selectedItem.engine || 'unknown'}</p>
-                <button
-                  type="button"
-                  className="pp-btn pp-btn-small"
-                  onClick={() =>
-                    downloadBlob(
-                      selectedItem.croppedBlob,
-                      `${selectedItem.fileName.replace(/\.[^.]+$/, '')}-passport.jpg`
-                    )
-                  }
-                >
-                  Download this photo
-                </button>
+                <div className="pp-bg-row">
+                  <span className="pp-bg-label">Background:</span>
+                  {Object.values(BG_COLORS).map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      className={`pp-bg-swatch ${bgColor === c.id ? 'pp-bg-swatch--active' : ''}`}
+                      style={{ background: c.hex }}
+                      title={`${c.label} (${c.cmyk})`}
+                      aria-label={c.label}
+                      onClick={() => handleBgColorChange(c.id)}
+                      disabled={isBusy}
+                    />
+                  ))}
+                  <span className="pp-bg-name">
+                    {BG_COLORS[bgColor]?.label}
+                    {BG_COLORS[bgColor]?.cmyk ? ` · ${BG_COLORS[bgColor].cmyk}` : ''}
+                  </span>
+                </div>
+                <div className="pp-preview-actions">
+                  <button
+                    type="button"
+                    className="pp-btn pp-btn-small pp-btn-adjust"
+                    onClick={() => setAdjustingId(selectedItem.id)}
+                    disabled={isBusy}
+                  >
+                    Adjust crop
+                  </button>
+                  <button
+                    type="button"
+                    className="pp-btn pp-btn-small pp-btn-bg"
+                    onClick={handleRemoveBackground}
+                    disabled={isBusy}
+                  >
+                    {isRemovingBg ? 'Removing background…' : 'Remove background'}
+                  </button>
+                  {selectedItem.bgRemoved && selectedItem.cutoutDataUrl && (
+                    <button
+                      type="button"
+                      className="pp-btn pp-btn-small pp-btn-refine"
+                      onClick={() => setRefiningId(selectedItem.id)}
+                      disabled={isBusy}
+                    >
+                      Refine edges
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="pp-btn pp-btn-small pp-btn-retouch"
+                    onClick={handleRetouch}
+                    disabled={isBusy}
+                  >
+                    {isRetouching ? 'Retouching…' : 'Retouch & finish'}
+                  </button>
+                  <button
+                    type="button"
+                    className="pp-btn pp-btn-small"
+                    onClick={() =>
+                      downloadBlob(
+                        selectedItem.croppedBlob,
+                        `${selectedItem.fileName.replace(/\.[^.]+$/, '')}-passport.jpg`
+                      )
+                    }
+                    disabled={isBusy}
+                  >
+                    Download this photo
+                  </button>
+                </div>
+                {isRemovingBg && (
+                  <p className="pp-bg-hint">
+                    First time may take 10–30 seconds while the AI model downloads.
+                  </p>
+                )}
               </>
             )}
           </div>

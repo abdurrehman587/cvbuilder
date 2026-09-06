@@ -177,6 +177,74 @@ export const localCropPassport = async (file) => {
   };
 };
 
+/**
+ * Rotate image by degrees (clockwise). Returns canvas sized to fit rotated bounds.
+ */
+export const rotateImageToCanvas = (img, degrees) => {
+  const rad = (degrees * Math.PI) / 180;
+  const cos = Math.abs(Math.cos(rad));
+  const sin = Math.abs(Math.sin(rad));
+  const w = img.naturalWidth || img.width;
+  const h = img.naturalHeight || img.height;
+  const rw = Math.ceil(w * cos + h * sin);
+  const rh = Math.ceil(w * sin + h * cos);
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.max(1, rw);
+  canvas.height = Math.max(1, rh);
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, rw, rh);
+  ctx.translate(rw / 2, rh / 2);
+  ctx.rotate(rad);
+  ctx.drawImage(img, -w / 2, -h / 2);
+  return canvas;
+};
+
+/**
+ * Manual crop from normalized box { x, y, w, h } on the original image.
+ * Optional rotationDeg applied before crop. Output always 413×531 (35:45).
+ */
+export const manualCropPassport = async (file, box, rotationDeg = 0) => {
+  const img = await loadImageFromFile(file);
+  const source =
+    Math.abs(rotationDeg) > 0.05 ? rotateImageToCanvas(img, rotationDeg) : img;
+  const iw = source.naturalWidth || source.width;
+  const ih = source.naturalHeight || source.height;
+
+  let { x, y, w } = box;
+  w = Math.max(0.05, Math.min(1, w));
+  let h = (w * iw) / (ih * PASSPORT_RATIO);
+  if (h > 1) {
+    h = 1;
+    w = (h * ih * PASSPORT_RATIO) / iw;
+  }
+  x = Math.max(0, Math.min(1 - w, x));
+  y = Math.max(0, Math.min(1 - h, y));
+
+  const sx = Math.round(x * iw);
+  const sy = Math.round(y * ih);
+  const sw = Math.max(1, Math.round(w * iw));
+  const sh = Math.max(1, Math.round(h * ih));
+
+  const canvas = document.createElement('canvas');
+  canvas.width = PASSPORT_WIDTH_PX;
+  canvas.height = PASSPORT_HEIGHT_PX;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(source, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+
+  const blob = await canvasToJpegBlob(canvas);
+  return {
+    blob,
+    dataUrl: canvas.toDataURL('image/jpeg', 0.92),
+    width: canvas.width,
+    height: canvas.height,
+    engine: 'manual-adjust',
+    rotation: rotationDeg,
+  };
+};
+
 export const cropPassportViaApi = async (file) => {
   if (isGradioSpaceUrl(API_BASE)) {
     const dataUrl = await fileToBase64(file);
