@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { PASSPORT_RATIO, rotateImageToCanvas } from './passportPhotoUtils';
+import { rotateImageToCanvas } from './passportPhotoUtils';
 
 const W_OVER_H = 35 / 45;
 
@@ -246,7 +246,7 @@ function ManualCropEditor({ imageUrl, initialBox, initialRotation = 0, onApply, 
             <img
               className="pp-fixed-frame-img"
               src={displayUrl}
-              alt="Position passport photo"
+              alt="Position subject in frame"
               draggable={false}
               style={{ width: imgW, height: imgH, left: imgLeft, top: imgTop }}
             />
