@@ -1637,6 +1637,8 @@ const CropDialog = ({
     const cropYInImage = cropBox.y - imgOffsetY;
 
     // Handle rotation
+    // Export at natural (source) resolution — never use on-screen cropBox pixels,
+    // which are shrunk by the 50% preview and caused soft/low-res extracts.
     if (Math.abs(cropBox.angle) > 0.01) {
       // Step 1: Create rotated version of the full image
       const rotatedCanvas = document.createElement('canvas');
@@ -1646,20 +1648,21 @@ const CropDialog = ({
       // Calculate bounding box for rotated image
       const cos = Math.abs(Math.cos(cropBox.angle));
       const sin = Math.abs(Math.sin(cropBox.angle));
-      const rotatedWidth = img.naturalWidth * cos + img.naturalHeight * sin;
-      const rotatedHeight = img.naturalWidth * sin + img.naturalHeight * cos;
+      const rotatedWidth = Math.ceil(img.naturalWidth * cos + img.naturalHeight * sin);
+      const rotatedHeight = Math.ceil(img.naturalWidth * sin + img.naturalHeight * cos);
 
       rotatedCanvas.width = rotatedWidth;
       rotatedCanvas.height = rotatedHeight;
 
-      // Draw rotated image centered
+      // Draw rotated image centered at full resolution
+      rotatedCtx.imageSmoothingEnabled = true;
+      rotatedCtx.imageSmoothingQuality = 'high';
       rotatedCtx.translate(rotatedWidth / 2, rotatedHeight / 2);
       rotatedCtx.rotate(cropBox.angle);
       rotatedCtx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
 
       // Step 2: Map crop box from displayed (rotated) coordinates to rotated canvas
       // The displayed image shows the rotated version, so imgRect reflects the rotated bounding box
-      // Calculate scale factors
       const scaleX = rotatedWidth / imgRect.width;
       const scaleY = rotatedHeight / imgRect.height;
       
@@ -1675,33 +1678,47 @@ const CropDialog = ({
       cropW = Math.min(cropW, rotatedWidth - cropX);
       cropH = Math.min(cropH, rotatedHeight - cropY);
 
-      // Step 3: Create output canvas with crop box display dimensions
-      canvas.width = cropBox.width;
-      canvas.height = cropBox.height;
+      const outW = Math.max(1, Math.round(cropW));
+      const outH = Math.max(1, Math.round(cropH));
 
-      // Extract and draw the cropped region
+      // Step 3: Output at natural crop resolution (not display size)
+      canvas.width = outW;
+      canvas.height = outH;
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+
       ctx.drawImage(
         rotatedCanvas,
         cropX, cropY, cropW, cropH,
-        0, 0, cropBox.width, cropBox.height
+        0, 0, outW, outH
       );
     } else {
-      // No rotation - direct crop from original image
+      // No rotation - direct crop from original image at natural resolution
       const scaleX = img.naturalWidth / imgRect.width;
       const scaleY = img.naturalHeight / imgRect.height;
       
-      const cropX = cropXInImage * scaleX;
-      const cropY = cropYInImage * scaleY;
-      const cropW = cropBox.width * scaleX;
-      const cropH = cropBox.height * scaleY;
+      let cropX = cropXInImage * scaleX;
+      let cropY = cropYInImage * scaleY;
+      let cropW = cropBox.width * scaleX;
+      let cropH = cropBox.height * scaleY;
+
+      cropX = Math.max(0, Math.min(cropX, img.naturalWidth - cropW));
+      cropY = Math.max(0, Math.min(cropY, img.naturalHeight - cropH));
+      cropW = Math.min(cropW, img.naturalWidth - cropX);
+      cropH = Math.min(cropH, img.naturalHeight - cropY);
+
+      const outW = Math.max(1, Math.round(cropW));
+      const outH = Math.max(1, Math.round(cropH));
       
-      canvas.width = cropBox.width;
-      canvas.height = cropBox.height;
+      canvas.width = outW;
+      canvas.height = outH;
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
 
       ctx.drawImage(
         img,
         cropX, cropY, cropW, cropH,
-        0, 0, cropBox.width, cropBox.height
+        0, 0, outW, outH
       );
     }
 
