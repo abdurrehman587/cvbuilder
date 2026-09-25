@@ -2,8 +2,6 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { cvService, authService, supabase } from './supabase';
 import { dbHelpers } from './database';
 
-const isGuestMode = () => localStorage.getItem('guestMode') === 'true';
-
 const useAutoSave = (formData, saveInterval = 10000) => {
   const [autoSaveStatus, setAutoSaveStatus] = useState('Ready');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -51,28 +49,6 @@ const useAutoSave = (formData, saveInterval = 10000) => {
     try {
       setAutoSaveStatus('Saving...');
       console.log('Starting auto-save process...');
-      
-      // Guest mode: save to localStorage only (for Play Store review / demo)
-      if (isGuestMode()) {
-        try {
-          const { profileImage, ...serializableData } = formData;
-          const dataToStore = { ...serializableData };
-          if (profileImage?.data) {
-            dataToStore.profileImage = { data: profileImage.data };
-          }
-          localStorage.setItem('cvFormData', JSON.stringify(dataToStore));
-          lastSavedDataRef.current = {
-            dataString: JSON.stringify(serializableData),
-            profileImageData: formData.profileImage?.data || null
-          };
-          setHasUnsavedChanges(false);
-          setAutoSaveStatus('Saved locally (Guest mode)');
-        } catch (err) {
-          console.error('Guest mode save error:', err);
-          setAutoSaveStatus('Save failed');
-        }
-        return;
-      }
       
       // Get current user
       const user = await authService.getCurrentUser();
@@ -167,13 +143,9 @@ const useAutoSave = (formData, saveInterval = 10000) => {
     }
   }, [formData, currentCVId, hasUnsavedChanges]);
 
-  // Monitor authentication status (including guest mode for Play Store review)
+  // Monitor authentication status
   useEffect(() => {
     const checkAuth = async () => {
-      if (isGuestMode()) {
-        setIsAuthenticated(true);
-        return;
-      }
       try {
         const user = await authService.getCurrentUser();
         setIsAuthenticated(!!user);
@@ -190,10 +162,6 @@ const useAutoSave = (formData, saveInterval = 10000) => {
     
     // Listen for auth state changes
     const { data: { subscription } } = authService.onAuthStateChange((event, session) => {
-      if (isGuestMode()) {
-        setIsAuthenticated(true);
-        return;
-      }
       setIsAuthenticated(!!session?.user);
     });
     
@@ -204,7 +172,6 @@ const useAutoSave = (formData, saveInterval = 10000) => {
   // Skip when user explicitly clicked "Create New CV" so we create "Name 1" instead of overwriting existing.
   useEffect(() => {
     const findAndSetCVId = async () => {
-      if (isGuestMode()) return;
       if (!formData.name?.trim() || currentCVId || !isAuthenticated) return;
       if (userCreatedNewCVRef.current) return; // user chose Create New CV – don't link to existing by name
 
@@ -247,20 +214,18 @@ const useAutoSave = (formData, saveInterval = 10000) => {
         formDataKeys: Object.keys(formData)
       });
       
-      // Double-check authentication before auto-save (guest mode is OK)
-      if (!isGuestMode()) {
-        try {
-          const user = await authService.getCurrentUser();
-          if (!user) {
-            console.log('Auto-save skipped - user not authenticated');
-            setIsAuthenticated(false);
-            return;
-          }
-        } catch (error) {
-          console.log('Auto-save skipped - authentication check failed:', error.message);
+      // Double-check authentication before auto-save
+      try {
+        const user = await authService.getCurrentUser();
+        if (!user) {
+          console.log('Auto-save skipped - user not authenticated');
           setIsAuthenticated(false);
           return;
         }
+      } catch (error) {
+        console.log('Auto-save skipped - authentication check failed:', error.message);
+        setIsAuthenticated(false);
+        return;
       }
       
       if (formData.name?.trim()) {
@@ -359,27 +324,6 @@ const useAutoSave = (formData, saveInterval = 10000) => {
 
     try {
       setAutoSaveStatus('Duplicating...');
-      
-      // Guest mode: duplicate to localStorage only
-      if (isGuestMode()) {
-        const displayName = getDuplicateDisplayName(dataToDuplicate.name);
-        const duplicatedData = { ...dataToDuplicate, name: displayName };
-        const { profileImage, ...serializableData } = duplicatedData;
-        const dataToStore = { ...serializableData };
-        if (profileImage?.data) {
-          dataToStore.profileImage = { data: profileImage.data };
-        }
-        localStorage.setItem('cvFormData', JSON.stringify(dataToStore));
-        setCurrentCVId(null); // Guest has no cloud CV ID
-        lastSavedDataRef.current = {
-          dataString: JSON.stringify(serializableData),
-          profileImageData: profileImage?.data || null
-        };
-        setHasUnsavedChanges(false);
-        setAutoSaveStatus('Duplicated (Guest mode)');
-        // Return duplicated data so App can update form state
-        return duplicatedData;
-      }
       
       const user = await authService.getCurrentUser();
       if (!user) {

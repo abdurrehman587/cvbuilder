@@ -540,7 +540,7 @@ function App() {
   // Duplicate current CV - creates a new record with same data for editing experience/education separately
   const handleDuplicateCV = React.useCallback(async () => {
     const result = await duplicateCV(formData, selectedTemplate);
-    // Guest mode returns the duplicated form data to update the form
+    // duplicateCV may return duplicated form data to update the form
     if (result && typeof result === 'object' && result.name) {
       setFormData(result);
     }
@@ -615,21 +615,12 @@ function App() {
           } else if (session?.user) {
             setIsAuthenticated(true);
             localStorage.setItem('cvBuilderAuth', 'true');
-              setIsLoading(false);
-          } else if (localStorage.getItem('guestMode') === 'true') {
-            // Guest/demo mode - allow app access for Play Store review
-            setIsAuthenticated(true);
-            localStorage.setItem('cvBuilderAuth', 'true');
+            localStorage.removeItem('guestMode');
               setIsLoading(false);
           } else {
-            const guestMode = localStorage.getItem('guestMode');
-            if (guestMode !== 'true') {
               setIsAuthenticated(false);
               localStorage.removeItem('cvBuilderAuth');
-            } else {
-              setIsAuthenticated(true);
-              localStorage.setItem('cvBuilderAuth', 'true');
-            }
+              localStorage.removeItem('guestMode');
               setIsLoading(false);
             }
           }, 0);
@@ -648,9 +639,10 @@ function App() {
         setTimeout(() => {
         // If it's a timeout error, use localStorage as fallback
         if (error.message === 'Supabase session check timed out') {
+          // Do not treat leftover guestMode as authenticated
+          localStorage.removeItem('guestMode');
           const cachedAuth = localStorage.getItem('cvBuilderAuth');
-          const guestMode = localStorage.getItem('guestMode');
-          setIsAuthenticated(cachedAuth === 'true' || guestMode === 'true');
+          setIsAuthenticated(cachedAuth === 'true');
         } else {
           console.log('Error getting initial session:', error);
           setIsAuthenticated(false);
