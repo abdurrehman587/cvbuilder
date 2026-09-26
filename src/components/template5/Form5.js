@@ -1,6 +1,17 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import useFormHandler from './FormHandler5';
+import ProfileImageAdjuster from '../ProfileImageAdjuster/ProfileImageAdjuster';
 import './Form5.css';
+
+function resolveProfileImageUrl(profileImage) {
+    if (!profileImage) return null;
+    if (profileImage instanceof File) {
+        return URL.createObjectURL(profileImage);
+    }
+    if (profileImage.data) return profileImage.data;
+    if (typeof profileImage === 'string') return profileImage;
+    return null;
+}
 
 function Form({ formData, updateFormData, markAsChanged }) {
     const { 
@@ -21,6 +32,46 @@ function Form({ formData, updateFormData, markAsChanged }) {
         referenceText,
         activeSection
     } = useFormHandler(formData, updateFormData, markAsChanged);
+
+    const [adjusterOpen, setAdjusterOpen] = useState(false);
+    const [adjusterSourceUrl, setAdjusterSourceUrl] = useState(null);
+    const adjusterObjectUrlRef = useRef(null);
+
+    const openProfileAdjuster = (source) => {
+        if (adjusterObjectUrlRef.current) {
+            URL.revokeObjectURL(adjusterObjectUrlRef.current);
+            adjusterObjectUrlRef.current = null;
+        }
+        let url = null;
+        if (source instanceof File) {
+            url = URL.createObjectURL(source);
+            adjusterObjectUrlRef.current = url;
+        } else if (typeof source === 'string') {
+            url = source;
+        } else if (source?.data) {
+            url = source.data;
+        }
+        if (!url) return;
+        setAdjusterSourceUrl(url);
+        setAdjusterOpen(true);
+    };
+
+    const closeProfileAdjuster = () => {
+        setAdjusterOpen(false);
+        setAdjusterSourceUrl(null);
+        if (adjusterObjectUrlRef.current) {
+            URL.revokeObjectURL(adjusterObjectUrlRef.current);
+            adjusterObjectUrlRef.current = null;
+        }
+    };
+
+    useEffect(() => {
+        return () => {
+            if (adjusterObjectUrlRef.current) {
+                URL.revokeObjectURL(adjusterObjectUrlRef.current);
+            }
+        };
+    }, []);
 
     const experienceList = formData.experience || [];
 
@@ -196,6 +247,16 @@ function Form({ formData, updateFormData, markAsChanged }) {
     // Debug logs removed for cleaner console
     return (
         <div className="left-container">
+            {adjusterOpen && adjusterSourceUrl && (
+                <ProfileImageAdjuster
+                    imageUrl={adjusterSourceUrl}
+                    onApply={(file) => {
+                        handleInputChange('profileImage', file);
+                        closeProfileAdjuster();
+                    }}
+                    onCancel={closeProfileAdjuster}
+                />
+            )}
             <div id="contact-info" className={`contact-info-section ${activeSection === 'contact-info' ? 'active' : ''}`}>
                 <h3 className="section-title" onClick={() => toggleSection('contact-info')}>Contact Information</h3>
 
@@ -211,40 +272,43 @@ function Form({ formData, updateFormData, markAsChanged }) {
                         onChange={(e) => {
                             const file = e.target.files[0];
                             if (file) {
+                                handleInputChange('profileImageOriginal', file);
                                 handleInputChange('profileImage', file);
+                                openProfileAdjuster(file);
                             }
+                            e.target.value = '';
                         }}
                     />
                     {/* Profile Image Preview */}
                     {(() => {
-                        let imageUrl = null;
-                        if (formData?.profileImage) {
-                            // If it's a File object, create object URL
-                            if (formData.profileImage instanceof File) {
-                                imageUrl = URL.createObjectURL(formData.profileImage);
-                            }
-                            // If it's base64 data from database, use it directly
-                            else if (formData.profileImage.data) {
-                                imageUrl = formData.profileImage.data;
-                            }
-                            // If it's a string (direct base64 URL), use it directly
-                            else if (typeof formData.profileImage === 'string') {
-                                imageUrl = formData.profileImage;
-                            }
-                        }
+                        const imageUrl = resolveProfileImageUrl(formData?.profileImage);
                         
                         return imageUrl ? (
                             <div className="profile-image-preview-container">
                                 <img 
                                     src={imageUrl} 
-                                    alt="Profile Preview" 
+                                    alt="Profile preview" 
                                     className="profile-image-preview"
                                 />
+                                <button
+                                    type="button"
+                                    className="adjust-image-button"
+                                    onClick={() => {
+                                        const source =
+                                            formData.profileImageOriginal ||
+                                            formData.profileImage;
+                                        openProfileAdjuster(source);
+                                    }}
+                                    title="Adjust Image"
+                                >
+                                    Adjust
+                                </button>
                                 <button
                                     type="button"
                                     className="remove-image-button"
                                     onClick={() => {
                                         handleInputChange('profileImage', null);
+                                        handleInputChange('profileImageOriginal', null);
                                         const fileInput = document.getElementById('file-input');
                                         if (fileInput) {
                                             fileInput.value = '';

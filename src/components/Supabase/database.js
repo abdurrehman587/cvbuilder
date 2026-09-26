@@ -195,29 +195,44 @@ export const initializeDatabase = async (supabase) => {
 export const dbHelpers = {
   // Format CV data for database storage
   formatCVData: async (formData) => {
+    const fileToStoredImage = async (file) => {
+      const base64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      return {
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        data: base64
+      };
+    };
+
     let profileImageData = null;
     
     // Handle profile image - convert file to base64 if it exists
     if (formData.profileImage && formData.profileImage instanceof File) {
       try {
-        const base64 = await new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result);
-          reader.onerror = reject;
-          reader.readAsDataURL(formData.profileImage);
-        });
-        profileImageData = {
-          name: formData.profileImage.name,
-          type: formData.profileImage.type,
-          size: formData.profileImage.size,
-          data: base64
-        };
+        profileImageData = await fileToStoredImage(formData.profileImage);
       } catch (error) {
         console.error('Error converting profile image to base64:', error);
       }
     } else if (formData.profileImage && typeof formData.profileImage === 'object') {
       // If it's already a base64 object, use it directly
       profileImageData = formData.profileImage;
+    }
+
+    let profileImageOriginalData = null;
+    if (formData.profileImageOriginal && formData.profileImageOriginal instanceof File) {
+      try {
+        profileImageOriginalData = await fileToStoredImage(formData.profileImageOriginal);
+      } catch (error) {
+        console.error('Error converting original profile image to base64:', error);
+      }
+    } else if (formData.profileImageOriginal && typeof formData.profileImageOriginal === 'object') {
+      profileImageOriginalData = formData.profileImageOriginal;
     }
 
     return {
@@ -243,7 +258,8 @@ export const dbHelpers = {
         otherInfo: formData.otherInfo || [],
         customSection: formData.customSection || [],
         references: formData.references || [],
-        profileImage: profileImageData
+        profileImage: profileImageData,
+        profileImageOriginal: profileImageOriginalData
       }
     }
   },
@@ -269,7 +285,8 @@ export const dbHelpers = {
       otherInfo: data.otherInfo || [],
       customSection: data.customSection || [],
       references: data.references || [],
-      profileImage: data.profileImage || null
+      profileImage: data.profileImage || null,
+      profileImageOriginal: data.profileImageOriginal || null
     };
   }
 }
