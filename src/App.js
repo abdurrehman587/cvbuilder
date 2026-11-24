@@ -20,8 +20,6 @@ import { pathToApp, getProductIdFromPath, getOrderIdFromPath } from './utils/rou
 import { setNavigate } from './utils/navigation';
 import { installBoldPhrasePersistence } from './utils/cvBold';
 
-installBoldPhrasePersistence();
-
 // Critical components - load immediately
 import Header from './components/Header/Header';
 import HomePage from './components/HomePage/HomePage';
@@ -59,6 +57,8 @@ const OrderHistory = lazy(() => import('./components/OrderHistory/OrderHistory')
 const LeftNavbar = lazy(() => import('./components/Navbar/LeftNavbar'));
 const TopNav = lazy(() => import('./components/TopNav/TopNav'));
 const PreviewPage = lazy(() => import('./components/PreviewPage/PreviewPage'));
+
+installBoldPhrasePersistence();
 
 // Loading fallback component
 const LoadingFallback = () => (
