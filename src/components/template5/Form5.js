@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import useFormHandler from './FormHandler5';
 import ProfileImageAdjuster from '../ProfileImageAdjuster/ProfileImageAdjuster';
+import { presentAddressInputValue } from '../../utils/cvAddress';
 import './Form5.css';
 
 function resolveProfileImageUrl(profileImage) {
@@ -230,10 +231,17 @@ function Form({ formData, updateFormData, markAsChanged }) {
                 emailInput.value = formData.email || '';
             }
             
-            // Update address input
-            const addressInput = document.getElementById('address-input');
-            if (addressInput && addressInput.value !== (formData.address || '')) {
-                addressInput.value = formData.address || '';
+            // Update address inputs
+            const presentAddressInput = document.getElementById('present-address-input');
+            const presentValue = presentAddressInputValue(formData);
+            if (presentAddressInput && presentAddressInput.value !== presentValue) {
+                presentAddressInput.value = presentValue;
+            }
+
+            const permanentAddressInput = document.getElementById('permanent-address-input');
+            const permanentValue = formData.permanentAddress || '';
+            if (permanentAddressInput && permanentAddressInput.value !== permanentValue) {
+                permanentAddressInput.value = permanentValue;
             }
             
             // Update professional summary
@@ -243,6 +251,21 @@ function Form({ formData, updateFormData, markAsChanged }) {
             }
         }
     }, [formData]);
+
+    const commitAddresses = (field, value) => {
+        const present = field === 'presentAddress' ? value : presentAddressInputValue(formData);
+        const permanent = field === 'permanentAddress' ? value : (formData.permanentAddress || '');
+        const presentTrim = String(present).trim();
+        const permanentTrim = String(permanent).trim();
+        const address = presentTrim && permanentTrim ? '' : (presentTrim || permanentTrim);
+        updateFormData({
+            ...formData,
+            presentAddress: present,
+            permanentAddress: permanent,
+            address
+        });
+        markAsChanged();
+    };
 
     // Debug logs removed for cleaner console
     return (
@@ -396,17 +419,32 @@ function Form({ formData, updateFormData, markAsChanged }) {
                 </div>
 
                 <div className="address-input-container input-group">
-                    <label htmlFor="address-input" className="address-label input-label">
-                        Address
+                    <label htmlFor="present-address-input" className="address-label input-label">
+                        Present Address
                     </label>
                     <input
-                        id="address-input"
+                        id="present-address-input"
                         className="address-input styled-input"
                         type="text"
-                        name="address"
-                        placeholder="Enter your address"
-                        value={formData.address || ''}
-                        onChange={(e) => handleInputChange('address', e.target.value)}
+                        name="presentAddress"
+                        placeholder="Enter your present address"
+                        value={presentAddressInputValue(formData)}
+                        onChange={(e) => commitAddresses('presentAddress', e.target.value)}
+                    />
+                </div>
+
+                <div className="address-input-container input-group">
+                    <label htmlFor="permanent-address-input" className="address-label input-label">
+                        Permanent Address
+                    </label>
+                    <input
+                        id="permanent-address-input"
+                        className="address-input styled-input"
+                        type="text"
+                        name="permanentAddress"
+                        placeholder="Enter your permanent address"
+                        value={formData.permanentAddress || ''}
+                        onChange={(e) => commitAddresses('permanentAddress', e.target.value)}
                     />
                 </div>
             </div>

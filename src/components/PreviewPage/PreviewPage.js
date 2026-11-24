@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef, lazy, Suspense, useMemo } from 'react';
 import { setCVView } from '../../utils/routing';
-import { mergePreviewFormData } from '../../utils/cvEducation';
+import { mergePreviewFormData, readStoredFormData } from '../../utils/cvEducation';
+import { applyBoldPhrases, pickBoldPhrases, selectionInPreview } from '../../utils/cvBold';
 import generatePDF1 from '../template1/pdf1';
 import generatePDF2 from '../template2/pdf2';
 import generatePDF3 from '../template3/pdf3';
@@ -8,6 +9,7 @@ import generatePDF4 from '../template4/pdf4';
 import generatePDF5 from '../template5/pdf5';
 import generatePDF6 from '../template6/pdf6';
 import generatePDF7 from '../template7/pdf7';
+import generatePDF8 from '../template8/pdf8';
 import { Share } from '@capacitor/share';
 import { authService } from '../Supabase/supabase';
 import './PreviewPage.css';
@@ -21,8 +23,9 @@ import Preview5 from '../template5/Preview5';
 import Preview6 from '../template6/Preview6';
 
 const Preview7 = lazy(() => import('../template7/Preview7'));
+const Preview8 = lazy(() => import('../template8/Preview8'));
 
-function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
+function PreviewPage({ formData, updateFormData, selectedTemplate, onTemplateSwitch }) {
   // On mount, check if formData is empty and try to load from localStorage
   useEffect(() => {
     if ((!formData || !formData.name) && !formData?.education?.length && !formData?.experience?.length) {
@@ -42,12 +45,87 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
   // eslint-disable-next-line no-unused-vars
   const [userZoom, setUserZoom] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [boldPhrases, setBoldPhrases] = useState(() => (
+    pickBoldPhrases(formData?.boldPhrases, readStoredFormData()?.boldPhrases)
+  ));
+  const [selectedPhrase, setSelectedPhrase] = useState('');
+  const [boldHint, setBoldHint] = useState('');
   const previewRef = useRef(null);
+  const boldPhrasesRef = useRef(boldPhrases);
+  boldPhrasesRef.current = boldPhrases;
 
   const effectiveFormData = useMemo(
     () => mergePreviewFormData(formData),
     [formData]
   );
+
+  useEffect(() => {
+    const incoming = pickBoldPhrases(formData?.boldPhrases, readStoredFormData()?.boldPhrases);
+    if (incoming.length === 0) return;
+    setBoldPhrases((current) => (current.length === 0 ? incoming : current));
+  }, [formData]);
+
+  useEffect(() => {
+    const root = previewRef.current;
+    if (!root) return undefined;
+
+    const apply = () => {
+      const current = previewRef.current;
+      if (!current) return;
+      applyBoldPhrases(current, boldPhrasesRef.current);
+    };
+
+    apply();
+    const observer = new MutationObserver(() => {
+      observer.disconnect();
+      apply();
+      if (previewRef.current) {
+        observer.observe(previewRef.current, { childList: true, subtree: true, characterData: true });
+      }
+    });
+    observer.observe(root, { childList: true, subtree: true, characterData: true });
+    return () => observer.disconnect();
+  }, [boldPhrases, selectedTemplate]);
+
+  useEffect(() => {
+    const updateSelection = () => {
+      const selected = selectionInPreview(previewRef.current, boldPhrasesRef.current);
+      const next = selected?.text || '';
+      setSelectedPhrase((current) => (current === next ? current : next));
+    };
+    document.addEventListener('selectionchange', updateSelection);
+    return () => document.removeEventListener('selectionchange', updateSelection);
+  }, []);
+
+  const persistBoldPhrases = (next) => {
+    boldPhrasesRef.current = next;
+    setBoldPhrases(next);
+    const updated = { ...(effectiveFormData || formData || {}), boldPhrases: next };
+    if (updateFormData) updateFormData(updated);
+    try {
+      const stored = readStoredFormData() || {};
+      localStorage.setItem('cvFormData', JSON.stringify({ ...stored, boldPhrases: next }));
+    } catch (error) {
+      console.error('PreviewPage - Could not store bold phrases:', error);
+    }
+  };
+
+  const handleBoldSelection = () => {
+    const selected = selectionInPreview(previewRef.current, boldPhrases);
+    if (!selected || selected.multiline || !selected.text) {
+      setBoldHint('Select words on a single line, then click Bold.');
+      return;
+    }
+    const phrase = selected.text;
+    const exists = boldPhrases.includes(phrase);
+    const next = exists
+      ? boldPhrases.filter((item) => item !== phrase)
+      : [...boldPhrases, phrase];
+    persistBoldPhrases(next);
+    setBoldHint(exists ? `Removed bold from “${phrase}”.` : `Bold: “${phrase}”.`);
+    window.getSelection()?.removeAllRanges();
+    setSelectedPhrase('');
+  };
 
   // Get the appropriate preview component based on selected template
   const renderPreview = () => {
@@ -79,6 +157,12 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
             <Preview7 {...previewProps} />
           </Suspense>
         );
+      case 'template8':
+        return (
+          <Suspense fallback={<div className="preview-page-loading-inline">Loading template...</div>}>
+            <Preview8 {...previewProps} />
+          </Suspense>
+        );
       default:
         return <Preview1 {...previewProps} />;
     }
@@ -99,7 +183,10 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
     const hasPropData = formData && (formData.name || formData.education?.length > 0 || formData.experience?.length > 0);
     
     // If props don't have data, try to get from localStorage (preview components may have loaded it there)
-    let dataToStore = formData;
+    let dataToStore = {
+      ...(formData || {}),
+      boldPhrases: Array.isArray(boldPhrasesRef.current) ? boldPhrasesRef.current : [],
+    };
     if (!hasPropData) {
       const storedData = localStorage.getItem('cvFormData');
       if (storedData) {
@@ -108,7 +195,10 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
           const hasStoredData = parsedData.name || parsedData.education?.length > 0 || parsedData.experience?.length > 0;
           if (hasStoredData) {
             console.log('PreviewPage - Using stored data from localStorage (props were empty):', parsedData);
-            dataToStore = parsedData;
+            dataToStore = {
+              ...parsedData,
+              boldPhrases: Array.isArray(boldPhrasesRef.current) ? boldPhrasesRef.current : (parsedData.boldPhrases || []),
+            };
           }
         } catch (e) {
           console.error('PreviewPage - Error parsing stored data:', e);
@@ -203,6 +293,9 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
   };
 
   const handleDownloadPDF = () => {
+    if (previewRef.current) {
+      applyBoldPhrases(previewRef.current, boldPhrasesRef.current);
+    }
     // Get formData from props or localStorage for filename
     let dataForFileName = formData;
     
@@ -242,6 +335,9 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
       case 'template7':
         generatePDF = generatePDF7;
         break;
+      case 'template8':
+        generatePDF = generatePDF8;
+        break;
       default:
         generatePDF = generatePDF1;
     }
@@ -249,7 +345,7 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
     // Call the PDF generation function
     if (generatePDF) {
       // Template 1, 2, 3, and 4 accept formData parameter for filename
-      if (selectedTemplate === 'template1' || selectedTemplate === 'template2' || selectedTemplate === 'template3' || selectedTemplate === 'template4' || selectedTemplate === 'template5' || selectedTemplate === 'template6' || selectedTemplate === 'template7') {
+      if (selectedTemplate === 'template1' || selectedTemplate === 'template2' || selectedTemplate === 'template3' || selectedTemplate === 'template4' || selectedTemplate === 'template5' || selectedTemplate === 'template6' || selectedTemplate === 'template7' || selectedTemplate === 'template8') {
         generatePDF(dataForFileName);
       } else {
         // Other templates don't accept formData parameter
@@ -399,6 +495,13 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
               >
                 T7
               </button>
+              <button
+                className={`preview-template-button ${selectedTemplate === 'template8' ? 'active' : ''}`}
+                onClick={() => onTemplateSwitch('template8')}
+                title="Template 8"
+              >
+                T8
+              </button>
             </div>
           </div>
         )}
@@ -436,15 +539,30 @@ function PreviewPage({ formData, selectedTemplate, onTemplateSwitch }) {
         </button>
       </div>
 
-      {/* Preview Content */}
-      <div className="preview-page-content" ref={previewRef}>
-        {selectedTemplate === 'template3' ? (
-          <div className="preview-page-preview-wrapper template3-wrapper">
-            {renderPreview()}
-          </div>
-        ) : (
-          renderPreview()
-        )}
+      <div className="preview-page-body">
+        <aside className="preview-bold-rail">
+          <button
+            type="button"
+            className={`preview-bold-button ${selectedPhrase ? 'is-ready' : ''}`}
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={handleBoldSelection}
+            title="Select words in the CV, then click Bold. Click again to remove bold."
+          >
+            <span className="preview-bold-mark">B</span>
+            <span className="preview-bold-label">Bold</span>
+          </button>
+          {boldHint ? <span className="preview-bold-hint">{boldHint}</span> : null}
+        </aside>
+
+        <div className="preview-page-content" ref={previewRef}>
+          {selectedTemplate === 'template3' ? (
+            <div className="preview-page-preview-wrapper template3-wrapper">
+              {renderPreview()}
+            </div>
+          ) : (
+            renderPreview()
+          )}
+        </div>
       </div>
     </div>
   );

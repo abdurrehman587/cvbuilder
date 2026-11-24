@@ -246,6 +246,8 @@ export const dbHelpers = {
           phone: formData.phone,
           email: formData.email,
           address: formData.address,
+          presentAddress: formData.presentAddress || '',
+          permanentAddress: formData.permanentAddress || '',
           showProfileImage: formData.showProfileImage !== false
         },
         professional_summary: formData.professionalSummary,
@@ -258,6 +260,7 @@ export const dbHelpers = {
         otherInfo: formData.otherInfo || [],
         customSection: formData.customSection || [],
         references: formData.references || [],
+        boldPhrases: Array.isArray(formData.boldPhrases) ? formData.boldPhrases : [],
         profileImage: profileImageData,
         profileImageOriginal: profileImageOriginalData
       }
@@ -274,6 +277,8 @@ export const dbHelpers = {
       phone: data.personal_info?.phone || '',
       email: data.personal_info?.email || '',
       address: data.personal_info?.address || '',
+      presentAddress: data.personal_info?.presentAddress || '',
+      permanentAddress: data.personal_info?.permanentAddress || '',
       showProfileImage: data.personal_info?.showProfileImage !== false,
       professionalSummary: data.professional_summary || '',
       education: data.education || [],
@@ -285,6 +290,7 @@ export const dbHelpers = {
       otherInfo: data.otherInfo || [],
       customSection: data.customSection || [],
       references: data.references || [],
+      boldPhrases: Array.isArray(data.boldPhrases) ? data.boldPhrases : [],
       profileImage: data.profileImage || null,
       profileImageOriginal: data.profileImageOriginal || null
     };

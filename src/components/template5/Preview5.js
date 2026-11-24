@@ -3,6 +3,7 @@ import usePreviewHandler from './PreviewHandler5';
 // eslint-disable-next-line no-unused-vars
 import generatePDF from './pdf5';
 import { setCVView } from '../../utils/routing';
+import { getAddressLines, readAddressFieldsFromDom } from '../../utils/cvAddress';
 import './Preview5.css';
 import './Preview5.mobile.css';
 
@@ -29,7 +30,7 @@ const getFormDataFromDOM = (existingFormData = null) => {
     position: document.getElementById('position-input')?.value || '',
     phone: document.getElementById('phone-input')?.value || '',
     email: document.getElementById('email-input')?.value || '',
-    address: document.getElementById('address-input')?.value || '',
+    ...readAddressFieldsFromDom(),
     profileImage: profileImage,
     showProfileImage: document.getElementById('show-profile-image-checkbox')?.checked !== false,
     professionalSummary: document.getElementById('professional-summary-textarea')?.value || '',
@@ -258,6 +259,8 @@ function Preview5({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
         e.target.id === 'phone-input' ||
         e.target.id === 'email-input' ||
         e.target.id === 'address-input' ||
+        e.target.id === 'present-address-input' ||
+        e.target.id === 'permanent-address-input' ||
         e.target.id === 'professional-summary-textarea' ||
         e.target.id === 'show-profile-image-checkbox'
       )) {
@@ -545,6 +548,9 @@ function Preview5({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
     phone: formData?.phone || '',
     email: formData?.email || '',
     address: formData?.address || '',
+    presentAddress: formData?.presentAddress || '',
+    permanentAddress: formData?.permanentAddress || '',
+    addressLines: getAddressLines(formData),
     professionalSummary: formData?.professionalSummary || 'To work with a organization that offers a creative, dynamic and professional environment, where my education, knowledge, skills and proven abilities can be fully utilized and which also offers learning opportunities for my career development in the long run.',
     education: Array.isArray(formData?.education) && formData.education.length > 0 ? formData.education : [],
     experience: Array.isArray(formData?.experience) && formData.experience.length > 0 ? formData.experience : [],
@@ -675,7 +681,7 @@ function Preview5({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
               )}
 
               {/* Contact info */}
-              {(displayData.phone || displayData.email || displayData.address) && (
+              {(displayData.phone || displayData.email || displayData.addressLines.length > 0) && (
               <div className="template5-contact-wrapper">
               {displayData.phone && (
                 <div className="template5-contact-item">
@@ -696,15 +702,14 @@ function Preview5({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
                 </div>
               )}
 
-              {/* Address */}
-              {displayData.address && (
-                <div className="template5-contact-item">
+              {displayData.addressLines.map((line) => (
+                <div key={line.key} className="template5-contact-item">
                   <span className="template5-contact-icon">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
                   </span>
-                  <span>{displayData.address}</span>
+                  <span>{line.label}: {line.value}</span>
                 </div>
-              )}
+              ))}
               </div>
               )}
             </div>
@@ -1190,6 +1195,7 @@ function Preview5({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
                   <option value="template5">Template 5</option>
                   <option value="template6">Template 6</option>
                   <option value="template7">Template 7</option>
+                  <option value="template8">Template 8</option>
                 </select>
               </div>
             )}

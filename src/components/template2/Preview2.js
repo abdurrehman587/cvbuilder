@@ -3,6 +3,7 @@ import React, { useEffect, useState, useRef, useMemo } from 'react';
 import usePreviewHandler from './PreviewHandler2';
 import generatePDF from './pdf2';
 import { setCVView } from '../../utils/routing';
+import { getAddressLines, readAddressFieldsFromDom } from '../../utils/cvAddress';
 import './Preview2.css';
 import './Preview2.mobile.css';
 
@@ -29,7 +30,7 @@ const getFormDataFromDOM = (existingFormData = null) => {
     position: document.getElementById('position-input')?.value || '',
     phone: document.getElementById('phone-input')?.value || '',
     email: document.getElementById('email-input')?.value || '',
-    address: document.getElementById('address-input')?.value || '',
+    ...readAddressFieldsFromDom(),
     profileImage: profileImage,
     professionalSummary: document.getElementById('professional-summary-textarea')?.value || '',
     education: [],
@@ -243,6 +244,8 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
         e.target.id === 'phone-input' ||
         e.target.id === 'email-input' ||
         e.target.id === 'address-input' ||
+        e.target.id === 'present-address-input' ||
+        e.target.id === 'permanent-address-input' ||
         e.target.id === 'professional-summary-textarea' ||
         e.target.id === 'show-profile-image-checkbox'
       )) {
@@ -530,6 +533,9 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
     phone: formData?.phone || '',
     email: formData?.email || '',
     address: formData?.address || '',
+    presentAddress: formData?.presentAddress || '',
+    permanentAddress: formData?.permanentAddress || '',
+    addressLines: getAddressLines(formData),
     professionalSummary: formData?.professionalSummary || 'To work with a organization that offers a creative, dynamic and professional environment, where my education, knowledge, skills and proven abilities can be fully utilized and which also offers learning opportunities for my career development in the long run.',
     education: Array.isArray(formData?.education) && formData.education.length > 0 ? formData.education : [],
     experience: Array.isArray(formData?.experience) && formData.experience.length > 0 ? formData.experience : [],
@@ -629,12 +635,12 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
               <span>{displayData.email}</span>
             </div>
           )}
-          {displayData.address && (
-            <div className="template2-contact-item">
+          {displayData.addressLines.map((line) => (
+            <div key={line.key} className="template2-contact-item">
               <span className="template2-contact-icon">📍</span>
-              <span>{displayData.address}</span>
+              <span>{line.label}: {line.value}</span>
             </div>
-          )}
+          ))}
         </div>
 
         {/* Skills */}
@@ -1032,6 +1038,7 @@ function Preview2({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
                   <option value="template5">Template 5</option>
                   <option value="template6">Template 6</option>
                   <option value="template7">Template 7</option>
+                  <option value="template8">Template 8</option>
                 </select>
               </div>
             )}

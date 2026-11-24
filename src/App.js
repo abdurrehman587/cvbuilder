@@ -14,9 +14,13 @@ import generatePDF4 from './components/template4/pdf4';
 import generatePDF5 from './components/template5/pdf5';
 import generatePDF6 from './components/template6/pdf6';
 import generatePDF7 from './components/template7/pdf7';
+import generatePDF8 from './components/template8/pdf8';
 import { setCurrentApp, getCVView, setCVView, setIDCardView, getRoute } from './utils/routing';
 import { pathToApp, getProductIdFromPath, getOrderIdFromPath } from './utils/routeMapping';
 import { setNavigate } from './utils/navigation';
+import { installBoldPhrasePersistence } from './utils/cvBold';
+
+installBoldPhrasePersistence();
 
 // Critical components - load immediately
 import Header from './components/Header/Header';
@@ -30,6 +34,7 @@ const Form1 = lazy(() => import('./components/template1/Form1'));
 const Form5 = lazy(() => import('./components/template5/Form1'));
 const Form6 = lazy(() => import('./components/template6/Form1'));
 const Form7 = lazy(() => import('./components/template7/Form1'));
+const Form8 = lazy(() => import('./components/template8/Form1'));
 const Preview1 = lazy(() => import('./components/template1/Preview1'));
 const Preview2 = lazy(() => import('./components/template2/Preview2'));
 const Preview3 = lazy(() => import('./components/template3/Preview3'));
@@ -37,6 +42,7 @@ const Preview4 = lazy(() => import('./components/template4/Preview4'));
 const Preview5 = lazy(() => import('./components/template5/Preview5'));
 const Preview6 = lazy(() => import('./components/template6/Preview6'));
 const Preview7 = lazy(() => import('./components/template7/Preview7'));
+const Preview8 = lazy(() => import('./components/template8/Preview8'));
 const IDCardPrintPage = lazy(() => import('./components/IDCardPrint/IDCardPrintPage'));
 const IDCardDashboard = lazy(() => import('./components/IDCardDashboard/IDCardDashboard'));
 const DocumentScanner = lazy(() => import('./components/DocumentScanner/DocumentScanner'));
@@ -181,6 +187,8 @@ function App() {
     phone: '',
     email: '',
     address: '',
+    presentAddress: '',
+    permanentAddress: '',
     profileImage: null,
     professionalSummary: '',
     education: [],
@@ -507,6 +515,8 @@ function App() {
       phone: '',
       email: '',
       address: '',
+      presentAddress: '',
+      permanentAddress: '',
       profileImage: null,
       showProfileImage: true,
       professionalSummary: '',
@@ -1722,13 +1732,16 @@ function App() {
         case 'template7':
           generatePDF = generatePDF7;
           break;
+        case 'template8':
+          generatePDF = generatePDF8;
+          break;
         default:
           generatePDF = generatePDF1;
       }
 
       // Call the PDF generation function
       if (generatePDF) {
-        if (selectedTemplate === 'template1' || selectedTemplate === 'template2' || selectedTemplate === 'template3' || selectedTemplate === 'template4' || selectedTemplate === 'template5' || selectedTemplate === 'template6' || selectedTemplate === 'template7') {
+        if (selectedTemplate === 'template1' || selectedTemplate === 'template2' || selectedTemplate === 'template3' || selectedTemplate === 'template4' || selectedTemplate === 'template5' || selectedTemplate === 'template6' || selectedTemplate === 'template7' || selectedTemplate === 'template8') {
           generatePDF(dataForFileName);
         } else {
           generatePDF();
@@ -2120,6 +2133,7 @@ function App() {
           <Suspense fallback={<LoadingFallback />}>
             <PreviewPage 
               formData={formData}
+              updateFormData={updateFormData}
               selectedTemplate={selectedTemplate}
               onTemplateSwitch={handleTemplateSwitch}
             />
@@ -2616,6 +2630,26 @@ function App() {
                   />
                 </>
               );
+            case 'template8':
+              return (
+                <>
+                  <Form8
+                    key={formResetKey}
+                    formData={formData}
+                    updateFormData={updateFormData}
+                    markAsChanged={hookMarkAsChanged}
+                  />
+                  <Preview8
+                    formData={formData}
+                    autoSaveStatus={hookAutoSaveStatus}
+                    hasUnsavedChanges={hookHasUnsavedChanges}
+                    selectedTemplate={selectedTemplate}
+                    onTemplateSwitch={handleTemplateSwitch}
+                    isPreviewPage={false}
+                    updateFormData={updateFormData}
+                  />
+                </>
+              );
             default:
               return (
                 <>
@@ -3023,6 +3057,26 @@ function App() {
                 />
               </>
             );
+          case 'template8':
+            return (
+              <>
+                <Form8
+                  key={formResetKey}
+                  formData={formData}
+                  updateFormData={updateFormData}
+                  markAsChanged={hookMarkAsChanged}
+                />
+                <Preview8
+                  formData={formData}
+                  autoSaveStatus={hookAutoSaveStatus}
+                  hasUnsavedChanges={hookHasUnsavedChanges}
+                  selectedTemplate={selectedTemplate}
+                  onTemplateSwitch={handleTemplateSwitch}
+                  isPreviewPage={false}
+                  updateFormData={updateFormData}
+                />
+              </>
+            );
           default:
             return (
               <>
@@ -3169,6 +3223,13 @@ function App() {
               <>
                 <Form7 formData={formData} updateFormData={updateFormData} />
                 <Preview7 formData={formData} updateFormData={updateFormData} />
+              </>
+            );
+          case 'template8':
+            return (
+              <>
+                <Form8 formData={formData} updateFormData={updateFormData} />
+                <Preview8 formData={formData} updateFormData={updateFormData} />
               </>
             );
           default:
@@ -3367,6 +3428,23 @@ function App() {
                 markAsChanged={hookMarkAsChanged}
               />
               <Preview7
+                formData={formData}
+                autoSaveStatus={hookAutoSaveStatus}
+                hasUnsavedChanges={hookHasUnsavedChanges}
+                updateFormData={updateFormData}
+              />
+            </>
+          );
+        case 'template8':
+          return (
+            <>
+              <Form8
+                key={formResetKey}
+                formData={formData}
+                updateFormData={updateFormData}
+                markAsChanged={hookMarkAsChanged}
+              />
+              <Preview8
                 formData={formData}
                 autoSaveStatus={hookAutoSaveStatus}
                 hasUnsavedChanges={hookHasUnsavedChanges}

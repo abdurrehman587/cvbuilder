@@ -3,6 +3,7 @@ import usePreviewHandler from './PreviewHandler6';
 // eslint-disable-next-line no-unused-vars
 import generatePDF from './pdf6';
 import { setCVView } from '../../utils/routing';
+import { getAddressLines, readAddressFieldsFromDom } from '../../utils/cvAddress';
 import './Preview6.css';
 
 // Function to capture all form data from DOM (similar to PreviewHandler5.getFormData)
@@ -28,7 +29,7 @@ const getFormDataFromDOM = (existingFormData = null) => {
     position: document.getElementById('position-input')?.value || '',
     phone: document.getElementById('phone-input')?.value || '',
     email: document.getElementById('email-input')?.value || '',
-    address: document.getElementById('address-input')?.value || '',
+    ...readAddressFieldsFromDom(),
     profileImage: profileImage,
     showProfileImage: document.getElementById('show-profile-image-checkbox')?.checked !== false,
     professionalSummary: document.getElementById('professional-summary-textarea')?.value || '',
@@ -273,6 +274,8 @@ function Preview6({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
         e.target.id === 'phone-input' ||
         e.target.id === 'email-input' ||
         e.target.id === 'address-input' ||
+        e.target.id === 'present-address-input' ||
+        e.target.id === 'permanent-address-input' ||
         e.target.id === 'professional-summary-textarea' ||
         e.target.id === 'show-profile-image-checkbox'
       )) {
@@ -563,6 +566,9 @@ function Preview6({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
     phone: formData?.phone || '',
     email: formData?.email || '',
     address: formData?.address || '',
+    presentAddress: formData?.presentAddress || '',
+    permanentAddress: formData?.permanentAddress || '',
+    addressLines: getAddressLines(formData),
     professionalSummary: formData?.professionalSummary || 'To work with a organization that offers a creative, dynamic and professional environment, where my education, knowledge, skills and proven abilities can be fully utilized and which also offers learning opportunities for my career development in the long run.',
     education: Array.isArray(formData?.education) && formData.education.length > 0 ? formData.education : [],
     experience: Array.isArray(formData?.experience) && formData.experience.length > 0 ? formData.experience : [],
@@ -844,12 +850,12 @@ function Preview6({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
                 <a className="t6-link" href={`mailto:${displayData.email}`}>{displayData.email}</a>
               </div>
             ) : null}
-            {displayData.address ? (
-              <div className="t6-detail-block">
-                <span className="t6-detail-label">Address</span>
-                <span className="t6-detail-value">{displayData.address}</span>
+            {displayData.addressLines.map((line) => (
+              <div key={line.key} className="t6-detail-block">
+                <span className="t6-detail-label">{line.label}</span>
+                <span className="t6-detail-value">{line.value}</span>
               </div>
-            ) : null}
+            ))}
 
             {displayData.languages && displayData.languages.length > 0 ? (
               <>
@@ -1147,6 +1153,7 @@ function Preview6({ formData: propFormData, autoSaveStatus, hasUnsavedChanges, s
                   <option value="template5">Template 5</option>
                   <option value="template6">Template 6</option>
                   <option value="template7">Template 7</option>
+                  <option value="template8">Template 8</option>
                 </select>
               </div>
             )}

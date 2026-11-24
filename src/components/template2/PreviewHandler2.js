@@ -1,5 +1,6 @@
 /* eslint-disable unicode-bom */
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { getAddressLines, readAddressFieldsFromDom } from '../../utils/cvAddress';
 
 const usePreviewHandler = (passedFormData = null) => {
   const [formData, setFormData] = useState({
@@ -36,7 +37,7 @@ const usePreviewHandler = (passedFormData = null) => {
       position: document.getElementById('position-input')?.value || '',
       phone: document.getElementById('phone-input')?.value || '',
       email: document.getElementById('email-input')?.value || '',
-      address: document.getElementById('address-input')?.value || '',
+      ...readAddressFieldsFromDom(),
       profileImage: document.getElementById('file-input')?.files?.[0] || null,
       showProfileImage: document.getElementById('show-profile-image-checkbox')?.checked !== false,
       professionalSummary: document.getElementById('professional-summary-textarea')?.value || '',
@@ -359,9 +360,9 @@ const usePreviewHandler = (passedFormData = null) => {
     if (formData.email) {
       contact.push({ type: 'email', value: formData.email, icon: 'âœ‰ï¸' });
     }
-    if (formData.address) {
-      contact.push({ type: 'address', value: formData.address, icon: 'ðŸ“' });
-    }
+    getAddressLines(formData).forEach((line) => {
+      contact.push({ type: 'address', label: line.label, value: line.value, icon: 'ðŸ“' });
+    });
     
     return contact;
   };

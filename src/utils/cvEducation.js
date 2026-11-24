@@ -1,3 +1,5 @@
+import { pickBoldPhrases } from './cvBold';
+
 export const toEducationArray = (source) => {
   if (source == null) return [];
   if (typeof source === 'string') return source.trim() ? [source] : [];
@@ -184,5 +186,6 @@ export const mergePreviewFormData = (formData) => {
       ? formData.references
       : (stored.references || []),
     profileImage: formData.profileImage || stored.profileImage,
+    boldPhrases: pickBoldPhrases(formData.boldPhrases, stored.boldPhrases),
   };
 };
